@@ -1,0 +1,1170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Zesty Rentals — Guests CRM</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --teal:#1a7a6e;--teal-light:#23a090;--teal-dark:#115950;
+  --gold:#c9a84c;--gold-light:#e8c97a;
+  --cream:#f8f5f0;--white:#ffffff;
+  --text:#1e2a28;--text-muted:#6b7e7b;--border:#d4e0de;
+  --danger:#c0392b;--danger-light:#fdf0ef;
+  --success:#27ae60;
+  --shadow:0 2px 16px rgba(26,122,110,0.10);
+  --shadow-lg:0 8px 40px rgba(26,122,110,0.15);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--text);min-height:100vh;}
+
+header{background:var(--teal-dark);padding:0 28px;display:flex;align-items:center;justify-content:space-between;height:64px;position:sticky;top:0;z-index:100;box-shadow:0 2px 20px rgba(0,0,0,.2);}
+.logo{font-family:'Cormorant Garamond',serif;font-size:21px;font-weight:500;color:white;}
+.logo span{color:var(--gold-light);}
+
+.btn{padding:8px 18px;border-radius:6px;border:none;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:6px;}
+.btn-primary{background:var(--gold);color:var(--teal-dark);}
+.btn-primary:hover{background:var(--gold-light);}
+.btn-teal{background:var(--teal);color:white;}
+.btn-teal:hover{background:var(--teal-light);}
+.btn-outline{background:transparent;border:1px solid var(--border);color:var(--text-muted);}
+.btn-outline:hover{border-color:var(--teal);color:var(--teal);}
+.btn-danger{background:var(--danger-light);color:var(--danger);border:1px solid #f5c6c2;}
+.btn-danger:hover{background:var(--danger);color:white;}
+.btn-sm{padding:5px 12px;font-size:12px;}
+
+.container{max-width:1500px;margin:0 auto;padding:28px 24px;}
+
+/* STATS */
+.stats-bar{display:grid;grid-template-columns:repeat(6,1fr);gap:14px;margin-bottom:24px;}
+.stat-card{background:white;border-radius:12px;padding:16px 20px;box-shadow:var(--shadow);border-left:4px solid var(--teal);}
+.stat-card:nth-child(2){border-color:var(--gold);}
+.stat-card:nth-child(3){border-color:var(--teal-light);}
+.stat-card:nth-child(4){border-color:#e67e22;}
+.stat-card:nth-child(5){border-color:#8e44ad;}
+.stat-card:nth-child(6){border-color:var(--success);}
+.stat-label{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);margin-bottom:4px;}
+.stat-value{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:600;color:var(--teal-dark);}
+
+/* TOOLBAR */
+.toolbar{background:white;border-radius:12px;padding:14px 18px;display:flex;align-items:center;gap:10px;margin-bottom:18px;box-shadow:var(--shadow);flex-wrap:wrap;}
+.search-wrap{position:relative;flex:1;min-width:200px;}
+.search-wrap input{width:100%;padding:8px 14px 8px 36px;border:1px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;outline:none;background:var(--cream);}
+.search-wrap input:focus{border-color:var(--teal);background:white;}
+.search-icon{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--text-muted);font-size:13px;}
+select{padding:8px 12px;border:1px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;outline:none;background:var(--cream);color:var(--text);cursor:pointer;}
+select:focus{border-color:var(--teal);}
+
+/* TABLE */
+.table-wrap{background:white;border-radius:12px;box-shadow:var(--shadow);overflow:hidden;}
+table{width:100%;border-collapse:collapse;font-size:13px;}
+thead{background:var(--teal-dark);color:white;}
+th{padding:12px 14px;text-align:left;font-weight:500;font-size:11px;text-transform:uppercase;letter-spacing:.8px;white-space:nowrap;cursor:pointer;user-select:none;}
+th:hover{background:var(--teal);}
+td{padding:11px 14px;border-bottom:1px solid #f0f4f3;vertical-align:middle;}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:#f5faf9;}
+
+.guest-avatar{width:34px;height:34px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-weight:600;font-size:13px;color:white;flex-shrink:0;}
+.guest-name{font-weight:500;color:var(--teal-dark);}
+.guest-email{font-size:11px;color:var(--text-muted);margin-top:1px;}
+
+.badge{display:inline-block;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:500;}
+.badge-booked{background:#e8f8f0;color:var(--success);}
+.badge-open{background:#fdf6e3;color:#8e6b23;}
+.badge-declined{background:#fdf0ef;color:var(--danger);}
+.badge-repeat{background:#e8f3fc;color:#2471a3;}
+
+.source-icon{font-size:14px;}
+
+/* FLAG */
+.flag{font-size:16px;}
+
+/* BOOKING COUNT BUBBLE */
+.booking-bubble{display:inline-flex;align-items:center;justify-content:center;min-width:26px;height:26px;border-radius:13px;padding:0 7px;font-size:11px;font-weight:600;color:white;}
+
+/* PAGINATION */
+.pagination{display:flex;align-items:center;justify-content:space-between;padding:12px 18px;border-top:1px solid var(--border);font-size:13px;color:var(--text-muted);}
+.page-btns{display:flex;gap:4px;}
+.page-btn{width:30px;height:30px;border:1px solid var(--border);border-radius:5px;background:white;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;transition:all .2s;}
+.page-btn:hover,.page-btn.active{background:var(--teal);color:white;border-color:var(--teal);}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity .3s;}
+.modal-overlay.open{opacity:1;pointer-events:all;}
+.modal{background:white;border-radius:16px;width:100%;max-width:860px;max-height:92vh;overflow-y:auto;box-shadow:var(--shadow-lg);transform:translateY(20px);transition:transform .3s;}
+.modal-overlay.open .modal{transform:translateY(0);}
+.modal-header{padding:22px 26px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:white;z-index:10;border-radius:16px 16px 0 0;}
+.modal-title{font-family:'Cormorant Garamond',serif;font-size:21px;font-weight:600;color:var(--teal-dark);}
+.modal-close{width:30px;height:30px;border:none;background:var(--cream);border-radius:50%;cursor:pointer;font-size:16px;color:var(--text-muted);display:flex;align-items:center;justify-content:center;}
+.modal-close:hover{background:var(--border);}
+.modal-body{padding:22px 26px;}
+.modal-footer{padding:14px 26px 22px;display:flex;justify-content:flex-end;gap:10px;border-top:1px solid var(--border);position:sticky;bottom:0;background:white;}
+
+.section-title{font-family:'Cormorant Garamond',serif;font-size:14px;font-weight:600;color:var(--teal);text-transform:uppercase;letter-spacing:1px;margin:18px 0 12px;padding-bottom:5px;border-bottom:1px solid var(--border);}
+.section-title:first-child{margin-top:0;}
+.form-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+.form-grid-2{grid-template-columns:repeat(2,1fr);}
+.form-grid-4{grid-template-columns:repeat(4,1fr);}
+.col-span-2{grid-column:span 2;}
+.col-span-3{grid-column:span 3;}
+.col-span-4{grid-column:span 4;}
+.form-group{display:flex;flex-direction:column;gap:4px;}
+.form-group label{font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.6px;color:var(--text-muted);}
+.form-group input,.form-group select,.form-group textarea{padding:8px 11px;border:1px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;outline:none;transition:border-color .2s;background:var(--cream);color:var(--text);width:100%;}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--teal);background:white;}
+.form-group textarea{resize:vertical;min-height:70px;}
+
+/* BOOKING CARDS */
+.booking-card{background:var(--cream);border-radius:10px;padding:14px 16px;margin-bottom:10px;border:1px solid var(--border);position:relative;transition:border-color .2s;}
+.booking-card:hover{border-color:var(--teal);}
+.booking-card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+.booking-card-prop{font-weight:600;font-size:13px;color:var(--teal-dark);}
+.booking-card-meta{display:flex;gap:14px;font-size:12px;color:var(--text-muted);flex-wrap:wrap;}
+.booking-card-meta span{display:flex;align-items:center;gap:4px;}
+.booking-total{font-weight:600;color:var(--teal-dark);font-size:14px;}
+
+/* TAGS */
+.tag{display:inline-block;padding:2px 9px;border-radius:4px;font-size:11px;font-weight:500;margin:2px;}
+.tag-vip{background:#fdf6e3;color:#8e6b23;border:1px solid #f0dfa0;}
+.tag-repeat{background:#e8f3fc;color:#2471a3;border:1px solid #b8d8f0;}
+.tag-difficult{background:#fdf0ef;color:var(--danger);border:1px solid #f5c6c2;}
+.tag-new{background:#e8f8f0;color:var(--success);border:1px solid #a8e6c0;}
+.tag-default{background:#f5f5f5;color:#666;border:1px solid #ddd;}
+
+/* SOURCE BADGES */
+.src-Airbnb{background:#FF5A5F20;color:#c0392b;}
+.src-Booking{background:#00357820;color:#003578;}
+.src-Vrbo{background:#0B5FFF20;color:#0B5FFF;}
+.src-Manual{background:#2c3e5020;color:#2c3e50;}
+.src-Website{background:#1a7a6e20;color:#1a7a6e;}
+.src-Google{background:#4285F420;color:#4285F4;}
+
+/* CONFIRM */
+.confirm-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:300;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s;}
+.confirm-overlay.open{opacity:1;pointer-events:all;}
+.confirm-box{background:white;border-radius:12px;padding:26px;max-width:360px;width:90%;box-shadow:var(--shadow-lg);text-align:center;}
+.confirm-icon{font-size:38px;margin-bottom:10px;}
+.confirm-title{font-size:16px;font-weight:600;margin-bottom:6px;}
+.confirm-msg{font-size:13px;color:var(--text-muted);margin-bottom:18px;}
+.confirm-btns{display:flex;gap:10px;justify-content:center;}
+
+.toast{position:fixed;bottom:24px;right:24px;background:var(--teal-dark);color:white;padding:12px 18px;border-radius:8px;font-size:13px;font-weight:500;z-index:400;transform:translateY(60px);opacity:0;transition:all .3s;}
+.toast.show{transform:translateY(0);opacity:1;}
+.toast.success{background:var(--success);}
+.toast.error{background:var(--danger);}
+
+.empty-state{text-align:center;padding:50px;color:var(--text-muted);}
+.empty-icon{font-size:44px;margin-bottom:10px;}
+
+/* IMPORT BANNER */
+.import-banner{background:linear-gradient(135deg,var(--teal-dark),var(--teal));color:white;border-radius:12px;padding:18px 22px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;box-shadow:var(--shadow);}
+.import-banner h3{font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:500;margin-bottom:3px;}
+.import-banner p{font-size:12px;opacity:.8;}
+#syncBar{display:none;position:fixed;bottom:60px;right:16px;background:rgba(26,200,160,0.92);color:#fff;padding:7px 14px;border-radius:8px;font-size:12px;font-family:'DM Sans',sans-serif;z-index:300;backdrop-filter:blur(6px);}
+</style>
+    <script>
+    (function(){
+      const _msalConfig={
+        auth:{
+          clientId:'0938023f-cbbf-45f1-a71d-b18c95745ea6',
+          authority:'https://login.microsoftonline.com/9c30b606-6648-4777-a623-64867e43e54f',
+          redirectUri:'https://kissamosrealestate.com/wp-content/erp/index.html'
+        },
+        cache:{cacheLocation:'sessionStorage',storeAuthStateInCookie:false}
+      };
+      const _msal=new msal.PublicClientApplication(_msalConfig);
+      const _loginRequest={scopes:['openid','profile','User.Read']};
+
+      async function _ensureLogin(){
+        await _msal.initialize();
+        try{ await _msal.handleRedirectPromise(); }catch(e){}
+        const accounts=_msal.getAllAccounts();
+        if(accounts.length>0){
+          const acct=accounts[0];
+          _showUserBadge(acct.name||acct.username);
+          return;
+        }
+        _msal.loginRedirect(_loginRequest);
+      }
+
+      function _showUserBadge(name){
+        const show=()=>{
+          const hdr=document.querySelector('.header-right');
+          if(!hdr)return;
+          if(document.getElementById('_azure_badge'))return;
+          const badge=document.createElement('div');
+          badge.id='_azure_badge';
+          badge.style.cssText='display:flex;align-items:center;gap:8px;margin-left:4px';
+          badge.innerHTML=`<span style="font-size:12px;color:rgba(255,255,255,.75);font-family:DM Sans,sans-serif">&#128100; ${name}</span>`+
+            `<button onclick="window._azureLogout()" style="padding:4px 10px;border-radius:7px;border:1px solid rgba(255,255,255,.3);background:transparent;color:rgba(255,255,255,.7);font-size:11px;cursor:pointer;font-family:DM Sans,sans-serif">Sign out</button>`;
+          hdr.appendChild(badge);
+        };
+        if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',show);}
+        else{show();}
+      }
+
+      window._azureLogout=function(){
+        const accounts=_msal.getAllAccounts();
+        if(accounts.length>0){_msal.logoutRedirect({account:accounts[0]});}
+      };
+
+      document.addEventListener('DOMContentLoaded',function(){
+        const accounts=_msal.getAllAccounts();
+        if(accounts.length===0){document.body.style.visibility='hidden';}
+        else{document.body.style.visibility='visible';}
+      });
+
+      _ensureLogin().then(()=>{
+        document.body.style.visibility='visible';
+      });
+    })();
+    </script>
+    <!-- Azure MSAL Authentication -->
+    <script src="https://unpkg.com/@azure/msal-browser@2.38.3/lib/msal-browser.min.js"></script>
+    <script>
+    (function(){
+      const _msalConfig={
+        auth:{
+          clientId:'0938023f-cbbf-45f1-a71d-b18c95745ea6',
+          authority:'https://login.microsoftonline.com/9c30b606-6648-4777-a623-64867e43e54f',
+          redirectUri:'https://kissamosrealestate.com/wp-content/erp/index.html'
+        },
+        cache:{cacheLocation:'sessionStorage',storeAuthStateInCookie:false}
+      };
+      const _msal=new msal.PublicClientApplication(_msalConfig);
+      const _loginRequest={scopes:['openid','profile','User.Read']};
+
+      async function _ensureLogin(){
+        await _msal.initialize();
+        try{ await _msal.handleRedirectPromise(); }catch(e){}
+        const accounts=_msal.getAllAccounts();
+        if(accounts.length>0){
+          const acct=accounts[0];
+          if(acct.tenantId!=='9c30b606-6648-4777-a623-64867e43e54f'){
+            document.documentElement.style.visibility='visible';
+            document.body.innerHTML='<div style="display:flex;align-items:center;justify-content:center;height:100vh;font-family:sans-serif;flex-direction:column;gap:12px"><div style="font-size:48px">🔒</div><div style="font-size:18px;font-weight:600;color:#1e2a28">Access Denied</div><div style="font-size:14px;color:#666">Your account is not authorised to access this system.</div><button onclick="window._azureLogout()" style="margin-top:12px;padding:8px 20px;background:#1a7a6e;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:14px">Sign out</button></div>';
+            return;
+          }
+          _showUserBadge(acct.name||acct.username);
+          document.documentElement.style.visibility='visible';
+          return;
+        }
+        await _msal.loginRedirect(_loginRequest);
+      }
+
+      function _showUserBadge(name){
+        const show=()=>{
+          const hdr=document.querySelector('.header-right');
+          if(!hdr)return;
+          if(document.getElementById('_azure_badge'))return;
+          const badge=document.createElement('div');
+          badge.id='_azure_badge';
+          badge.style.cssText='display:flex;align-items:center;gap:8px;margin-left:4px';
+          badge.innerHTML='<span style="font-size:12px;color:rgba(255,255,255,.75);font-family:DM Sans,sans-serif">&#128100; '+name+'</span>'+
+            '<button onclick="window._azureLogout()" style="padding:4px 10px;border-radius:7px;border:1px solid rgba(255,255,255,.3);background:transparent;color:rgba(255,255,255,.7);font-size:11px;cursor:pointer;font-family:DM Sans,sans-serif">Sign out</button>';
+          hdr.appendChild(badge);
+        };
+        if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',show);}
+        else{show();}
+      }
+
+      window._azureLogout=function(){
+        const accounts=_msal.getAllAccounts();
+        if(accounts.length>0){_msal.logoutRedirect({account:accounts[0]});}
+      };
+
+      document.documentElement.style.visibility='hidden';
+
+      _ensureLogin().catch(function(){
+        _msal.loginRedirect(_loginRequest);
+      });
+    })();
+    </script>
+</head>
+<body>
+
+<header>
+  <div class="logo">Zesty <span>Rentals</span> — Guests CRM</div>
+  <div style="display:flex;gap:8px">
+    <button class="btn btn-outline" style="color:var(--gold-light);border-color:rgba(255,255,255,.3);font-size:12px" onclick="window.location.href='index.html'">🏠 Home</button>
+    <button class="btn btn-outline" style="color:var(--gold-light);border-color:rgba(255,255,255,.3);font-size:12px" onclick="window.location.href='owners-crm.html'">👤 Owners</button>
+    <button class="btn btn-outline" style="color:var(--gold-light);border-color:rgba(255,255,255,.3);font-size:12px" onclick="window.location.href='properties-db.html'">🏘 Properties</button>
+    <button class="btn btn-outline" style="color:var(--gold-light);border-color:rgba(255,255,255,.3);font-size:12px" onclick="window.location.href='cleaning-system.html'">🧹 Cleaning</button>
+    <button style="background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.9);padding:5px 11px;border-radius:6px;font-size:12px" onclick="window.location.href='contacts-crm.html'">📋 Contacts</button>
+    <button class="btn btn-outline" style="color:var(--gold-light);border-color:rgba(255,255,255,.3);font-size:12px" onclick="window.location.href='employees.html'">&#128100; Employees</button>
+    <button class="btn btn-outline" style="color:var(--gold-light);border-color:rgba(255,255,255,.3);font-size:12px" onclick="window.location.href='leave.html'">&#128197; Leave</button>
+    <button class="btn btn-outline" style="color:var(--gold-light);border-color:rgba(255,255,255,.3);font-size:12px" onclick="window.location.href='tasks.html'">&#9635; Tasks</button>
+    <button class="btn btn-outline" style="color:var(--gold-light);border-color:rgba(255,255,255,.3);font-size:12px" onclick="window.location.href='jobs.html'">&#9635; Jobs</button>
+    <button class="btn btn-outline" style="color:var(--gold-light);border-color:rgba(255,255,255,.3);font-size:12px" onclick="location.href='settings.html'">&#9881; Settings</button>
+    <button class="btn btn-primary" onclick="openAddGuest()">＋ Add Guest</button>
+  </div>
+</header>
+
+<div id="syncBar"></div>
+
+<div class="container">
+
+
+
+  <!-- STATS -->
+  <div class="stats-bar">
+    <div class="stat-card"><div class="stat-label">Total Guests</div><div class="stat-value" id="st-total">0</div></div>
+    <div class="stat-card"><div class="stat-label">With Email</div><div class="stat-value" id="st-email">0</div></div>
+    <div class="stat-card"><div class="stat-label">Repeat Guests</div><div class="stat-value" id="st-repeat">0</div></div>
+    <div class="stat-card"><div class="stat-label">Total Bookings</div><div class="stat-value" id="st-bookings">0</div></div>
+    <div class="stat-card"><div class="stat-label">Total Revenue</div><div class="stat-value" id="st-revenue">€0</div></div>
+    <div class="stat-card"><div class="stat-label">Countries</div><div class="stat-value" id="st-countries">0</div></div>
+  </div>
+
+  <!-- TOOLBAR -->
+  <div class="toolbar">
+    <div class="search-wrap">
+      <span class="search-icon">🔍</span>
+      <input type="text" id="guestSearch" placeholder="Search name, email, phone, country, property..." oninput="renderTable()">
+    </div>
+    <select id="filterSource" onchange="renderTable()">
+      <option value="">All Sources</option>
+      <option value="Airbnb">Airbnb</option>
+      <option value="Booking.com">Booking.com</option>
+      <option value="Vrbo">VRBO</option>
+      <option value="Manual">Manual</option>
+      <option value="Website">Website</option>
+      <option value="Google Vacation Rentals">Google</option>
+    </select>
+    <select id="filterCountry" onchange="renderTable()">
+      <option value="">All Countries</option>
+    </select>
+    <select id="filterRepeat" onchange="renderTable()">
+      <option value="">All Guests</option>
+      <option value="repeat">Repeat Guests</option>
+      <option value="single">Single Visit</option>
+    </select>
+    <select id="filterTag" onchange="renderTable()">
+      <option value="">All Tags</option>
+      <option value="VIP">VIP</option>
+      <option value="Repeat">Repeat</option>
+      <option value="Difficult">Difficult</option>
+      <option value="New">New</option>
+    </select>
+    <div style="margin-left:auto;display:flex;gap:8px">
+      <button class="btn btn-outline btn-sm" style="color:#e74c3c;border-color:#e74c3c" onclick="resetGuestDB()" title="Clear database and reload from built-in data">🔄 Reset DB</button>
+      <button class="btn btn-outline btn-sm" onclick="exportCSV()">⬇ Export CSV</button>
+      <div style="display:flex;flex-direction:column;gap:4px">
+        <label class="btn btn-teal btn-sm" style="cursor:pointer">📥 Import Lodgify CSV
+          <input type="file" accept=".csv" style="display:none" onchange="importFromCSV(event)">
+        </label>
+        <div id="lastImportStatus" style="font-size:10px;color:var(--text-muted);text-align:right"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TABLE -->
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th onclick="sortBy('name')">Guest ↕</th>
+          <th onclick="sortBy('country')">Country ↕</th>
+          <th>Contact</th>
+          <th>Tags</th>
+          <th onclick="sortBy('bookingCount')">Bookings ↕</th>
+          <th onclick="sortBy('lastVisit')">Last Visit ↕</th>
+          <th onclick="sortBy('totalSpent')">Total Spent ↕</th>
+          <th>Sources</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="guestTable"></tbody>
+    </table>
+    <div class="pagination">
+      <span id="pageInfo"></span>
+      <div class="page-btns" id="pageBtns"></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- GUEST DETAIL MODAL -->
+<div class="modal-overlay" id="guestModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="guestModalTitle">Guest Profile</div>
+      <button class="modal-close" onclick="closeModal('guestModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="g_editId">
+
+      <div class="section-title">👤 Personal Details</div>
+      <div class="form-grid">
+        <div class="form-group col-span-2"><label>Full Name *</label><input type="text" id="g_name" placeholder="Full name"></div>
+        <div class="form-group"><label>Country</label><input type="text" id="g_country" placeholder="e.g. Germany" list="countryList"><datalist id="countryList"></datalist></div>
+        <div class="form-group"><label>Email</label><input type="email" id="g_email" placeholder="email@example.com"></div>
+        <div class="form-group"><label>Phone</label><input type="text" id="g_phone" placeholder="+30 6900000000"></div>
+        <div class="form-group"><label>Language</label><input type="text" id="g_language" placeholder="e.g. English"></div>
+      </div>
+
+      <div class="section-title">🏷 Tags & Notes</div>
+      <div class="form-grid form-grid-2">
+        <div class="form-group">
+          <label>Tags</label>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px" id="tagCheckboxes">
+            <label style="display:flex;align-items:center;gap:5px;padding:5px 12px;border:1px solid var(--border);border-radius:20px;cursor:pointer;font-size:12px;background:var(--cream)" id="tag_lbl_VIP" onclick="toggleTag(this,'VIP')">⭐ VIP</label>
+            <label style="display:flex;align-items:center;gap:5px;padding:5px 12px;border:1px solid var(--border);border-radius:20px;cursor:pointer;font-size:12px;background:var(--cream)" id="tag_lbl_Repeat" onclick="toggleTag(this,'Repeat')">🔄 Repeat</label>
+            <label style="display:flex;align-items:center;gap:5px;padding:5px 12px;border:1px solid var(--border);border-radius:20px;cursor:pointer;font-size:12px;background:var(--cream)" id="tag_lbl_Difficult" onclick="toggleTag(this,'Difficult')">⚠️ Difficult</label>
+            <label style="display:flex;align-items:center;gap:5px;padding:5px 12px;border:1px solid var(--border);border-radius:20px;cursor:pointer;font-size:12px;background:var(--cream)" id="tag_lbl_New" onclick="toggleTag(this,'New')">🆕 New</label>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Internal Notes</label>
+          <textarea id="g_notes" placeholder="Notes about this guest..."></textarea>
+        </div>
+      </div>
+
+      <!-- BOOKINGS -->
+      <div class="section-title" id="bookingsTitle">📅 Bookings</div>
+      <div id="bookingsList"></div>
+
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('guestModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveGuest()">💾 Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- CONFIRM -->
+<div class="confirm-overlay" id="confirmOverlay">
+  <div class="confirm-box">
+    <div class="confirm-icon" id="confirmIcon">⚠️</div>
+    <div class="confirm-title" id="confirmTitle">Are you sure?</div>
+    <div class="confirm-msg" id="confirmMsg"></div>
+    <div class="confirm-btns">
+      <button class="btn btn-outline" onclick="closeConfirm()">Cancel</button>
+      <button class="btn" id="confirmBtn" onclick="doConfirm()">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+
+<script>
+const SUPABASE_URL='https://whuytfjwdjjepayeiohj.supabase.co';
+const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndodXl0Zmp3ZGpqZXBheWVpb2hqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIyODQxMzQsImV4cCI6MjA4Nzg2MDEzNH0.pTDAqw_Cnzc9D3tJU-tU7Ch5qpapKmteiqI_ooSCufY';
+const DB={
+  _h(){return{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json','Prefer':'return=representation,resolution=merge-duplicates'}},
+  _hG(){return{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY}},
+  _hD(){return{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json'}},
+  _ok(){return!!(SUPABASE_URL&&SUPABASE_KEY&&SUPABASE_URL.includes('supabase.co'))},
+  async _fetch(method,table,body,query,ms){
+    if(!this._ok())return{ok:false,data:null,err:'Not configured'};
+    const ctrl=new AbortController(),t=setTimeout(()=>ctrl.abort(),ms||15000);
+    try{
+      const url=SUPABASE_URL+'/rest/v1/'+table+(query||'');
+      const headers=method==='GET'?this._hG():method==='DELETE'?this._hD():this._h();
+      const opts={method,headers,signal:ctrl.signal};
+      if(body)opts.body=JSON.stringify(body);
+      const res=await fetch(url,opts);clearTimeout(t);
+      if(!res.ok){
+        let e='HTTP '+res.status;
+        try{const j=await res.json();e=j.message||j.hint||j.error||e}catch(x){}
+        return{ok:false,data:null,err:e};
+      }
+      if(res.status===204||method==='DELETE')return{ok:true,data:[]};
+      const ct=res.headers.get('content-type')||'';
+      if(!ct.includes('json'))return{ok:true,data:[]};
+      try{return{ok:true,data:await res.json()}}catch(x){return{ok:true,data:[]}}
+    }catch(e){clearTimeout(t);return{ok:false,data:null,err:e.name==='AbortError'?'Timeout':e.message}}
+  },
+  async loadAll(table){
+    const r=await this._fetch('GET',table,null,'?select=id,data,updated_at&order=created_at.asc&limit=100000');
+    if(!r.ok)return{ok:false,rows:null,err:r.err};
+    const rows=(r.data||[]).map(row=>({id:row.id,...(row.data||{})}));
+    return{ok:true,rows};
+  },
+  async upsertOne(table,record){
+    const{id,...rest}=record;
+    const rid=id||('rec_'+Date.now()+'_'+Math.random().toString(36).slice(2,6));
+    const row={id:rid,data:rest,updated_at:new Date().toISOString()};
+    const r=await this._fetch('POST',table,row,'?on_conflict=id');
+    return{ok:r.ok,id:rid,err:r.err};
+  },
+  async upsertMany(table,records){
+    if(!records.length)return{ok:true};
+    const rows=records.map(({id,...rest})=>({id:id||('rec_'+Date.now()+'_'+Math.random().toString(36).slice(2,6)),data:rest,updated_at:new Date().toISOString()}));
+    const size=200;
+    for(let i=0;i<rows.length;i+=size){
+      const r=await this._fetch('POST',table,rows.slice(i,i+size),'?on_conflict=id');
+      if(!r.ok)return{ok:false,err:r.err};
+    }
+    return{ok:true};
+  },
+  async deleteOne(table,id){
+    const r=await this._fetch('DELETE',table,null,'?id=eq.'+encodeURIComponent(id));
+    return{ok:r.ok,err:r.err};
+  },
+  isConfigured(){return this._ok()}
+};
+const SyncStore={
+  _pendingDeletes:{},
+  async load(lsKey,table){
+    const cached=this._getLocal(lsKey);
+    const result=await DB.loadAll(table);
+    if(result.ok&&result.rows!==null){
+      const pending=this._pendingDeletes[table]||new Set();
+      const rows=result.rows.filter(r=>!pending.has(r.id));
+      localStorage.setItem(lsKey,JSON.stringify(rows));
+      return{data:rows,fromCache:false,online:true};
+    }
+    return{data:cached,fromCache:true,online:false};
+  },
+  async saveOne(lsKey,table,record,all){
+    localStorage.setItem(lsKey,JSON.stringify(all));
+    const r=await DB.upsertOne(table,record);
+    if(!r.ok)showSyncErr(r.err);
+    return r;
+  },
+  async saveAll(lsKey,table,records){
+    localStorage.setItem(lsKey,JSON.stringify(records));
+    const r=await DB.upsertMany(table,records);
+    if(!r.ok)showSyncErr(r.err);
+    return r.ok;
+  },
+  async deleteOne(lsKey,table,id,all){
+    if(!this._pendingDeletes[table])this._pendingDeletes[table]=new Set();
+    this._pendingDeletes[table].add(id);
+    localStorage.setItem(lsKey,JSON.stringify(all));
+    const r=await DB.deleteOne(table,id);
+    if(!r.ok){
+      this._pendingDeletes[table].delete(id);
+      showSyncErr('Delete failed: '+r.err);
+      return{ok:false,err:r.err};
+    }
+    setTimeout(()=>{if(this._pendingDeletes[table])this._pendingDeletes[table].delete(id)},120000);
+    return{ok:true};
+  },
+  _getLocal(key){try{return JSON.parse(localStorage.getItem(key)||'[]')||[]}catch{return[]}}
+};
+function startPoll(table,lsKey,ms,onData){
+  let lastHash='';
+  const poll=async()=>{
+    const result=await DB.loadAll(table);
+    if(!result.ok||!result.rows)return;
+    const pending=SyncStore._pendingDeletes[table]||new Set();
+    const rows=result.rows.filter(r=>!pending.has(r.id));
+    const hash=rows.length+'|'+rows.map(r=>r.id).join(',');
+    if(hash!==lastHash){lastHash=hash;localStorage.setItem(lsKey,JSON.stringify(rows));onData(rows)}
+  };
+  setInterval(poll,ms);
+  return poll;
+}
+function showDbStatus(online){
+  const old=document.getElementById('db-status-bar');if(old)old.remove();
+  if(online)return;
+  const b=document.createElement('div');b.id='db-status-bar';
+  b.style.cssText='position:fixed;bottom:0;left:0;right:0;background:#c0392b;color:#fff;text-align:center;padding:8px;font-size:12px;z-index:9998;cursor:pointer;';
+  b.textContent='⚠ Database offline — working in local mode. Click to retry.';
+  b.onclick=()=>{location.reload()};
+  document.body.appendChild(b);
+}
+function showSyncErr(err){
+  let b=document.getElementById('sync-err-bar');
+  if(!b){b=document.createElement('div');b.id='sync-err-bar';b.style.cssText='position:fixed;bottom:40px;right:16px;background:#c0392b;color:#fff;border-radius:8px;padding:8px 14px;font-size:12px;z-index:9999;max-width:320px;';document.body.appendChild(b)}
+  b.textContent='Save error: '+err;b.style.display='block';
+  clearTimeout(b._t);b._t=setTimeout(()=>b.style.display='none',6000);
+}
+
+function showDbStatus(online){
+  const old=document.getElementById('db-status-bar');if(old)old.remove();
+  if(online)return;
+  const b=document.createElement('div');b.id='db-status-bar';
+  b.style.cssText='position:fixed;bottom:0;left:0;right:0;background:#c0392b;color:#fff;text-align:center;padding:8px;font-size:12px;z-index:9998;cursor:pointer;';
+  b.textContent='⚠ Database offline — working in local mode. Click to retry.';
+  b.onclick=()=>{location.reload()};
+  document.body.appendChild(b);
+}
+function showSyncErr(err){
+  let b=document.getElementById('sync-err-bar');
+  if(!b){b=document.createElement('div');b.id='sync-err-bar';b.style.cssText='position:fixed;bottom:40px;right:16px;background:#c0392b;color:#fff;border-radius:8px;padding:8px 14px;font-size:12px;z-index:9999;max-width:320px;';document.body.appendChild(b)}
+  b.textContent='Save error: '+err;b.style.display='block';
+  clearTimeout(b._t);b._t=setTimeout(()=>b.style.display='none',6000);
+}
+
+
+</script>
+
+<script>
+let guests = [];
+let currentSort = { field: 'lastVisit', dir: -1 };
+let currentPage = 1;
+const PAGE_SIZE = 25;
+let confirmCb = null;
+const COLORS = ['#1a7a6e','#c9a84c','#e67e22','#8e44ad','#2471a3','#1e8449','#c0392b','#2c3e50'];
+
+function getColor(name) {
+  let h = 0;
+  for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) & 0xffffffff;
+  return COLORS[Math.abs(h) % COLORS.length];
+}
+
+function getInitials(name) {
+  const parts = (name||'').trim().split(' ');
+  return (parts[0]?.[0]||'') + (parts[1]?.[0]||'');
+}
+
+function getCountryFlag(country) {
+  const flags = {
+    'Germany':'🇩🇪','Italy':'🇮🇹','United States':'🇺🇸','Greece':'🇬🇷','Canada':'🇨🇦',
+    'France':'🇫🇷','United Kingdom':'🇬🇧','Australia':'🇦🇺','Poland':'🇵🇱','Switzerland':'🇨🇭',
+    'Netherlands':'🇳🇱','Sweden':'🇸🇪','Austria':'🇦🇹','Belgium':'🇧🇪','Spain':'🇪🇸',
+    'Romania':'🇷🇴','Czech Republic':'🇨🇿','Denmark':'🇩🇰','Norway':'🇳🇴','Finland':'🇫🇮',
+    'Israel':'🇮🇱','Turkey':'🇹🇷','Russia':'🇷🇺','China':'🇨🇳','Japan':'🇯🇵',
+    'Brazil':'🇧🇷','Argentina':'🇦🇷','Mexico':'🇲🇽','South Africa':'🇿🇦','India':'🇮🇳',
+    'Cyprus':'🇨🇾','Serbia':'🇷🇸','Croatia':'🇭🇷','Bulgaria':'🇧🇬','Hungary':'🇭🇺',
+    'Portugal':'🇵🇹','Ireland':'🇮🇪','New Zealand':'🇳🇿','Singapore':'🇸🇬'
+  };
+  return flags[country] || '🌍';
+}
+
+function getSourceBadge(source) {
+  const map = { 'Airbnb':'src-Airbnb','Booking.com':'src-Booking','Vrbo':'src-Vrbo','Manual':'src-Manual','Website':'src-Website','Google Vacation Rentals':'src-Google' };
+  const cls = map[source] || 'src-Manual';
+  const icons = {'Airbnb':'✈','Booking.com':'🏨','Vrbo':'🏠','Manual':'📝','Website':'🌐','Google Vacation Rentals':'🔍'};
+  return `<span class="badge ${cls}" style="margin:1px">${icons[source]||'•'} ${source==='Google Vacation Rentals'?'Google':source==='Booking.com'?'Booking':source}</span>`;
+}
+
+// ────── INIT ──────
+async function init() {
+  // Guests CRM is CSV-upload based — no database persistence
+  // Immediately dismiss loading overlay and show upload prompt
+  populateCountryFilter(); renderTable(); updateStats(); updateImportStatus();
+}
+
+
+
+
+async function syncWithSupabase() {
+  setSyncBar('Syncing...', true);
+  const result = await SyncStore.load('zesty_guests', 'guests');
+  showDbStatus(result.online);
+  if (!result.online) { setSyncBar('Offline - using cached data'); return; }
+  if (result.data.length === 0 && guests.length > 0) {
+    setSyncBar('Uploading ' + guests.length + ' guests...', true);
+    await DB.upsertMany('guests', guests);
+    setSyncBar('Uploaded ' + guests.length + ' guests');
+  } else {
+    guests = result.data;
+    populateCountryFilter(); renderTable(); updateStats();
+    setSyncBar('Synced - ' + guests.length.toLocaleString() + ' guests');
+  }
+}
+
+
+async function save() { await SyncStore.saveAll('zesty_guests', 'guests', guests); }
+
+function populateCountryFilter() {
+  const countries = [...new Set(guests.map(g => g.country).filter(Boolean))].sort();
+  const sel = document.getElementById('filterCountry');
+  sel.innerHTML = '<option value="">All Countries</option>' + countries.map(c => `<option value="${c}">${getCountryFlag(c)} ${c}</option>`).join('');
+  // datalist for add form
+  const dl = document.getElementById('countryList');
+  if (dl) dl.innerHTML = countries.map(c => `<option value="${c}">`).join('');
+}
+
+// ────── STATS ──────
+function updateStats() {
+  const withEmail = guests.filter(g => g.email).length;
+  const repeat = guests.filter(g => (g.bookings||[]).length > 1).length;
+  const totalBookings = guests.reduce((s, g) => s + (g.bookings||[]).length, 0);
+  const revenue = guests.reduce((s, g) => s + (g.bookings||[]).reduce((s2, b) => s2 + (parseFloat(b.total)||0), 0), 0);
+  const countries = new Set(guests.map(g => g.country).filter(Boolean)).size;
+  document.getElementById('st-total').textContent = guests.length.toLocaleString();
+  document.getElementById('st-email').textContent = withEmail.toLocaleString();
+  document.getElementById('st-repeat').textContent = repeat.toLocaleString();
+  document.getElementById('st-bookings').textContent = totalBookings.toLocaleString();
+  document.getElementById('st-revenue').textContent = '€' + Math.round(revenue).toLocaleString();
+  document.getElementById('st-countries').textContent = countries;
+}
+
+// ────── RENDER TABLE ──────
+function getFiltered() {
+  const search = document.getElementById('guestSearch').value.toLowerCase();
+  const srcF = document.getElementById('filterSource').value;
+  const ctryF = document.getElementById('filterCountry').value;
+  const repeatF = document.getElementById('filterRepeat').value;
+  const tagF = document.getElementById('filterTag').value;
+
+  return guests.filter(g => {
+    const bookings = g.bookings || [];
+    const allText = `${g.name} ${g.email} ${g.phone} ${g.country} ${bookings.map(b=>b.property).join(' ')}`.toLowerCase();
+    const matchSearch = !search || allText.includes(search);
+    const matchSrc = !srcF || bookings.some(b => b.source === srcF);
+    const matchCtry = !ctryF || g.country === ctryF;
+    const matchRepeat = !repeatF || (repeatF === 'repeat' ? bookings.length > 1 : bookings.length === 1);
+    const matchTag = !tagF || (g.tags||[]).includes(tagF);
+    return matchSearch && matchSrc && matchCtry && matchRepeat && matchTag;
+  });
+}
+
+function renderTable() {
+  let filtered = getFiltered();
+
+  // Sort
+  filtered.sort((a, b) => {
+    let va, vb;
+    const { field, dir } = currentSort;
+    if (field === 'bookingCount') { va = (a.bookings||[]).length; vb = (b.bookings||[]).length; }
+    else if (field === 'lastVisit') {
+      va = (a.bookings||[]).reduce((m,b) => b.arrival > m ? b.arrival : m, '');
+      vb = (b.bookings||[]).reduce((m,b) => b.arrival > m ? b.arrival : m, '');
+    }
+    else if (field === 'totalSpent') {
+      va = (a.bookings||[]).reduce((s,b) => s+(parseFloat(b.total)||0), 0);
+      vb = (b.bookings||[]).reduce((s,b) => s+(parseFloat(b.total)||0), 0);
+    }
+    else { va = (a[field]||'').toLowerCase(); vb = (b[field]||'').toLowerCase(); }
+    if (va < vb) return -1 * dir;
+    if (va > vb) return 1 * dir;
+    return 0;
+  });
+
+  const total = filtered.length;
+  const pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  if (currentPage > pages) currentPage = 1;
+  const start = (currentPage - 1) * PAGE_SIZE;
+  const pageData = filtered.slice(start, start + PAGE_SIZE);
+
+  const tbody = document.getElementById('guestTable');
+  if (pageData.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="9"><div class="empty-state"><div class="empty-icon">👥</div><p>No guests found.</p></div></td></tr>`;
+  } else {
+    tbody.innerHTML = pageData.map(g => {
+      const bookings = g.bookings || [];
+      const totalSpent = bookings.reduce((s,b) => s+(parseFloat(b.total)||0), 0);
+      const lastVisit = bookings.reduce((m,b) => b.arrival > m ? b.arrival : m, '');
+      const isRepeat = bookings.length > 1;
+      const sources = [...new Set(bookings.map(b=>b.source).filter(Boolean))];
+      const bubbleColor = isRepeat ? 'var(--teal)' : '#aaa';
+      const tags = (g.tags||[]).map(t => `<span class="tag tag-${t.toLowerCase()}">${t}</span>`).join('');
+      return `<tr onclick="openGuest('${g.id}')" style="cursor:pointer">
+        <td>
+          <div style="display:flex;align-items:center;gap:10px">
+            <div class="guest-avatar" style="background:${getColor(g.name||'')}">${getInitials(g.name)}</div>
+            <div>
+              <div class="guest-name">${g.name||'Unknown'}</div>
+              <div class="guest-email">${g.email||'<span style="color:var(--border)">no email</span>'}</div>
+            </div>
+          </div>
+        </td>
+        <td>${g.country ? `<span class="flag">${getCountryFlag(g.country)}</span> ${g.country}` : '—'}</td>
+        <td style="font-size:12px">${g.phone||'—'}</td>
+        <td>${tags||'—'}</td>
+        <td>
+          <div style="display:flex;align-items:center;gap:6px">
+            <span class="booking-bubble" style="background:${bubbleColor}">${bookings.length}</span>
+            ${isRepeat ? '<span class="badge badge-repeat" style="font-size:10px">Repeat</span>' : ''}
+          </div>
+        </td>
+        <td style="font-size:12px">${lastVisit ? formatDate(lastVisit) : '—'}</td>
+        <td style="font-weight:600;color:var(--teal-dark)">€${Math.round(totalSpent).toLocaleString()}</td>
+        <td>${sources.slice(0,2).map(getSourceBadge).join('')}${sources.length>2?`<span style="font-size:11px;color:var(--text-muted)">+${sources.length-2}</span>`:''}</td>
+        <td onclick="event.stopPropagation()">
+          <div style="display:flex;gap:5px">
+            <button class="btn btn-teal btn-sm" onclick="openGuest('${g.id}')">✏️</button>
+            <button class="btn btn-danger btn-sm" onclick="deleteGuest('${g.id}')">🗑</button>
+          </div>
+        </td>
+      </tr>`;
+    }).join('');
+  }
+
+  // Pagination
+  document.getElementById('pageInfo').textContent = `Showing ${Math.min(start+1,total)}–${Math.min(start+PAGE_SIZE,total)} of ${total.toLocaleString()} guests`;
+  const btns = document.getElementById('pageBtns');
+  btns.innerHTML = '';
+  // Show max 10 page buttons around current
+  const range = [];
+  const delta = 4;
+  for (let i = Math.max(1, currentPage-delta); i <= Math.min(pages, currentPage+delta); i++) range.push(i);
+  if (range[0] > 1) { addPageBtn(btns, 1); if (range[0] > 2) btns.appendChild(Object.assign(document.createElement('span'), {textContent:'…',style:'padding:0 4px;color:var(--text-muted);font-size:12px'})); }
+  range.forEach(i => addPageBtn(btns, i));
+  if (range[range.length-1] < pages) { btns.appendChild(Object.assign(document.createElement('span'), {textContent:'…',style:'padding:0 4px;color:var(--text-muted);font-size:12px'})); addPageBtn(btns, pages); }
+  updateStats();
+}
+
+function addPageBtn(container, i) {
+  const btn = document.createElement('button');
+  btn.className = 'page-btn' + (i === currentPage ? ' active' : '');
+  btn.textContent = i;
+  btn.onclick = () => { currentPage = i; renderTable(); };
+  container.appendChild(btn);
+}
+
+function sortBy(field) {
+  currentSort.field === field ? currentSort.dir *= -1 : (currentSort.field = field, currentSort.dir = 1);
+  renderTable();
+}
+
+function formatDate(d) {
+  if (!d || d.startsWith('0001')) return '—';
+  try { return new Date(d).toLocaleDateString('el-GR'); } catch { return d; }
+}
+
+// ────── GUEST MODAL ──────
+function openAddGuest() {
+  document.getElementById('guestModalTitle').textContent = 'Add New Guest';
+  document.getElementById('g_editId').value = '';
+  document.getElementById('g_name').value = '';
+  document.getElementById('g_email').value = '';
+  document.getElementById('g_phone').value = '';
+  document.getElementById('g_country').value = '';
+  document.getElementById('g_language').value = '';
+  document.getElementById('g_notes').value = '';
+  document.querySelectorAll('[id^="tag_lbl_"]').forEach(el => {
+    el.style.background = 'var(--cream)';
+    el.style.borderColor = 'var(--border)';
+    el.style.fontWeight = '400';
+  });
+  document.getElementById('bookingsTitle').style.display = 'none';
+  document.getElementById('bookingsList').innerHTML = '';
+  openModal('guestModal');
+}
+
+function openGuest(id) {
+  const g = guests.find(x => x.id === id);
+  if (!g) return;
+  document.getElementById('guestModalTitle').textContent = g.name || 'Guest Profile';
+  document.getElementById('g_editId').value = id;
+  document.getElementById('g_name').value = g.name || '';
+  document.getElementById('g_email').value = g.email || '';
+  document.getElementById('g_phone').value = g.phone || '';
+  document.getElementById('g_country').value = g.country || '';
+  document.getElementById('g_language').value = g.language || '';
+  document.getElementById('g_notes').value = g.notes || '';
+  // Tags
+  const tags = g.tags || [];
+  ['VIP','Repeat','Difficult','New'].forEach(t => {
+    const el = document.getElementById('tag_lbl_' + t);
+    if (!el) return;
+    const sel = tags.includes(t);
+    el.style.background = sel ? '#e0f5f1' : 'var(--cream)';
+    el.style.borderColor = sel ? 'var(--teal)' : 'var(--border)';
+    el.style.fontWeight = sel ? '600' : '400';
+  });
+  // Bookings
+  const bookings = g.bookings || [];
+  document.getElementById('bookingsTitle').style.display = '';
+  document.getElementById('bookingsTitle').textContent = `📅 Booking History (${bookings.length})`;
+  if (bookings.length === 0) {
+    document.getElementById('bookingsList').innerHTML = '<p style="color:var(--text-muted);font-size:13px;padding:8px 0">No bookings recorded.</p>';
+  } else {
+    const totalSpent = bookings.reduce((s,b)=>s+(parseFloat(b.total)||0),0);
+    document.getElementById('bookingsList').innerHTML = bookings.map(b => {
+      const statusCls = b.status==='Booked'?'badge-booked':b.status==='Open'?'badge-open':'badge-declined';
+      const paid = parseFloat(b.amountPaid)||0;
+      const due = parseFloat(b.balanceDue)||0;
+      return `<div class="booking-card">
+        <div class="booking-card-header">
+          <div class="booking-card-prop">${b.property || b.propertyFull || '—'}</div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <span class="badge ${statusCls}">${b.status}</span>
+            <span class="booking-total">€${parseFloat(b.total||0).toLocaleString()}</span>
+          </div>
+        </div>
+        <div class="booking-card-meta">
+          <span>📅 ${formatDate(b.arrival)} → ${formatDate(b.departure)}</span>
+          <span>🌙 ${b.nights} nights</span>
+          <span>👥 ${b.adults} adults${parseInt(b.children)>0?' + '+b.children+' children':''}${parseInt(b.pets)>0?' 🐾':''}${parseInt(b.infants)>0?' 👶':''}</span>
+          <span>${getSourceBadge(b.source)}</span>
+          ${paid > 0 ? `<span style="color:var(--success)">✅ Paid: €${paid.toFixed(0)}</span>` : ''}
+          ${due > 0 ? `<span style="color:var(--danger)">⚠ Balance: €${due.toFixed(0)}</span>` : ''}
+        </div>
+        ${b.notes ? `<div style="margin-top:8px;font-size:12px;color:var(--text-muted);background:white;padding:6px 10px;border-radius:6px">${b.notes}</div>` : ''}
+      </div>`;
+    }).join('') + `<div style="text-align:right;padding:8px 0;font-size:13px;font-weight:600;color:var(--teal-dark)">Total across all bookings: €${totalSpent.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</div>`;
+  }
+  openModal('guestModal');
+}
+
+function toggleTag(el, tag) {
+  const isSelected = el.style.background.includes('e0f5f1') || el.style.borderColor.includes('teal');
+  el.style.background = !isSelected ? '#e0f5f1' : 'var(--cream)';
+  el.style.borderColor = !isSelected ? 'var(--teal)' : 'var(--border)';
+  el.style.fontWeight = !isSelected ? '600' : '400';
+}
+
+function getSelectedTags() {
+  return ['VIP','Repeat','Difficult','New'].filter(t => {
+    const el = document.getElementById('tag_lbl_' + t);
+    return el && el.style.background.includes('e0f5f1');
+  });
+}
+
+async function saveGuest() {
+  const name = document.getElementById('g_name').value.trim();
+  if (!name) { showToast('Please enter a name.', 'error'); return; }
+  const editId = document.getElementById('g_editId').value;
+  const data = {
+    name,
+    email: document.getElementById('g_email').value.trim().toLowerCase(),
+    phone: document.getElementById('g_phone').value.trim(),
+    country: document.getElementById('g_country').value.trim(),
+    language: document.getElementById('g_language').value.trim(),
+    notes: document.getElementById('g_notes').value.trim(),
+    tags: getSelectedTags(),
+  };
+  if (editId) {
+    const idx = guests.findIndex(g => g.id === editId);
+    if (idx !== -1) { guests[idx] = { ...guests[idx], ...data }; showToast('✓ Guest updated', 'success'); }
+  } else {
+    guests.push({ id: 'guest_' + Date.now(), bookings: [], ...data });
+    showToast('✓ Guest added', 'success');
+  }
+  await save();
+  closeModal('guestModal');
+  renderTable();
+  populateCountryFilter();
+}
+
+function deleteGuest(id) {
+  const g = guests.find(x => x.id === id);
+  showConfirm('🗑️','Delete Guest?', `Remove ${g?.name}? This cannot be undone.`, 'btn-danger', 'Delete', async () => {
+    guests = guests.filter(x => x.id !== id);
+    await save(); renderTable(); updateStats();
+    showToast('Deleted','error');
+  });
+}
+
+// ────── IMPORT ──────
+// Smart import: merges new/changed bookings, preserves manual edits
+// Manager/agency emails — shared across many guests, should NOT be used for grouping
+const MANAGER_EMAILS = new Set([
+  'lydia.kotsou@gmail.com',
+  'mikemoras@gmail.com',
+  'info@zesty.gr',
+  'zestyreservations2@gmail.com',
+]);
+
+async function importFromCSV(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = async e => {
+    const text = e.target.result;
+    const lines = text.split('\n').filter(l => l.trim());
+    const headers = parseCSVLine(lines[0]);
+    const rows = lines.slice(1).map(l => {
+      const vals = parseCSVLine(l);
+      const obj = {};
+      headers.forEach((h, i) => obj[h.trim()] = (vals[i]||'').trim());
+      return obj;
+    }).filter(r => r.Id && r.Name);
+
+    // Build booking map from CSV keyed by guest
+    const csvGuests = {};
+    rows.forEach(r => {
+      const email = (r.Email||'').trim().toLowerCase();
+      const isReal = email && email.includes('@') && !email.includes('guest.booking.com') && !email.includes('guest.airbnb.com') && !MANAGER_EMAILS.has(email);
+      const phone9 = (r.Phone||'').replace(/\t/g,'').replace(/[\s\-\+]/g,'').slice(-9);
+      const gKey = isReal ? `email::${email}` : (phone9.length >= 7 ? `phone::${phone9}` : `anon::${r.Id}`);
+      const phone_raw = (r.Phone||'').replace(/\t/g,'').trim();
+      const country = (r.CountryName||'').trim();
+      const booking = {
+        bookingId: r.Id,
+        property: r.HouseInternalName && r.HouseInternalName !== 'N/A' ? r.HouseInternalName : r.HouseName,
+        propertyFull: r.HouseName, propertyId: r.House_Id,
+        arrival: r.DateArrival, departure: r.DateDeparture,
+        nights: r.Nights, adults: r.Adults, children: r.Children,
+        infants: r.Infants, pets: r.Pets, people: r.People,
+        source: r.Source, status: r.Status, total: r.TotalAmount,
+        currency: r.Currency, amountPaid: r.AmountPaid,
+        balanceDue: r.BalanceDue, dateCreated: r.DateCreated, notes: r.Notes,
+      };
+      if (!csvGuests[gKey]) {
+        csvGuests[gKey] = { gKey, name: (r.Name||'').trim(), email: isReal ? email : '', phone, country: country === 'N/A' ? '' : country, bookings: [] };
+      }
+      csvGuests[gKey].bookings.push(booking);
+    });
+
+    const isFirstImport = guests.length === 0;
+    let newGuests = 0, updatedGuests = 0, newBookings = 0, updatedBookings = 0;
+
+    Object.values(csvGuests).forEach(csvG => {
+      // Match existing guest by email, or by a shared booking ID for anon guests
+      // Match by email first, then by phone (last 9 digits), then by booking ID
+      let existing = csvG.email ? guests.find(g => g.email && g.email === csvG.email) : null;
+      if (!existing && csvG.phone9) {
+        existing = guests.find(g => {
+          const p = (g.phone||'').replace(/[\s\-\+]/g,'').slice(-9);
+          return p.length >= 7 && p === csvG.phone9;
+        });
+      }
+      if (!existing) {
+        existing = guests.find(g => (g.bookings||[]).some(b => csvG.bookings.some(cb => cb.bookingId === b.bookingId)));
+      }
+
+      if (existing) {
+        csvG.bookings.forEach(csvB => {
+          const exB = existing.bookings.find(b => b.bookingId === csvB.bookingId);
+          if (!exB) {
+            existing.bookings.push(csvB);
+            newBookings++;
+          } else if (exB.status !== csvB.status || exB.total !== csvB.total || exB.balanceDue !== csvB.balanceDue) {
+            Object.assign(exB, csvB);
+            updatedBookings++;
+          }
+        });
+        if (!existing.phone && csvG.phone) existing.phone = csvG.phone;
+        if (!existing.country && csvG.country) existing.country = csvG.country;
+        if (existing.bookings.length > 1 && !(existing.tags||[]).includes('Repeat')) {
+          existing.tags = [...(existing.tags||[]), 'Repeat'];
+        }
+        existing.bookings.sort((a,b) => a.arrival > b.arrival ? -1 : 1);
+        updatedGuests++;
+      } else {
+        guests.push({
+          id: `guest_${csvG.bookings[0].bookingId}`,
+          name: csvG.name, email: csvG.email, phone: csvG.phone, country: csvG.country,
+          notes: '', tags: csvG.bookings.length > 1 ? ['Repeat'] : [],
+          bookings: csvG.bookings.sort((a,b) => a.arrival > b.arrival ? -1 : 1)
+        });
+        newGuests++;
+        newBookings += csvG.bookings.length;
+      }
+    });
+
+    // Save import log
+    const rec = { filename: file.name, date: new Date().toISOString(), totalRows: rows.length, totalGuests: guests.length, newGuests, updatedGuests, newBookings, updatedBookings };
+    let hist = [];
+    try { hist = JSON.parse(localStorage.getItem('zesty_guest_imports') || '[]'); } catch {}
+    hist.unshift(rec);
+    localStorage.setItem('zesty_guest_imports', JSON.stringify(hist.slice(0,20)));
+    localStorage.setItem('zesty_last_import', JSON.stringify(rec));
+
+    await save();
+    populateCountryFilter();
+    renderTable();
+    updateStats();
+    updateImportStatus();
+    document.getElementById('importBanner').style.display = 'none';
+
+    if (isFirstImport) {
+      showToast(`✓ Imported ${guests.length} guests from ${rows.length} bookings`, 'success');
+    } else {
+      const parts = [];
+      if (newGuests) parts.push(`${newGuests} new guests`);
+      if (newBookings) parts.push(`${newBookings} new bookings`);
+      if (updatedBookings) parts.push(`${updatedBookings} updated`);
+      showToast(`✓ ${parts.length ? parts.join(', ') : 'No changes detected'}`, 'success');
+    }
+  };
+  reader.readAsText(file, 'utf-8');
+  event.target.value = '';
+}
+
+
+async function resetGuestDB() {
+  if (!confirm('This will clear all guest data and reload from the built-in CSV dataset.\n\nAny manual edits (tags, notes added by hand) will be lost.\n\nContinue?')) return;
+  showToast('Clearing database...', 'error');
+  // Clear localStorage
+  localStorage.removeItem('zesty_guests');
+  localStorage.removeItem('zesty_last_import');
+  localStorage.removeItem('zesty_guest_imports');
+  // Clear Supabase
+  try {
+    if (DB._configured()) {
+      const existing = await DB.loadAll('guests');
+      if (existing && existing.length) {
+        for (const g of existing) {
+          await DB.delete('guests', g.id);
+        }
+      }
+    }
+  } catch(e) { console.warn('Supabase clear error:', e); }
+  // Reload from built-in data
+  loadImported();
+  await SyncStore.saveAll('zesty_guests', 'guests', guests);
+  populateCountryFilter();
+  renderTable();
+  updateStats();
+  updateImportStatus();
+  showToast(`✓ Reset complete — ${guests.length} guests loaded`, 'success');
+}
+
+function updateImportStatus() {
+  const el = document.getElementById('lastImportStatus');
+  if (!el) return;
+  try {
+    const last = JSON.parse(localStorage.getItem('zesty_last_import') || 'null');
+    if (!last) { el.textContent = 'No import yet'; return; }
+    const d = new Date(last.date);
+    el.innerHTML = `Last: <strong>${last.filename}</strong> · ${d.toLocaleDateString('el-GR')} ${d.toLocaleTimeString('el-GR',{hour:'2-digit',minute:'2-digit'})}`;
+  } catch { el.textContent = ''; }
+}
+function parseCSVLine(line) {
+  const result = []; let current = ''; let inQ = false;
+  for (let i = 0; i < line.length; i++) {
+    if (line[i] === '"') { if (inQ && line[i+1] === '"') { current += '"'; i++; } else inQ = !inQ; }
+    else if (line[i] === ',' && !inQ) { result.push(current); current = ''; }
+    else current += line[i];
+  }
+  result.push(current);
+  return result;
+}
+
+// ────── EXPORT ──────
+function exportCSV() {
+  const headers = ['ID','Name','Email','Phone','Country','Language','Tags','Bookings','Total Spent','Last Visit','Notes'];
+  const rows = guests.map(g => {
+    const bookings = g.bookings||[];
+    const totalSpent = bookings.reduce((s,b)=>s+(parseFloat(b.total)||0),0);
+    const lastVisit = bookings.reduce((m,b)=>b.arrival>m?b.arrival:m,'');
+    return [g.id, g.name, g.email, g.phone, g.country, g.language, (g.tags||[]).join(';'), bookings.length, totalSpent.toFixed(2), lastVisit, g.notes].map(v=>`"${(v||'').toString().replace(/"/g,'""')}"`).join(',');
+  });
+  const csv = [headers.join(','), ...rows].join('\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8;'}));
+  a.download = `zesty_guests_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+  showToast('✓ Exported', 'success');
+}
+
+// ────── MODALS ──────
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+function showConfirm(icon, title, msg, btnCls, btnText, cb) {
+  document.getElementById('confirmIcon').textContent = icon;
+  document.getElementById('confirmTitle').textContent = title;
+  document.getElementById('confirmMsg').textContent = msg;
+  const btn = document.getElementById('confirmBtn');
+  btn.className = `btn ${btnCls}`; btn.textContent = btnText;
+  confirmCb = cb;
+  document.getElementById('confirmOverlay').classList.add('open');
+}
+function closeConfirm() { document.getElementById('confirmOverlay').classList.remove('open'); confirmCb = null; }
+function doConfirm() { if (confirmCb) confirmCb(); closeConfirm(); }
+function showToast(msg, type='') {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = `toast ${type} show`;
+  setTimeout(()=>t.classList.remove('show'), 3000);
+}
+
+['guestModal'].forEach(id => document.getElementById(id).addEventListener('click', e => { if(e.target===e.currentTarget) closeModal(id); }));
+document.getElementById('confirmOverlay').addEventListener('click', e => { if(e.target===e.currentTarget) closeConfirm(); });
+
+init().catch(console.error);
+showDbStatus(true);
+
+function dismissOverlay(){
+  const ol = document.getElementById('loadingOverlay');
+  if(ol){ol.style.opacity='0';ol.style.transition='opacity 0.3s';setTimeout(()=>ol.remove(),300);}
+}
+function handleOverlayUpload(input){
+  dismissOverlay();
+  if(input.files[0]) handleCSVFile(input.files[0]);
+}
+</script>
+</body>
+</html>

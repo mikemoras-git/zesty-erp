@@ -1,0 +1,1627 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Zesty Rentals — Job Orders</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --teal:#1a7a6e;--teal-light:#23a090;--teal-dark:#115950;
+  --gold:#c9a84c;--gold-light:#e8c97a;
+  --cream:#f8f5f0;--white:#ffffff;
+  --text:#1e2a28;--text-muted:#6b7e7b;
+  --border:#d4e0de;
+  --danger:#c0392b;--danger-light:#fdf0ef;
+  --success:#27ae60;--success-light:#eafaf1;
+  --warning:#e67e22;--warning-light:#fef9ec;
+  --shadow:0 2px 16px rgba(26,122,110,0.10);
+  --shadow-lg:0 8px 40px rgba(26,122,110,0.15);
+  --radius:12px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--text);min-height:100vh}
+
+/* HEADER */
+header{background:var(--teal-dark);padding:0 32px;display:flex;align-items:center;justify-content:space-between;height:64px;position:sticky;top:0;z-index:100;box-shadow:0 2px 20px rgba(0,0,0,0.2)}
+.logo{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:500;color:#fff;letter-spacing:.5px}
+.logo span{color:var(--gold-light)}
+.header-right{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.nav-btn{background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.85);padding:5px 11px;border-radius:6px;font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s}
+.nav-btn:hover{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.6)}
+.nav-btn.active{background:var(--gold);color:var(--teal-dark);border-color:var(--gold);font-weight:600}
+
+/* LAYOUT */
+.container{max-width:1400px;margin:0 auto;padding:28px 24px 60px}
+
+/* BUTTONS */
+.btn{padding:8px 20px;border-radius:6px;border:none;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:6px}
+.btn-primary{background:var(--gold);color:var(--teal-dark)}.btn-primary:hover{background:var(--gold-light);transform:translateY(-1px)}
+.btn-teal{background:var(--teal);color:#fff}.btn-teal:hover{background:var(--teal-light)}
+.btn-outline{background:transparent;border:1px solid var(--border);color:var(--text-muted)}.btn-outline:hover{border-color:var(--teal);color:var(--teal)}
+.btn-danger{background:var(--danger-light);color:var(--danger);border:1px solid #f5c6c2}.btn-danger:hover{background:var(--danger);color:#fff}
+.btn-sm{padding:5px 12px;font-size:12px}
+.btn-xs{padding:3px 8px;font-size:11px;border-radius:4px}
+
+/* STATS */
+.stats-bar{display:grid;grid-template-columns:repeat(5,1fr);gap:16px;margin-bottom:28px}
+.stat-card{background:#fff;border-radius:var(--radius);padding:18px 20px;box-shadow:var(--shadow);border-left:4px solid var(--teal);cursor:pointer;transition:transform .2s}
+.stat-card:hover{transform:translateY(-2px)}
+.stat-card:nth-child(2){border-color:var(--warning)}
+.stat-card:nth-child(3){border-color:var(--gold)}
+.stat-card:nth-child(4){border-color:var(--success)}
+.stat-card:nth-child(5){border-color:var(--teal-light)}
+.stat-card.active-filter{box-shadow:0 0 0 2px var(--teal)}
+.stat-label{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);margin-bottom:6px}
+.stat-value{font-size:26px;font-weight:700;color:var(--teal)}
+.stat-sub{font-size:11px;color:var(--text-muted);margin-top:3px}
+
+/* FILTER BAR */
+.filter-bar{background:#fff;border-radius:var(--radius);padding:16px 20px;margin-bottom:20px;box-shadow:var(--shadow);display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.filter-bar input,.filter-bar select{padding:7px 12px;border:1px solid var(--border);border-radius:6px;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--text);background:#fff;outline:none}
+.filter-bar input:focus,.filter-bar select:focus{border-color:var(--teal)}
+.filter-bar input{flex:1;min-width:200px}
+
+/* TABLE */
+.table-wrap{background:#fff;border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
+.table-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.table-header h3{font-size:14px;font-weight:600;color:var(--text)}
+table{width:100%;border-collapse:collapse}
+th{padding:10px 14px;text-align:left;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);background:#fafcfb;border-bottom:1px solid var(--border);white-space:nowrap;cursor:pointer;user-select:none}
+th:hover{color:var(--teal)}
+td{padding:11px 14px;border-bottom:1px solid #f0f4f3;font-size:13px;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#f7fbfa}
+.job-id{font-family:monospace;font-size:12px;font-weight:600;color:var(--teal)}
+.job-title{font-weight:500}
+.job-prop{font-size:12px;color:var(--text-muted)}
+
+/* STATUS BADGES */
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:600;letter-spacing:.03em}
+.badge-open{background:#e8f5f3;color:var(--teal)}
+.badge-progress{background:var(--warning-light);color:var(--warning)}
+.badge-completed{background:var(--success-light);color:var(--success)}
+.badge-paid{background:#e8f0ff;color:#2c5aa0}
+.badge-type-maintenance{background:#f0e8ff;color:#6b35b8}
+.badge-type-materials{background:#fff3e0;color:#e65100}
+.badge-type-guest{background:#e3f2fd;color:#1565c0}
+.badge-type-special{background:#fce4ec;color:#ad1457}
+.badge-type-other{background:#f5f5f5;color:#555}
+
+/* AMOUNTS */
+.amount-cost{font-size:12px;color:var(--text-muted)}
+.amount-charge{font-weight:600;color:var(--teal-dark)}
+.amount-outstanding{color:var(--warning);font-weight:600}
+.amount-paid{color:var(--success)}
+
+/* ACTIONS */
+.actions{display:flex;gap:6px;justify-content:flex-end}
+.action-btn{width:30px;height:30px;border-radius:6px;border:1px solid var(--border);background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;transition:all .2s}
+.action-btn:hover{background:var(--teal);border-color:var(--teal);color:#fff}
+.action-btn.danger:hover{background:var(--danger);border-color:var(--danger)}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;display:none;align-items:flex-start;justify-content:center;padding:32px 16px;overflow-y:auto}
+.modal-overlay.open{display:flex}
+.modal{background:#fff;border-radius:16px;width:100%;max-width:860px;box-shadow:0 24px 80px rgba(0,0,0,.2);margin:auto}
+.modal-header{padding:24px 28px 0;display:flex;align-items:center;justify-content:space-between}
+.modal-header h2{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:500}
+.modal-close{width:32px;height:32px;border-radius:8px;border:1px solid var(--border);background:transparent;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;color:var(--text-muted)}
+.modal-close:hover{background:var(--danger-light);color:var(--danger);border-color:var(--danger)}
+.modal-body{padding:24px 28px}
+.modal-footer{padding:0 28px 24px;display:flex;gap:10px;justify-content:flex-end;border-top:1px solid var(--border);padding-top:16px;margin-top:4px}
+
+/* FORM */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.form-grid.three{grid-template-columns:1fr 1fr 1fr}
+.form-grid.four{grid-template-columns:1fr 1fr 1fr 1fr}
+.form-full{grid-column:1/-1}
+.form-group{display:flex;flex-direction:column;gap:5px}
+.form-group label{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted)}
+.form-group input,.form-group select,.form-group textarea{padding:8px 12px;border:1px solid var(--border);border-radius:7px;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--text);background:#fff;outline:none;transition:border-color .2s}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--teal)}
+.form-group textarea{resize:vertical;min-height:70px}
+.section-divider{grid-column:1/-1;border-top:1px solid var(--border);margin:8px 0;padding-top:16px}
+.section-title-sm{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted);margin-bottom:12px}
+
+/* LINE ITEMS */
+.line-items-wrap{grid-column:1/-1}
+.line-items-table{width:100%;border-collapse:collapse;margin-bottom:10px}
+.line-items-table th{padding:7px 10px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);background:#f7fbfa;border-bottom:1px solid var(--border);text-align:left}
+.line-items-table td{padding:6px 6px;border-bottom:1px solid #f0f4f3;vertical-align:middle}
+.line-items-table td input,.line-items-table td select{padding:5px 8px;border:1px solid var(--border);border-radius:5px;font-family:'DM Sans',sans-serif;font-size:12px;width:100%;outline:none}
+.line-items-table td input:focus,.line-items-table td select:focus{border-color:var(--teal)}
+.li-remove{width:28px;height:28px;border:none;background:var(--danger-light);color:var(--danger);border-radius:5px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center}
+.li-remove:hover{background:var(--danger);color:#fff}
+.line-totals{background:#f7fbfa;border-radius:8px;padding:12px 16px;margin-top:8px;display:flex;gap:24px;justify-content:flex-end}
+.line-total-item{text-align:right}
+.line-total-label{font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em}
+.line-total-val{font-size:16px;font-weight:700;color:var(--teal-dark)}
+
+/* VIEW MODAL */
+.view-section{margin-bottom:20px}
+.view-section-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted);margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border)}
+.view-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.view-field{background:#f7fbfa;border-radius:8px;padding:10px 14px}
+.view-label{font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px}
+.view-value{font-size:13px;font-weight:500}
+.view-value.empty{color:var(--text-muted);font-weight:400;font-style:italic}
+
+/* REPORT */
+.report-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:300;display:none;align-items:center;justify-content:center}
+.report-overlay.open{display:flex}
+.report-box{background:#fff;border-radius:12px;width:760px;max-height:90vh;overflow-y:auto;box-shadow:0 24px 80px rgba(0,0,0,.25)}
+.report-content{padding:40px}
+.report-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:32px;padding-bottom:20px;border-bottom:2px solid var(--teal-dark)}
+.report-logo{font-family:'Cormorant Garamond',serif;font-size:28px;color:var(--teal-dark)}
+.report-logo span{color:var(--gold)}
+.report-meta{text-align:right;font-size:12px;color:var(--text-muted)}
+.report-title{font-size:18px;font-weight:600;color:var(--teal-dark);margin-bottom:20px}
+.report-info-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px;background:#f7fbfa;padding:16px;border-radius:8px}
+.report-info-item{font-size:13px}.report-info-item strong{color:var(--text-muted);font-size:11px;text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:2px}
+.report-table{width:100%;border-collapse:collapse;margin-bottom:20px}
+.report-table th{padding:9px 12px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;background:var(--teal-dark);color:#fff;text-align:left}
+.report-table td{padding:9px 12px;border-bottom:1px solid var(--border);font-size:13px}
+.report-table tr:last-child td{border-bottom:none}
+.report-total{text-align:right;padding:16px;background:#f7fbfa;border-radius:8px;margin-bottom:20px}
+.report-total .total-label{font-size:13px;color:var(--text-muted)}
+.report-total .total-amount{font-size:24px;font-weight:700;color:var(--teal-dark)}
+.report-notes{font-size:12px;color:var(--text-muted);line-height:1.6;border-top:1px solid var(--border);padding-top:16px}
+@media print{.report-actions{display:none!important}}
+
+/* CONFIRM */
+.confirm-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:400;display:none;align-items:center;justify-content:center}
+.confirm-overlay.open{display:flex}
+.confirm-box{background:#fff;border-radius:14px;padding:28px;width:400px;text-align:center;box-shadow:0 16px 60px rgba(0,0,0,.2)}
+.confirm-icon{font-size:36px;margin-bottom:12px}
+.confirm-title{font-size:18px;font-weight:600;margin-bottom:8px}
+.confirm-msg{font-size:13px;color:var(--text-muted);margin-bottom:20px;line-height:1.5}
+.confirm-actions{display:flex;gap:10px;justify-content:center}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;right:24px;background:var(--teal-dark);color:#fff;padding:12px 20px;border-radius:10px;font-size:13px;z-index:500;transform:translateY(100px);opacity:0;transition:all .3s;max-width:300px}
+.toast.show{transform:translateY(0);opacity:1}
+.toast.success{background:var(--success)}
+.toast.error{background:var(--danger)}
+
+/* EMPTY */
+.empty-state{padding:60px 20px;text-align:center;color:var(--text-muted)}
+.empty-state .empty-icon{font-size:48px;margin-bottom:12px;opacity:.4}
+.empty-state p{font-size:14px}
+
+/* PAID MARKER */
+.paid-mark{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;color:var(--success)}
+.unpaid-mark{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;color:var(--warning)}
+
+@media(max-width:900px){
+  .stats-bar{grid-template-columns:repeat(3,1fr)}
+  .form-grid{grid-template-columns:1fr}
+  .form-grid.three,.form-grid.four{grid-template-columns:1fr 1fr}
+  .view-grid{grid-template-columns:1fr 1fr}
+}
+@media(max-width:600px){
+  .stats-bar{grid-template-columns:1fr 1fr}
+  .header-right{display:none}
+}
+</style>
+    <script>
+    (function(){
+      const _msalConfig={
+        auth:{
+          clientId:'0938023f-cbbf-45f1-a71d-b18c95745ea6',
+          authority:'https://login.microsoftonline.com/9c30b606-6648-4777-a623-64867e43e54f',
+          redirectUri:'https://kissamosrealestate.com/wp-content/erp/index.html'
+        },
+        cache:{cacheLocation:'sessionStorage',storeAuthStateInCookie:false}
+      };
+      const _msal=new msal.PublicClientApplication(_msalConfig);
+      const _loginRequest={scopes:['openid','profile','User.Read']};
+
+      async function _ensureLogin(){
+        await _msal.initialize();
+        try{ await _msal.handleRedirectPromise(); }catch(e){}
+        const accounts=_msal.getAllAccounts();
+        if(accounts.length>0){
+          const acct=accounts[0];
+          _showUserBadge(acct.name||acct.username);
+          return;
+        }
+        _msal.loginRedirect(_loginRequest);
+      }
+
+      function _showUserBadge(name){
+        const show=()=>{
+          const hdr=document.querySelector('.header-right');
+          if(!hdr)return;
+          if(document.getElementById('_azure_badge'))return;
+          const badge=document.createElement('div');
+          badge.id='_azure_badge';
+          badge.style.cssText='display:flex;align-items:center;gap:8px;margin-left:4px';
+          badge.innerHTML=`<span style="font-size:12px;color:rgba(255,255,255,.75);font-family:DM Sans,sans-serif">&#128100; ${name}</span>`+
+            `<button onclick="window._azureLogout()" style="padding:4px 10px;border-radius:7px;border:1px solid rgba(255,255,255,.3);background:transparent;color:rgba(255,255,255,.7);font-size:11px;cursor:pointer;font-family:DM Sans,sans-serif">Sign out</button>`;
+          hdr.appendChild(badge);
+        };
+        if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',show);}
+        else{show();}
+      }
+
+      window._azureLogout=function(){
+        const accounts=_msal.getAllAccounts();
+        if(accounts.length>0){_msal.logoutRedirect({account:accounts[0]});}
+      };
+
+      document.addEventListener('DOMContentLoaded',function(){
+        const accounts=_msal.getAllAccounts();
+        if(accounts.length===0){document.body.style.visibility='hidden';}
+        else{document.body.style.visibility='visible';}
+      });
+
+      _ensureLogin().then(()=>{
+        document.body.style.visibility='visible';
+      });
+    })();
+    </script>
+    <!-- Azure MSAL Authentication -->
+    <script src="https://unpkg.com/@azure/msal-browser@2.38.3/lib/msal-browser.min.js"></script>
+    <script>
+    (function(){
+      const _msalConfig={
+        auth:{
+          clientId:'0938023f-cbbf-45f1-a71d-b18c95745ea6',
+          authority:'https://login.microsoftonline.com/9c30b606-6648-4777-a623-64867e43e54f',
+          redirectUri:'https://kissamosrealestate.com/wp-content/erp/index.html'
+        },
+        cache:{cacheLocation:'sessionStorage',storeAuthStateInCookie:false}
+      };
+      const _msal=new msal.PublicClientApplication(_msalConfig);
+      const _loginRequest={scopes:['openid','profile','User.Read']};
+
+      async function _ensureLogin(){
+        await _msal.initialize();
+        try{ await _msal.handleRedirectPromise(); }catch(e){}
+        const accounts=_msal.getAllAccounts();
+        if(accounts.length>0){
+          const acct=accounts[0];
+          if(acct.tenantId!=='9c30b606-6648-4777-a623-64867e43e54f'){
+            document.documentElement.style.visibility='visible';
+            document.body.innerHTML='<div style="display:flex;align-items:center;justify-content:center;height:100vh;font-family:sans-serif;flex-direction:column;gap:12px"><div style="font-size:48px">🔒</div><div style="font-size:18px;font-weight:600;color:#1e2a28">Access Denied</div><div style="font-size:14px;color:#666">Your account is not authorised to access this system.</div><button onclick="window._azureLogout()" style="margin-top:12px;padding:8px 20px;background:#1a7a6e;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:14px">Sign out</button></div>';
+            return;
+          }
+          _showUserBadge(acct.name||acct.username);
+          document.documentElement.style.visibility='visible';
+          return;
+        }
+        await _msal.loginRedirect(_loginRequest);
+      }
+
+      function _showUserBadge(name){
+        const show=()=>{
+          const hdr=document.querySelector('.header-right');
+          if(!hdr)return;
+          if(document.getElementById('_azure_badge'))return;
+          const badge=document.createElement('div');
+          badge.id='_azure_badge';
+          badge.style.cssText='display:flex;align-items:center;gap:8px;margin-left:4px';
+          badge.innerHTML='<span style="font-size:12px;color:rgba(255,255,255,.75);font-family:DM Sans,sans-serif">&#128100; '+name+'</span>'+
+            '<button onclick="window._azureLogout()" style="padding:4px 10px;border-radius:7px;border:1px solid rgba(255,255,255,.3);background:transparent;color:rgba(255,255,255,.7);font-size:11px;cursor:pointer;font-family:DM Sans,sans-serif">Sign out</button>';
+          hdr.appendChild(badge);
+        };
+        if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',show);}
+        else{show();}
+      }
+
+      window._azureLogout=function(){
+        const accounts=_msal.getAllAccounts();
+        if(accounts.length>0){_msal.logoutRedirect({account:accounts[0]});}
+      };
+
+      document.documentElement.style.visibility='hidden';
+
+      _ensureLogin().catch(function(){
+        _msal.loginRedirect(_loginRequest);
+      });
+    })();
+    </script>
+</head>
+<body>
+
+<header>
+  <div class="logo">Zesty <span>Rentals</span> — Job Orders</div>
+  <div class="header-right">
+    <button class="nav-btn" onclick="location.href='index.html'">🏠 Home</button>
+    <button class="nav-btn" onclick="location.href='owners-crm.html'">👤 Owners</button>
+    <button class="nav-btn" onclick="location.href='properties-db.html'">🏠 Properties</button>
+    <button class="nav-btn" onclick="location.href='guests-crm.html'">✈️ Guests</button>
+    <button class="nav-btn" onclick="location.href='cleaning-system.html'">🧹 Cleaning</button>
+    <button class="nav-btn" onclick="location.href='contacts-crm.html'">📋 Contacts</button>
+    <button class="nav-btn" onclick="location.href='employees.html'">👥 Staff</button>
+    <button class="nav-btn" onclick="location.href='leave.html'">🏖️ Leave</button>
+    <button class="nav-btn" onclick="location.href='tasks.html'">✅ Tasks</button>
+    <button class="nav-btn" onclick="location.href='laundry.html'">👔 Laundry</button>
+    <button class="nav-btn" onclick="location.href='settings.html'">⚙️ Settings</button>
+    <button class="btn btn-primary btn-sm" onclick="openNewJob()">+ New Job Order</button>
+  </div>
+</header>
+
+<div class="container">
+
+  <!-- STATS -->
+  <div class="stats-bar">
+    <div class="stat-card" onclick="setFilter('status','')">
+      <div class="stat-label">Total Jobs</div>
+      <div class="stat-value" id="st-total">0</div>
+      <div class="stat-sub">All job orders</div>
+    </div>
+    <div class="stat-card" onclick="setFilter('status','In Progress')">
+      <div class="stat-label">In Progress</div>
+      <div class="stat-value" id="st-progress">0</div>
+      <div class="stat-sub">Active jobs</div>
+    </div>
+    <div class="stat-card" onclick="setFilter('status','Completed')">
+      <div class="stat-label">Completed</div>
+      <div class="stat-value" id="st-completed">0</div>
+      <div class="stat-sub">Pending invoice</div>
+    </div>
+    <div class="stat-card" onclick="setFilter('paid','unpaid')">
+      <div class="stat-label">Outstanding</div>
+      <div class="stat-value" id="st-outstanding">€0.00</div>
+      <div class="stat-sub">Unpaid charges</div>
+    </div>
+    <div class="stat-card" onclick="setFilter('status','Paid')">
+      <div class="stat-label">Collected</div>
+      <div class="stat-value" id="st-paid">€0.00</div>
+      <div class="stat-sub">Paid this year</div>
+    </div>
+  </div>
+
+  <!-- FILTERS -->
+  <div class="filter-bar">
+    <input type="text" id="searchInput" placeholder="🔍 Search job ID, property, owner, description..." oninput="renderTable()">
+    <select id="filterStatus" onchange="renderTable()">
+      <option value="">All Status</option>
+      <option>Open</option>
+      <option>In Progress</option>
+      <option>Completed</option>
+      <option>Paid</option>
+    </select>
+    <select id="filterProp" onchange="renderTable()">
+      <option value="">All Properties</option>
+    </select>
+    <select id="filterOwner" onchange="renderTable()">
+      <option value="">All Owners</option>
+    </select>
+    <select id="filterType" onchange="renderTable()">
+      <option value="">All Types</option>
+    </select>
+    <button class="btn btn-outline btn-sm" onclick="clearFilters()">✕ Clear</button>
+    <button class="btn btn-outline btn-sm" onclick="openOwnerReport()">📊 Owner Report</button>
+    <button class="btn btn-outline btn-sm" onclick="exportCSV()">↓ CSV</button>
+  </div>
+
+  <!-- TABLE -->
+  <div class="table-wrap">
+    <div class="table-header">
+      <h3 id="tableTitle">All Job Orders</h3>
+      <span style="font-size:12px;color:var(--text-muted)" id="tableCount"></span>
+    </div>
+    <div style="overflow-x:auto">
+      <table>
+        <thead>
+          <tr>
+            <th onclick="sortBy('jobId')">Job ID ↕</th>
+            <th onclick="sortBy('title')">Description ↕</th>
+            <th onclick="sortBy('propertyName')">Property ↕</th>
+            <th onclick="sortBy('ownerName')">Owner ↕</th>
+            <th onclick="sortBy('dateStarted')">Started ↕</th>
+            <th onclick="sortBy('dateCompleted')">Completed ↕</th>
+            <th onclick="sortBy('status')">Status ↕</th>
+            <th style="text-align:right" onclick="sortBy('totalCost')">Our Cost ↕</th>
+            <th style="text-align:right" onclick="sortBy('totalCharge')">Charge ↕</th>
+            <th style="text-align:right">Paid</th>
+            <th style="text-align:right">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="jobsBody"></tbody>
+      </table>
+    </div>
+    <div id="emptyState" class="empty-state" style="display:none">
+      <div class="empty-icon">🔧</div>
+      <p>No job orders found. Create your first one.</p>
+    </div>
+    <!-- PAGINATION -->
+    <div id="pagination" style="padding:12px 20px;display:flex;gap:8px;align-items:center;border-top:1px solid var(--border);font-size:13px;color:var(--text-muted)"></div>
+  </div>
+</div>
+
+<!-- JOB MODAL (Add/Edit) -->
+<div class="modal-overlay" id="jobModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="modalTitle">New Job Order</h2>
+      <button class="modal-close" onclick="closeModal('jobModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <!-- Row 1 -->
+        <div class="form-group">
+          <label>Job ID</label>
+          <input type="text" id="f_jobId" placeholder="Auto-generated" readonly style="background:#f7fbfa;font-family:monospace;font-weight:600;color:var(--teal)">
+        </div>
+        <div class="form-group">
+          <label>Status</label>
+          <select id="f_status">
+            <option>Open</option>
+            <option>In Progress</option>
+            <option>Completed</option>
+            <option>Paid</option>
+          </select>
+        </div>
+        <!-- Row 2 -->
+        <div class="form-group form-full">
+          <label>Description / Title *</label>
+          <input type="text" id="f_title" placeholder="Brief description of the job">
+        </div>
+        <!-- Row 3 -->
+        <div class="form-group">
+          <label>Property *</label>
+          <select id="f_property" onchange="onPropertyChange()">
+            <option value="">— Select Property —</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Owner</label>
+          <input type="text" id="f_ownerName" readonly placeholder="Auto from property" style="background:#f7fbfa">
+          <input type="hidden" id="f_ownerId">
+        </div>
+        <!-- Row 4: Dates -->
+        <div class="form-group">
+          <label>Date Started</label>
+          <input type="date" id="f_dateStarted">
+        </div>
+        <div class="form-group">
+          <label>Date Completed</label>
+          <input type="date" id="f_dateCompleted">
+        </div>
+        <div class="form-group">
+          <label>Date Invoiced</label>
+          <input type="date" id="f_dateInvoiced">
+        </div>
+        <div class="form-group">
+          <label>Date Paid</label>
+          <input type="date" id="f_datePaid">
+        </div>
+        <!-- Notes -->
+        <div class="form-group form-full">
+          <label>Notes</label>
+          <textarea id="f_notes" placeholder="Internal notes about this job order..."></textarea>
+        </div>
+      </div>
+
+      <!-- LINE ITEMS -->
+      <div style="margin-top:20px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+          <div class="section-title-sm">Line Items</div>
+          <button class="btn btn-teal btn-sm" onclick="addLineItem()">+ Add Line</button>
+        </div>
+        <div style="overflow-x:auto">
+          <table class="line-items-table">
+            <thead>
+              <tr>
+                <th style="width:160px">Type</th>
+                <th style="min-width:180px">Description</th>
+                <th style="width:100px">Paid By</th>
+                <th style="width:100px">Our Cost (€)</th>
+                <th style="width:140px">Charge Method</th>
+                <th style="width:90px">% / Amount</th>
+                <th style="width:100px">Charge (€)</th>
+                <th style="width:36px"></th>
+              </tr>
+            </thead>
+            <tbody id="lineItemsBody"></tbody>
+          </table>
+        </div>
+        <div class="line-totals">
+          <div class="line-total-item">
+            <div class="line-total-label">Total Our Cost</div>
+            <div class="line-total-val" id="lt-cost">€0.00</div>
+          </div>
+          <div class="line-total-item">
+            <div class="line-total-label">Charge to Owner</div>
+            <div class="line-total-val" id="lt-charge">€0.00</div>
+          </div>
+          <div class="line-total-item" style="border-left:2px solid var(--gold);padding-left:20px">
+            <div class="line-total-label" style="color:var(--gold)">+ Zesty Rentals Fee</div>
+            <div style="display:flex;align-items:center;gap:8px;margin-top:4px">
+              <select id="zf-method" onchange="recalcZestyFee()" style="padding:4px 8px;border:1px solid var(--border);border-radius:5px;font-size:12px;font-family:'DM Sans',sans-serif">
+                <option value="none">None</option>
+                <option value="maint_pct">Maint. % on Job Cost</option>
+                <option value="custom_pct">Custom % on Job Cost</option>
+                <option value="fixed">Fixed Amount</option>
+              </select>
+              <input type="number" id="zf-pct" placeholder="%" step="0.1" min="0" style="width:64px;padding:4px 8px;border:1px solid var(--border);border-radius:5px;font-size:12px;display:none" oninput="recalcZestyFee()">
+              <input type="number" id="zf-fixed" placeholder="€" step="0.01" min="0" style="width:90px;padding:4px 8px;border:1px solid var(--border);border-radius:5px;font-size:12px;display:none" oninput="recalcZestyFee()">
+              <span id="zf-amount" style="font-size:14px;font-weight:700;color:var(--gold);min-width:70px;text-align:right"></span>
+            </div>
+          </div>
+          <div class="line-total-item" style="background:var(--teal-dark);color:#fff;border-radius:8px;padding:10px 16px">
+            <div class="line-total-label" style="color:rgba(255,255,255,.7)">Total Charge to Owner</div>
+            <div class="line-total-val" id="lt-final" style="color:#fff;font-size:20px">€0.00</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('jobModal')">Cancel</button>
+      <button class="btn btn-danger btn-sm" id="deleteJobBtn" onclick="deleteCurrentJob()" style="display:none">Delete</button>
+      <button class="btn btn-teal" onclick="saveJob()">Save Job Order</button>
+    </div>
+  </div>
+</div>
+
+<!-- VIEW MODAL -->
+<div class="modal-overlay" id="viewModal">
+  <div class="modal" style="max-width:920px">
+    <div class="modal-header">
+      <h2 id="viewTitle">Job Order</h2>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-outline btn-sm" id="viewEditBtn">✏️ Edit</button>
+        <button class="btn btn-teal btn-sm" onclick="printJobReport(currentViewId)">🖨️ Report</button>
+        <button class="modal-close" onclick="closeModal('viewModal')">✕</button>
+      </div>
+    </div>
+    <div class="modal-body" id="viewBody"></div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('viewModal')">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- OWNER REPORT MODAL -->
+<div class="report-overlay" id="reportModal">
+  <div class="report-box">
+    <div class="report-content" id="reportContent"></div>
+    <div class="report-actions" style="padding:0 40px 28px;display:flex;gap:10px;justify-content:flex-end">
+      <button class="btn btn-outline" onclick="document.getElementById('reportModal').classList.remove('open')">Close</button>
+      <button class="btn btn-teal" onclick="window.print()">🖨️ Print / PDF</button>
+    </div>
+  </div>
+</div>
+
+<!-- OWNER REPORT SELECTOR -->
+<div class="modal-overlay" id="reportSelectorModal">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-header"><h2>Generate Owner Report</h2><button class="modal-close" onclick="closeModal('reportSelectorModal')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-grid" style="grid-template-columns:1fr">
+        <div class="form-group">
+          <label>Select Owner</label>
+          <select id="rpt_owner"><option value="">— All Owners —</option></select>
+        </div>
+        <div class="form-group">
+          <label>Select Property (optional)</label>
+          <select id="rpt_property"><option value="">— All Properties —</option></select>
+        </div>
+        <div class="form-group">
+          <label>Status Filter</label>
+          <select id="rpt_status">
+            <option value="">All Statuses</option>
+            <option>Open</option>
+            <option>In Progress</option>
+            <option>Completed</option>
+            <option>Paid</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Date From</label>
+          <input type="date" id="rpt_from">
+        </div>
+        <div class="form-group">
+          <label>Date To</label>
+          <input type="date" id="rpt_to">
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('reportSelectorModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="generateOwnerReport()">Generate Report</button>
+    </div>
+  </div>
+</div>
+
+<!-- CONFIRM -->
+<div class="confirm-overlay" id="confirmOverlay">
+  <div class="confirm-box">
+    <div class="confirm-icon" id="confirmIcon">🗑️</div>
+    <div class="confirm-title" id="confirmTitle">Confirm</div>
+    <div class="confirm-msg" id="confirmMsg"></div>
+    <div class="confirm-actions">
+      <button class="btn btn-outline" onclick="closeConfirm()">Cancel</button>
+      <button class="btn btn-danger" id="confirmBtn" onclick="confirmAction()">Delete</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── ADAPTER ──
+const SUPABASE_URL='https://whuytfjwdjjepayeiohj.supabase.co';
+const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndodXl0Zmp3ZGpqZXBheWVpb2hqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIyODQxMzQsImV4cCI6MjA4Nzg2MDEzNH0.pTDAqw_Cnzc9D3tJU-tU7Ch5qpapKmteiqI_ooSCufY';
+const DB={
+  _h(){return{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json','Prefer':'return=representation,resolution=merge-duplicates'}},
+  _hG(){return{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY}},
+  _hD(){return{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json'}},
+  _ok(){return!!(SUPABASE_URL&&SUPABASE_KEY&&SUPABASE_URL.includes('supabase.co'))},
+  async _fetch(method,table,body,query,ms){
+    if(!this._ok())return{ok:false,data:null,err:'Not configured'};
+    const ctrl=new AbortController(),t=setTimeout(()=>ctrl.abort(),ms||15000);
+    try{
+      const url=SUPABASE_URL+'/rest/v1/'+table+(query||'');
+      const headers=method==='GET'?this._hG():method==='DELETE'?this._hD():this._h();
+      const opts={method,headers,signal:ctrl.signal};
+      if(body)opts.body=JSON.stringify(body);
+      const res=await fetch(url,opts);clearTimeout(t);
+      if(!res.ok){let e='HTTP '+res.status;try{const j=await res.json();e=j.message||j.hint||j.error||e}catch(x){}return{ok:false,data:null,err:e};}
+      if(res.status===204||method==='DELETE')return{ok:true,data:[]};
+      const ct=res.headers.get('content-type')||'';
+      if(!ct.includes('json'))return{ok:true,data:[]};
+      try{return{ok:true,data:await res.json()}}catch(x){return{ok:true,data:[]}}
+    }catch(e){clearTimeout(t);return{ok:false,data:null,err:e.name==='AbortError'?'Timeout':e.message}}
+  },
+  async loadAll(table){
+    const r=await this._fetch('GET',table,null,'?select=id,data,updated_at&order=created_at.asc&limit=100000');
+    if(!r.ok)return{ok:false,rows:null,err:r.err};
+    const rows=(r.data||[]).map(row=>({id:row.id,...(row.data||{})}));
+    return{ok:true,rows};
+  },
+  async upsertOne(table,record){
+    const{id,...rest}=record;
+    const rid=id||('rec_'+Date.now()+'_'+Math.random().toString(36).slice(2,6));
+    const row={id:rid,data:rest,updated_at:new Date().toISOString()};
+    const r=await this._fetch('POST',table,row,'?on_conflict=id');
+    return{ok:r.ok,id:rid,err:r.err};
+  },
+  async upsertMany(table,records){
+    if(!records.length)return{ok:true};
+    const rows=records.map(({id,...rest})=>({id:id||('rec_'+Date.now()+'_'+Math.random().toString(36).slice(2,6)),data:rest,updated_at:new Date().toISOString()}));
+    const size=200;
+    for(let i=0;i<rows.length;i+=size){const r=await this._fetch('POST',table,rows.slice(i,i+size),'?on_conflict=id');if(!r.ok)return{ok:false,err:r.err};}
+    return{ok:true};
+  },
+  async deleteOne(table,id){
+    const r=await this._fetch('DELETE',table,null,'?id=eq.'+encodeURIComponent(id));
+    return{ok:r.ok,err:r.err};
+  }
+};
+const SyncStore={
+  _pendingDeletes:{},
+  async load(lsKey,table){
+    const cached=this._getLocal(lsKey);
+    const result=await DB.loadAll(table);
+    if(result.ok&&result.rows!==null){
+      const pending=this._pendingDeletes[table]||new Set();
+      const rows=result.rows.filter(r=>!pending.has(r.id));
+      localStorage.setItem(lsKey,JSON.stringify(rows));
+      return{data:rows,fromCache:false,online:true};
+    }
+    return{data:cached,fromCache:true,online:false};
+  },
+  async saveAll(lsKey,table,records){
+    localStorage.setItem(lsKey,JSON.stringify(records));
+    const r=await DB.upsertMany(table,records);
+    if(!r.ok)showSyncErr(r.err);
+    return r.ok;
+  },
+  async deleteOne(lsKey,table,id,all){
+    if(!this._pendingDeletes[table])this._pendingDeletes[table]=new Set();
+    this._pendingDeletes[table].add(id);
+    localStorage.setItem(lsKey,JSON.stringify(all));
+    const r=await DB.deleteOne(table,id);
+    if(!r.ok){this._pendingDeletes[table].delete(id);showSyncErr('Delete failed: '+r.err);return{ok:false};}
+    setTimeout(()=>{if(this._pendingDeletes[table])this._pendingDeletes[table].delete(id)},120000);
+    return{ok:true};
+  },
+  _getLocal(key){try{return JSON.parse(localStorage.getItem(key)||'[]')||[]}catch{return[]}}
+};
+function startPoll(table,lsKey,ms,onData){
+  let lastHash='';
+  const poll=async()=>{
+    const result=await DB.loadAll(table);
+    if(!result.ok||!result.rows)return;
+    const pending=SyncStore._pendingDeletes[table]||new Set();
+    const rows=result.rows.filter(r=>!pending.has(r.id));
+    const hash=rows.length+'|'+rows.map(r=>r.id).join(',');
+    if(hash!==lastHash){lastHash=hash;localStorage.setItem(lsKey,JSON.stringify(rows));onData(rows);}
+  };
+  setInterval(poll,ms);
+  return poll;
+}
+function showDbStatus(online){
+  const old=document.getElementById('db-status-bar');if(old)old.remove();
+  if(online)return;
+  const b=document.createElement('div');b.id='db-status-bar';
+  b.style.cssText='position:fixed;bottom:0;left:0;right:0;background:#c0392b;color:#fff;text-align:center;padding:8px;font-size:12px;z-index:9998;cursor:pointer;';
+  b.textContent='⚠ Database offline — working in local mode. Click to retry.';
+  b.onclick=()=>location.reload();
+  document.body.appendChild(b);
+}
+function showSyncErr(err){
+  let b=document.getElementById('sync-err-bar');
+  if(!b){b=document.createElement('div');b.id='sync-err-bar';b.style.cssText='position:fixed;bottom:40px;right:16px;background:#c0392b;color:#fff;border-radius:8px;padding:8px 14px;font-size:12px;z-index:9999;max-width:320px;';document.body.appendChild(b);}
+  b.textContent='Save error: '+err;b.style.display='block';
+  clearTimeout(b._t);b._t=setTimeout(()=>b.style.display='none',6000);
+}
+</script>
+
+<script>
+
+// ── APP STATE ──
+let jobs = [];
+let propertiesData = [];
+let ownersData = [];
+let settingsData = {};
+let currentSort = { field: 'dateStarted', dir: -1 };
+let currentPage = 1;
+const PAGE_SIZE = 25;
+let editingId = null;
+let currentViewId = null;
+let confirmCb = null;
+
+// ── INIT ──
+async function init() {
+  // Load supporting data first (needed for dropdowns)
+  const [rp, ro, rs] = await Promise.all([
+    SyncStore.load('zesty_properties', 'properties'),
+    SyncStore.load('zesty_owners', 'owners'),
+    SyncStore.load('zesty_settings', 'settings')
+  ]);
+  propertiesData = rp.data || [];
+  ownersData = ro.data || [];
+  settingsData = (rs.data && rs.data[0]) ? rs.data[0] : {};
+
+  populateFilters();
+  populatePropertyDropdown();
+
+  // Load jobs from Supabase (fresh — don't use stale localStorage for new table)
+  const rj = await SyncStore.load('zesty_jobs', 'jobs');
+  showDbStatus(rj.online);
+  // Only use data if Supabase responded successfully (online), or if we have real saved records
+  if (rj.online) {
+    jobs = rj.data || [];
+  } else {
+    // Offline: only show cached if it has records with proper jobId format
+    const cached = SyncStore._getLocal('zesty_jobs');
+    jobs = cached.filter(j => j.jobId && j.jobId.startsWith('JO-'));
+  }
+  renderTable(); updateStats();
+
+  // Poll every 30s
+  startPoll('jobs', 'zesty_jobs', 30000, rows => {
+    // Only re-render if data actually changed
+    const newHash = JSON.stringify(rows.map(r => r.id + (r.status||'') + (r.finalCharge||0)));
+    if (newHash === window._jobsHash) return;
+    window._jobsHash = newHash;
+    jobs = rows; renderTable(); updateStats();
+  });
+}
+
+// ── HELPERS ──
+function fmtNum(n) { const v = parseFloat(n); return isNaN(v) ? '0.00' : v.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2}); }
+function fmt(n) { return n != null && n !== '' && !isNaN(parseFloat(n)) ? '€' + fmtNum(n) : '—'; }
+function fmtN(n) { return fmtNum(n); }
+function fmtDate(d) { if (!d) return '—'; try { return new Date(d).toLocaleDateString('en-GB', {day:'numeric',month:'short',year:'numeric'}); } catch { return d; } }
+function today() { return new Date().toISOString().slice(0,10); }
+
+function getJobTypes() {
+  const defaults = ['Maintenance / Repair', 'Materials Purchase', 'Guest Request', 'Special Request', 'Other'];
+  const custom = (settingsData.jobTypes || []);
+  return [...new Set([...defaults, ...custom])];
+}
+
+function genJobId() {
+  const year = new Date().getFullYear();
+  const existing = jobs.filter(j => j.jobId && j.jobId.startsWith('JO-' + year));
+  const nums = existing.map(j => parseInt(j.jobId.split('-')[2] || '0')).filter(n => !isNaN(n));
+  const next = nums.length ? Math.max(...nums) + 1 : 1;
+  return `JO-${year}-${String(next).padStart(3, '0')}`;
+}
+
+function calcLineTotals() {
+  let totalCost = 0, totalCharge = 0;
+  document.querySelectorAll('#lineItemsBody tr').forEach(row => {
+    const cost = parseFloat(row.querySelector('.li-cost')?.value) || 0;
+    const charge = parseFloat(row.querySelector('.li-charge')?.value) || 0;
+    totalCost += cost;
+    totalCharge += charge;
+  });
+  document.getElementById('lt-cost').textContent = '€' + fmtNum(totalCost);
+  document.getElementById('lt-charge').textContent = '€' + fmtNum(totalCharge);
+  // update zesty fee and final total
+  recalcZestyFee();
+}
+
+function onChargeMethodChange(select) {
+  const row = select.closest('tr');
+  const method = select.value;
+  const pctInput = row.querySelector('.li-pct');
+  const chargeInput = row.querySelector('.li-charge');
+  const costInput = row.querySelector('.li-cost');
+  const cost = parseFloat(costInput?.value) || 0;
+
+  if (method === 'maint_pct') {
+    const propId = document.getElementById('f_property').value;
+    const prop = propertiesData.find(p => p.id === propId);
+    const pct = (prop && prop.maintenance != null) ? parseFloat(prop.maintenance) : 0;
+    pctInput.value = pct;
+    pctInput.readOnly = false;
+    pctInput.placeholder = pct + '%';
+    chargeInput.value = pct > 0 ? (cost * pct / 100).toFixed(2) : '';
+  } else if (method === 'custom_pct') {
+    pctInput.readOnly = false;
+    pctInput.placeholder = '%';
+    const pct = parseFloat(pctInput.value) || 0;
+    chargeInput.value = (cost > 0 && pct > 0) ? (cost * pct / 100).toFixed(2) : '';
+  } else if (method === 'fixed') {
+    pctInput.value = '';
+    pctInput.readOnly = true;
+    pctInput.placeholder = 'N/A';
+    // leave charge editable
+  }
+  calcLineTotals();
+}
+
+function onPctChange(input) {
+  const row = input.closest('tr');
+  const method = row.querySelector('.li-method')?.value;
+  if (method === 'maint_pct' || method === 'custom_pct') {
+    const cost = parseFloat(row.querySelector('.li-cost')?.value) || 0;
+    const pct = parseFloat(input.value) || 0;
+    const chargeInput = row.querySelector('.li-charge');
+    if (cost > 0 && pct > 0) chargeInput.value = (cost * pct / 100).toFixed(2);
+  }
+  calcLineTotals();
+}
+
+function recalcZestyFee() {
+  const method = document.getElementById('zf-method')?.value || 'none';
+  const pctInput = document.getElementById('zf-pct');
+  const fixedInput = document.getElementById('zf-fixed');
+  const amountEl = document.getElementById('zf-amount');
+  if (!pctInput || !fixedInput) return;
+
+  pctInput.style.display = (method === 'maint_pct' || method === 'custom_pct') ? 'block' : 'none';
+  fixedInput.style.display = method === 'fixed' ? 'block' : 'none';
+
+  // Total our cost from lines
+  let totalCost = 0;
+  document.querySelectorAll('#lineItemsBody tr').forEach(row => {
+    totalCost += parseFloat(row.querySelector('.li-cost')?.value) || 0;
+  });
+
+  let fee = 0;
+  if (method === 'maint_pct') {
+    if (!pctInput._autoset) {
+      const propId = document.getElementById('f_property').value;
+      const prop = propertiesData.find(p => p.id === propId);
+      const pct = (prop && prop.maintenance != null) ? parseFloat(prop.maintenance) : 0;
+      pctInput.value = pct;
+      pctInput._autoset = true;
+    }
+    fee = totalCost * (parseFloat(pctInput.value) || 0) / 100;
+  } else if (method === 'custom_pct') {
+    pctInput._autoset = false;
+    fee = totalCost * (parseFloat(pctInput.value) || 0) / 100;
+  } else if (method === 'fixed') {
+    fee = parseFloat(fixedInput.value) || 0;
+  } else {
+    pctInput._autoset = false;
+  }
+
+  if (amountEl) amountEl.textContent = fee > 0 ? '€' + fmtNum(fee) : '';
+
+  // Update final total
+  let lineCharge = 0;
+  document.querySelectorAll('#lineItemsBody tr').forEach(row => {
+    lineCharge += parseFloat(row.querySelector('.li-charge')?.value) || 0;
+  });
+  const finalEl = document.getElementById('lt-final');
+  if (finalEl) finalEl.textContent = '€' + fmtNum(lineCharge + fee);
+}
+
+function onCostChange(input) {
+  const row = input.closest('tr');
+  const method = row.querySelector('.li-method')?.value;
+  const pct = parseFloat(row.querySelector('.li-pct')?.value) || 0;
+  const chargeInput = row.querySelector('.li-charge');
+  if ((method === 'maint_pct' || method === 'custom_pct') && pct > 0) {
+    const cost = parseFloat(input.value) || 0;
+    chargeInput.value = (cost * pct / 100).toFixed(2);
+  }
+  calcLineTotals();
+}
+
+// ── POPULATE DROPDOWNS ──
+function populatePropertyDropdown() {
+  const sel = document.getElementById('f_property');
+  const cur = sel?.value;
+  if (!sel) return;
+  sel.innerHTML = '<option value="">— Select Property —</option>' +
+    propertiesData.filter(p => !p.archived).sort((a,b) => (a.shortName||'').localeCompare(b.shortName||'')).map(p =>
+      `<option value="${p.id}">${p.shortName || p.propertyName}</option>`
+    ).join('');
+  if (cur) sel.value = cur;
+}
+
+function onPropertyChange() {
+  const propId = document.getElementById('f_property').value;
+  const prop = propertiesData.find(p => p.id === propId);
+  if (prop && prop.owner) {
+    const owner = ownersData.find(o => o.id === prop.owner);
+    document.getElementById('f_ownerName').value = owner ? `${owner.repFirst||''} ${owner.repLast||''}`.trim() || owner.company || '' : prop.ownerName || prop.owner;
+    document.getElementById('f_ownerId').value = prop.owner;
+  } else {
+    document.getElementById('f_ownerName').value = '';
+    document.getElementById('f_ownerId').value = '';
+  }
+}
+
+function populateFilters() {
+  const props = [...new Set(jobs.map(j => j.propertyName).filter(Boolean))].sort();
+  const owners = [...new Set(jobs.map(j => j.ownerName).filter(Boolean))].sort();
+  const types = [...new Set(jobs.flatMap(j => (j.lineItems||[]).map(l => l.type)).filter(Boolean))].sort();
+
+  const fp = document.getElementById('filterProp');
+  const fo = document.getElementById('filterOwner');
+  const ft = document.getElementById('filterType');
+  const rop = document.getElementById('rpt_property');
+  const roo = document.getElementById('rpt_owner');
+
+  fp.innerHTML = '<option value="">All Properties</option>' + props.map(p=>`<option>${p}</option>`).join('');
+  fo.innerHTML = '<option value="">All Owners</option>' + owners.map(o=>`<option>${o}</option>`).join('');
+  ft.innerHTML = '<option value="">All Types</option>' + types.map(t=>`<option>${t}</option>`).join('');
+  rop.innerHTML = '<option value="">— All Properties —</option>' + props.map(p=>`<option>${p}</option>`).join('');
+  roo.innerHTML = '<option value="">— All Owners —</option>' + owners.map(o=>`<option>${o}</option>`).join('');
+}
+
+// ── RENDER TABLE ──
+function getFiltered() {
+  const search = document.getElementById('searchInput').value.toLowerCase();
+  const fStatus = document.getElementById('filterStatus').value;
+  const fProp = document.getElementById('filterProp').value;
+  const fOwner = document.getElementById('filterOwner').value;
+  const fType = document.getElementById('filterType').value;
+
+  return jobs.filter(j => {
+    if (fStatus && j.status !== fStatus) return false;
+    if (fProp && j.propertyName !== fProp) return false;
+    if (fOwner && j.ownerName !== fOwner) return false;
+    if (fType && !(j.lineItems||[]).some(l => l.type === fType)) return false;
+    if (search) {
+      const hay = [j.jobId, j.title, j.propertyName, j.ownerName, j.notes].join(' ').toLowerCase();
+      if (!hay.includes(search)) return false;
+    }
+    return true;
+  });
+}
+
+function sortBy(field) {
+  if (currentSort.field === field) currentSort.dir *= -1;
+  else { currentSort.field = field; currentSort.dir = -1; }
+  renderTable();
+}
+
+function setFilter(type, val) {
+  if (type === 'status') document.getElementById('filterStatus').value = val;
+  renderTable();
+}
+
+function clearFilters() {
+  document.getElementById('searchInput').value = '';
+  document.getElementById('filterStatus').value = '';
+  document.getElementById('filterProp').value = '';
+  document.getElementById('filterOwner').value = '';
+  document.getElementById('filterType').value = '';
+  renderTable();
+}
+
+function renderTable() {
+  let filtered = getFiltered();
+
+  // Sort
+  filtered.sort((a, b) => {
+    let va = a[currentSort.field] || '';
+    let vb = b[currentSort.field] || '';
+    if (currentSort.field === 'totalCost' || currentSort.field === 'totalCharge') {
+      va = calcJobTotal(a, 'cost'); vb = calcJobTotal(b, 'cost');
+    }
+    if (va < vb) return -currentSort.dir;
+    if (va > vb) return currentSort.dir;
+    return 0;
+  });
+
+  const total = filtered.length;
+  const pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  if (currentPage > pages) currentPage = 1;
+  const pageData = filtered.slice((currentPage-1)*PAGE_SIZE, currentPage*PAGE_SIZE);
+
+  document.getElementById('tableCount').textContent = `${total} job${total!==1?'s':''}`;
+
+  const tbody = document.getElementById('jobsBody');
+  if (!pageData.length) {
+    tbody.innerHTML = '';
+    document.getElementById('emptyState').style.display = 'block';
+    document.getElementById('pagination').innerHTML = '';
+    return;
+  }
+  document.getElementById('emptyState').style.display = 'none';
+
+  tbody.innerHTML = pageData.map(j => {
+    const totalCost = calcJobTotal(j, 'cost');
+    const totalCharge = calcJobTotal(j, 'charge');
+    const isPaid = j.status === 'Paid' || !!j.datePaid;
+    const types = [...new Set((j.lineItems||[]).map(l=>l.type).filter(Boolean))];
+
+    return `<tr>
+      <td><span class="job-id" onclick="viewJob('${j.id}')" style="cursor:pointer">${j.jobId||'—'}</span></td>
+      <td>
+        <div class="job-title" style="cursor:pointer" onclick="viewJob('${j.id}')">${j.title||'—'}</div>
+        <div style="display:flex;gap:4px;margin-top:3px;flex-wrap:wrap">
+          ${types.slice(0,2).map(t=>`<span class="badge badge-type-${typeClass(t)}">${t}</span>`).join('')}
+        </div>
+      </td>
+      <td><div>${j.propertyName||'—'}</div></td>
+      <td><div style="font-size:12px">${j.ownerName||'—'}</div></td>
+      <td style="font-size:12px">${fmtDate(j.dateStarted)}</td>
+      <td style="font-size:12px">${fmtDate(j.dateCompleted)}</td>
+      <td><span class="badge badge-${statusClass(j.status)}">${j.status||'Open'}</span></td>
+      <td style="text-align:right"><span class="amount-cost">${fmt(totalCost)}</span></td>
+      <td style="text-align:right"><span class="amount-charge">${fmt(totalCharge)}</span></td>
+      <td style="text-align:right">
+        ${isPaid
+          ? `<span class="paid-mark">✓ Paid</span>`
+          : totalCharge > 0 ? `<span class="unpaid-mark">Unpaid</span>` : '—'}
+      </td>
+      <td>
+        <div class="actions">
+          <button class="action-btn" title="View" onclick="viewJob('${j.id}')">👁</button>
+          <button class="action-btn" title="Edit" onclick="editJob('${j.id}')">✏️</button>
+          <button class="action-btn danger" title="Delete" onclick="deleteJob('${j.id}')">🗑</button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+
+  // Pagination
+  renderPagination(total, pages);
+  populateFilters();
+}
+
+function typeClass(t) {
+  const map = {'Maintenance / Repair':'maintenance','Materials Purchase':'materials','Guest Request':'guest','Special Request':'special'};
+  return map[t] || 'other';
+}
+
+function statusClass(s) {
+  const map = {'Open':'open','In Progress':'progress','Completed':'completed','Paid':'paid'};
+  return map[s] || 'open';
+}
+
+function calcJobTotal(job, type) {
+  if (type === 'charge') {
+    if (job.finalCharge != null) return parseFloat(job.finalCharge) || 0;
+    return (job.lineItems||[]).reduce((sum, l) => sum + (parseFloat(l.chargeAmount)||0), 0);
+  }
+  return (job.lineItems||[]).reduce((sum, l) => sum + (parseFloat(l.ourCost)||0), 0);
+}
+
+function renderPagination(total, pages) {
+  const p = document.getElementById('pagination');
+  if (pages <= 1) { p.innerHTML = ''; return; }
+  let html = `<span>Page ${currentPage} of ${pages}</span>`;
+  html += `<button class="btn btn-outline btn-xs" onclick="currentPage=Math.max(1,currentPage-1);renderTable()" ${currentPage===1?'disabled':''}>‹ Prev</button>`;
+  for (let i = 1; i <= pages; i++) {
+    if (i === 1 || i === pages || Math.abs(i - currentPage) <= 1) {
+      html += `<button class="btn btn-xs ${i===currentPage?'btn-teal':'btn-outline'}" onclick="currentPage=${i};renderTable()">${i}</button>`;
+    } else if (Math.abs(i - currentPage) === 2) {
+      html += '<span style="padding:0 4px">…</span>';
+    }
+  }
+  html += `<button class="btn btn-outline btn-xs" onclick="currentPage=Math.min(${pages},currentPage+1);renderTable()" ${currentPage===pages?'disabled':''}>Next ›</button>`;
+  p.innerHTML = html;
+}
+
+// ── STATS ──
+function updateStats() {
+  const total = jobs.length;
+  const inProgress = jobs.filter(j => j.status === 'In Progress').length;
+  const completed = jobs.filter(j => j.status === 'Completed').length;
+  const outstanding = jobs.filter(j => j.status !== 'Paid' && !j.datePaid)
+    .reduce((s, j) => s + calcJobTotal(j, 'charge'), 0);
+  const paid = jobs.filter(j => j.status === 'Paid' || j.datePaid)
+    .reduce((s, j) => s + calcJobTotal(j, 'charge'), 0);
+  // Only update DOM if value actually changed (prevents flicker)
+  function setIfChanged(id, val) {
+    const el = document.getElementById(id);
+    if (el && el.textContent !== String(val)) el.textContent = val;
+  }
+  setIfChanged('st-total', total);
+  setIfChanged('st-progress', inProgress);
+  setIfChanged('st-completed', completed);
+  setIfChanged('st-outstanding', '€' + fmtNum(outstanding));
+  setIfChanged('st-paid', '€' + fmtNum(paid));
+}
+
+// ── LINE ITEMS ──
+function addLineItem(item = {}) {
+  const types = getJobTypes();
+  const tbody = document.getElementById('lineItemsBody');
+  const tr = document.createElement('tr');
+  const typeOptions = types.map(t => `<option value="${t}" ${item.type===t?'selected':''}>${t}</option>`).join('');
+  const isCustom = item.type && !types.includes(item.type) && item.type !== 'Maintenance Visit';
+  const isMaintVisit = item.type === 'Maintenance Visit';
+
+  tr.innerHTML = `
+    <td>
+      <select class="li-type" onchange="onTypeSelect(this)">
+        <option value="Maintenance Visit" ${isMaintVisit?'selected':''}>🔧 Maintenance Visit</option>
+        ${typeOptions}
+        <option value="__custom__" ${isCustom?'selected':''}>Other (custom)</option>
+      </select>
+      <input type="text" class="li-type-custom" placeholder="Custom type..." style="margin-top:4px;display:${isCustom?'block':'none'}" value="${isCustom?item.type:''}">
+    </td>
+    <td>
+      <input type="text" class="li-desc" placeholder="Description..." value="${item.description||''}">
+      <div class="maint-visit-row" style="display:${isMaintVisit?'flex':'none'};align-items:center;gap:6px;margin-top:5px">
+        <label style="font-size:11px;color:var(--text-muted);white-space:nowrap">Hours:</label>
+        <input type="number" class="li-hours" placeholder="0.0" step="0.5" min="0" style="width:65px;padding:4px 7px;border:1px solid var(--border);border-radius:5px;font-size:12px" value="${item.hours||''}" oninput="onHoursChange(this)">
+        <span class="maint-rate-info" style="font-size:11px;color:var(--text-muted)"></span>
+      </div>
+    </td>
+    <td>
+      <select class="li-paidby">
+        <option value="Zesty" ${(item.paidBy||'Zesty')==='Zesty'?'selected':''}>Zesty</option>
+        <option value="Owner" ${item.paidBy==='Owner'?'selected':''}>Owner</option>
+      </select>
+    </td>
+    <td><input type="number" class="li-cost" placeholder="0.00" step="0.01" min="0" value="${item.ourCost||''}" oninput="onCostChange(this)"></td>
+    <td>
+      <select class="li-method" onchange="onChargeMethodChange(this)">
+        <option value="maint_pct" ${(item.chargeMethod||'maint_pct')==='maint_pct'?'selected':''}>Maint. % (auto)</option>
+        <option value="custom_pct" ${item.chargeMethod==='custom_pct'?'selected':''}>Custom %</option>
+        <option value="fixed" ${item.chargeMethod==='fixed'?'selected':''}>Fixed Amount</option>
+      </select>
+    </td>
+    <td><input type="number" class="li-pct" placeholder="%" step="0.1" min="0" value="${item.chargePercent||''}" oninput="onPctChange(this)" ${item.chargeMethod==='fixed'?'readonly':''}></td>
+    <td><input type="number" class="li-charge" placeholder="0.00" step="0.01" min="0" value="${item.chargeAmount||''}" oninput="calcLineTotals()"></td>
+    <td><button class="li-remove" onclick="this.closest('tr').remove();calcLineTotals()">×</button></td>
+  `;
+  tbody.appendChild(tr);
+
+  // If maintenance visit, populate rate info and auto-fill cost
+  if (isMaintVisit) initMaintVisitRow(tr, item);
+
+  calcLineTotals();
+}
+
+function initMaintVisitRow(tr, item = {}) {
+  const propId = document.getElementById('f_property').value;
+  const prop = propertiesData.find(p => p.id === propId);
+  const base = (prop && prop.maintBase != null) ? parseFloat(prop.maintBase) : null;
+  const hourly = (prop && prop.maintHourly != null) ? parseFloat(prop.maintHourly) : null;
+  const rateInfo = tr.querySelector('.maint-rate-info');
+  if (rateInfo && base != null) {
+    rateInfo.textContent = `Base €${fmtNum(base)} + €${fmtNum(hourly||0)}/hr after 1.5h`;
+  }
+  // Auto-fill cost if hours given and no cost already
+  if (item.hours && base != null && !item.ourCost) {
+    const cost = calcMaintCost(item.hours, base, hourly || 0);
+    tr.querySelector('.li-cost').value = cost.toFixed(2);
+  }
+}
+
+function calcMaintCost(hours, base, hourly) {
+  const h = parseFloat(hours) || 0;
+  if (h <= 1.5) return base;
+  return base + (h - 1.5) * hourly;
+}
+
+function onHoursChange(input) {
+  const row = input.closest('tr');
+  const propId = document.getElementById('f_property').value;
+  const prop = propertiesData.find(p => p.id === propId);
+  const base = (prop && prop.maintBase != null) ? parseFloat(prop.maintBase) : 0;
+  const hourly = (prop && prop.maintHourly != null) ? parseFloat(prop.maintHourly) : 0;
+  const hours = parseFloat(input.value) || 0;
+  const costInput = row.querySelector('.li-cost');
+  if (base > 0) {
+    costInput.value = calcMaintCost(hours, base, hourly).toFixed(2);
+    onCostChange(costInput);
+  }
+  calcLineTotals();
+}
+
+function onTypeSelect(sel) {
+  const row = sel.closest('tr');
+  const customInput = sel.nextElementSibling;
+  const maintRow = row.querySelector('.maint-visit-row');
+  customInput.style.display = sel.value === '__custom__' ? 'block' : 'none';
+  if (maintRow) {
+    maintRow.style.display = sel.value === 'Maintenance Visit' ? 'flex' : 'none';
+    if (sel.value === 'Maintenance Visit') initMaintVisitRow(row);
+  }
+}
+
+function getLineItems() {
+  const items = [];
+  document.querySelectorAll('#lineItemsBody tr').forEach(row => {
+    const typeSelect = row.querySelector('.li-type');
+    const type = typeSelect?.value === '__custom__'
+      ? (row.querySelector('.li-type-custom')?.value || 'Other')
+      : (typeSelect?.value || '');
+    items.push({
+      type,
+      description: row.querySelector('.li-desc')?.value || '',
+      hours: parseFloat(row.querySelector('.li-hours')?.value) || 0,
+      paidBy: row.querySelector('.li-paidby')?.value || 'Zesty',
+      ourCost: parseFloat(row.querySelector('.li-cost')?.value) || 0,
+      chargeMethod: row.querySelector('.li-method')?.value || 'fixed',
+      chargePercent: parseFloat(row.querySelector('.li-pct')?.value) || 0,
+      chargeAmount: parseFloat(row.querySelector('.li-charge')?.value) || 0,
+    });
+  });
+  return items;
+}
+
+// ── OPEN / SAVE JOB ──
+function openNewJob() {
+  editingId = null;
+  document.getElementById('modalTitle').textContent = 'New Job Order';
+  document.getElementById('deleteJobBtn').style.display = 'none';
+  document.getElementById('f_jobId').value = genJobId();
+  document.getElementById('f_status').value = 'Open';
+  document.getElementById('f_title').value = '';
+  document.getElementById('f_property').value = '';
+  document.getElementById('f_ownerName').value = '';
+  document.getElementById('f_ownerId').value = '';
+  document.getElementById('f_dateStarted').value = today();
+  document.getElementById('f_dateCompleted').value = '';
+  document.getElementById('f_dateInvoiced').value = '';
+  document.getElementById('f_datePaid').value = '';
+  document.getElementById('f_notes').value = '';
+  document.getElementById('lineItemsBody').innerHTML = '';
+  document.getElementById('zf-method').value = 'none';
+  document.getElementById('zf-pct').value = '';
+  document.getElementById('zf-fixed').value = '';
+  document.getElementById('zf-pct')._autoset = false;
+  calcLineTotals();
+  document.getElementById('jobModal').classList.add('open');
+}
+
+function editJob(id) {
+  const j = jobs.find(x => x.id === id);
+  if (!j) return;
+  editingId = id;
+  document.getElementById('modalTitle').textContent = 'Edit Job Order';
+  document.getElementById('deleteJobBtn').style.display = 'inline-flex';
+  document.getElementById('f_jobId').value = j.jobId || '';
+  document.getElementById('f_status').value = j.status || 'Open';
+  document.getElementById('f_title').value = j.title || '';
+  document.getElementById('f_property').value = j.propertyId || '';
+  document.getElementById('f_ownerName').value = j.ownerName || '';
+  document.getElementById('f_ownerId').value = j.ownerId || '';
+  document.getElementById('f_dateStarted').value = j.dateStarted || '';
+  document.getElementById('f_dateCompleted').value = j.dateCompleted || '';
+  document.getElementById('f_dateInvoiced').value = j.dateInvoiced || '';
+  document.getElementById('f_datePaid').value = j.datePaid || '';
+  document.getElementById('f_notes').value = j.notes || '';
+  document.getElementById('lineItemsBody').innerHTML = '';
+  (j.lineItems || []).forEach(li => addLineItem(li));
+  // Restore Zesty fee
+  document.getElementById('zf-method').value = j.zestyFeeMethod || 'none';
+  document.getElementById('zf-pct').value = j.zestyFeePct || '';
+  document.getElementById('zf-fixed').value = j.zestyFeeFixed || '';
+  document.getElementById('zf-pct')._autoset = false;
+  calcLineTotals();
+  document.getElementById('jobModal').classList.add('open');
+}
+
+async function saveJob() {
+  const title = document.getElementById('f_title').value.trim();
+  const propId = document.getElementById('f_property').value;
+  if (!title) { showToast('Please enter a description', 'error'); return; }
+
+  const prop = propertiesData.find(p => p.id === propId);
+
+  // Zesty fee
+  const zfMethod = document.getElementById('zf-method').value;
+  const zfPct = parseFloat(document.getElementById('zf-pct').value) || 0;
+  const zfFixed = parseFloat(document.getElementById('zf-fixed').value) || 0;
+  const lineItems = getLineItems();
+  const totalCost = lineItems.reduce((s, l) => s + (parseFloat(l.ourCost)||0), 0);
+  const lineCharge = lineItems.reduce((s, l) => s + (parseFloat(l.chargeAmount)||0), 0);
+  let zestyFee = 0;
+  if (zfMethod === 'maint_pct' || zfMethod === 'custom_pct') {
+    zestyFee = totalCost * zfPct / 100;
+  } else if (zfMethod === 'fixed') {
+    zestyFee = zfFixed;
+  }
+  const finalCharge = lineCharge + zestyFee;
+
+  const data = {
+    jobId: document.getElementById('f_jobId').value,
+    status: document.getElementById('f_status').value,
+    title,
+    propertyId: propId,
+    propertyName: prop ? (prop.shortName || prop.propertyName) : '',
+    ownerId: document.getElementById('f_ownerId').value,
+    ownerName: document.getElementById('f_ownerName').value,
+    dateStarted: document.getElementById('f_dateStarted').value,
+    dateCompleted: document.getElementById('f_dateCompleted').value,
+    dateInvoiced: document.getElementById('f_dateInvoiced').value,
+    datePaid: document.getElementById('f_datePaid').value,
+    notes: document.getElementById('f_notes').value,
+    lineItems,
+    zestyFeeMethod: zfMethod,
+    zestyFeePct: zfPct,
+    zestyFeeFixed: zfFixed,
+    zestyFee,
+    finalCharge,
+  };
+
+  if (editingId) {
+    const idx = jobs.findIndex(j => j.id === editingId);
+    if (idx !== -1) jobs[idx] = { ...jobs[idx], ...data };
+    showToast('✓ Job order updated', 'success');
+  } else {
+    const newId = 'job_' + Date.now();
+    jobs.push({ id: newId, ...data });
+    showToast('✓ Job order created', 'success');
+  }
+
+  await SyncStore.saveAll('zesty_jobs', 'jobs', jobs);
+  closeModal('jobModal');
+  renderTable();
+  updateStats();
+}
+
+// ── VIEW JOB ──
+function viewJob(id) {
+  const j = jobs.find(x => x.id === id);
+  if (!j) return;
+  currentViewId = id;
+  document.getElementById('viewTitle').textContent = j.jobId + ' — ' + j.title;
+  document.getElementById('viewEditBtn').onclick = () => { closeModal('viewModal'); editJob(id); };
+
+  const totalCost = calcJobTotal(j, 'cost');
+  const totalCharge = calcJobTotal(j, 'charge');
+
+  document.getElementById('viewBody').innerHTML = `
+    <div class="view-section">
+      <div class="view-section-title">Job Details</div>
+      <div class="view-grid">
+        <div class="view-field"><div class="view-label">Job ID</div><div class="view-value" style="font-family:monospace;color:var(--teal)">${j.jobId||'—'}</div></div>
+        <div class="view-field"><div class="view-label">Status</div><div class="view-value"><span class="badge badge-${statusClass(j.status)}">${j.status||'Open'}</span></div></div>
+        <div class="view-field"><div class="view-label">Property</div><div class="view-value">${j.propertyName||'—'}</div></div>
+        <div class="view-field"><div class="view-label">Owner</div><div class="view-value">${j.ownerName||'—'}</div></div>
+        <div class="view-field"><div class="view-label">Date Started</div><div class="view-value">${fmtDate(j.dateStarted)}</div></div>
+        <div class="view-field"><div class="view-label">Date Completed</div><div class="view-value">${fmtDate(j.dateCompleted)}</div></div>
+        <div class="view-field"><div class="view-label">Date Invoiced</div><div class="view-value">${fmtDate(j.dateInvoiced)}</div></div>
+        <div class="view-field"><div class="view-label">Date Paid</div><div class="view-value">${j.datePaid ? '<span style="color:var(--success)">✓ ' + fmtDate(j.datePaid) + '</span>' : '<span style="color:var(--warning)">Unpaid</span>'}</div></div>
+        <div class="view-field" style="grid-column:span 1"><div class="view-label">Total Our Cost</div><div class="view-value">${fmt(totalCost)}</div></div>
+        <div class="view-field"><div class="view-label">Total Charge to Owner</div><div class="view-value" style="color:var(--teal-dark);font-size:16px;font-weight:700">${fmt(totalCharge)}</div></div>
+      </div>
+    </div>
+    ${j.notes ? `<div class="view-section"><div class="view-section-title">Notes</div><div style="background:#f7fbfa;border-radius:8px;padding:12px 14px;font-size:13px;line-height:1.6">${j.notes}</div></div>` : ''}
+    <div class="view-section">
+      <div class="view-section-title">Line Items</div>
+      ${(j.lineItems||[]).length === 0 ? '<p style="color:var(--text-muted);font-size:13px">No line items added.</p>' : `
+      <table style="width:100%;border-collapse:collapse;font-size:13px">
+        <thead><tr style="background:#f7fbfa">
+          <th style="padding:8px 10px;text-align:left;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted)">Type</th>
+          <th style="padding:8px 10px;text-align:left;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted)">Description</th>
+          <th style="padding:8px 10px;text-align:center;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted)">Paid By</th>
+          <th style="padding:8px 10px;text-align:right;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted)">Our Cost</th>
+          <th style="padding:8px 10px;text-align:center;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted)">Charge Method</th>
+          <th style="padding:8px 10px;text-align:right;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted)">Charge to Owner</th>
+        </tr></thead>
+        <tbody>
+          ${j.lineItems.map(li => `<tr style="border-bottom:1px solid #f0f4f3">
+            <td style="padding:8px 10px"><span class="badge badge-type-${typeClass(li.type)}">${li.type||'—'}</span></td>
+            <td style="padding:8px 10px">${li.description||'—'}</td>
+            <td style="padding:8px 10px;text-align:center">
+              <span style="font-size:11px;font-weight:600;color:${li.paidBy==='Owner'?'var(--teal)':'var(--warning)'}">${li.paidBy||'Zesty'}</span>
+            </td>
+            <td style="padding:8px 10px;text-align:right;color:var(--text-muted)">${li.ourCost ? '€'+parseFloat(li.ourCost).toFixed(2) : '—'}</td>
+            <td style="padding:8px 10px;text-align:center;font-size:12px">
+              ${li.chargeMethod==='maint_pct' ? 'Maint. '+li.chargePercent+'%' : li.chargeMethod==='custom_pct' ? 'Custom '+li.chargePercent+'%' : 'Fixed'}
+            </td>
+            <td style="padding:8px 10px;text-align:right;font-weight:700;color:var(--teal-dark)">${li.chargeAmount ? '€'+parseFloat(li.chargeAmount).toFixed(2) : '—'}</td>
+          </tr>`).join('')}
+        </tbody>
+        <tfoot><tr style="background:#f7fbfa">
+          <td colspan="3" style="padding:10px;font-weight:700;font-size:13px">TOTAL</td>
+          <td style="padding:10px;text-align:right;font-weight:600">${fmt(totalCost)}</td>
+          <td></td>
+          <td style="padding:10px;text-align:right;font-weight:700;font-size:15px;color:var(--teal-dark)">${fmt(totalCharge)}</td>
+        </tfoot>
+      </table>`}
+    </div>
+  `;
+  document.getElementById('viewModal').classList.add('open');
+}
+
+// ── DELETE ──
+function deleteCurrentJob() {
+  if (editingId) {
+    closeModal('jobModal');
+    deleteJob(editingId);
+  }
+}
+
+function deleteJob(id) {
+  const j = jobs.find(x => x.id === id);
+  if (!j) return;
+  showConfirm('🗑️', 'Delete Job Order?', `Delete ${j.jobId} — "${j.title}"? This cannot be undone.`, 'btn-danger', 'Delete', async () => {
+    jobs = jobs.filter(x => x.id !== id);
+    await SyncStore.deleteOne('zesty_jobs', 'jobs', id, jobs);
+    renderTable(); updateStats();
+    showToast('Job order deleted', 'error');
+  });
+}
+
+// ── REPORTS ──
+function openOwnerReport() {
+  document.getElementById('reportSelectorModal').classList.add('open');
+}
+
+function generateOwnerReport() {
+  const ownerFilter = document.getElementById('rpt_owner').value;
+  const propFilter = document.getElementById('rpt_property').value;
+  const statusFilter = document.getElementById('rpt_status').value;
+  const fromFilter = document.getElementById('rpt_from').value;
+  const toFilter = document.getElementById('rpt_to').value;
+
+  let filtered = jobs.filter(j => {
+    if (ownerFilter && j.ownerName !== ownerFilter) return false;
+    if (propFilter && j.propertyName !== propFilter) return false;
+    if (statusFilter && j.status !== statusFilter) return false;
+    if (fromFilter && j.dateStarted && j.dateStarted < fromFilter) return false;
+    if (toFilter && j.dateStarted && j.dateStarted > toFilter) return false;
+    return true;
+  });
+
+  closeModal('reportSelectorModal');
+  renderOwnerReport(filtered, ownerFilter, propFilter, statusFilter);
+}
+
+function printJobReport(id) {
+  const j = jobs.find(x => x.id === id);
+  if (!j) return;
+  renderOwnerReport([j], j.ownerName, j.propertyName, null, true);
+}
+
+function renderOwnerReport(filtered, ownerName, propName, statusFilter, single = false) {
+  const totalCharge = filtered.reduce((s, j) => s + calcJobTotal(j, 'charge'), 0);
+  const totalPaid = filtered.filter(j => j.datePaid || j.status === 'Paid').reduce((s, j) => s + calcJobTotal(j, 'charge'), 0);
+  const totalOutstanding = totalCharge - totalPaid;
+
+  const rows = filtered.map(j => {
+    const charge = calcJobTotal(j, 'charge');
+    const zestyFee = parseFloat(j.zestyFee) || 0;
+    const lineChargeOnly = charge - zestyFee;
+    const lineBreakdown = (j.lineItems || []).filter(li => li.chargeAmount > 0).map(li =>
+      `<tr style="background:#fafcfb">
+        <td colspan="2" style="padding:5px 12px 5px 24px;font-size:12px;color:var(--text-muted)">↳ ${li.type==='Maintenance Visit'?'🔧 ':''}<strong>${li.type}</strong>${li.description?' — '+li.description:''}${li.hours?' ('+li.hours+' hrs)':''}</td>
+        <td colspan="2" style="padding:5px 12px;font-size:12px;color:var(--text-muted);text-align:center">${li.chargeMethod==='maint_pct'?'Maint. '+li.chargePercent+'%':li.chargeMethod==='custom_pct'?li.chargePercent+'%':'Fixed'}</td>
+        <td style="padding:5px 12px;text-align:right;font-size:12px;color:var(--teal-dark);font-weight:600">€${fmtNum(li.chargeAmount)}</td>
+      </tr>`
+    ).join('');
+
+    const zestyFeeRow = zestyFee > 0 ? `
+      <tr style="background:#fffbf0">
+        <td colspan="2" style="padding:5px 12px 5px 24px;font-size:12px;color:var(--gold);font-weight:600">↳ Zesty Rentals Fee${j.zestyFeeMethod==='maint_pct'||j.zestyFeeMethod==='custom_pct' ? ' ('+j.zestyFeePct+'%)' : ''}</td>
+        <td colspan="2" style="padding:5px 12px;font-size:12px;color:var(--text-muted);text-align:center">${j.zestyFeeMethod==='fixed'?'Fixed':j.zestyFeePct+'% on cost'}</td>
+        <td style="padding:5px 12px;text-align:right;font-size:12px;color:var(--gold);font-weight:700">€${fmtNum(zestyFee)}</td>
+      </tr>` : '';
+
+    return `<tr>
+      <td style="padding:9px 12px;font-family:monospace;font-size:12px;color:var(--teal)">${j.jobId||'—'}</td>
+      <td style="padding:9px 12px">${j.title||'—'}<br><span style="font-size:11px;color:var(--text-muted)">${j.propertyName||''}</span></td>
+      <td style="padding:9px 12px;text-align:center">${fmtDate(j.dateStarted)}</td>
+      <td style="padding:9px 12px;text-align:center">${fmtDate(j.dateCompleted)}</td>
+      <td style="padding:9px 12px;text-align:right;font-weight:700;color:var(--teal-dark)">€${fmtNum(charge)}</td>
+    </tr>
+    ${lineBreakdown}
+    ${zestyFeeRow}`;
+  }).join('');
+
+  const html = `
+    <div class="report-header">
+      <div>
+        <div class="report-logo">Zesty <span>Rentals</span></div>
+        <div style="font-size:12px;color:var(--text-muted);margin-top:4px">Kissamos, Crete</div>
+      </div>
+      <div class="report-meta">
+        <div style="font-size:14px;font-weight:600;color:var(--teal-dark)">Job Orders Statement</div>
+        <div>Generated: ${new Date().toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'})}</div>
+        ${ownerName ? `<div>Owner: <strong>${ownerName}</strong></div>` : ''}
+        ${propName ? `<div>Property: <strong>${propName}</strong></div>` : ''}
+        ${statusFilter ? `<div>Status: <strong>${statusFilter}</strong></div>` : ''}
+      </div>
+    </div>
+    <table class="report-table">
+      <thead><tr>
+        <th>Job ID</th>
+        <th>Description</th>
+        <th style="text-align:center">Started</th>
+        <th style="text-align:center">Completed</th>
+        <th style="text-align:right">Charge</th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+    <div class="report-total">
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px">
+        <div><div class="total-label">Total Charged</div><div class="total-amount">€${fmtNum(totalCharge)}</div></div>
+        <div><div class="total-label">Total Paid</div><div class="total-amount" style="color:var(--success)">€${fmtNum(totalPaid)}</div></div>
+        <div><div class="total-label">Outstanding</div><div class="total-amount" style="color:var(--warning)">€${fmtNum(totalOutstanding)}</div></div>
+      </div>
+    </div>
+    <div class="report-notes">
+      This statement is generated by Zesty Rentals ERP system.<br>
+      ${filtered.length} job order${filtered.length!==1?'s':''} included in this report.
+    </div>`;
+
+  document.getElementById('reportContent').innerHTML = html;
+  document.getElementById('reportModal').classList.add('open');
+}
+
+// ── EXPORT CSV ──
+function exportCSV() {
+  const filtered = getFiltered();
+  const headers = ['Job ID','Status','Title','Property','Owner','Date Started','Date Completed','Date Invoiced','Date Paid','Total Cost','Total Charge','Notes'];
+  const rows = filtered.map(j => [
+    j.jobId, j.status, j.title, j.propertyName, j.ownerName,
+    j.dateStarted, j.dateCompleted, j.dateInvoiced, j.datePaid,
+    calcJobTotal(j,'cost').toFixed(2), calcJobTotal(j,'charge').toFixed(2), j.notes
+  ].map(v => `"${(v||'').toString().replace(/"/g,'""')}"`).join(','));
+  const csv = [headers.join(','), ...rows].join('\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv], {type:'text/csv'}));
+  a.download = `jobs_${today()}.csv`;
+  a.click();
+  showToast('✓ Exported', 'success');
+}
+
+// ── MODAL / CONFIRM / TOAST ──
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+function showConfirm(icon,title,msg,btnClass,btnText,cb) {
+  document.getElementById('confirmIcon').textContent = icon;
+  document.getElementById('confirmTitle').textContent = title;
+  document.getElementById('confirmMsg').textContent = msg;
+  const btn = document.getElementById('confirmBtn');
+  btn.className = 'btn ' + btnClass;
+  btn.textContent = btnText;
+  confirmCb = cb;
+  document.getElementById('confirmOverlay').classList.add('open');
+}
+function closeConfirm() { document.getElementById('confirmOverlay').classList.remove('open'); confirmCb = null; }
+function confirmAction() { if (confirmCb) confirmCb(); closeConfirm(); }
+function showToast(msg, type='') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show' + (type?' '+type:'');
+  clearTimeout(t._t);
+  t._t = setTimeout(() => t.className = 'toast', 3000);
+}
+
+// Click outside modal to close
+document.querySelectorAll('.modal-overlay').forEach(el => {
+  el.addEventListener('click', e => { if (e.target === el) el.classList.remove('open'); });
+});
+document.getElementById('confirmOverlay').addEventListener('click', e => { if (e.target.id==='confirmOverlay') closeConfirm(); });
+
+init().catch(console.error);
+</script>
+</body>
+</html>

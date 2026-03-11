@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Zesty ERP · Hub</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+<style>
+:root{
+  --teal:#1a7a6e;--teal-light:#23a090;--teal-dark:#115950;--teal-deeper:#0d3f38;
+  --gold:#c9a84c;--gold-light:#e8c97a;--gold-pale:#fdf6e3;
+  --cream:#f7f4ef;--white:#fff;--text:#1e2a28;--text-muted:#6b7e7b;
+  --border:#dde8e6;--shadow:0 2px 16px rgba(26,122,110,.10);--shadow-lg:0 8px 40px rgba(26,122,110,.18);
+  --radius:14px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--text);min-height:100vh;overflow-x:hidden}
+
+/* ── HEADER ── */
+header{
+  background:linear-gradient(135deg,var(--teal-deeper) 0%,var(--teal-dark) 60%,var(--teal) 100%);
+  padding:0 32px;height:64px;display:flex;align-items:center;justify-content:space-between;
+  box-shadow:0 2px 20px rgba(0,0,0,.2);position:sticky;top:0;z-index:100;
+}
+.logo{display:flex;align-items:center;gap:10px}
+.logo-icon{width:36px;height:36px;background:var(--gold);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px}
+.logo-text{font-family:'DM Serif Display',serif;color:#fff;font-size:20px;letter-spacing:-.3px}
+.logo-text span{color:var(--gold-light)}
+.logo-sub{color:rgba(255,255,255,.5);font-size:11px;font-weight:400;margin-top:1px}
+.header-right{display:flex;align-items:center;gap:16px}
+.live-clock{color:rgba(255,255,255,.9);font-size:13px;font-weight:500;font-variant-numeric:tabular-nums}
+.live-date{color:rgba(255,255,255,.5);font-size:11px;text-align:right}
+
+/* ── MAIN ── */
+main{max-width:1280px;margin:0 auto;padding:32px 24px 80px}
+
+/* ── HERO ── */
+.hero{
+  background:linear-gradient(135deg,var(--teal-dark),var(--teal));
+  border-radius:20px;padding:36px 40px;margin-bottom:28px;
+  display:flex;align-items:center;justify-content:space-between;gap:24px;
+  box-shadow:var(--shadow-lg);position:relative;overflow:hidden;
+}
+.hero::before{
+  content:'';position:absolute;right:-60px;top:-60px;
+  width:280px;height:280px;border-radius:50%;
+  background:rgba(255,255,255,.05);
+}
+.hero::after{
+  content:'';position:absolute;right:80px;bottom:-80px;
+  width:200px;height:200px;border-radius:50%;
+  background:rgba(201,168,76,.08);
+}
+.hero-left{position:relative;z-index:1}
+.greeting{font-family:'DM Serif Display',serif;font-size:28px;color:#fff;font-weight:400;margin-bottom:4px}
+.greeting em{color:var(--gold-light);font-style:italic}
+.hero-sub{color:rgba(255,255,255,.6);font-size:13px}
+.quick-stats{display:flex;gap:20px;position:relative;z-index:1;flex-wrap:wrap}
+.qs{text-align:center;min-width:70px}
+.qs-val{font-size:26px;font-weight:700;color:#fff;line-height:1}
+.qs-val.gold{color:var(--gold-light)}
+.qs-lbl{font-size:10px;color:rgba(255,255,255,.55);text-transform:uppercase;letter-spacing:.07em;margin-top:3px}
+.qs-div{width:1px;background:rgba(255,255,255,.15);align-self:stretch}
+
+/* ── CSV IMPORT WIDGET ── */
+.import-widget{
+  background:var(--white);border-radius:var(--radius);
+  border:1px solid var(--border);padding:16px 20px;
+  margin-bottom:28px;box-shadow:var(--shadow);
+  display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;
+}
+.import-left{display:flex;align-items:center;gap:12px}
+.import-icon{width:40px;height:40px;background:#f0faf8;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.import-title{font-weight:600;font-size:14px;color:var(--teal-dark)}
+.import-desc{font-size:12px;color:var(--text-muted);margin-top:1px}
+.import-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:9px;font-size:13px;font-family:'DM Sans',sans-serif;font-weight:500;cursor:pointer;border:none;transition:all .18s;text-decoration:none}
+.btn-upload{background:var(--gold);color:var(--teal-dark);font-weight:600}.btn-upload:hover{background:var(--gold-light)}
+.btn-ghost{background:transparent;border:1px solid var(--border);color:var(--text-muted)}.btn-ghost:hover{background:var(--border)}
+.import-status{font-size:11px;color:var(--text-muted)}
+.import-progress{display:none;align-items:center;gap:8px;font-size:12px;color:var(--teal)}
+.import-progress.active{display:flex}
+.spinner{width:16px;height:16px;border:2px solid var(--teal-light);border-top-color:transparent;border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── SECTION TITLE ── */
+.section-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);margin-bottom:12px;padding-left:4px}
+
+/* ── MODULE GRID ── */
+.modules-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:28px}
+.mod-card{
+  background:var(--white);border-radius:var(--radius);border:1px solid var(--border);
+  padding:20px;text-decoration:none;color:var(--text);
+  display:flex;flex-direction:column;gap:8px;
+  box-shadow:var(--shadow);transition:all .2s;position:relative;overflow:hidden;cursor:pointer;
+}
+.mod-card:hover{transform:translateY(-3px);box-shadow:var(--shadow-lg);border-color:var(--teal-light)}
+.mod-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--teal);opacity:0;transition:opacity .2s}
+.mod-card:hover::before{opacity:1}
+.mod-card.gold-accent::before{background:var(--gold)}
+.mod-card.coming-soon{cursor:default;opacity:.6}
+.mod-card.coming-soon:hover{transform:none;box-shadow:var(--shadow);border-color:var(--border)}
+.mod-card.coming-soon::before{display:none}
+.mod-top{display:flex;align-items:flex-start;justify-content:space-between}
+.mod-icon{width:42px;height:42px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+.mod-icon.teal{background:#e8f5f3}
+.mod-icon.gold{background:var(--gold-pale)}
+.mod-icon.purple{background:#f3eeff}
+.mod-icon.blue{background:#e8f4ff}
+.mod-icon.orange{background:#fff3e8}
+.mod-icon.red{background:#fff0f0}
+.mod-count{font-size:20px;font-weight:700;color:var(--teal);line-height:1}
+.mod-name{font-size:14px;font-weight:600;color:var(--teal-dark)}
+.mod-desc{font-size:11px;color:var(--text-muted);line-height:1.4}
+.mod-badge{display:inline-block;padding:2px 7px;border-radius:6px;font-size:10px;font-weight:700;letter-spacing:.03em}
+.mb-new{background:var(--gold-pale);color:#9a7200}
+.mb-soon{background:#f0f0f0;color:var(--text-muted)}
+
+/* ── BOTTOM ROW ── */
+.bottom-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.info-card{background:var(--white);border-radius:var(--radius);border:1px solid var(--border);padding:20px;box-shadow:var(--shadow)}
+.info-card h3{font-size:13px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:14px}
+.status-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)}
+.status-row:last-child{border-bottom:none}
+.status-label{font-size:13px;color:var(--text)}
+.status-val{font-size:13px;font-weight:600;color:var(--teal)}
+.status-val.warn{color:#e67e22}
+.status-val.ok{color:#27ae60}
+.status-val.neutral{color:var(--text-muted)}
+
+/* ── RESPONSIVE ── */
+@media(max-width:1000px){.modules-grid{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:700px){
+  main{padding:16px 12px 60px}
+  .hero{flex-direction:column;align-items:flex-start;padding:24px}
+  .quick-stats{gap:12px}
+  .modules-grid{grid-template-columns:repeat(2,1fr)}
+  .bottom-row{grid-template-columns:1fr}
+  .import-widget{flex-direction:column;align-items:flex-start}
+}
+@media(max-width:400px){.modules-grid{grid-template-columns:1fr}}
+</style>
+    <script>
+    (function(){
+      const _msalConfig={
+        auth:{
+          clientId:'0938023f-cbbf-45f1-a71d-b18c95745ea6',
+          authority:'https://login.microsoftonline.com/9c30b606-6648-4777-a623-64867e43e54f',
+          redirectUri:'https://kissamosrealestate.com/wp-content/erp/index.html'
+        },
+        cache:{cacheLocation:'sessionStorage',storeAuthStateInCookie:false}
+      };
+      const _msal=new msal.PublicClientApplication(_msalConfig);
+      const _loginRequest={scopes:['openid','profile','User.Read']};
+
+      async function _ensureLogin(){
+        await _msal.initialize();
+        try{ await _msal.handleRedirectPromise(); }catch(e){}
+        const accounts=_msal.getAllAccounts();
+        if(accounts.length>0){
+          const acct=accounts[0];
+          _showUserBadge(acct.name||acct.username);
+          return;
+        }
+        _msal.loginRedirect(_loginRequest);
+      }
+
+      function _showUserBadge(name){
+        const show=()=>{
+          const hdr=document.querySelector('.header-right');
+          if(!hdr)return;
+          if(document.getElementById('_azure_badge'))return;
+          const badge=document.createElement('div');
+          badge.id='_azure_badge';
+          badge.style.cssText='display:flex;align-items:center;gap:8px;margin-left:4px';
+          badge.innerHTML=`<span style="font-size:12px;color:rgba(255,255,255,.75);font-family:DM Sans,sans-serif">&#128100; ${name}</span>`+
+            `<button onclick="window._azureLogout()" style="padding:4px 10px;border-radius:7px;border:1px solid rgba(255,255,255,.3);background:transparent;color:rgba(255,255,255,.7);font-size:11px;cursor:pointer;font-family:DM Sans,sans-serif">Sign out</button>`;
+          hdr.appendChild(badge);
+        };
+        if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',show);}
+        else{show();}
+      }
+
+      window._azureLogout=function(){
+        const accounts=_msal.getAllAccounts();
+        if(accounts.length>0){_msal.logoutRedirect({account:accounts[0]});}
+      };
+
+      document.addEventListener('DOMContentLoaded',function(){
+        const accounts=_msal.getAllAccounts();
+        if(accounts.length===0){document.body.style.visibility='hidden';}
+        else{document.body.style.visibility='visible';}
+      });
+
+      _ensureLogin().then(()=>{
+        document.body.style.visibility='visible';
+      });
+    })();
+    </script>
+    <!-- Azure MSAL Authentication -->
+    <script src="https://unpkg.com/@azure/msal-browser@2.38.3/lib/msal-browser.min.js"></script>
+    <script>
+    (function(){
+      const _msalConfig={
+        auth:{
+          clientId:'0938023f-cbbf-45f1-a71d-b18c95745ea6',
+          authority:'https://login.microsoftonline.com/9c30b606-6648-4777-a623-64867e43e54f',
+          redirectUri:'https://kissamosrealestate.com/wp-content/erp/index.html'
+        },
+        cache:{cacheLocation:'sessionStorage',storeAuthStateInCookie:false}
+      };
+      const _msal=new msal.PublicClientApplication(_msalConfig);
+      const _loginRequest={scopes:['openid','profile','User.Read']};
+
+      async function _ensureLogin(){
+        await _msal.initialize();
+        try{ await _msal.handleRedirectPromise(); }catch(e){}
+        const accounts=_msal.getAllAccounts();
+        if(accounts.length>0){
+          const acct=accounts[0];
+          if(acct.tenantId!=='9c30b606-6648-4777-a623-64867e43e54f'){
+            document.documentElement.style.visibility='visible';
+            document.body.innerHTML='<div style="display:flex;align-items:center;justify-content:center;height:100vh;font-family:sans-serif;flex-direction:column;gap:12px"><div style="font-size:48px">🔒</div><div style="font-size:18px;font-weight:600;color:#1e2a28">Access Denied</div><div style="font-size:14px;color:#666">Your account is not authorised to access this system.</div><button onclick="window._azureLogout()" style="margin-top:12px;padding:8px 20px;background:#1a7a6e;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:14px">Sign out</button></div>';
+            return;
+          }
+          _showUserBadge(acct.name||acct.username);
+          document.documentElement.style.visibility='visible';
+          return;
+        }
+        await _msal.loginRedirect(_loginRequest);
+      }
+
+      function _showUserBadge(name){
+        const show=()=>{
+          const hdr=document.querySelector('.header-right');
+          if(!hdr)return;
+          if(document.getElementById('_azure_badge'))return;
+          const badge=document.createElement('div');
+          badge.id='_azure_badge';
+          badge.style.cssText='display:flex;align-items:center;gap:8px;margin-left:4px';
+          badge.innerHTML='<span style="font-size:12px;color:rgba(255,255,255,.75);font-family:DM Sans,sans-serif">&#128100; '+name+'</span>'+
+            '<button onclick="window._azureLogout()" style="padding:4px 10px;border-radius:7px;border:1px solid rgba(255,255,255,.3);background:transparent;color:rgba(255,255,255,.7);font-size:11px;cursor:pointer;font-family:DM Sans,sans-serif">Sign out</button>';
+          hdr.appendChild(badge);
+        };
+        if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',show);}
+        else{show();}
+      }
+
+      window._azureLogout=function(){
+        const accounts=_msal.getAllAccounts();
+        if(accounts.length>0){_msal.logoutRedirect({account:accounts[0]});}
+      };
+
+      document.documentElement.style.visibility='hidden';
+
+      _ensureLogin().catch(function(){
+        _msal.loginRedirect(_loginRequest);
+      });
+    })();
+    </script>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">🏨</div>
+    <div>
+      <div class="logo-text">Zesty <span>ERP</span></div>
+      <div class="logo-sub">Kissamos, Crete &nbsp;·&nbsp; Operations Hub</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <div>
+      <div class="live-clock" id="clock">00:00:00</div>
+      <div class="live-date" id="dateLine">—</div>
+    </div>
+  </div>
+</header>
+
+<main>
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-left">
+      <div class="greeting" id="greeting">Good morning, <em>Zesty</em></div>
+      <div class="hero-sub" id="heroSub">Loading your portfolio overview…</div>
+    </div>
+    <div class="quick-stats" id="quickStats">
+      <div class="qs"><div class="qs-val" id="qs-props">—</div><div class="qs-lbl">Properties</div></div>
+      <div class="qs-div"></div>
+      <div class="qs-val gold" style="display:none" id="qs-onleave">—</div>
+      <div class="qs"><div class="qs-val" id="qs-cleaners">—</div><div class="qs-lbl">Cleaners</div></div>
+      <div class="qs-div"></div>
+      <div class="qs"><div class="qs-val gold" id="qs-onleave2">—</div><div class="qs-lbl">On Leave</div></div>
+      <div class="qs-div"></div>
+      <div class="qs"><div class="qs-val" id="qs-tasks">—</div><div class="qs-lbl">Open Tasks</div></div>
+    </div>
+  </div>
+
+  <!-- CSV IMPORT WIDGET -->
+  <div class="import-widget">
+    <div class="import-left">
+      <div class="import-icon">📥</div>
+      <div>
+        <div class="import-title">Lodgify Data Sync</div>
+        <div class="import-desc" id="importDesc">Upload your daily CSV export to sync guest &amp; booking data</div>
+      </div>
+    </div>
+    <div class="import-right">
+      <div class="import-progress" id="importProgress">
+        <div class="spinner"></div>
+        <span id="importProgressMsg">Processing...</span>
+      </div>
+      <div class="import-status" id="importStatusRow">
+        <span id="lastFileChip">No import yet</span>
+      </div>
+      <label class="btn btn-upload" style="cursor:pointer">
+        ⬆ Upload CSV
+        <input type="file" accept=".csv" style="display:none" onchange="handleHomeImport(event)">
+      </label>
+    </div>
+  </div>
+
+  <!-- MODULES -->
+  <div class="section-title">Modules</div>
+  <div class="modules-grid">
+    <a href="owners-crm.html" class="mod-card">
+      <div class="mod-top">
+        <div class="mod-icon teal">👤</div>
+        <div class="mod-count" id="mc-owners">—</div>
+      </div>
+      <div class="mod-name">Owners</div>
+      <div class="mod-desc">Owner profiles, contacts &amp; commission</div>
+    </a>
+    <a href="properties-db.html" class="mod-card">
+      <div class="mod-top">
+        <div class="mod-icon teal">🏠</div>
+        <div class="mod-count" id="mc-props">—</div>
+      </div>
+      <div class="mod-name">Properties</div>
+      <div class="mod-desc">Property database, rates &amp; details</div>
+    </a>
+    <a href="guests-crm.html" class="mod-card gold-accent">
+      <div class="mod-top">
+        <div class="mod-icon gold">✈️</div>
+        <div class="mod-count" id="mc-guests">—</div>
+      </div>
+      <div class="mod-name">Guests</div>
+      <div class="mod-desc">Guest database &amp; booking history</div>
+    </a>
+    <a href="contacts-crm.html" class="mod-card">
+      <div class="mod-top">
+        <div class="mod-icon blue">📋</div>
+        <div class="mod-count" id="mc-contacts">—</div>
+      </div>
+      <div class="mod-name">Contacts</div>
+      <div class="mod-desc">Suppliers, services &amp; partners</div>
+    </a>
+    <a href="cleaning-system.html" class="mod-card">
+      <div class="mod-top">
+        <div class="mod-icon orange">🧹</div>
+        <div class="mod-count" id="mc-cleaning">—</div>
+      </div>
+      <div class="mod-name">Cleaning</div>
+      <div class="mod-desc">Schedule, staff &amp; assignments</div>
+    </a>
+    <a href="employees.html" class="mod-card">
+      <div class="mod-top">
+        <div class="mod-icon teal">👥</div>
+        <div class="mod-count" id="mc-staff">—</div>
+      </div>
+      <div class="mod-name">Staff</div>
+      <div class="mod-desc">Employee directory &amp; contracts</div>
+    </a>
+    <a href="leave.html" class="mod-card">
+      <div class="mod-top">
+        <div class="mod-icon purple">🏖️</div>
+        <div class="mod-count" id="mc-leave">—</div>
+      </div>
+      <div class="mod-name">Leave</div>
+      <div class="mod-desc">Leave requests &amp; balances</div>
+    </a>
+    <a href="tasks.html" class="mod-card gold-accent">
+      <div class="mod-top">
+        <div class="mod-icon gold">✅</div>
+        <div class="mod-count" id="mc-tasks">—</div>
+      </div>
+      <div class="mod-name">Tasks</div>
+      <div class="mod-desc">Team task tracker &amp; assignments</div>
+    </a>
+    <a href="jobs.html" class="mod-card gold-accent">
+      <div class="mod-top">
+        <div class="mod-icon gold">🔧</div>
+        <div class="mod-count" id="mc-jobs">—</div>
+      </div>
+      <div class="mod-name">Job Orders</div>
+      <div class="mod-desc">Maintenance jobs &amp; owner charges</div>
+    </a>
+    <a href="laundry.html" class="mod-card gold-accent">
+      <div class="mod-top">
+        <div class="mod-icon gold">👔</div>
+        <div class="mod-count" id="mc-laundry">—</div>
+      </div>
+      <div class="mod-name">Laundry ERP</div>
+      <div class="mod-desc">Service orders, customers &amp; accounts</div>
+    </a>
+    <a href="onboarding.html" class="mod-card">
+      <div class="mod-top">
+        <div class="mod-icon teal">🏗️</div>
+        <div></div>
+      </div>
+      <div class="mod-name">Onboarding</div>
+      <div class="mod-desc">New property acquisition pipeline</div>
+    </a>
+    <a href="settings.html" class="mod-card">
+      <div class="mod-top">
+        <div class="mod-icon teal">⚙️</div>
+        <div></div>
+      </div>
+      <div class="mod-name">Settings</div>
+      <div class="mod-desc">Departments, entitlements &amp; config</div>
+    </a>
+    <div class="mod-card coming-soon">
+      <div class="mod-top">
+        <div class="mod-icon blue">📅</div>
+        <span class="mod-badge mb-soon">Soon</span>
+      </div>
+      <div class="mod-name">Bookings</div>
+      <div class="mod-desc">Reservation calendar &amp; revenue</div>
+    </div>
+    <div class="mod-card coming-soon">
+      <div class="mod-top">
+        <div class="mod-icon red">📊</div>
+        <span class="mod-badge mb-soon">Soon</span>
+      </div>
+      <div class="mod-name">Finance</div>
+      <div class="mod-desc">Invoices, expenses &amp; reporting</div>
+    </div>
+    <div class="mod-card coming-soon">
+      <div class="mod-top">
+        <div class="mod-icon purple">🔧</div>
+        <span class="mod-badge mb-soon">Soon</span>
+      </div>
+      <div class="mod-name">Maintenance</div>
+      <div class="mod-desc">Issue tracker &amp; work orders</div>
+    </div>
+  </div>
+
+  <!-- BOTTOM INFO -->
+  <div class="bottom-row">
+    <div class="info-card">
+      <h3>Live Status</h3>
+      <div class="status-row"><span class="status-label">Active Properties</span><span class="status-val" id="inf-props">—</span></div>
+      <div class="status-row"><span class="status-label">Active Cleaners</span><span class="status-val" id="inf-cleaners">—</span></div>
+      <div class="status-row"><span class="status-label">Staff on Leave Today</span><span class="status-val warn" id="inf-leave">—</span></div>
+      <div class="status-row"><span class="status-label">Open Tasks</span><span class="status-val" id="inf-tasks">—</span></div>
+      <div class="status-row"><span class="status-label">High Priority Tasks</span><span class="status-val warn" id="inf-high">—</span></div>
+    </div>
+    <div class="info-card">
+      <h3>Last Import</h3>
+      <div class="status-row"><span class="status-label">File</span><span class="status-val neutral" id="inf-file">—</span></div>
+      <div class="status-row"><span class="status-label">Date</span><span class="status-val neutral" id="inf-date">—</span></div>
+      <div class="status-row"><span class="status-label">Total Guests</span><span class="status-val" id="inf-guests">—</span></div>
+      <div class="status-row"><span class="status-label">New Guests</span><span class="status-val ok" id="inf-new">—</span></div>
+      <div class="status-row"><span class="status-label">New Bookings</span><span class="status-val ok" id="inf-bookings">—</span></div>
+    </div>
+  </div>
+</main>
+
+<script>
+
+const SUPABASE_URL='https://whuytfjwdjjepayeiohj.supabase.co';
+const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndodXl0Zmp3ZGpqZXBheWVpb2hqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIyODQxMzQsImV4cCI6MjA4Nzg2MDEzNH0.pTDAqw_Cnzc9D3tJU-tU7Ch5qpapKmteiqI_ooSCufY';
+const DB={
+  _h(){return{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json','Prefer':'return=representation,resolution=merge-duplicates'}},
+  _hG(){return{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY}},
+  _hD(){return{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json'}},
+  _ok(){return!!(SUPABASE_URL&&SUPABASE_KEY&&SUPABASE_URL.includes('supabase.co'))},
+  async _fetch(method,table,body,query,ms){
+    if(!this._ok())return{ok:false,data:null,err:'Not configured'};
+    const ctrl=new AbortController(),t=setTimeout(()=>ctrl.abort(),ms||15000);
+    try{
+      const url=SUPABASE_URL+'/rest/v1/'+table+(query||'');
+      const headers=method==='GET'?this._hG():method==='DELETE'?this._hD():this._h();
+      const opts={method,headers,signal:ctrl.signal};
+      if(body)opts.body=JSON.stringify(body);
+      const res=await fetch(url,opts);clearTimeout(t);
+      if(!res.ok){
+        let e='HTTP '+res.status;
+        try{const j=await res.json();e=j.message||j.hint||j.error||e}catch(x){}
+        return{ok:false,data:null,err:e};
+      }
+      if(res.status===204||method==='DELETE')return{ok:true,data:[]};
+      const ct=res.headers.get('content-type')||'';
+      if(!ct.includes('json'))return{ok:true,data:[]};
+      try{return{ok:true,data:await res.json()}}catch(x){return{ok:true,data:[]}}
+    }catch(e){clearTimeout(t);return{ok:false,data:null,err:e.name==='AbortError'?'Timeout':e.message}}
+  },
+  async loadAll(table){
+    const r=await this._fetch('GET',table,null,'?select=id,data,updated_at&order=created_at.asc&limit=100000');
+    if(!r.ok)return{ok:false,rows:null,err:r.err};
+    const rows=(r.data||[]).map(row=>({id:row.id,...(row.data||{})}));
+    return{ok:true,rows};
+  },
+  async upsertOne(table,record){
+    const{id,...rest}=record;
+    const rid=id||('rec_'+Date.now()+'_'+Math.random().toString(36).slice(2,6));
+    const row={id:rid,data:rest,updated_at:new Date().toISOString()};
+    const r=await this._fetch('POST',table,row,'?on_conflict=id');
+    return{ok:r.ok,id:rid,err:r.err};
+  },
+  async upsertMany(table,records){
+    if(!records.length)return{ok:true};
+    const rows=records.map(({id,...rest})=>({id:id||('rec_'+Date.now()+'_'+Math.random().toString(36).slice(2,6)),data:rest,updated_at:new Date().toISOString()}));
+    const size=200;
+    for(let i=0;i<rows.length;i+=size){
+      const r=await this._fetch('POST',table,rows.slice(i,i+size),'?on_conflict=id');
+      if(!r.ok)return{ok:false,err:r.err};
+    }
+    return{ok:true};
+  },
+  async deleteOne(table,id){
+    const r=await this._fetch('DELETE',table,null,'?id=eq.'+encodeURIComponent(id));
+    return{ok:r.ok,err:r.err};
+  },
+  isConfigured(){return this._ok()}
+};
+const SyncStore={
+  _pendingDeletes:{},
+  async load(lsKey,table){
+    const cached=this._getLocal(lsKey);
+    const result=await DB.loadAll(table);
+    if(result.ok&&result.rows!==null){
+      const pending=this._pendingDeletes[table]||new Set();
+      const rows=result.rows.filter(r=>!pending.has(r.id));
+      localStorage.setItem(lsKey,JSON.stringify(rows));
+      return{data:rows,fromCache:false,online:true};
+    }
+    return{data:cached,fromCache:true,online:false};
+  },
+  async saveOne(lsKey,table,record,all){
+    localStorage.setItem(lsKey,JSON.stringify(all));
+    const r=await DB.upsertOne(table,record);
+    if(!r.ok)showSyncErr(r.err);
+    return r;
+  },
+  async saveAll(lsKey,table,records){
+    localStorage.setItem(lsKey,JSON.stringify(records));
+    const r=await DB.upsertMany(table,records);
+    if(!r.ok)showSyncErr(r.err);
+    return r.ok;
+  },
+  async deleteOne(lsKey,table,id,all){
+    if(!this._pendingDeletes[table])this._pendingDeletes[table]=new Set();
+    this._pendingDeletes[table].add(id);
+    localStorage.setItem(lsKey,JSON.stringify(all));
+    const r=await DB.deleteOne(table,id);
+    if(!r.ok){
+      this._pendingDeletes[table].delete(id);
+      showSyncErr('Delete failed: '+r.err);
+      return{ok:false,err:r.err};
+    }
+    setTimeout(()=>{if(this._pendingDeletes[table])this._pendingDeletes[table].delete(id)},120000);
+    return{ok:true};
+  },
+  _getLocal(key){try{return JSON.parse(localStorage.getItem(key)||'[]')||[]}catch{return[]}}
+};
+function startPoll(table,lsKey,ms,onData){
+  let lastHash='';
+  const poll=async()=>{
+    const result=await DB.loadAll(table);
+    if(!result.ok||!result.rows)return;
+    const pending=SyncStore._pendingDeletes[table]||new Set();
+    const rows=result.rows.filter(r=>!pending.has(r.id));
+    const hash=rows.length+'|'+rows.map(r=>r.id).join(',');
+    if(hash!==lastHash){lastHash=hash;localStorage.setItem(lsKey,JSON.stringify(rows));onData(rows)}
+  };
+  setInterval(poll,ms);
+  return poll;
+}
+function showDbStatus(online){
+  const old=document.getElementById('db-status-bar');if(old)old.remove();
+  if(online)return;
+  const b=document.createElement('div');b.id='db-status-bar';
+  b.style.cssText='position:fixed;bottom:0;left:0;right:0;background:#c0392b;color:#fff;text-align:center;padding:8px;font-size:12px;z-index:9998;cursor:pointer;';
+  b.textContent='⚠ Database offline — working in local mode. Click to retry.';
+  b.onclick=()=>{location.reload()};
+  document.body.appendChild(b);
+}
+function showSyncErr(err){
+  let b=document.getElementById('sync-err-bar');
+  if(!b){b=document.createElement('div');b.id='sync-err-bar';b.style.cssText='position:fixed;bottom:40px;right:16px;background:#c0392b;color:#fff;border-radius:8px;padding:8px 14px;font-size:12px;z-index:9999;max-width:320px;';document.body.appendChild(b)}
+  b.textContent='Save error: '+err;b.style.display='block';
+  clearTimeout(b._t);b._t=setTimeout(()=>b.style.display='none',6000);
+}
+
+</script>
+<script>
+
+// ── CLOCK ──
+function updateClock() {
+  const now = new Date();
+  document.getElementById('clock').textContent = now.toLocaleTimeString('el-GR', {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  document.getElementById('dateLine').textContent = now.toLocaleDateString('en-GB', {weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  const h = now.getHours();
+  const greeting = h < 6 ? 'Good night' : h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : h < 21 ? 'Good evening' : 'Good night';
+  document.getElementById('greeting').innerHTML = `${greeting}, <em>Zesty</em>`;
+}
+updateClock();
+setInterval(updateClock, 1000);
+
+// ── PULL LIVE COUNTS FROM localStorage cache ──
+async function loadStats() {
+  // Load from localStorage first (instant)
+  const props    = safeJSON('zesty_properties', []);
+  const owners   = safeJSON('zesty_owners', []);
+  const staff    = safeJSON('zesty_employees', []);
+  const leaves   = safeJSON('zesty_leaves', []);
+  const tasks    = safeJSON('zesty_tasks', []);
+  const cleaning = safeJSON('zesty_cleaning_staff', []);
+  const contacts = safeJSON('zesty_contacts', []);
+
+  function applyStats(props, staff, leaves, tasks, cleaning, contacts, owners) {
+    const activeProps    = props.filter(p => !p.archived && p.status === 'Active');
+    const activeCleaners = cleaning.filter(c => c.status !== 'inactive').length;
+    const today          = new Date().toISOString().slice(0,10);
+    const onLeave        = leaves.filter(l => l.fromDate <= today && (l.toDate||l.fromDate) >= today).length;
+    const openTasks      = tasks.filter(t => t.status !== 'Closed' && t.status !== 'completed').length;
+    const highTasks      = tasks.filter(t => t.priority === 'High' && t.status !== 'Closed').length;
+    const activeStaff    = staff.filter(e=>e.status==='active').length||staff.length;
+    const mc = (id,v) => { const el=document.getElementById(id); if(el) el.textContent=v; };
+    // Hero stats
+    mc('qs-props', activeProps.length || props.length || '—');
+    mc('qs-cleaners', activeCleaners || cleaning.length || '—');
+    mc('qs-onleave2', onLeave || '0');
+    mc('qs-tasks', openTasks || '0');
+    // Module counts
+    mc('mc-owners', owners.length||'');
+    mc('mc-props', activeProps.length||props.length||'');
+    mc('mc-staff', activeStaff||'');
+    mc('mc-contacts', contacts.length||'');
+    mc('mc-cleaning', activeCleaners||cleaning.length||'');
+    mc('mc-leave', onLeave||'');
+    mc('mc-tasks', openTasks||'');
+    // Bottom status panel
+    mc('inf-props', (activeProps.length||props.length||'—'));
+    mc('inf-cleaners', activeCleaners||cleaning.length||'—');
+    mc('inf-leave', onLeave||'0');
+    mc('inf-tasks', openTasks||'0');
+    mc('inf-high', highTasks||'0');
+    // Hero sub
+    const sub = document.getElementById('heroSub');
+    if(sub) sub.textContent = activeProps.length + ' active properties · ' + activeStaff + ' staff · ' + openTasks + ' open tasks';
+  }
+
+  // Show immediately from cache
+  applyStats(props, staff, leaves, tasks, cleaning, contacts, owners);
+
+  // Then refresh from Supabase in background
+  try {
+    const [pR,sR,lR,tR,cR,ctR,oR] = await Promise.all([
+      DB.loadAll('properties'), DB.loadAll('employees'), DB.loadAll('leaves'),
+      DB.loadAll('tasks'), DB.loadAll('cleaning_staff'), DB.loadAll('contacts'), DB.loadAll('owners')
+    ]);
+    const fp = pR.ok ? pR.rows : props;
+    const fs = sR.ok ? sR.rows : staff;
+    const fl = lR.ok ? lR.rows : leaves;
+    const ft = tR.ok ? tR.rows : tasks;
+    const fc = cR.ok ? cR.rows : cleaning;
+    const fct = ctR.ok ? ctR.rows : contacts;
+    const fo = oR.ok ? oR.rows : owners;
+    // Cache for next load
+    if(pR.ok) localStorage.setItem('zesty_properties', JSON.stringify(fp));
+    if(sR.ok) localStorage.setItem('zesty_employees', JSON.stringify(fs));
+    if(lR.ok) localStorage.setItem('zesty_leaves', JSON.stringify(fl));
+    if(tR.ok) localStorage.setItem('zesty_tasks', JSON.stringify(ft));
+    if(cR.ok) localStorage.setItem('zesty_cleaning_staff', JSON.stringify(fc));
+    if(ctR.ok) localStorage.setItem('zesty_contacts', JSON.stringify(fct));
+    if(oR.ok) localStorage.setItem('zesty_owners', JSON.stringify(fo));
+    applyStats(fp, fs, fl, ft, fc, fct, fo);
+  } catch(e) { /* offline - already showing cached stats */ }
+}
+
+
+// ── HOME SCREEN CSV IMPORT ──
+function parseCSVLine(line) {
+  const result = []; let current = ''; let inQ = false;
+  for (let i = 0; i < line.length; i++) {
+    if (line[i] === '"') { if (inQ && line[i+1] === '"') { current += '"'; i++; } else inQ = !inQ; }
+    else if (line[i] === ',' && !inQ) { result.push(current); current = ''; }
+    else current += line[i];
+  }
+  result.push(current);
+  return result;
+}
+
+function updateHomeImportStatus() {
+  try {
+    const last = JSON.parse(localStorage.getItem('zesty_last_import') || 'null');
+    if (!last) return;
+    const d = new Date(last.date);
+    const dateStr = d.toLocaleDateString('el-GR') + ' ' + d.toLocaleTimeString('el-GR', {hour:'2-digit',minute:'2-digit'});
+    document.getElementById('lastFileChip').innerHTML = `📄 <strong>${last.filename}</strong> · ${dateStr}`;
+    if (last.newGuests > 0) {
+      document.getElementById('newGuestsChip').style.display = 'flex';
+      document.getElementById('newGuestsVal').textContent = last.newGuests;
+    }
+    if (last.newBookings > 0) {
+      document.getElementById('newBookingsChip').style.display = 'flex';
+      document.getElementById('newBookingsVal').textContent = last.newBookings;
+    }
+    if (last.updatedBookings > 0) {
+      document.getElementById('updatedChip').style.display = 'flex';
+      document.getElementById('updatedVal').textContent = last.updatedBookings;
+    }
+    const guests = safeJSON('zesty_guests', []);
+    if (guests.length) {
+      document.getElementById('totalGuestsChip').style.display = 'flex';
+      document.getElementById('totalGuestsVal').textContent = guests.length.toLocaleString();
+    }
+  } catch(e) {}
+}
+
+const MANAGER_EMAILS_HOME = new Set([
+  'lydia.kotsou@gmail.com',
+  'mikemoras@gmail.com',
+  'info@zesty.gr',
+  'zestyreservations2@gmail.com',
+]);
+
+async function handleHomeImport(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  // Show progress
+  document.getElementById('importProgress').classList.add('active');
+  document.getElementById('importStatusRow').style.opacity = '0.4';
+  document.getElementById('importProgressMsg').textContent = 'Reading file...';
+
+  const reader = new FileReader();
+  reader.onload = async e => {
+    try {
+      document.getElementById('importProgressMsg').textContent = 'Parsing bookings...';
+      const text = e.target.result;
+      const lines = text.split('\n').filter(l => l.trim());
+      const headers = parseCSVLine(lines[0]);
+      const rows = lines.slice(1).map(l => {
+        const vals = parseCSVLine(l);
+        const obj = {};
+        headers.forEach((h, i) => obj[h.trim()] = (vals[i]||'').trim());
+        return obj;
+      }).filter(r => r.Id && r.Name);
+
+      document.getElementById('importProgressMsg').textContent = 'Merging with database...';
+
+      // Build CSV guest map
+      const csvGuests = {};
+      rows.forEach(r => {
+        const email = (r.Email||'').trim().toLowerCase();
+        const isReal = email && email.includes('@') && !email.includes('guest.booking.com') && !email.includes('guest.airbnb.com') && !MANAGER_EMAILS_HOME.has(email);
+        const phone9 = (r.Phone||'').replace(/\t/g,'').replace(/[\s\-\+]/g,'').slice(-9);
+        const gKey = isReal ? `email::${email}` : (phone9.length >= 7 ? `phone::${phone9}` : `anon::${r.Id}`);
+        const phone = (r.Phone||'').replace(/^\t/,'').trim();
+        const country = (r.CountryName||'').trim();
+        const booking = {
+          bookingId: r.Id,
+          property: r.HouseInternalName && r.HouseInternalName !== 'N/A' ? r.HouseInternalName : r.HouseName,
+          propertyFull: r.HouseName, propertyId: r.House_Id,
+          arrival: r.DateArrival, departure: r.DateDeparture,
+          nights: r.Nights, adults: r.Adults, children: r.Children,
+          infants: r.Infants, pets: r.Pets, people: r.People,
+          source: r.Source, status: r.Status, total: r.TotalAmount,
+          currency: r.Currency, amountPaid: r.AmountPaid,
+          balanceDue: r.BalanceDue, dateCreated: r.DateCreated, notes: r.Notes,
+        };
+        if (!csvGuests[gKey]) {
+          csvGuests[gKey] = { gKey, name: (r.Name||'').trim(), email: isReal ? email : '', phone, phone9: phone9.length>=7?phone9:'', country: country === 'N/A' ? '' : country, bookings: [] };
+        }
+        csvGuests[gKey].bookings.push(booking);
+      });
+
+      // Load existing guests
+      document.getElementById('importProgressMsg').textContent = 'Loading existing data...';
+      const _gResult = await SyncStore.load('zesty_guests', 'guests');
+      const guests = _gResult.data || [];
+
+      let newGuests = 0, updatedGuests = 0, newBookings = 0, updatedBookings = 0;
+
+      Object.values(csvGuests).forEach(csvG => {
+        let existing = csvG.email ? guests.find(g => g.email && g.email === csvG.email) : null;
+        if (!existing && csvG.phone9) {
+          existing = guests.find(g => {
+            const p = (g.phone||'').replace(/[\s\-\+]/g,'').slice(-9);
+            return p.length >= 7 && p === csvG.phone9;
+          });
+        }
+        if (!existing) {
+          existing = guests.find(g => (g.bookings||[]).some(b => csvG.bookings.some(cb => cb.bookingId === b.bookingId)));
+        }
+        if (existing) {
+          csvG.bookings.forEach(csvB => {
+            const exB = existing.bookings.find(b => b.bookingId === csvB.bookingId);
+            if (!exB) { existing.bookings.push(csvB); newBookings++; }
+            else if (exB.status !== csvB.status || exB.total !== csvB.total || exB.balanceDue !== csvB.balanceDue) {
+              Object.assign(exB, csvB); updatedBookings++;
+            }
+          });
+          if (!existing.phone && csvG.phone) existing.phone = csvG.phone;
+          if (!existing.country && csvG.country) existing.country = csvG.country;
+          if (existing.bookings.length > 1 && !(existing.tags||[]).includes('Repeat')) {
+            existing.tags = [...(existing.tags||[]), 'Repeat'];
+          }
+          existing.bookings.sort((a,b) => a.arrival > b.arrival ? -1 : 1);
+          updatedGuests++;
+        } else {
+          guests.push({
+            id: `guest_${csvG.bookings[0].bookingId}`,
+            name: csvG.name, email: csvG.email, phone: csvG.phone, country: csvG.country,
+            notes: '', tags: csvG.bookings.length > 1 ? ['Repeat'] : [],
+            bookings: csvG.bookings.sort((a,b) => a.arrival > b.arrival ? -1 : 1)
+          });
+          newGuests++;
+          newBookings += csvG.bookings.length;
+        }
+      });
+
+      document.getElementById('importProgressMsg').textContent = 'Saving to database...';
+      await SyncStore.saveAll('zesty_guests', 'guests', guests);
+
+      // Save raw CSV for cleaning system auto-import
+      localStorage.setItem('zesty_raw_lodgify_csv', JSON.stringify({
+        text: text, filename: file.name, savedAt: new Date().toISOString()
+      }));
+
+      // Save import record
+      const rec = { filename: file.name, date: new Date().toISOString(), totalRows: rows.length, newGuests, updatedGuests, newBookings, updatedBookings };
+      let hist = [];
+      try { hist = JSON.parse(localStorage.getItem('zesty_guest_imports') || '[]'); } catch {}
+      hist.unshift(rec);
+      localStorage.setItem('zesty_guest_imports', JSON.stringify(hist.slice(0,20)));
+      localStorage.setItem('zesty_last_import', JSON.stringify(rec));
+
+      // Hide progress, show results
+      document.getElementById('importProgress').classList.remove('active');
+      document.getElementById('importStatusRow').style.opacity = '1';
+      updateHomeImportStatus();
+      loadStats();
+
+      // Show result chips with flash
+      ['newGuestsChip','newBookingsChip','updatedChip'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el.style.display !== 'none') {
+          el.style.transform = 'scale(1.1)';
+          setTimeout(() => el.style.transform = '', 300);
+        }
+      });
+
+    } catch(err) {
+      document.getElementById('importProgress').classList.remove('active');
+      document.getElementById('importStatusRow').style.opacity = '1';
+      document.getElementById('importProgressMsg').textContent = 'Error: ' + err.message;
+      console.error('Import error:', err);
+    }
+  };
+  reader.readAsText(file, 'utf-8');
+  event.target.value = '';
+}
+
+updateHomeImportStatus();
+
+function safeJSON(key, def) {
+  try { return JSON.parse(localStorage.getItem(key) || 'null') || def; }
+  catch { return def; }
+}
+
+loadStats();
+// Refresh stats every 30 seconds
+setInterval(loadStats, 30000);
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,1017 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Contacts CRM — Zesty ERP</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --teal:#1a7a6e;--teal-light:#23a090;--teal-dark:#115950;
+  --gold:#c9a84c;--gold-light:#d4b96a;
+  --cream:#f8f5ef;--bg:#f4f1ea;
+  --text:#1c2b28;--text-muted:#6b7f7a;
+  --border:#ddd8cc;--shadow:0 2px 12px rgba(0,0,0,.08);
+  --radius:12px;
+  /* Category colors */
+  --c-accountant:#2563eb;--c-legal:#7c3aed;--c-services:#d97706;
+  --c-maintenance:#059669;--c-supplier:#dc2626;--c-partner:#0891b2;--c-other:#64748b;
+}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+
+/* ── TOP BAR ── */
+.topbar{background:var(--teal-dark);padding:0 24px;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+.topbar-brand{font-family:'Cormorant Garamond',serif;font-size:20px;color:#fff;font-weight:400;letter-spacing:.02em;}
+.topbar-brand span{opacity:.5;margin:0 8px;}
+.nav-links{display:flex;gap:6px;flex-wrap:wrap;}
+.nav-btn{padding:5px 11px;border:1px solid rgba(255,255,255,.2);border-radius:6px;color:rgba(255,255,255,.8);font-size:11px;font-family:'DM Sans',sans-serif;cursor:pointer;background:transparent;transition:all .2s;text-decoration:none;display:inline-flex;align-items:center;gap:4px;}
+.nav-btn:hover,.nav-btn.active{background:rgba(255,255,255,.15);color:#fff;border-color:rgba(255,255,255,.4);}
+
+/* ── LAYOUT ── */
+.container{max-width:1400px;margin:0 auto;padding:24px 20px;}
+
+/* ── PAGE HEADER ── */
+.page-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:24px;gap:16px;flex-wrap:wrap;}
+.page-title{font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:400;color:var(--teal-dark);}
+.page-subtitle{font-size:13px;color:var(--text-muted);margin-top:2px;}
+.header-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+
+/* ── STAT CARDS ── */
+.stats-row{display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap;}
+.stat-card{background:#fff;border-radius:var(--radius);padding:14px 18px;flex:1;min-width:120px;box-shadow:var(--shadow);border-left:3px solid var(--teal);}
+.stat-val{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:500;color:var(--teal-dark);}
+.stat-lbl{font-size:11px;color:var(--text-muted);margin-top:2px;text-transform:uppercase;letter-spacing:.06em;}
+
+/* ── FILTERS ── */
+.filters-bar{background:#fff;border-radius:var(--radius);padding:14px 18px;margin-bottom:16px;display:flex;gap:10px;flex-wrap:wrap;box-shadow:var(--shadow);}
+.search-input{flex:1;min-width:200px;padding:8px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;font-family:'DM Sans',sans-serif;color:var(--text);background:var(--cream);}
+.search-input:focus{outline:none;border-color:var(--teal);background:#fff;}
+.filter-select{padding:8px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;font-family:'DM Sans',sans-serif;color:var(--text);background:var(--cream);cursor:pointer;}
+.filter-select:focus{outline:none;border-color:var(--teal);}
+
+/* ── CATEGORY TABS ── */
+.cat-tabs{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap;}
+.cat-tab{padding:6px 14px;border-radius:20px;font-size:12px;font-weight:500;cursor:pointer;border:1px solid var(--border);background:#fff;color:var(--text-muted);transition:all .2s;display:flex;align-items:center;gap:5px;}
+.cat-tab:hover{border-color:var(--teal);color:var(--teal);}
+.cat-tab.active{background:var(--teal-dark);color:#fff;border-color:var(--teal-dark);}
+.cat-tab .count{background:rgba(255,255,255,.25);border-radius:10px;padding:1px 6px;font-size:10px;}
+.cat-tab:not(.active) .count{background:var(--bg);color:var(--text-muted);}
+
+/* ── CONTACT CARDS ── */
+.contacts-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:14px;}
+.contact-card{background:#fff;border-radius:var(--radius);padding:18px;box-shadow:var(--shadow);border:1px solid var(--border);transition:all .2s;cursor:pointer;position:relative;}
+.contact-card:hover{transform:translateY(-2px);box-shadow:0 6px 24px rgba(0,0,0,.12);border-color:var(--teal-light);}
+.card-top{display:flex;align-items:flex-start;gap:14px;margin-bottom:12px;}
+.avatar{width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:500;color:#fff;flex-shrink:0;}
+.card-name{font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:500;color:var(--teal-dark);line-height:1.2;}
+.card-company{font-size:12px;color:var(--text-muted);margin-top:2px;}
+.card-role{font-size:11px;font-weight:500;margin-top:4px;}
+.cat-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:12px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;}
+.card-details{display:flex;flex-direction:column;gap:6px;font-size:12px;color:var(--text-muted);}
+.detail-row{display:flex;align-items:center;gap:7px;}
+.detail-row a{color:var(--teal);text-decoration:none;}
+.detail-row a:hover{text-decoration:underline;}
+.card-tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:10px;}
+.tag-chip{padding:2px 8px;background:var(--bg);border:1px solid var(--border);border-radius:10px;font-size:10px;color:var(--text-muted);}
+.card-actions{position:absolute;top:12px;right:12px;display:flex;gap:4px;opacity:0;transition:opacity .2s;}
+.contact-card:hover .card-actions{opacity:1;}
+.card-action-btn{width:28px;height:28px;border-radius:6px;border:1px solid var(--border);background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:13px;transition:all .2s;}
+.card-action-btn:hover{background:var(--bg);}
+.card-action-btn.danger:hover{background:#fee2e2;border-color:#fca5a5;}
+.owner-links{margin-top:8px;padding-top:8px;border-top:1px solid var(--border);display:flex;flex-wrap:wrap;gap:4px;}
+.owner-link-chip{padding:2px 8px;background:#e0f5f1;border:1px solid #a8e6df;border-radius:10px;font-size:10px;color:var(--teal-dark);}
+
+/* ── EMPTY STATE ── */
+.empty-state{text-align:center;padding:60px 20px;color:var(--text-muted);}
+.empty-icon{font-size:48px;margin-bottom:12px;}
+
+/* ── BUTTONS ── */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 16px;border-radius:8px;font-size:13px;font-family:'DM Sans',sans-serif;font-weight:500;cursor:pointer;transition:all .2s;border:none;}
+.btn-primary{background:var(--teal);color:#fff;}
+.btn-primary:hover{background:var(--teal-light);}
+.btn-outline{background:transparent;border:1px solid var(--border);color:var(--text-muted);}
+.btn-outline:hover{border-color:var(--teal);color:var(--teal);}
+.btn-danger{background:#ef4444;color:#fff;}
+.btn-danger:hover{background:#dc2626;}
+.btn-sm{padding:6px 12px;font-size:12px;}
+.btn-gold{background:var(--gold);color:#1a1a1a;font-weight:600;}
+.btn-gold:hover{background:var(--gold-light);}
+
+/* ── MODAL ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity .3s;}
+.modal-overlay.open{opacity:1;pointer-events:all;}
+.modal{background:#fff;border-radius:16px;width:100%;max-width:680px;max-height:90vh;overflow-y:auto;transform:translateY(20px);transition:transform .3s;box-shadow:0 20px 60px rgba(0,0,0,.2);}
+.modal-overlay.open .modal{transform:translateY(0);}
+.modal-header{padding:20px 24px 0;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:#fff;z-index:1;border-bottom:1px solid var(--border);padding-bottom:16px;}
+.modal-title{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:500;color:var(--teal-dark);}
+.modal-close{width:32px;height:32px;border-radius:8px;border:1px solid var(--border);background:#fff;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;}
+.modal-body{padding:20px 24px;}
+.modal-footer{padding:16px 24px;display:flex;justify-content:flex-end;gap:8px;border-top:1px solid var(--border);}
+
+/* ── FORM ── */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.form-grid.full{grid-template-columns:1fr;}
+.form-group{display:flex;flex-direction:column;gap:5px;}
+.form-group.span2{grid-column:span 2;}
+.form-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);}
+.form-input{padding:9px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;font-family:'DM Sans',sans-serif;color:var(--text);background:var(--cream);transition:border-color .2s;}
+.form-input:focus{outline:none;border-color:var(--teal);background:#fff;}
+.form-section{font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:500;color:var(--teal-dark);border-bottom:1px solid var(--border);padding-bottom:6px;margin:16px 0 10px;grid-column:span 2;}
+
+/* ── CATEGORY COLORS ── */
+.cat-accountant{background:#dbeafe;color:#1d4ed8;}
+.cat-legal{background:#ede9fe;color:#6d28d9;}
+.cat-services{background:#fef3c7;color:#b45309;}
+.cat-maintenance{background:#d1fae5;color:#065f46;}
+.cat-supplier{background:#fee2e2;color:#b91c1c;}
+.cat-partner{background:#e0f2fe;color:#0369a1;}
+.cat-other{background:#f1f5f9;color:#475569;}
+
+.avatar-accountant{background:#2563eb;}
+.avatar-legal{background:#7c3aed;}
+.avatar-services{background:#d97706;}
+.avatar-maintenance{background:#059669;}
+.avatar-supplier{background:#dc2626;}
+.avatar-partner{background:#0891b2;}
+.avatar-other{background:#64748b;}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1c2b28;color:#fff;padding:10px 20px;border-radius:10px;font-size:13px;z-index:999;pointer-events:none;opacity:0;transition:opacity .3s;}
+.toast.show{opacity:1;}
+
+/* ── CONFIRM ── */
+.confirm-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:300;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .3s;}
+.confirm-overlay.open{opacity:1;pointer-events:all;}
+.confirm-box{background:#fff;border-radius:16px;padding:28px;max-width:400px;width:90%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.2);}
+.confirm-icon{font-size:36px;margin-bottom:12px;}
+.confirm-title{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:500;margin-bottom:8px;}
+.confirm-text{font-size:13px;color:var(--text-muted);margin-bottom:20px;}
+.confirm-actions{display:flex;gap:8px;justify-content:center;}
+
+#syncBar{display:none;position:fixed;bottom:60px;right:16px;background:rgba(26,200,160,.92);color:#fff;padding:7px 14px;border-radius:8px;font-size:12px;font-family:'DM Sans',sans-serif;z-index:300;}
+
+@media(max-width:640px){
+  .form-grid{grid-template-columns:1fr;}
+  .form-group.span2{grid-column:span 1;}
+  .form-section{grid-column:span 1;}
+  .contacts-grid{grid-template-columns:1fr;}
+  .stats-row{gap:8px;}
+  .stat-card{min-width:80px;}
+}
+</style>
+    <script>
+    (function(){
+      const _msalConfig={
+        auth:{
+          clientId:'0938023f-cbbf-45f1-a71d-b18c95745ea6',
+          authority:'https://login.microsoftonline.com/9c30b606-6648-4777-a623-64867e43e54f',
+          redirectUri:'https://kissamosrealestate.com/wp-content/erp/index.html'
+        },
+        cache:{cacheLocation:'sessionStorage',storeAuthStateInCookie:false}
+      };
+      const _msal=new msal.PublicClientApplication(_msalConfig);
+      const _loginRequest={scopes:['openid','profile','User.Read']};
+
+      async function _ensureLogin(){
+        await _msal.initialize();
+        try{ await _msal.handleRedirectPromise(); }catch(e){}
+        const accounts=_msal.getAllAccounts();
+        if(accounts.length>0){
+          const acct=accounts[0];
+          _showUserBadge(acct.name||acct.username);
+          return;
+        }
+        _msal.loginRedirect(_loginRequest);
+      }
+
+      function _showUserBadge(name){
+        const show=()=>{
+          const hdr=document.querySelector('.header-right');
+          if(!hdr)return;
+          if(document.getElementById('_azure_badge'))return;
+          const badge=document.createElement('div');
+          badge.id='_azure_badge';
+          badge.style.cssText='display:flex;align-items:center;gap:8px;margin-left:4px';
+          badge.innerHTML=`<span style="font-size:12px;color:rgba(255,255,255,.75);font-family:DM Sans,sans-serif">&#128100; ${name}</span>`+
+            `<button onclick="window._azureLogout()" style="padding:4px 10px;border-radius:7px;border:1px solid rgba(255,255,255,.3);background:transparent;color:rgba(255,255,255,.7);font-size:11px;cursor:pointer;font-family:DM Sans,sans-serif">Sign out</button>`;
+          hdr.appendChild(badge);
+        };
+        if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',show);}
+        else{show();}
+      }
+
+      window._azureLogout=function(){
+        const accounts=_msal.getAllAccounts();
+        if(accounts.length>0){_msal.logoutRedirect({account:accounts[0]});}
+      };
+
+      document.addEventListener('DOMContentLoaded',function(){
+        const accounts=_msal.getAllAccounts();
+        if(accounts.length===0){document.body.style.visibility='hidden';}
+        else{document.body.style.visibility='visible';}
+      });
+
+      _ensureLogin().then(()=>{
+        document.body.style.visibility='visible';
+      });
+    })();
+    </script>
+    <!-- Azure MSAL Authentication -->
+    <script src="https://unpkg.com/@azure/msal-browser@2.38.3/lib/msal-browser.min.js"></script>
+    <script>
+    (function(){
+      const _msalConfig={
+        auth:{
+          clientId:'0938023f-cbbf-45f1-a71d-b18c95745ea6',
+          authority:'https://login.microsoftonline.com/9c30b606-6648-4777-a623-64867e43e54f',
+          redirectUri:'https://kissamosrealestate.com/wp-content/erp/index.html'
+        },
+        cache:{cacheLocation:'sessionStorage',storeAuthStateInCookie:false}
+      };
+      const _msal=new msal.PublicClientApplication(_msalConfig);
+      const _loginRequest={scopes:['openid','profile','User.Read']};
+
+      async function _ensureLogin(){
+        await _msal.initialize();
+        try{ await _msal.handleRedirectPromise(); }catch(e){}
+        const accounts=_msal.getAllAccounts();
+        if(accounts.length>0){
+          const acct=accounts[0];
+          if(acct.tenantId!=='9c30b606-6648-4777-a623-64867e43e54f'){
+            document.documentElement.style.visibility='visible';
+            document.body.innerHTML='<div style="display:flex;align-items:center;justify-content:center;height:100vh;font-family:sans-serif;flex-direction:column;gap:12px"><div style="font-size:48px">🔒</div><div style="font-size:18px;font-weight:600;color:#1e2a28">Access Denied</div><div style="font-size:14px;color:#666">Your account is not authorised to access this system.</div><button onclick="window._azureLogout()" style="margin-top:12px;padding:8px 20px;background:#1a7a6e;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:14px">Sign out</button></div>';
+            return;
+          }
+          _showUserBadge(acct.name||acct.username);
+          document.documentElement.style.visibility='visible';
+          return;
+        }
+        await _msal.loginRedirect(_loginRequest);
+      }
+
+      function _showUserBadge(name){
+        const show=()=>{
+          const hdr=document.querySelector('.header-right');
+          if(!hdr)return;
+          if(document.getElementById('_azure_badge'))return;
+          const badge=document.createElement('div');
+          badge.id='_azure_badge';
+          badge.style.cssText='display:flex;align-items:center;gap:8px;margin-left:4px';
+          badge.innerHTML='<span style="font-size:12px;color:rgba(255,255,255,.75);font-family:DM Sans,sans-serif">&#128100; '+name+'</span>'+
+            '<button onclick="window._azureLogout()" style="padding:4px 10px;border-radius:7px;border:1px solid rgba(255,255,255,.3);background:transparent;color:rgba(255,255,255,.7);font-size:11px;cursor:pointer;font-family:DM Sans,sans-serif">Sign out</button>';
+          hdr.appendChild(badge);
+        };
+        if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',show);}
+        else{show();}
+      }
+
+      window._azureLogout=function(){
+        const accounts=_msal.getAllAccounts();
+        if(accounts.length>0){_msal.logoutRedirect({account:accounts[0]});}
+      };
+
+      document.documentElement.style.visibility='hidden';
+
+      _ensureLogin().catch(function(){
+        _msal.loginRedirect(_loginRequest);
+      });
+    })();
+    </script>
+</head>
+<body>
+
+<div id="syncBar"></div>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="topbar-brand">Zesty ERP <span>·</span> Contacts</div>
+  <div class="nav-links">
+    <a href="index.html" class="nav-btn">🏠 Home</a>
+    <a href="owners-crm.html" class="nav-btn">👤 Owners</a>
+    <a href="properties-db.html" class="nav-btn">🏘 Properties</a>
+    <a href="guests-crm.html" class="nav-btn">✈️ Guests</a>
+    <a href="cleaning-system.html" class="nav-btn">🧹 Cleaning</a>
+    <a href="contacts-crm.html" class="nav-btn active">📋 Contacts</a>
+    <a href="employees.html" class="nav-btn">&#128100; Employees</a>
+    <a href="leave.html" class="nav-btn">&#128197; Leave</a>
+    <a href="tasks.html" class="nav-btn">&#9635; Tasks</a>
+    <a href="settings.html" class="nav-btn">&#9881; Settings</a>
+  </div>
+</div>
+
+<div class="container">
+  <!-- PAGE HEADER -->
+  <div class="page-header">
+    <div>
+      <div class="page-title">Contacts CRM</div>
+      <div class="page-subtitle">Accountants, services, maintenance, suppliers & partners</div>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-outline btn-sm" onclick="exportContacts()">⬇ Export CSV</button>
+      <button class="btn btn-primary" onclick="openAddContact()">＋ Add Contact</button>
+    </div>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats-row" id="statsRow">
+    <div class="stat-card"><div class="stat-val" id="statTotal">—</div><div class="stat-lbl">Total Contacts</div></div>
+    <div class="stat-card" style="border-color:#2563eb"><div class="stat-val" id="statAcct">—</div><div class="stat-lbl">Accountants</div></div>
+    <div class="stat-card" style="border-color:#d97706"><div class="stat-val" id="statSvc">—</div><div class="stat-lbl">Services</div></div>
+    <div class="stat-card" style="border-color:#059669"><div class="stat-val" id="statMaint">—</div><div class="stat-lbl">Maintenance</div></div>
+    <div class="stat-card" style="border-color:#7c3aed"><div class="stat-val" id="statOther">—</div><div class="stat-lbl">Other</div></div>
+  </div>
+
+  <!-- CATEGORY TABS -->
+  <div class="cat-tabs" id="catTabs">
+    <button class="cat-tab active" data-cat="" onclick="setCategory('')">All <span class="count" id="cnt-all">0</span></button>
+    <button class="cat-tab" data-cat="Accountant" onclick="setCategory('Accountant')">🧾 Accountant <span class="count" id="cnt-Accountant">0</span></button>
+    <button class="cat-tab" data-cat="Legal" onclick="setCategory('Legal')">⚖️ Legal <span class="count" id="cnt-Legal">0</span></button>
+    <button class="cat-tab" data-cat="Services" onclick="setCategory('Services')">🚤 Services <span class="count" id="cnt-Services">0</span></button>
+    <button class="cat-tab" data-cat="Maintenance" onclick="setCategory('Maintenance')">🔧 Maintenance <span class="count" id="cnt-Maintenance">0</span></button>
+    <button class="cat-tab" data-cat="Supplier" onclick="setCategory('Supplier')">📦 Supplier <span class="count" id="cnt-Supplier">0</span></button>
+    <button class="cat-tab" data-cat="Partner" onclick="setCategory('Partner')">🤝 Partner <span class="count" id="cnt-Partner">0</span></button>
+    <button class="cat-tab" data-cat="Other" onclick="setCategory('Other')">• Other <span class="count" id="cnt-Other">0</span></button>
+  </div>
+
+  <!-- FILTERS -->
+  <div class="filters-bar">
+    <input class="search-input" id="searchInput" placeholder="Search name, company, email, phone, service type…" oninput="renderCards()">
+    <select class="filter-select" id="filterOwner" onchange="renderCards()">
+      <option value="">All owners</option>
+    </select>
+    <select class="filter-select" id="filterArea" onchange="renderCards()">
+      <option value="">All areas</option>
+    </select>
+  </div>
+
+  <!-- CARDS GRID -->
+  <div class="contacts-grid" id="contactsGrid"></div>
+</div>
+
+<!-- ADD / EDIT MODAL -->
+<div class="modal-overlay" id="contactModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modalTitle">Add Contact</div>
+      <button class="modal-close" onclick="closeModal('contactModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="editId">
+      <div class="form-grid">
+        <div class="form-section">Basic Information</div>
+
+        <div class="form-group">
+          <label class="form-label">Category *</label>
+          <select class="form-input" id="f_category" onchange="updateCategoryUI()">
+            <option value="Accountant">🧾 Accountant</option>
+            <option value="Legal">⚖️ Legal / Lawyer</option>
+            <option value="Services">🚤 Extra Services</option>
+            <option value="Maintenance">🔧 Maintenance</option>
+            <option value="Supplier">📦 Supplier</option>
+            <option value="Partner">🤝 Partner</option>
+            <option value="Other">• Other</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Service Type / Specialty</label>
+          <input class="form-input" id="f_serviceType" placeholder="e.g. Car Rental, Pool Maintenance, Tax Advisor…">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">First Name *</label>
+          <input class="form-input" id="f_firstName" placeholder="First name">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Last Name</label>
+          <input class="form-input" id="f_lastName" placeholder="Last name">
+        </div>
+
+        <div class="form-group span2">
+          <label class="form-label">Company / Business Name</label>
+          <input class="form-input" id="f_company" placeholder="Company or trading name">
+        </div>
+
+        <div class="form-section">Contact Details</div>
+
+        <div class="form-group">
+          <label class="form-label">Phone 1</label>
+          <input class="form-input" id="f_phone1" placeholder="+30 69…">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Phone 2</label>
+          <input class="form-input" id="f_phone2" placeholder="Landline or alternative">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Email 1</label>
+          <input class="form-input" id="f_email1" type="email" placeholder="primary@email.com">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Email 2</label>
+          <input class="form-input" id="f_email2" type="email" placeholder="secondary@email.com">
+        </div>
+
+        <div class="form-group span2">
+          <label class="form-label">Address</label>
+          <input class="form-input" id="f_address" placeholder="Street, City">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Area / Region</label>
+          <input class="form-input" id="f_area" placeholder="e.g. Chania, Kissamos">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Website</label>
+          <input class="form-input" id="f_website" placeholder="https://…">
+        </div>
+
+        <div class="form-section">Financial & Professional</div>
+
+        <div class="form-group">
+          <label class="form-label">VAT / Tax Number</label>
+          <input class="form-input" id="f_vat" placeholder="ΑΦΜ">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">IBAN</label>
+          <input class="form-input" id="f_iban" placeholder="GR…">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Bank</label>
+          <input class="form-input" id="f_bank" placeholder="Bank name">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Payment Terms</label>
+          <select class="form-input" id="f_paymentTerms">
+            <option value="">— Select —</option>
+            <option>On completion</option>
+            <option>Monthly</option>
+            <option>Quarterly</option>
+            <option>Annual</option>
+            <option>Per booking</option>
+            <option>Custom</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Rate / Fee</label>
+          <input class="form-input" id="f_rate" placeholder="e.g. €50/hr, €200/month">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Commission %</label>
+          <input class="form-input" id="f_commission" type="number" min="0" max="100" step="0.1" placeholder="0">
+        </div>
+
+        <div class="form-section">Links to Owners</div>
+
+        <div class="form-group span2">
+          <label class="form-label">Associated Owners (handles accounts / services for)</label>
+          <div id="ownerCheckboxes" style="display:flex;flex-wrap:wrap;gap:8px;padding:10px;background:var(--bg);border-radius:8px;border:1px solid var(--border);max-height:140px;overflow-y:auto;"></div>
+        </div>
+
+        <div class="form-section">Additional</div>
+
+        <div class="form-group span2">
+          <label class="form-label">Tags (comma separated)</label>
+          <input class="form-input" id="f_tags" placeholder="e.g. reliable, seasonal, western crete">
+        </div>
+
+        <div class="form-group span2">
+          <label class="form-label">Notes</label>
+          <textarea class="form-input" id="f_notes" rows="3" placeholder="Any relevant notes, contract details, special terms…"></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('contactModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveContact()">💾 Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- CONFIRM DIALOG -->
+<div class="confirm-overlay" id="confirmOverlay">
+  <div class="confirm-box">
+    <div class="confirm-icon" id="confirmIcon"></div>
+    <div class="confirm-title" id="confirmTitle"></div>
+    <div class="confirm-text" id="confirmText"></div>
+    <div class="confirm-actions">
+      <button class="btn btn-outline" onclick="closeConfirm()">Cancel</button>
+      <button class="btn" id="confirmBtn" onclick="doConfirm()"></button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<script>
+const SUPABASE_URL='https://whuytfjwdjjepayeiohj.supabase.co';
+const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndodXl0Zmp3ZGpqZXBheWVpb2hqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIyODQxMzQsImV4cCI6MjA4Nzg2MDEzNH0.pTDAqw_Cnzc9D3tJU-tU7Ch5qpapKmteiqI_ooSCufY';
+const DB={
+  _h(){return{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json','Prefer':'return=representation,resolution=merge-duplicates'}},
+  _hG(){return{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY}},
+  _hD(){return{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json'}},
+  _ok(){return!!(SUPABASE_URL&&SUPABASE_KEY&&SUPABASE_URL.includes('supabase.co'))},
+  async _fetch(method,table,body,query,ms){
+    if(!this._ok())return{ok:false,data:null,err:'Not configured'};
+    const ctrl=new AbortController(),t=setTimeout(()=>ctrl.abort(),ms||15000);
+    try{
+      const url=SUPABASE_URL+'/rest/v1/'+table+(query||'');
+      const headers=method==='GET'?this._hG():method==='DELETE'?this._hD():this._h();
+      const opts={method,headers,signal:ctrl.signal};
+      if(body)opts.body=JSON.stringify(body);
+      const res=await fetch(url,opts);clearTimeout(t);
+      if(!res.ok){
+        let e='HTTP '+res.status;
+        try{const j=await res.json();e=j.message||j.hint||j.error||e}catch(x){}
+        return{ok:false,data:null,err:e};
+      }
+      if(res.status===204||method==='DELETE')return{ok:true,data:[]};
+      const ct=res.headers.get('content-type')||'';
+      if(!ct.includes('json'))return{ok:true,data:[]};
+      try{return{ok:true,data:await res.json()}}catch(x){return{ok:true,data:[]}}
+    }catch(e){clearTimeout(t);return{ok:false,data:null,err:e.name==='AbortError'?'Timeout':e.message}}
+  },
+  async loadAll(table){
+    const r=await this._fetch('GET',table,null,'?select=id,data,updated_at&order=created_at.asc&limit=100000');
+    if(!r.ok)return{ok:false,rows:null,err:r.err};
+    const rows=(r.data||[]).map(row=>({id:row.id,...(row.data||{})}));
+    return{ok:true,rows};
+  },
+  async upsertOne(table,record){
+    const{id,...rest}=record;
+    const rid=id||('rec_'+Date.now()+'_'+Math.random().toString(36).slice(2,6));
+    const row={id:rid,data:rest,updated_at:new Date().toISOString()};
+    const r=await this._fetch('POST',table,row,'?on_conflict=id');
+    return{ok:r.ok,id:rid,err:r.err};
+  },
+  async upsertMany(table,records){
+    if(!records.length)return{ok:true};
+    const rows=records.map(({id,...rest})=>({id:id||('rec_'+Date.now()+'_'+Math.random().toString(36).slice(2,6)),data:rest,updated_at:new Date().toISOString()}));
+    const size=200;
+    for(let i=0;i<rows.length;i+=size){
+      const r=await this._fetch('POST',table,rows.slice(i,i+size),'?on_conflict=id');
+      if(!r.ok)return{ok:false,err:r.err};
+    }
+    return{ok:true};
+  },
+  async deleteOne(table,id){
+    const r=await this._fetch('DELETE',table,null,'?id=eq.'+encodeURIComponent(id));
+    return{ok:r.ok,err:r.err};
+  },
+  isConfigured(){return this._ok()}
+};
+const SyncStore={
+  _pendingDeletes:{},
+  async load(lsKey,table){
+    const cached=this._getLocal(lsKey);
+    const result=await DB.loadAll(table);
+    if(result.ok&&result.rows!==null){
+      const pending=this._pendingDeletes[table]||new Set();
+      const rows=result.rows.filter(r=>!pending.has(r.id));
+      localStorage.setItem(lsKey,JSON.stringify(rows));
+      return{data:rows,fromCache:false,online:true};
+    }
+    return{data:cached,fromCache:true,online:false};
+  },
+  async saveOne(lsKey,table,record,all){
+    localStorage.setItem(lsKey,JSON.stringify(all));
+    const r=await DB.upsertOne(table,record);
+    if(!r.ok)showSyncErr(r.err);
+    return r;
+  },
+  async saveAll(lsKey,table,records){
+    localStorage.setItem(lsKey,JSON.stringify(records));
+    const r=await DB.upsertMany(table,records);
+    if(!r.ok)showSyncErr(r.err);
+    return r.ok;
+  },
+  async deleteOne(lsKey,table,id,all){
+    if(!this._pendingDeletes[table])this._pendingDeletes[table]=new Set();
+    this._pendingDeletes[table].add(id);
+    localStorage.setItem(lsKey,JSON.stringify(all));
+    const r=await DB.deleteOne(table,id);
+    if(!r.ok){
+      this._pendingDeletes[table].delete(id);
+      showSyncErr('Delete failed: '+r.err);
+      return{ok:false,err:r.err};
+    }
+    setTimeout(()=>{if(this._pendingDeletes[table])this._pendingDeletes[table].delete(id)},120000);
+    return{ok:true};
+  },
+  _getLocal(key){try{return JSON.parse(localStorage.getItem(key)||'[]')||[]}catch{return[]}}
+};
+function startPoll(table,lsKey,ms,onData){
+  let lastHash='';
+  const poll=async()=>{
+    const result=await DB.loadAll(table);
+    if(!result.ok||!result.rows)return;
+    const pending=SyncStore._pendingDeletes[table]||new Set();
+    const rows=result.rows.filter(r=>!pending.has(r.id));
+    const hash=rows.length+'|'+rows.map(r=>r.id).join(',');
+    if(hash!==lastHash){lastHash=hash;localStorage.setItem(lsKey,JSON.stringify(rows));onData(rows)}
+  };
+  setInterval(poll,ms);
+  return poll;
+}
+function showDbStatus(online){
+  const old=document.getElementById('db-status-bar');if(old)old.remove();
+  if(online)return;
+  const b=document.createElement('div');b.id='db-status-bar';
+  b.style.cssText='position:fixed;bottom:0;left:0;right:0;background:#c0392b;color:#fff;text-align:center;padding:8px;font-size:12px;z-index:9998;cursor:pointer;';
+  b.textContent='⚠ Database offline — working in local mode. Click to retry.';
+  b.onclick=()=>{location.reload()};
+  document.body.appendChild(b);
+}
+function showSyncErr(err){
+  let b=document.getElementById('sync-err-bar');
+  if(!b){b=document.createElement('div');b.id='sync-err-bar';b.style.cssText='position:fixed;bottom:40px;right:16px;background:#c0392b;color:#fff;border-radius:8px;padding:8px 14px;font-size:12px;z-index:9999;max-width:320px;';document.body.appendChild(b)}
+  b.textContent='Save error: '+err;b.style.display='block';
+  clearTimeout(b._t);b._t=setTimeout(()=>b.style.display='none',6000);
+}
+
+function showDbStatus(online){
+  const old=document.getElementById('db-status-bar');if(old)old.remove();
+  if(online)return;
+  const b=document.createElement('div');b.id='db-status-bar';
+  b.style.cssText='position:fixed;bottom:0;left:0;right:0;background:#c0392b;color:#fff;text-align:center;padding:8px;font-size:12px;z-index:9998;cursor:pointer;';
+  b.textContent='⚠ Database offline — working in local mode. Click to retry.';
+  b.onclick=()=>{location.reload()};
+  document.body.appendChild(b);
+}
+function showSyncErr(err){
+  let b=document.getElementById('sync-err-bar');
+  if(!b){b=document.createElement('div');b.id='sync-err-bar';b.style.cssText='position:fixed;bottom:40px;right:16px;background:#c0392b;color:#fff;border-radius:8px;padding:8px 14px;font-size:12px;z-index:9999;max-width:320px;';document.body.appendChild(b)}
+  b.textContent='Save error: '+err;b.style.display='block';
+  clearTimeout(b._t);b._t=setTimeout(()=>b.style.display='none',6000);
+}
+
+
+</script>
+
+<script>
+// ── STATE ──
+let contacts = [];
+let currentCategory = '';
+let ownersList = [];
+let confirmCallback = null;
+
+const CAT_ICONS = {
+  Accountant:'🧾', Legal:'⚖️', Services:'🚤', Maintenance:'🔧', Supplier:'📦', Partner:'🤝', Other:'•'
+};
+
+// ── INIT ──
+async function init() {
+  const cached = SyncStore._getLocal('zesty_contacts');
+  if (cached.length > 0) contacts = cached;
+  const cachedOwners = SyncStore._getLocal('zesty_owners');
+  if (cachedOwners.length > 0) ownersList = cachedOwners;
+  populateFilters();
+  renderCards();
+  updateStats();
+  showDbStatus();
+
+  // Load contacts from Supabase
+  const result = await SyncStore.load('zesty_contacts', 'contacts');
+  showDbStatus(result.online);
+  if (result.online && result.data.length === 0 && contacts.length > 0) {
+    await DB.upsertMany('contacts', contacts);
+  } else if (result.data.length > 0) {
+    contacts = result.data;
+  }
+
+  // Also load owners for linking
+  const ownerResult = await SyncStore.load('zesty_owners', 'owners');
+  if (ownerResult.data.length > 0) ownersList = ownerResult.data;
+
+  populateFilters();
+  renderCards();
+  updateStats();
+
+  startPoll('contacts', 'zesty_contacts', 30000, (rows) => {
+    contacts = rows; populateFilters(); renderCards(); updateStats();
+  });
+}
+
+async function syncContacts() { /* handled by startPoll */ }
+
+async function save() {
+  await SyncStore.saveAll('zesty_contacts', 'contacts', contacts);
+}
+
+// ── FILTERS / UI ──
+function populateFilters() {
+  const ownerSel = document.getElementById('filterOwner');
+  const owners = ownersList.filter(o => !o.archived);
+  ownerSel.innerHTML = '<option value="">All owners</option>' +
+    owners.map(o => `<option value="${o.id}">${o.repFirst || ''} ${o.repLast || ''}</option>`).join('');
+  
+  const areas = [...new Set(contacts.map(c => c.area).filter(Boolean))].sort();
+  const areaSel = document.getElementById('filterArea');
+  areaSel.innerHTML = '<option value="">All areas</option>' +
+    areas.map(a => `<option value="${a}">${a}</option>`).join('');
+}
+
+function setCategory(cat) {
+  currentCategory = cat;
+  document.querySelectorAll('.cat-tab').forEach(t => {
+    t.classList.toggle('active', t.dataset.cat === cat);
+  });
+  renderCards();
+}
+
+function getFiltered() {
+  const search = document.getElementById('searchInput').value.toLowerCase();
+  const ownerF = document.getElementById('filterOwner').value;
+  const areaF = document.getElementById('filterArea').value;
+  
+  return contacts.filter(c => {
+    if (currentCategory && c.category !== currentCategory) return false;
+    if (areaF && c.area !== areaF) return false;
+    if (ownerF && !(c.ownerIds || []).includes(ownerF)) return false;
+    if (search) {
+      const haystack = [c.firstName, c.lastName, c.company, c.email1, c.email2,
+        c.phone1, c.phone2, c.serviceType, c.area, ...(c.tags||[])].join(' ').toLowerCase();
+      if (!haystack.includes(search)) return false;
+    }
+    return true;
+  });
+}
+
+// ── RENDER ──
+function getCatClass(cat) {
+  const map = {Accountant:'accountant',Legal:'legal',Services:'services',Maintenance:'maintenance',Supplier:'supplier',Partner:'partner',Other:'other'};
+  return map[cat] || 'other';
+}
+
+function getInitials(c) {
+  return ((c.firstName||'')[0]||'') + ((c.lastName||'') ? (c.lastName||'')[0] : (c.company||'')[0]||'');
+}
+
+function renderCards() {
+  const filtered = getFiltered();
+  const grid = document.getElementById('contactsGrid');
+  
+  // Update tab counts
+  const cats = ['Accountant','Legal','Services','Maintenance','Supplier','Partner','Other'];
+  document.getElementById('cnt-all').textContent = contacts.length;
+  cats.forEach(cat => {
+    const el = document.getElementById(`cnt-${cat}`);
+    if (el) el.textContent = contacts.filter(c => c.category === cat).length;
+  });
+  
+  if (filtered.length === 0) {
+    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1">
+      <div class="empty-icon">📋</div>
+      <p>No contacts found.</p>
+      <button class="btn btn-primary" style="margin-top:12px" onclick="openAddContact()">＋ Add First Contact</button>
+    </div>`;
+    return;
+  }
+  
+  // Sort: by category then name
+  const sorted = [...filtered].sort((a,b) => {
+    if (a.category !== b.category) return (a.category||'').localeCompare(b.category||'');
+    return `${a.lastName} ${a.firstName}`.localeCompare(`${b.lastName} ${b.firstName}`);
+  });
+  
+  grid.innerHTML = sorted.map(c => {
+    const cls = getCatClass(c.category);
+    const initials = getInitials(c).toUpperCase();
+    const name = [c.firstName, c.lastName].filter(Boolean).join(' ') || c.company || '—';
+    const linkedOwners = (c.ownerIds||[])
+      .map(id => ownersList.find(o => o.id === id))
+      .filter(Boolean)
+      .map(o => `<span class="owner-link-chip">👤 ${o.repFirst} ${o.repLast}</span>`)
+      .join('');
+    const tags = (c.tags||[]).map(t => `<span class="tag-chip">${t}</span>`).join('');
+    
+    return `<div class="contact-card" onclick="openEditContact('${c.id}')">
+      <div class="card-actions">
+        <button class="card-action-btn" onclick="event.stopPropagation();openEditContact('${c.id}')" title="Edit">✏️</button>
+        <button class="card-action-btn danger" onclick="event.stopPropagation();deleteContact('${c.id}')" title="Delete">🗑</button>
+      </div>
+      <div class="card-top">
+        <div class="avatar avatar-${cls}">${initials||'?'}</div>
+        <div>
+          <div class="card-name">${name}</div>
+          ${c.company && (c.firstName||c.lastName) ? `<div class="card-company">${c.company}</div>` : ''}
+          <div style="margin-top:5px">
+            <span class="cat-badge cat-${cls}">${CAT_ICONS[c.category]||'•'} ${c.category||'Other'}</span>
+            ${c.serviceType ? `<span style="font-size:11px;color:var(--text-muted);margin-left:6px">${c.serviceType}</span>` : ''}
+          </div>
+        </div>
+      </div>
+      <div class="card-details">
+        ${c.phone1 ? `<div class="detail-row">📞 <a href="tel:${c.phone1}" onclick="event.stopPropagation()">${c.phone1}</a>${c.phone2?` · ${c.phone2}`:''}</div>` : ''}
+        ${c.email1 ? `<div class="detail-row">✉️ <a href="mailto:${c.email1}" onclick="event.stopPropagation()">${c.email1}</a></div>` : ''}
+        ${c.area ? `<div class="detail-row">📍 ${c.area}</div>` : ''}
+        ${c.rate ? `<div class="detail-row">💶 ${c.rate}${c.commission?` · ${c.commission}% commission`:''}</div>` : ''}
+        ${c.website ? `<div class="detail-row">🌐 <a href="${c.website}" target="_blank" onclick="event.stopPropagation()">${c.website.replace(/^https?:\/\//,'')}</a></div>` : ''}
+        ${c.notes ? `<div class="detail-row" style="font-style:italic;color:var(--text-muted)">${c.notes.slice(0,80)}${c.notes.length>80?'…':''}</div>` : ''}
+      </div>
+      ${tags ? `<div class="card-tags">${tags}</div>` : ''}
+      ${linkedOwners ? `<div class="owner-links">${linkedOwners}</div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+function updateStats() {
+  document.getElementById('statTotal').textContent = contacts.length;
+  document.getElementById('statAcct').textContent = contacts.filter(c => c.category === 'Accountant').length;
+  document.getElementById('statSvc').textContent = contacts.filter(c => c.category === 'Services').length;
+  document.getElementById('statMaint').textContent = contacts.filter(c => c.category === 'Maintenance').length;
+  document.getElementById('statOther').textContent = contacts.filter(c => !['Accountant','Services','Maintenance'].includes(c.category)).length;
+}
+
+// ── MODAL ──
+function openAddContact() {
+  document.getElementById('modalTitle').textContent = 'Add Contact';
+  document.getElementById('editId').value = '';
+  ['f_category','f_serviceType','f_firstName','f_lastName','f_company',
+   'f_phone1','f_phone2','f_email1','f_email2','f_address','f_area',
+   'f_website','f_vat','f_iban','f_bank','f_paymentTerms','f_rate',
+   'f_commission','f_tags','f_notes'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  buildOwnerCheckboxes([]);
+  openModal('contactModal');
+}
+
+function openEditContact(id) {
+  const c = contacts.find(x => x.id === id);
+  if (!c) return;
+  document.getElementById('modalTitle').textContent = 'Edit Contact';
+  document.getElementById('editId').value = id;
+  document.getElementById('f_category').value = c.category || 'Other';
+  document.getElementById('f_serviceType').value = c.serviceType || '';
+  document.getElementById('f_firstName').value = c.firstName || '';
+  document.getElementById('f_lastName').value = c.lastName || '';
+  document.getElementById('f_company').value = c.company || '';
+  document.getElementById('f_phone1').value = c.phone1 || '';
+  document.getElementById('f_phone2').value = c.phone2 || '';
+  document.getElementById('f_email1').value = c.email1 || '';
+  document.getElementById('f_email2').value = c.email2 || '';
+  document.getElementById('f_address').value = c.address || '';
+  document.getElementById('f_area').value = c.area || '';
+  document.getElementById('f_website').value = c.website || '';
+  document.getElementById('f_vat').value = c.vat || '';
+  document.getElementById('f_iban').value = c.iban || '';
+  document.getElementById('f_bank').value = c.bank || '';
+  document.getElementById('f_paymentTerms').value = c.paymentTerms || '';
+  document.getElementById('f_rate').value = c.rate || '';
+  document.getElementById('f_commission').value = c.commission || '';
+  document.getElementById('f_tags').value = (c.tags||[]).join(', ');
+  document.getElementById('f_notes').value = c.notes || '';
+  buildOwnerCheckboxes(c.ownerIds || []);
+  openModal('contactModal');
+}
+
+function buildOwnerCheckboxes(selected) {
+  const div = document.getElementById('ownerCheckboxes');
+  if (!ownersList.length) {
+    div.innerHTML = '<span style="font-size:12px;color:var(--text-muted)">No owners loaded yet</span>';
+    return;
+  }
+  div.innerHTML = ownersList.filter(o => !o.archived).map(o => {
+    const checked = selected.includes(o.id) ? 'checked' : '';
+    const name = `${o.repFirst||''} ${o.repLast||''}`.trim() || o.companyName || o.id;
+    return `<label style="display:flex;align-items:center;gap:5px;font-size:12px;cursor:pointer;white-space:nowrap">
+      <input type="checkbox" value="${o.id}" ${checked} style="accent-color:var(--teal)"> ${name}
+    </label>`;
+  }).join('');
+}
+
+function updateCategoryUI() {
+  // Could add dynamic hints based on category - for now just updates placeholder
+  const cat = document.getElementById('f_category').value;
+  const placeholders = {
+    Accountant: 'e.g. Tax Advisor, Bookkeeping',
+    Legal: 'e.g. Property Lawyer, Contract Specialist',
+    Services: 'e.g. Car Rental, Boat Rental, Excursions, Transfers',
+    Maintenance: 'e.g. Pool Maintenance, Gardener, Electrician, Plumber',
+    Supplier: 'e.g. Cleaning Supplies, Furniture, Appliances',
+    Partner: 'e.g. Travel Agency, Hotel, Co-working space',
+    Other: 'Describe the service or role',
+  };
+  document.getElementById('f_serviceType').placeholder = placeholders[cat] || '';
+}
+
+async function saveContact() {
+  const firstName = document.getElementById('f_firstName').value.trim();
+  const company = document.getElementById('f_company').value.trim();
+  if (!firstName && !company) { showToast('Please enter at least a name or company.', 'error'); return; }
+  
+  const ownerIds = [...document.querySelectorAll('#ownerCheckboxes input:checked')].map(el => el.value);
+  const tags = document.getElementById('f_tags').value.split(',').map(t => t.trim()).filter(Boolean);
+  
+  const data = {
+    category: document.getElementById('f_category').value,
+    serviceType: document.getElementById('f_serviceType').value.trim(),
+    firstName, lastName: document.getElementById('f_lastName').value.trim(),
+    company, phone1: document.getElementById('f_phone1').value.trim(),
+    phone2: document.getElementById('f_phone2').value.trim(),
+    email1: document.getElementById('f_email1').value.trim().toLowerCase(),
+    email2: document.getElementById('f_email2').value.trim().toLowerCase(),
+    address: document.getElementById('f_address').value.trim(),
+    area: document.getElementById('f_area').value.trim(),
+    website: document.getElementById('f_website').value.trim(),
+    vat: document.getElementById('f_vat').value.trim(),
+    iban: document.getElementById('f_iban').value.trim(),
+    bank: document.getElementById('f_bank').value.trim(),
+    paymentTerms: document.getElementById('f_paymentTerms').value,
+    rate: document.getElementById('f_rate').value.trim(),
+    commission: parseFloat(document.getElementById('f_commission').value) || null,
+    tags, ownerIds, notes: document.getElementById('f_notes').value.trim(),
+    updatedAt: new Date().toISOString(),
+  };
+  
+  const editId = document.getElementById('editId').value;
+  if (editId) {
+    const idx = contacts.findIndex(c => c.id === editId);
+    if (idx !== -1) { contacts[idx] = { ...contacts[idx], ...data }; showToast('✓ Contact updated', 'success'); }
+  } else {
+    contacts.push({ id: 'contact_' + Date.now(), createdAt: new Date().toISOString(), ...data });
+    showToast('✓ Contact added', 'success');
+  }
+  
+  await save();
+  closeModal('contactModal');
+  populateFilters();
+  renderCards();
+  updateStats();
+}
+
+async function deleteContact(id) {
+  const c = contacts.find(x => x.id === id);
+  const name = [c?.firstName, c?.lastName].filter(Boolean).join(' ') || c?.company || 'this contact';
+  showConfirm('🗑️', 'Delete Contact?', `Remove ${name}? This cannot be undone.`, 'btn-danger', 'Delete', async () => {
+    contacts = contacts.filter(x => x.id !== id);
+    const dr = await SyncStore.deleteOne('zesty_contacts','contacts',id,contacts);
+    if(!dr.ok){ contacts=(await SyncStore.load('zesty_contacts','contacts')).data; }
+    renderCards();
+    updateStats();
+    showToast('Deleted', 'error');
+  });
+}
+
+// ── EXPORT ──
+function exportContacts() {
+  const headers = ['Category','Service Type','First Name','Last Name','Company','Phone 1','Phone 2','Email 1','Email 2','Area','Address','Website','VAT','IBAN','Bank','Rate','Commission','Payment Terms','Tags','Notes'];
+  const rows = contacts.map(c => [
+    c.category, c.serviceType, c.firstName, c.lastName, c.company,
+    c.phone1, c.phone2, c.email1, c.email2, c.area, c.address,
+    c.website, c.vat, c.iban, c.bank, c.rate, c.commission,
+    c.paymentTerms, (c.tags||[]).join(';'), c.notes
+  ].map(v => `"${(v||'').toString().replace(/"/g,'""')}"`).join(','));
+  const csv = [headers.join(','), ...rows].join('\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv], {type:'text/csv'}));
+  a.download = `contacts_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+}
+
+// ── MODAL / CONFIRM HELPERS ──
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+let confirmCb = null;
+function showConfirm(icon, title, text, btnCls, btnLabel, cb) {
+  document.getElementById('confirmIcon').textContent = icon;
+  document.getElementById('confirmTitle').textContent = title;
+  document.getElementById('confirmText').textContent = text;
+  const btn = document.getElementById('confirmBtn');
+  btn.textContent = btnLabel;
+  btn.className = `btn ${btnCls}`;
+  confirmCb = cb;
+  document.getElementById('confirmOverlay').classList.add('open');
+}
+function closeConfirm() { document.getElementById('confirmOverlay').classList.remove('open'); confirmCb = null; }
+async function doConfirm() { closeConfirm(); if (confirmCb) await confirmCb(); }
+
+function showToast(msg, type='success') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.background = type === 'error' ? '#e74c3c' : '#1c2b28';
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// Close modals on overlay click
+['contactModal'].forEach(id => {
+  document.getElementById(id).addEventListener('click', e => { if (e.target === e.currentTarget) closeModal(id); });
+});
+
+init();
+</script>
+</body>
+</html>
