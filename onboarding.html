@@ -662,7 +662,7 @@ const DB={
   async upsert(record){
     const{id,...rest}=record;
     const rid=id||('onb_'+Date.now()+'_'+Math.random().toString(36).slice(2,6));
-    const row={id:rid,data:rest,updated_at:new Date().toISOString()};
+    const row={id:rid,data:rest,updated_at:new Date().toISOString(),created_at:rest.createdAt||new Date().toISOString()};
     const r=await this._fetch('POST','onboardings',row,'?on_conflict=id');
     return{ok:r.ok,id:rid,err:r.err};
   },
@@ -851,8 +851,14 @@ async function init(){
   renderServicesRows();
   document.getElementById('seasonCheckDate').value=new Date().toISOString().slice(0,10);
   const r=await DB.loadAll();
-  if(r.ok)cases=r.rows;
-  else cases=JSON.parse(localStorage.getItem('zesty_onboardings')||'[]');
+  if(r.ok){
+    cases=r.rows;
+    showDbStatus(true);
+  } else {
+    cases=JSON.parse(localStorage.getItem('zesty_onboardings')||'[]');
+    showDbStatus(false);
+    console.warn('Supabase load failed:',r.err||'unknown error');
+  }
   renderBoard();
   renderTable();
   updateCount();

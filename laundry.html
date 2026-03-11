@@ -737,7 +737,7 @@ const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsI
 async function supaFetch(table, method='GET', body=null, match=null) {
   let url = `${SUPA_URL}/rest/v1/${table}`;
   if (match) url += `?${match}`;
-  const opts = { method, headers: { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}`, 'Content-Type': 'application/json', 'Prefer': 'return=representation' } };
+  const opts = { method, headers: { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}`, 'Content-Type': 'application/json', 'Prefer': 'return=representation,resolution=merge-duplicates' } };
   if (body) opts.body = JSON.stringify(body);
   const r = await fetch(url, opts);
   if (!r.ok) throw new Error(await r.text());
