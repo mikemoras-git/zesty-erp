@@ -164,124 +164,6 @@ tr:hover td{background:#f5faf9;}
 .import-banner p{font-size:12px;opacity:.8;}
 #syncBar{display:none;position:fixed;bottom:60px;right:16px;background:rgba(26,200,160,0.92);color:#fff;padding:7px 14px;border-radius:8px;font-size:12px;font-family:'DM Sans',sans-serif;z-index:300;backdrop-filter:blur(6px);}
 </style>
-    <script>
-    (function(){
-      const _msalConfig={
-        auth:{
-          clientId:'0938023f-cbbf-45f1-a71d-b18c95745ea6',
-          authority:'https://login.microsoftonline.com/9c30b606-6648-4777-a623-64867e43e54f',
-          redirectUri:'https://kissamosrealestate.com/wp-content/erp/index.html'
-        },
-        cache:{cacheLocation:'sessionStorage',storeAuthStateInCookie:false}
-      };
-      const _msal=new msal.PublicClientApplication(_msalConfig);
-      const _loginRequest={scopes:['openid','profile','User.Read']};
-
-      async function _ensureLogin(){
-        await _msal.initialize();
-        try{ await _msal.handleRedirectPromise(); }catch(e){}
-        const accounts=_msal.getAllAccounts();
-        if(accounts.length>0){
-          const acct=accounts[0];
-          _showUserBadge(acct.name||acct.username);
-          return;
-        }
-        _msal.loginRedirect(_loginRequest);
-      }
-
-      function _showUserBadge(name){
-        const show=()=>{
-          const hdr=document.querySelector('.header-right');
-          if(!hdr)return;
-          if(document.getElementById('_azure_badge'))return;
-          const badge=document.createElement('div');
-          badge.id='_azure_badge';
-          badge.style.cssText='display:flex;align-items:center;gap:8px;margin-left:4px';
-          badge.innerHTML=`<span style="font-size:12px;color:rgba(255,255,255,.75);font-family:DM Sans,sans-serif">&#128100; ${name}</span>`+
-            `<button onclick="window._azureLogout()" style="padding:4px 10px;border-radius:7px;border:1px solid rgba(255,255,255,.3);background:transparent;color:rgba(255,255,255,.7);font-size:11px;cursor:pointer;font-family:DM Sans,sans-serif">Sign out</button>`;
-          hdr.appendChild(badge);
-        };
-        if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',show);}
-        else{show();}
-      }
-
-      window._azureLogout=function(){
-        const accounts=_msal.getAllAccounts();
-        if(accounts.length>0){_msal.logoutRedirect({account:accounts[0]});}
-      };
-
-      document.addEventListener('DOMContentLoaded',function(){
-        const accounts=_msal.getAllAccounts();
-        if(accounts.length===0){document.body.style.visibility='hidden';}
-        else{document.body.style.visibility='visible';}
-      });
-
-      _ensureLogin().then(()=>{
-        document.body.style.visibility='visible';
-      });
-    })();
-    </script>
-    <!-- Azure MSAL Authentication -->
-    <script src="https://unpkg.com/@azure/msal-browser@2.38.3/lib/msal-browser.min.js"></script>
-    <script>
-    (function(){
-      const _msalConfig={
-        auth:{
-          clientId:'0938023f-cbbf-45f1-a71d-b18c95745ea6',
-          authority:'https://login.microsoftonline.com/9c30b606-6648-4777-a623-64867e43e54f',
-          redirectUri:'https://kissamosrealestate.com/wp-content/erp/index.html'
-        },
-        cache:{cacheLocation:'sessionStorage',storeAuthStateInCookie:false}
-      };
-      const _msal=new msal.PublicClientApplication(_msalConfig);
-      const _loginRequest={scopes:['openid','profile','User.Read']};
-
-      async function _ensureLogin(){
-        await _msal.initialize();
-        try{ await _msal.handleRedirectPromise(); }catch(e){}
-        const accounts=_msal.getAllAccounts();
-        if(accounts.length>0){
-          const acct=accounts[0];
-          if(acct.tenantId!=='9c30b606-6648-4777-a623-64867e43e54f'){
-            document.documentElement.style.visibility='visible';
-            document.body.innerHTML='<div style="display:flex;align-items:center;justify-content:center;height:100vh;font-family:sans-serif;flex-direction:column;gap:12px"><div style="font-size:48px">🔒</div><div style="font-size:18px;font-weight:600;color:#1e2a28">Access Denied</div><div style="font-size:14px;color:#666">Your account is not authorised to access this system.</div><button onclick="window._azureLogout()" style="margin-top:12px;padding:8px 20px;background:#1a7a6e;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:14px">Sign out</button></div>';
-            return;
-          }
-          _showUserBadge(acct.name||acct.username);
-          document.documentElement.style.visibility='visible';
-          return;
-        }
-        await _msal.loginRedirect(_loginRequest);
-      }
-
-      function _showUserBadge(name){
-        const show=()=>{
-          const hdr=document.querySelector('.header-right');
-          if(!hdr)return;
-          if(document.getElementById('_azure_badge'))return;
-          const badge=document.createElement('div');
-          badge.id='_azure_badge';
-          badge.style.cssText='display:flex;align-items:center;gap:8px;margin-left:4px';
-          badge.innerHTML='<span style="font-size:12px;color:rgba(255,255,255,.75);font-family:DM Sans,sans-serif">&#128100; '+name+'</span>'+
-            '<button onclick="window._azureLogout()" style="padding:4px 10px;border-radius:7px;border:1px solid rgba(255,255,255,.3);background:transparent;color:rgba(255,255,255,.7);font-size:11px;cursor:pointer;font-family:DM Sans,sans-serif">Sign out</button>';
-          hdr.appendChild(badge);
-        };
-        if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',show);}
-        else{show();}
-      }
-
-      window._azureLogout=function(){
-        const accounts=_msal.getAllAccounts();
-        if(accounts.length>0){_msal.logoutRedirect({account:accounts[0]});}
-      };
-
-      document.documentElement.style.visibility='hidden';
-
-      _ensureLogin().catch(function(){
-        _msal.loginRedirect(_loginRequest);
-      });
-    })();
-    </script>
 </head>
 <body>
 
@@ -296,7 +178,6 @@ tr:hover td{background:#f5faf9;}
     <button class="btn btn-outline" style="color:var(--gold-light);border-color:rgba(255,255,255,.3);font-size:12px" onclick="window.location.href='employees.html'">&#128100; Employees</button>
     <button class="btn btn-outline" style="color:var(--gold-light);border-color:rgba(255,255,255,.3);font-size:12px" onclick="window.location.href='leave.html'">&#128197; Leave</button>
     <button class="btn btn-outline" style="color:var(--gold-light);border-color:rgba(255,255,255,.3);font-size:12px" onclick="window.location.href='tasks.html'">&#9635; Tasks</button>
-    <button class="btn btn-outline" style="color:var(--gold-light);border-color:rgba(255,255,255,.3);font-size:12px" onclick="window.location.href='jobs.html'">&#9635; Jobs</button>
     <button class="btn btn-outline" style="color:var(--gold-light);border-color:rgba(255,255,255,.3);font-size:12px" onclick="location.href='settings.html'">&#9881; Settings</button>
     <button class="btn btn-primary" onclick="openAddGuest()">＋ Add Guest</button>
   </div>
