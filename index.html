@@ -72,7 +72,7 @@ body {
   min-height: 100vh;
   display: grid;
   grid-template-rows: auto 1fr auto;
-  padding: 38px 40px 0;
+  padding: 0 40px;
   max-width: 1400px;
   margin: 0 auto;
 }
@@ -326,297 +326,11 @@ header { animation-delay: 0.05s; }
   .qs-item { flex: 1; min-width: 100px; }
   .activity-items { display: none; }
 }
-
-/* ── GLOBAL MOBILE RESPONSIVE ── */
-@media(max-width:768px){
-  .table-wrap,[style*="overflow-x"]{overflow-x:auto!important;-webkit-overflow-scrolling:touch}
-  table{min-width:500px}
-  .modal-overlay,.overlay{padding:8px!important}
-  .modal,.modal-lg{width:100%!important;max-width:100%!important;max-height:95vh!important;border-radius:12px!important;margin:auto}
-  .form-grid,.form-row,.form-grid-2,.form-grid-3,.form-grid-4,.form-grid-6{grid-template-columns:1fr!important}
-  .col-span-2,.col-span-4,.form-full{grid-column:1/-1!important}
-  .stats-bar,.kpi-grid,.kpi-grid-6,.stats-row{grid-template-columns:repeat(2,1fr)!important}
-  .container,main{padding-left:10px!important;padding-right:10px!important}
-  .modal-footer{flex-wrap:wrap}
-  .modal-footer .btn{min-width:100px}
-}
-@media(max-width:480px){
-  .stats-bar,.kpi-grid,.stats-row{grid-template-columns:1fr 1fr!important}
-  td,th{padding:6px 8px!important;font-size:11px!important}
-}
-
-/* ── UNIFIED NAV FOR INDEX ── */
-.erp-global-nav{position:fixed;top:0;left:0;right:0;z-index:600;background:rgba(10,61,54,0.95);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;padding:0 20px;height:38px;gap:3px}
-.erp-global-nav a.erp-logo-nav{font-family:'Cormorant Garamond',serif;font-size:15px;font-weight:500;color:#fff;text-decoration:none;white-space:nowrap;margin-right:10px;flex-shrink:0}
-.erp-global-nav a.erp-logo-nav span{color:#e8c97a}
-.erp-global-nav .erp-modules{display:flex;gap:2px;flex:1;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
-.erp-global-nav .erp-modules::-webkit-scrollbar{display:none}
-.erp-mod-btn{padding:3px 8px;border-radius:5px;font-size:11px;font-weight:500;color:rgba(255,255,255,.65);text-decoration:none;white-space:nowrap;transition:all .15s;font-family:'DM Sans',sans-serif;-webkit-tap-highlight-color:transparent}
-.erp-mod-btn:hover{background:rgba(255,255,255,.1);color:#fff}
-.erp-mod-btn.active{background:var(--gold);color:var(--teal-deep);font-weight:700}
-@media(max-width:768px){
-  .erp-mod-btn{font-size:10px;padding:3px 5px}
-  .erp-mod-btn span.mod-label{display:none}
-  .erp-mod-btn{padding:4px 5px;font-size:13px}
-}
-
-/* ═══════════════════════════════════════════════════
-   ZESTY ERP — LEFT SIDEBAR NAVIGATION
-   ═══════════════════════════════════════════════════ */
-
-/* Reset old top header nav */
-.erp-header,.erp-nav-global,.erp-nav-local,
-.erp-modules,.erp-mod-btn,.erp-logo,
-.erp-local-title,.erp-local-spacer { all: unset; }
-.erp-header { display: none !important; }
-
-/* ── LAYOUT WRAPPER ── */
-body.erp-layout {
-  display: flex;
-  min-height: 100vh;
-  overflow-x: hidden;
-}
-
-/* ── SIDEBAR ── */
-.erp-sidebar {
-  width: 220px;
-  min-width: 220px;
-  background: linear-gradient(180deg, #0a3d36 0%, #0d4a42 60%, #0f5248 100%);
-  display: flex;
-  flex-direction: column;
-  position: fixed;
-  top: 0; left: 0; bottom: 0;
-  z-index: 600;
-  box-shadow: 3px 0 20px rgba(0,0,0,0.3);
-  transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
-  overflow-y: auto;
-  scrollbar-width: thin;
-  scrollbar-color: rgba(255,255,255,.1) transparent;
-}
-.erp-sidebar::-webkit-scrollbar { width: 4px; }
-.erp-sidebar::-webkit-scrollbar-track { background: transparent; }
-.erp-sidebar::-webkit-scrollbar-thumb { background: rgba(255,255,255,.1); border-radius: 2px; }
-
-/* ── SIDEBAR BRAND ── */
-.erp-brand {
-  padding: 20px 18px 16px;
-  border-bottom: 1px solid rgba(255,255,255,.08);
-  flex-shrink: 0;
-}
-.erp-brand-name {
-  font-family: 'Cormorant Garamond', 'DM Serif Display', serif;
-  font-size: 22px; font-weight: 600; color: #fff;
-  line-height: 1; letter-spacing: .3px;
-}
-.erp-brand-name span { color: #e8c97a; }
-.erp-brand-sub {
-  font-size: 10px; color: rgba(255,255,255,.35);
-  text-transform: uppercase; letter-spacing: 2px;
-  margin-top: 4px; font-weight: 400;
-}
-
-/* ── SIDEBAR NAV LINKS ── */
-.erp-nav-section {
-  padding: 10px 0 4px;
-}
-.erp-nav-section-label {
-  font-size: 9px; font-weight: 700;
-  text-transform: uppercase; letter-spacing: .12em;
-  color: rgba(255,255,255,.25);
-  padding: 0 18px; margin-bottom: 4px;
-}
-.erp-nav-link {
-  display: flex; align-items: center; gap: 9px;
-  padding: 8px 18px;
-  color: rgba(255,255,255,.6);
-  text-decoration: none;
-  font-size: 13px; font-weight: 500;
-  font-family: 'DM Sans', sans-serif;
-  transition: all .15s;
-  border-left: 3px solid transparent;
-  -webkit-tap-highlight-color: transparent;
-  cursor: pointer;
-  background: none; border-right: none;
-  border-top: none; border-bottom: none;
-  width: 100%; text-align: left;
-}
-.erp-nav-link:hover {
-  color: #fff;
-  background: rgba(255,255,255,.07);
-  border-left-color: rgba(255,255,255,.2);
-}
-.erp-nav-link.active {
-  color: #e8c97a;
-  background: rgba(201,168,76,.12);
-  border-left-color: #e8c97a;
-  font-weight: 600;
-}
-.erp-nav-link .nav-icon { font-size: 15px; flex-shrink: 0; width: 18px; text-align: center; }
-.erp-nav-link .nav-label { flex: 1; }
-.erp-nav-link .nav-badge {
-  font-size: 10px; font-weight: 700;
-  background: rgba(201,168,76,.25); color: #e8c97a;
-  padding: 1px 6px; border-radius: 8px;
-}
-.erp-nav-divider {
-  height: 1px; background: rgba(255,255,255,.06);
-  margin: 6px 14px;
-}
-
-/* ── MODULE TABS (inside sidebar, below nav links) ── */
-.erp-module-tabs {
-  margin-top: auto;
-  padding: 8px 0 12px;
-  border-top: 1px solid rgba(255,255,255,.08);
-}
-.erp-module-tabs-label {
-  font-size: 9px; font-weight: 700;
-  text-transform: uppercase; letter-spacing: .12em;
-  color: rgba(255,255,255,.25);
-  padding: 0 18px; margin-bottom: 4px;
-}
-.erp-tab-link {
-  display: flex; align-items: center; gap: 8px;
-  padding: 7px 18px;
-  color: rgba(255,255,255,.55);
-  font-size: 12px; font-weight: 500;
-  font-family: 'DM Sans', sans-serif;
-  transition: all .15s;
-  border-left: 3px solid transparent;
-  -webkit-tap-highlight-color: transparent;
-  cursor: pointer;
-  background: none; border-right: none;
-  border-top: none; border-bottom: none;
-  width: 100%; text-align: left; text-decoration: none;
-}
-.erp-tab-link:hover {
-  color: #fff; background: rgba(255,255,255,.06);
-}
-.erp-tab-link.active {
-  color: #c9a84c; font-weight: 600;
-  background: rgba(201,168,76,.1);
-  border-left-color: #c9a84c;
-}
-
-/* ── SIDEBAR FOOTER (user badge + sync) ── */
-.erp-sidebar-footer {
-  padding: 12px 18px;
-  border-top: 1px solid rgba(255,255,255,.08);
-  flex-shrink: 0;
-}
-.erp-user-badge {
-  font-size: 11px; color: rgba(255,255,255,.45);
-  display: flex; align-items: center; gap: 6px;
-}
-.erp-sync-row {
-  display: flex; align-items: center; gap: 6px;
-  margin-top: 6px;
-}
-.sync-label { font-size: 10px; color: rgba(255,255,255,.3); }
-
-/* ── MAIN CONTENT AREA ── */
-.erp-main {
-  margin-left: 220px;
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-}
-
-/* ── TOP BAR (module title + actions) ── */
-.erp-topbar {
-  background: #fff;
-  border-bottom: 1px solid #d4e0de;
-  padding: 0 28px;
-  height: 52px;
-  display: flex; align-items: center; gap: 12px;
-  position: sticky; top: 0; z-index: 100;
-  box-shadow: 0 1px 8px rgba(26,122,110,.08);
-  flex-shrink: 0;
-}
-.erp-topbar-title {
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 18px; font-weight: 600;
-  color: #115950; flex: 1;
-}
-.erp-topbar-actions { display: flex; gap: 8px; align-items: center; }
-
-/* ── HAMBURGER (mobile only) ── */
-.erp-hamburger {
-  display: none;
-  background: none; border: none;
-  color: #115950; font-size: 22px;
-  cursor: pointer; padding: 4px 8px;
-  border-radius: 6px;
-  -webkit-tap-highlight-color: transparent;
-}
-.erp-overlay {
-  display: none;
-  position: fixed; inset: 0;
-  background: rgba(0,0,0,.5);
-  z-index: 590;
-}
-
-/* ── MOBILE ── */
-@media (max-width: 900px) {
-  .erp-sidebar {
-    transform: translateX(-100%);
-  }
-  .erp-sidebar.open {
-    transform: translateX(0);
-  }
-  .erp-overlay.open { display: block; }
-  .erp-main { margin-left: 0; }
-  .erp-hamburger { display: block; }
-  .erp-topbar { padding: 0 14px; }
-}
-@media (max-width: 600px) {
-  .container, main { padding: 12px 10px 60px !important; }
-  table { min-width: 480px; }
-  .stats-bar, .kpi-grid { grid-template-columns: repeat(2,1fr) !important; }
-}
-
-
-/* ── INDEX SIDEBAR OVERRIDES ── */
-body.erp-layout { background: var(--teal-deep,#0a3d36); }
-.erp-sidebar { background: rgba(5,30,27,0.95); backdrop-filter: blur(12px); border-right: 1px solid rgba(255,255,255,.07); }
-.erp-main { background: transparent; min-height: 100vh; }
-.erp-topbar { display: none !important; }
-
 </style>
 </head>
-<body class="erp-layout">
-<div class="erp-overlay" id="erpOverlay"></div>
-<aside class="erp-sidebar" id="erpSidebar">
-  <div class="erp-brand">
-    <div class="erp-brand-name">Zesty <span>ERP</span></div>
-    <div class="erp-brand-sub">Kissamos · Operations</div>
-  </div>
-  <nav class="erp-nav-section">
-    <div class="erp-nav-section-label">Modules</div>
-      <a href="index.html" class="erp-nav-link active"><span class="nav-icon">🏠</span><span class="nav-label">Home</span></a>
-      <a href="owners-crm.html" class="erp-nav-link"><span class="nav-icon">👤</span><span class="nav-label">Owners</span></a>
-      <a href="properties-db.html" class="erp-nav-link"><span class="nav-icon">🏠</span><span class="nav-label">Properties</span></a>
-      <a href="guests-crm.html" class="erp-nav-link"><span class="nav-icon">✈️</span><span class="nav-label">Guests</span></a>
-      <a href="cleaning-system.html" class="erp-nav-link"><span class="nav-icon">🧹</span><span class="nav-label">Cleaning</span></a>
-      <a href="contacts-crm.html" class="erp-nav-link"><span class="nav-icon">📋</span><span class="nav-label">Contacts</span></a>
-      <a href="employees.html" class="erp-nav-link"><span class="nav-icon">👥</span><span class="nav-label">Staff</span></a>
-      <a href="leave.html" class="erp-nav-link"><span class="nav-icon">🏖️</span><span class="nav-label">Leave</span></a>
-      <a href="tasks.html" class="erp-nav-link"><span class="nav-icon">✅</span><span class="nav-label">Tasks</span></a>
-      <a href="jobs.html" class="erp-nav-link"><span class="nav-icon">🔧</span><span class="nav-label">Job Orders</span></a>
-      <a href="laundry.html" class="erp-nav-link"><span class="nav-icon">👔</span><span class="nav-label">Laundry ERP</span></a>
-      <a href="onboarding.html" class="erp-nav-link"><span class="nav-icon">📋</span><span class="nav-label">Onboarding</span></a>
-      <a href="settings.html" class="erp-nav-link"><span class="nav-icon">⚙️</span><span class="nav-label">Settings</span></a>
-  </nav>
-  <div class="erp-sidebar-footer">
-    <div class="erp-user-badge" id="sidebarUser"></div>
-  </div>
-</aside>
-<button class="erp-hamburger" id="erpHamburger" style="position:fixed;top:10px;left:10px;z-index:700;background:rgba(10,61,54,.85);border:1px solid rgba(255,255,255,.2);color:#fff;font-size:20px;padding:5px 10px;border-radius:7px;cursor:pointer;display:none">☰</button>
+<body>
 
-
-
-<div class="erp-main"><div class="bg-canvas">
+<div class="bg-canvas">
   <div class="bg-grid"></div>
   <div class="bg-orb bg-orb-1"></div>
   <div class="bg-orb bg-orb-2"></div>
@@ -647,7 +361,7 @@ body.erp-layout { background: var(--teal-deep,#0a3d36); }
       <div class="qs-item"><div class="qs-val" id="qs-props">—</div><div class="qs-lbl">Properties</div></div>
       <div class="qs-item"><div class="qs-val" id="qs-owners">—</div><div class="qs-lbl">Owners</div></div>
       <div class="qs-item"><div class="qs-val gold" id="qs-guests">—</div><div class="qs-lbl">Guests</div></div>
-      <div class="qs-item"><div class="qs-val" id="qs-jobs">—</div><div class="qs-lbl">Open Jobs</div></div>
+      <div class="qs-item"><div class="qs-val" id="qs-jobs">—</div><div class="qs-lbl">Jobs Today</div></div>
     </div>
   </div>
 
@@ -663,12 +377,10 @@ body.erp-layout { background: var(--teal-deep,#0a3d36); }
   <!-- SECTION LABEL -->
   <div class="section-label">Modules</div>
 
-  <!-- SECTION LABEL -->
-  <div class="section-label" style="margin-top:0">Property Management</div>
+  <!-- MODULES GRID -->
+  <div class="modules-grid">
 
-  <!-- MODULES GRID — ROW 1: Core Property Modules -->
-  <div class="modules-grid" style="margin-bottom:16px">
-
+    <!-- Owners CRM — large -->
     <a href="owners-crm.html" class="module-card card-teal span-4">
       <div class="card-icon">👤</div>
       <div class="card-badge">CRM</div>
@@ -678,6 +390,7 @@ body.erp-layout { background: var(--teal-deep,#0a3d36); }
       <span class="card-arrow">↗</span>
     </a>
 
+    <!-- Properties DB -->
     <a href="properties-db.html" class="module-card card-emerald span-4">
       <div class="card-icon">🏠</div>
       <div class="card-badge">Database</div>
@@ -687,6 +400,7 @@ body.erp-layout { background: var(--teal-deep,#0a3d36); }
       <span class="card-arrow">↗</span>
     </a>
 
+    <!-- Guests CRM -->
     <a href="guests-crm.html" class="module-card card-gold span-4">
       <div class="card-icon">✈️</div>
       <div class="card-badge">Guests</div>
@@ -696,112 +410,30 @@ body.erp-layout { background: var(--teal-deep,#0a3d36); }
       <span class="card-arrow">↗</span>
     </a>
 
-  </div>
-
-  <!-- SECTION LABEL -->
-  <div class="section-label">Operations</div>
-
-  <!-- MODULES GRID — ROW 2: Operations -->
-  <div class="modules-grid" style="margin-bottom:16px">
-
+    <!-- Cleaning System — wide -->
     <a href="cleaning-system.html" class="module-card card-slate span-5">
       <div class="card-icon">🧹</div>
       <div class="card-badge">Operations</div>
       <div class="notif-dot" id="cleaningDot" style="display:none"></div>
       <div class="card-title">Cleaning System</div>
-      <div class="card-desc">Staff database, auto-schedule from Lodgify, assignments & printable schedules</div>
-      <div class="card-stat" id="mc-cleaning">—</div>
-      <span class="card-arrow">↗</span>
-    </a>
-
-    <a href="jobs.html" class="module-card card-amber span-4">
-      <div class="card-icon">🔧</div>
-      <div class="card-badge">Jobs</div>
-      <div class="card-title">Job Orders</div>
-      <div class="card-desc">Maintenance, repairs, owner charges & profit tracking</div>
+      <div class="card-desc">Staff database, auto-schedule from Lodgify, assignments & printable per-cleaner PDF schedules</div>
       <div class="card-stat" id="mc-jobs">—</div>
       <span class="card-arrow">↗</span>
     </a>
 
-    <a href="onboarding.html" class="module-card card-purple span-3">
-      <div class="card-icon">📋</div>
-      <div class="card-badge">Pipeline</div>
-      <div class="card-title">Onboarding</div>
-      <div class="card-desc">New property acquisitions pipeline & owner proposals</div>
-      <div class="card-stat" id="mc-onboarding">—</div>
-      <span class="card-arrow">↗</span>
-    </a>
+    <!-- Bookings — coming soon -->
+    <div class="module-card card-purple span-4 coming-soon">
+      <div class="card-icon" style="opacity:.4">📅</div>
+      <div class="card-badge new-badge">Coming Soon</div>
+      <div class="card-title">Bookings</div>
+      <div class="card-desc">Live calendar, availability & revenue per booking</div>
+    </div>
 
-  </div>
-
-  <!-- SECTION LABEL -->
-  <div class="section-label">Staff & Administration</div>
-
-  <!-- MODULES GRID — ROW 3: Staff & Admin -->
-  <div class="modules-grid" style="margin-bottom:16px">
-
-    <a href="employees.html" class="module-card card-teal span-3">
-      <div class="card-icon">👥</div>
-      <div class="card-badge">HR</div>
-      <div class="card-title">Staff</div>
-      <div class="card-desc">Employee records, contracts & payroll details</div>
-      <div class="card-stat" id="mc-staff">—</div>
-      <span class="card-arrow">↗</span>
-    </a>
-
-    <a href="leave.html" class="module-card card-emerald span-3">
-      <div class="card-icon">🏖️</div>
-      <div class="card-badge">HR</div>
-      <div class="card-title">Leave</div>
-      <div class="card-desc">Annual leave, sick days & absence management</div>
-      <span class="card-arrow">↗</span>
-    </a>
-
-    <a href="tasks.html" class="module-card card-slate span-3">
-      <div class="card-icon">✅</div>
-      <div class="card-badge">Tasks</div>
-      <div class="card-title">Tasks</div>
-      <div class="card-desc">Team task board with priorities, subtasks & deadlines</div>
-      <div class="card-stat" id="mc-tasks">—</div>
-      <span class="card-arrow">↗</span>
-    </a>
-
-    <a href="contacts-crm.html" class="module-card card-gold span-3">
-      <div class="card-icon">📋</div>
-      <div class="card-badge">Contacts</div>
-      <div class="card-title">Contacts</div>
-      <div class="card-desc">Suppliers, contractors & service providers</div>
-      <span class="card-arrow">↗</span>
-    </a>
-
-  </div>
-
-  <!-- SECTION LABEL -->
-  <div class="section-label">Services & Settings</div>
-
-  <!-- MODULES GRID — ROW 4: Services + Settings -->
-  <div class="modules-grid" style="margin-bottom:0">
-
-    <a href="laundry.html" class="module-card card-purple span-4">
-      <div class="card-icon">👔</div>
-      <div class="card-badge">Laundry ERP</div>
-      <div class="card-title">Laundry ERP</div>
-      <div class="card-desc">Service orders, pricelists, receipts & client proposals</div>
-      <span class="card-arrow">↗</span>
-    </a>
-
-    <a href="settings.html" class="module-card card-slate span-4">
-      <div class="card-icon">⚙️</div>
-      <div class="card-badge">System</div>
-      <div class="card-title">Settings</div>
-      <div class="card-desc">Departments, roles, leave entitlements & full ERP backup</div>
-      <span class="card-arrow">↗</span>
-    </a>
-
-    <div class="module-card card-amber span-4 coming-soon">
+    <!-- Reports — coming soon -->
+    <div class="module-card card-amber span-3 coming-soon">
       <div class="card-icon" style="opacity:.4">📊</div>
       <div class="card-badge new-badge">Coming Soon</div>
-      <div class="card-title">Finance</div>
+      <div class="card-title">Reports</div>
       <div class="card-desc">Monthly P&L, owner payouts & occupancy rates</div>
     </div>
 
@@ -814,11 +446,8 @@ body.erp-layout { background: var(--teal-deep,#0a3d36); }
       <a href="properties-db.html" class="bottom-link">Properties</a>
       <a href="guests-crm.html" class="bottom-link">Guests</a>
       <a href="cleaning-system.html" class="bottom-link">Cleaning</a>
-      <a href="jobs.html" class="bottom-link">Jobs</a>
-      <a href="laundry.html" class="bottom-link">Laundry</a>
-      <a href="onboarding.html" class="bottom-link">Onboarding</a>
     </div>
-    <div class="version-tag">ZESTY ERP v2.0 · 2026</div>
+    <div class="version-tag">ZESTY ERP v1.0 · 2026</div>
   </div>
 
 </div>
@@ -827,7 +456,7 @@ body.erp-layout { background: var(--teal-deep,#0a3d36); }
 <script>
 // ── SUPABASE CONFIG — PASTE YOUR VALUES HERE ──────────────
 const SUPABASE_URL = 'https://whuytfjwdjjepayeiohj.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndodXl0Zmp3ZGpqZXBheWVpb2hqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIyODQxMzQsImV4cCI6MjA4Nzg2MDEzNH0.pTDAqw_Cnzc9D3tJU-tU7Ch5qpapKmteiqI_ooSCufY';
+const SUPABASE_KEY = 'sb_publishable_v_3owFJT933i27Ot0Ii-2Q_mgU6Uq5Y';
 // ──────────────────────────────────────────────────────────
 
 // Lightweight Supabase adapter — no SDK needed
@@ -1018,36 +647,24 @@ function loadStats() {
   const jobs     = safeJSON('zesty_jobs', []);
   const staff    = safeJSON('zesty_staff', []);
 
-  const tasks    = safeJSON('zesty_tasks', []);
-  const employees = safeJSON('zesty_employees', []);
-  const onboardings = safeJSON('zesty_onboardings', []);
-
   const activeProps  = props.filter(p => !p.archived && p.status === 'Active');
   const activeOwners = owners.filter(o => !o.archived && o.status !== 'Inactive');
   const repeatGuests = guests.filter(g => (g.bookings||[]).length > 1);
   const today = new Date().toISOString().slice(0, 10);
   const todayJobs = jobs.filter(j => j.date === today);
   const unassigned = todayJobs.filter(j => !(j.cleanerIds||[]).length);
-  // Open job orders (status Open or In Progress)
-  const openJobs = jobs.filter(j => j.status === 'Open' || j.status === 'In Progress').length;
-  const openTasks = tasks.filter(t => t.status === 'Open' || t.status === 'In Progress').length;
-  const activeOnboardings = onboardings.filter(o => o.stage && o.stage !== 'completed' && o.stage !== 'declined').length;
 
   // Header quick stats
   document.getElementById('qs-props').textContent   = activeProps.length || props.length || '—';
   document.getElementById('qs-owners').textContent  = activeOwners.length || owners.length || '—';
   document.getElementById('qs-guests').textContent  = guests.length ? guests.length.toLocaleString() : '—';
-  document.getElementById('qs-jobs').textContent    = openJobs > 0 ? openJobs : '—';
+  document.getElementById('qs-jobs').textContent    = todayJobs.length || '0';
 
   // Module card stats
-  document.getElementById('mc-owners').textContent   = owners.length   ? owners.length   : '';
-  document.getElementById('mc-props').textContent    = props.length    ? props.length    : '';
-  document.getElementById('mc-guests').textContent   = guests.length   ? guests.length.toLocaleString() : '';
-  document.getElementById('mc-jobs').textContent     = openJobs        ? openJobs + ' open' : (jobs.length ? jobs.length : '');
-  document.getElementById('mc-cleaning').textContent = staff.length    ? staff.filter(s=>s.status!=='Inactive').length : '';
-  document.getElementById('mc-tasks').textContent    = openTasks       ? openTasks + ' open' : (tasks.length ? tasks.length : '');
-  document.getElementById('mc-staff').textContent    = employees.length ? employees.length : '';
-  document.getElementById('mc-onboarding').textContent = activeOnboardings ? activeOnboardings + ' active' : (onboardings.length ? onboardings.length : '');
+  document.getElementById('mc-owners').textContent = owners.length ? owners.length : '';
+  document.getElementById('mc-props').textContent  = props.length  ? props.length  : '';
+  document.getElementById('mc-guests').textContent = guests.length ? guests.length.toLocaleString() : '';
+  document.getElementById('mc-jobs').textContent   = jobs.length   ? jobs.length   : '';
 
   // Cleaning notification dot
   if (unassigned.length > 0) {
@@ -1062,13 +679,11 @@ function loadStats() {
 
   // Activity strip
   const activities = [];
-  if (props.length)    activities.push(`<div class="activity-item"><span class="activity-dot"></span> <strong>${activeProps.length}</strong> active properties</div>`);
-  if (owners.length)   activities.push(`<div class="activity-item"><span class="activity-dot" style="background:var(--gold-light)"></span> <strong>${activeOwners.length}</strong> active owners</div>`);
-  if (guests.length)   activities.push(`<div class="activity-item"><span class="activity-dot" style="background:#c9a84c"></span> <strong>${repeatGuests.length}</strong> repeat guests</div>`);
-  if (openJobs)        activities.push(`<div class="activity-item"><span class="activity-dot" style="background:#e67e22"></span> <strong>${openJobs}</strong> open job order${openJobs!==1?'s':''}</div>`);
-  if (staff.length)    activities.push(`<div class="activity-item"><span class="activity-dot" style="background:#8e44ad"></span> <strong>${staff.filter(s=>s.status!=='Inactive').length}</strong> active cleaners</div>`);
-  if (openTasks)       activities.push(`<div class="activity-item"><span class="activity-dot" style="background:#27ae60"></span> <strong>${openTasks}</strong> open task${openTasks!==1?'s':''}</div>`);
-  if (activeOnboardings) activities.push(`<div class="activity-item"><span class="activity-dot" style="background:#3498db"></span> <strong>${activeOnboardings}</strong> onboarding${activeOnboardings!==1?'s':''} in progress</div>`);
+  if (props.length)   activities.push(`<div class="activity-item"><span class="activity-dot"></span> <strong>${activeProps.length}</strong> active properties</div>`);
+  if (owners.length)  activities.push(`<div class="activity-item"><span class="activity-dot" style="background:var(--gold-light)"></span> <strong>${activeOwners.length}</strong> active owners</div>`);
+  if (guests.length)  activities.push(`<div class="activity-item"><span class="activity-dot" style="background:#c9a84c"></span> <strong>${repeatGuests.length}</strong> repeat guests</div>`);
+  if (todayJobs.length) activities.push(`<div class="activity-item"><span class="activity-dot" style="background:#e67e22"></span> <strong>${todayJobs.length}</strong> cleaning job${todayJobs.length!==1?'s':''} today${unassigned.length ? ` · <span style="color:#e74c3c">${unassigned.length} unassigned</span>` : ''}</div>`);
+  if (staff.length)   activities.push(`<div class="activity-item"><span class="activity-dot" style="background:#8e44ad"></span> <strong>${staff.filter(s=>s.status!=='Inactive').length}</strong> active cleaners</div>`);
   if (activities.length) document.getElementById('activityItems').innerHTML = activities.join('');
   else document.getElementById('activityItems').innerHTML = '<div class="activity-item"><span class="activity-dot"></span> Open any module to start loading data</div>';
 }
@@ -1078,53 +693,9 @@ function safeJSON(key, def) {
   catch { return def; }
 }
 
-
-// ── SIDEBAR NAVIGATION ──────────────────────────────────
-function _initSidebar() {
-  const sidebar = document.getElementById('erpSidebar');
-  const overlay = document.getElementById('erpOverlay');
-  const hamburger = document.getElementById('erpHamburger');
-  if (!sidebar) return;
-  // Hamburger toggle
-  if (hamburger) {
-    hamburger.addEventListener('click', () => {
-      sidebar.classList.toggle('open');
-      overlay.classList.toggle('open');
-    });
-  }
-  // Close on overlay click
-  if (overlay) {
-    overlay.addEventListener('click', () => {
-      sidebar.classList.remove('open');
-      overlay.classList.remove('open');
-    });
-  }
-  // Inject Azure user badge into sidebar footer
-  const origBadge = document.getElementById('_azure_badge');
-  const footerUser = document.getElementById('sidebarUser');
-  if (origBadge && footerUser) {
-    footerUser.innerHTML = origBadge.innerHTML;
-    origBadge.remove();
-  }
-  // Watch for badge to appear
-  const obs = new MutationObserver(() => {
-    const b = document.getElementById('_azure_badge');
-    const fu = document.getElementById('sidebarUser');
-    if (b && fu) {
-      fu.innerHTML = b.innerHTML;
-      b.remove();
-      obs.disconnect();
-    }
-  });
-  obs.observe(document.body, {childList:true, subtree:true});
-}
-document.addEventListener('DOMContentLoaded', _initSidebar);
-
-
 loadStats();
 // Refresh stats every 30 seconds
 setInterval(loadStats, 30000);
 </script>
-</div><!-- /erp-main -->
 </body>
 </html>
