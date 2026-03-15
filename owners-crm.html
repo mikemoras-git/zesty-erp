@@ -2,6 +2,9 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Zesty Rentals — Owners CRM</title>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
@@ -627,6 +630,125 @@
     td, th { padding: 10px 10px; }
   }
 </style>
+    <script src="https://unpkg.com/@azure/msal-browser@2.38.3/lib/msal-browser.min.js"></script>
+    <script>
+    (function(){
+      const _msalConfig={
+        auth:{
+          clientId:'0938023f-cbbf-45f1-a71d-b18c95745ea6',
+          authority:'https://login.microsoftonline.com/9c30b606-6648-4777-a623-64867e43e54f',
+          redirectUri:'https://kissamosrealestate.com/wp-content/erp/index.html'
+        },
+        cache:{cacheLocation:'sessionStorage',storeAuthStateInCookie:false}
+      };
+      const _msal=new msal.PublicClientApplication(_msalConfig);
+      const _loginRequest={scopes:['openid','profile','User.Read']};
+
+      async function _ensureLogin(){
+        await _msal.initialize();
+        try{ await _msal.handleRedirectPromise(); }catch(e){}
+        const accounts=_msal.getAllAccounts();
+        if(accounts.length>0){
+          const acct=accounts[0];
+          _showUserBadge(acct.name||acct.username);
+          return;
+        }
+        _msal.loginRedirect(_loginRequest);
+      }
+
+      function _showUserBadge(name){
+        const show=()=>{
+          const hdr=document.querySelector('.header-right');
+          if(!hdr)return;
+          if(document.getElementById('_azure_badge'))return;
+          const badge=document.createElement('div');
+          badge.id='_azure_badge';
+          badge.style.cssText='display:flex;align-items:center;gap:8px;margin-left:4px';
+          badge.innerHTML=`<span style="font-size:12px;color:rgba(255,255,255,.75);font-family:DM Sans,sans-serif">&#128100; ${name}</span>`+
+            `<button onclick="window._azureLogout()" style="padding:4px 10px;border-radius:7px;border:1px solid rgba(255,255,255,.3);background:transparent;color:rgba(255,255,255,.7);font-size:11px;cursor:pointer;font-family:DM Sans,sans-serif">Sign out</button>`;
+          hdr.appendChild(badge);
+        };
+        if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',show);}
+        else{show();}
+      }
+
+      window._azureLogout=function(){
+        const accounts=_msal.getAllAccounts();
+        if(accounts.length>0){_msal.logoutRedirect({account:accounts[0]});}
+      };
+
+      document.addEventListener('DOMContentLoaded',function(){
+        const accounts=_msal.getAllAccounts();
+        if(accounts.length===0){document.body.style.visibility='hidden';}
+        else{document.body.style.visibility='visible';}
+      });
+
+      _ensureLogin().then(()=>{
+        document.body.style.visibility='visible';
+      });
+    })();
+    </script>
+    <!-- Azure MSAL Authentication -->
+    
+    <script>
+    (function(){
+      const _msalConfig={
+        auth:{
+          clientId:'0938023f-cbbf-45f1-a71d-b18c95745ea6',
+          authority:'https://login.microsoftonline.com/9c30b606-6648-4777-a623-64867e43e54f',
+          redirectUri:'https://kissamosrealestate.com/wp-content/erp/index.html'
+        },
+        cache:{cacheLocation:'sessionStorage',storeAuthStateInCookie:false}
+      };
+      const _msal=new msal.PublicClientApplication(_msalConfig);
+      const _loginRequest={scopes:['openid','profile','User.Read']};
+
+      async function _ensureLogin(){
+        await _msal.initialize();
+        try{ await _msal.handleRedirectPromise(); }catch(e){}
+        const accounts=_msal.getAllAccounts();
+        if(accounts.length>0){
+          const acct=accounts[0];
+          if(acct.tenantId!=='9c30b606-6648-4777-a623-64867e43e54f'){
+            document.documentElement.style.visibility='visible';
+            document.body.innerHTML='<div style="display:flex;align-items:center;justify-content:center;height:100vh;font-family:sans-serif;flex-direction:column;gap:12px"><div style="font-size:48px">🔒</div><div style="font-size:18px;font-weight:600;color:#1e2a28">Access Denied</div><div style="font-size:14px;color:#666">Your account is not authorised to access this system.</div><button onclick="window._azureLogout()" style="margin-top:12px;padding:8px 20px;background:#1a7a6e;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:14px">Sign out</button></div>';
+            return;
+          }
+          _showUserBadge(acct.name||acct.username);
+          document.documentElement.style.visibility='visible';
+          return;
+        }
+        await _msal.loginRedirect(_loginRequest);
+      }
+
+      function _showUserBadge(name){
+        const show=()=>{
+          const hdr=document.querySelector('.header-right');
+          if(!hdr)return;
+          if(document.getElementById('_azure_badge'))return;
+          const badge=document.createElement('div');
+          badge.id='_azure_badge';
+          badge.style.cssText='display:flex;align-items:center;gap:8px;margin-left:4px';
+          badge.innerHTML='<span style="font-size:12px;color:rgba(255,255,255,.75);font-family:DM Sans,sans-serif">&#128100; '+name+'</span>'+
+            '<button onclick="window._azureLogout()" style="padding:4px 10px;border-radius:7px;border:1px solid rgba(255,255,255,.3);background:transparent;color:rgba(255,255,255,.7);font-size:11px;cursor:pointer;font-family:DM Sans,sans-serif">Sign out</button>';
+          hdr.appendChild(badge);
+        };
+        if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',show);}
+        else{show();}
+      }
+
+      window._azureLogout=function(){
+        const accounts=_msal.getAllAccounts();
+        if(accounts.length>0){_msal.logoutRedirect({account:accounts[0]});}
+      };
+
+      document.documentElement.style.visibility='hidden';
+
+      _ensureLogin().catch(function(){
+        _msal.loginRedirect(_loginRequest);
+      });
+    })();
+    </script>
 </head>
 <body>
 
@@ -637,10 +759,22 @@
     <button class="btn btn-outline" style="color:var(--gold-light);border-color:rgba(255,255,255,.3);font-size:12px" onclick="window.location.href='properties-db.html'">🏘 Properties</button>
     <button class="btn btn-outline" style="color:var(--gold-light);border-color:rgba(255,255,255,.3);font-size:12px" onclick="window.location.href='guests-crm.html'">✈️ Guests</button>
     <button class="btn btn-outline" style="color:var(--gold-light);border-color:rgba(255,255,255,.3);font-size:12px" onclick="window.location.href='cleaning-system.html'">🧹 Cleaning</button>
+    <button style="background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.9);padding:5px 11px;border-radius:6px;font-size:12px" onclick="window.location.href='contacts-crm.html'">📋 Contacts</button>
+    <button class="btn btn-outline" style="color:var(--gold-light);border-color:rgba(255,255,255,.3);font-size:12px" onclick="window.location.href='employees.html'">&#128100; Employees</button>
+    <button class="btn btn-outline" style="color:var(--gold-light);border-color:rgba(255,255,255,.3);font-size:12px" onclick="window.location.href='leave.html'">&#128197; Leave</button>
+    <button class="btn btn-outline" style="color:var(--gold-light);border-color:rgba(255,255,255,.3);font-size:12px" onclick="window.location.href='tasks.html'">&#9635; Tasks</button>
+    <button class="btn btn-outline" style="color:var(--gold-light);border-color:rgba(255,255,255,.3);font-size:12px" onclick="window.location.href='jobs.html'">&#9635; Jobs</button>
+    <button class="btn btn-outline" style="color:var(--gold-light);border-color:rgba(255,255,255,.3);font-size:12px" onclick="location.href='settings.html'">&#9881; Settings</button>
     <button class="btn btn-primary" onclick="openAddModal()">＋ Add Owner</button>
   </div>
 </header>
 
+<div id="syncBar" style="display:none;position:fixed;bottom:60px;right:16px;background:rgba(26,200,160,0.92);color:#fff;padding:7px 14px;border-radius:8px;font-size:12px;font-family:'DM Sans',sans-serif;z-index:300;"></div>
+<div id="loadingOverlay" style="position:fixed;inset:0;background:var(--teal-dark);color:white;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;font-family:'DM Sans',sans-serif;gap:12px;">
+  <div style="font-size:32px">👤</div>
+  <div style="font-family:'Cormorant Garamond',serif;font-size:22px">Loading Owners CRM...</div>
+  <div style="font-size:13px;opacity:0.6">Connecting to database...</div>
+</div>
 <div class="container">
 
   <!-- STATS -->
@@ -920,176 +1054,147 @@
 
 
 <script>
-// ── SUPABASE CONFIG — PASTE YOUR VALUES HERE ──────────────
-const SUPABASE_URL = 'https://whuytfjwdjjepayeiohj.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_v_3owFJT933i27Ot0Ii-2Q_mgU6Uq5Y';
-// ──────────────────────────────────────────────────────────
-
-// Lightweight Supabase adapter — no SDK needed
-const DB = {
-  _ready: false,
-  _offline: false,
-
-  _h() {
-    return {
-      'apikey': SUPABASE_KEY,
-      'Authorization': 'Bearer ' + SUPABASE_KEY,
-      'Content-Type': 'application/json',
-      'Prefer': 'return=representation'
-    };
-  },
-
-  _configured() {
-    return !!(SUPABASE_URL && SUPABASE_KEY && SUPABASE_URL.includes('supabase.co'));
-  },
-
-  async _req(method, table, body, query) {
-    if (!this._configured() || this._offline) return null;
-    try {
-      const url = `${SUPABASE_URL}/rest/v1/${table}${query || ''}`;
-      const res = await fetch(url, { method, headers: this._h(), body: body ? JSON.stringify(body) : undefined });
-      if (!res.ok) { console.warn('DB error', res.status, await res.text()); return null; }
-      if (res.status === 204) return [];
-      return await res.json();
-    } catch(e) {
-      console.warn('DB offline, using localStorage:', e.message);
-      this._offline = true;
-      return null;
-    }
-  },
-
-  // Load all rows from a table → returns array of data objects
-  async loadAll(table) {
-    const rows = await this._req('GET', table, null, '?select=id,data&order=created_at.asc');
-    if (!rows) return null; // null = offline
-    return rows.map(r => ({ ...r.data, id: r.id }));
-  },
-
-  // Save one record (upsert)
-  async save(table, record) {
-    const { id, ...rest } = record;
-    const row = { id, data: rest };
-    const res = await this._req('POST', table, row, '?on_conflict=id');
-    return res !== null;
-  },
-
-  // Save many records (upsert batch, up to 500 at a time)
-  async saveMany(table, records) {
-    if (!records.length) return true;
-    const rows = records.map(({ id, ...rest }) => ({ id, data: rest }));
-    // Batch in chunks of 500
-    for (let i = 0; i < rows.length; i += 500) {
-      const chunk = rows.slice(i, i + 500);
-      const res = await this._req('POST', table, chunk, '?on_conflict=id');
-      if (res === null) return false;
-    }
-    return true;
-  },
-
-  // Delete one record
-  async delete(table, id) {
-    const res = await this._req('DELETE', table, null, `?id=eq.${encodeURIComponent(id)}`);
-    return res !== null;
-  },
-
-  // Check if Supabase is reachable
-  async ping() {
-    if (!this._configured()) return false;
-    try {
-      const res = await fetch(`${SUPABASE_URL}/rest/v1/owners?select=id&limit=1`, { headers: this._h() });
-      this._offline = !res.ok;
-      return res.ok;
-    } catch { this._offline = true; return false; }
-  },
-
-  isConfigured() { return this._configured(); }
-};
-
-// ── SYNC LAYER ──────────────────────────────────────────────
-// Wraps localStorage with Supabase sync.
-// Usage: await SyncStore.load('zesty_owners', 'owners')
-//        await SyncStore.save('zesty_owners', 'owners', array)
-
-const SyncStore = {
-  _migrated: {},
-
-  // Load data: tries Supabase first, falls back to localStorage, migrates if needed
-  async load(lsKey, table) {
-    const online = await DB.ping();
-    if (online) {
-      const remote = await DB.loadAll(table);
-      if (remote !== null) {
-        // Migrate localStorage → Supabase if remote is empty and local has data
-        const local = SyncStore._getLocal(lsKey);
-        if (remote.length === 0 && local.length > 0 && !this._migrated[table]) {
-          this._migrated[table] = true;
-          console.log(`Migrating ${local.length} ${table} records to Supabase...`);
-          await DB.saveMany(table, local);
-          return local;
-        }
-        // Cache in localStorage for offline use
-        localStorage.setItem(lsKey, JSON.stringify(remote));
-        return remote;
+const SUPABASE_URL='https://whuytfjwdjjepayeiohj.supabase.co';
+const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndodXl0Zmp3ZGpqZXBheWVpb2hqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIyODQxMzQsImV4cCI6MjA4Nzg2MDEzNH0.pTDAqw_Cnzc9D3tJU-tU7Ch5qpapKmteiqI_ooSCufY';
+const DB={
+  _h(){return{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json','Prefer':'return=representation,resolution=merge-duplicates'}},
+  _hG(){return{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY}},
+  _hD(){return{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json'}},
+  _ok(){return!!(SUPABASE_URL&&SUPABASE_KEY&&SUPABASE_URL.includes('supabase.co'))},
+  async _fetch(method,table,body,query,ms){
+    if(!this._ok())return{ok:false,data:null,err:'Not configured'};
+    const ctrl=new AbortController(),t=setTimeout(()=>ctrl.abort(),ms||15000);
+    try{
+      const url=SUPABASE_URL+'/rest/v1/'+table+(query||'');
+      const headers=method==='GET'?this._hG():method==='DELETE'?this._hD():this._h();
+      const opts={method,headers,signal:ctrl.signal};
+      if(body)opts.body=JSON.stringify(body);
+      const res=await fetch(url,opts);clearTimeout(t);
+      if(!res.ok){
+        let e='HTTP '+res.status;
+        try{const j=await res.json();e=j.message||j.hint||j.error||e}catch(x){}
+        return{ok:false,data:null,err:e};
       }
-    }
-    // Offline fallback
-    return SyncStore._getLocal(lsKey);
+      if(res.status===204||method==='DELETE')return{ok:true,data:[]};
+      const ct=res.headers.get('content-type')||'';
+      if(!ct.includes('json'))return{ok:true,data:[]};
+      try{return{ok:true,data:await res.json()}}catch(x){return{ok:true,data:[]}}
+    }catch(e){clearTimeout(t);return{ok:false,data:null,err:e.name==='AbortError'?'Timeout':e.message}}
   },
-
-  // Save full array to both Supabase and localStorage
-  async saveAll(lsKey, table, data) {
-    localStorage.setItem(lsKey, JSON.stringify(data));
-    if (DB._configured() && !DB._offline) {
-      await DB.saveMany(table, data);
-    }
+  async loadAll(table){
+    const r=await this._fetch('GET',table,null,'?select=id,data,updated_at&order=created_at.asc&limit=100000');
+    if(!r.ok)return{ok:false,rows:null,err:r.err};
+    const rows=(r.data||[]).map(row=>({id:row.id,...(row.data||{})}));
+    return{ok:true,rows};
   },
-
-  // Save a single record
-  async saveOne(lsKey, table, record, allData) {
-    // Update localStorage with the full array
-    localStorage.setItem(lsKey, JSON.stringify(allData));
-    // Sync single record to Supabase
-    if (DB._configured() && !DB._offline) {
-      await DB.save(table, record);
-    }
+  async upsertOne(table,record){
+    const{id,...rest}=record;
+    const rid=id||('rec_'+Date.now()+'_'+Math.random().toString(36).slice(2,6));
+    const row={id:rid,data:rest,updated_at:new Date().toISOString()};
+    const r=await this._fetch('POST',table,row,'?on_conflict=id');
+    return{ok:r.ok,id:rid,err:r.err};
   },
-
-  // Delete a record
-  async deleteOne(lsKey, table, id, allData) {
-    localStorage.setItem(lsKey, JSON.stringify(allData));
-    if (DB._configured() && !DB._offline) {
-      await DB.delete(table, id);
+  async upsertMany(table,records){
+    if(!records.length)return{ok:true};
+    const rows=records.map(({id,...rest})=>({id:id||('rec_'+Date.now()+'_'+Math.random().toString(36).slice(2,6)),data:rest,updated_at:new Date().toISOString()}));
+    const size=200;
+    for(let i=0;i<rows.length;i+=size){
+      const r=await this._fetch('POST',table,rows.slice(i,i+size),'?on_conflict=id');
+      if(!r.ok)return{ok:false,err:r.err};
     }
+    return{ok:true};
   },
-
-  _getLocal(key) {
-    try { return JSON.parse(localStorage.getItem(key) || '[]') || []; }
-    catch { return []; }
-  }
+  async deleteOne(table,id){
+    const r=await this._fetch('DELETE',table,null,'?id=eq.'+encodeURIComponent(id));
+    return{ok:r.ok,err:r.err};
+  },
+  isConfigured(){return this._ok()}
 };
-
-// ── STATUS INDICATOR ────────────────────────────────────────
-function showDbStatus() {
-  const existing = document.getElementById('db-status-bar');
-  if (existing) existing.remove();
-  const bar = document.createElement('div');
-  bar.id = 'db-status-bar';
-  const isConfigured = DB.isConfigured();
-  const isOffline = DB._offline;
-  if (!isConfigured) {
-    bar.style.cssText = 'position:fixed;bottom:0;left:0;right:0;background:#c0392b;color:white;text-align:center;padding:8px;font-size:12px;font-family:DM Sans,sans-serif;z-index:9999;';
-    bar.innerHTML = '⚠️ Supabase not configured — data is saved locally only. <a href="supabase-setup-guide.html" style="color:white;font-weight:600">Setup Guide →</a>';
-  } else if (isOffline) {
-    bar.style.cssText = 'position:fixed;bottom:0;left:0;right:0;background:#e67e22;color:white;text-align:center;padding:8px;font-size:12px;font-family:DM Sans,sans-serif;z-index:9999;';
-    bar.innerHTML = '🔴 Database offline — working in local mode. Changes will sync when connection is restored.';
-  } else {
-    bar.style.cssText = 'position:fixed;bottom:0;right:0;background:rgba(26,122,110,0.9);color:white;padding:5px 14px;font-size:11px;font-family:DM Sans,sans-serif;z-index:9999;border-radius:6px 0 0 0;';
-    bar.innerHTML = '🟢 Supabase connected';
-    setTimeout(() => bar.style.opacity = '0', 3000);
-    setTimeout(() => bar.remove(), 3500);
-  }
-  document.body.appendChild(bar);
+const SyncStore={
+  _pendingDeletes:{},
+  async load(lsKey,table){
+    const cached=this._getLocal(lsKey);
+    const result=await DB.loadAll(table);
+    if(result.ok&&result.rows!==null){
+      const pending=this._pendingDeletes[table]||new Set();
+      const rows=result.rows.filter(r=>!pending.has(r.id));
+      localStorage.setItem(lsKey,JSON.stringify(rows));
+      return{data:rows,fromCache:false,online:true};
+    }
+    return{data:cached,fromCache:true,online:false};
+  },
+  async saveOne(lsKey,table,record,all){
+    localStorage.setItem(lsKey,JSON.stringify(all));
+    const r=await DB.upsertOne(table,record);
+    if(!r.ok)showSyncErr(r.err);
+    return r;
+  },
+  async saveAll(lsKey,table,records){
+    localStorage.setItem(lsKey,JSON.stringify(records));
+    const r=await DB.upsertMany(table,records);
+    if(!r.ok)showSyncErr(r.err);
+    return r.ok;
+  },
+  async deleteOne(lsKey,table,id,all){
+    if(!this._pendingDeletes[table])this._pendingDeletes[table]=new Set();
+    this._pendingDeletes[table].add(id);
+    localStorage.setItem(lsKey,JSON.stringify(all));
+    const r=await DB.deleteOne(table,id);
+    if(!r.ok){
+      this._pendingDeletes[table].delete(id);
+      showSyncErr('Delete failed: '+r.err);
+      return{ok:false,err:r.err};
+    }
+    setTimeout(()=>{if(this._pendingDeletes[table])this._pendingDeletes[table].delete(id)},120000);
+    return{ok:true};
+  },
+  _getLocal(key){try{return JSON.parse(localStorage.getItem(key)||'[]')||[]}catch{return[]}}
+};
+function startPoll(table,lsKey,ms,onData){
+  let lastHash='';
+  const poll=async()=>{
+    const result=await DB.loadAll(table);
+    if(!result.ok||!result.rows)return;
+    const pending=SyncStore._pendingDeletes[table]||new Set();
+    const rows=result.rows.filter(r=>!pending.has(r.id));
+    const hash=rows.length+'|'+rows.map(r=>r.id).join(',');
+    if(hash!==lastHash){lastHash=hash;localStorage.setItem(lsKey,JSON.stringify(rows));onData(rows)}
+  };
+  setInterval(poll,ms);
+  return poll;
 }
+function showDbStatus(online){
+  const old=document.getElementById('db-status-bar');if(old)old.remove();
+  if(online)return;
+  const b=document.createElement('div');b.id='db-status-bar';
+  b.style.cssText='position:fixed;bottom:0;left:0;right:0;background:#c0392b;color:#fff;text-align:center;padding:8px;font-size:12px;z-index:9998;cursor:pointer;';
+  b.textContent='⚠ Database offline — working in local mode. Click to retry.';
+  b.onclick=()=>{location.reload()};
+  document.body.appendChild(b);
+}
+function showSyncErr(err){
+  let b=document.getElementById('sync-err-bar');
+  if(!b){b=document.createElement('div');b.id='sync-err-bar';b.style.cssText='position:fixed;bottom:40px;right:16px;background:#c0392b;color:#fff;border-radius:8px;padding:8px 14px;font-size:12px;z-index:9999;max-width:320px;';document.body.appendChild(b)}
+  b.textContent='Save error: '+err;b.style.display='block';
+  clearTimeout(b._t);b._t=setTimeout(()=>b.style.display='none',6000);
+}
+
+function showDbStatus(online){
+  const old=document.getElementById('db-status-bar');if(old)old.remove();
+  if(online)return;
+  const b=document.createElement('div');b.id='db-status-bar';
+  b.style.cssText='position:fixed;bottom:0;left:0;right:0;background:#c0392b;color:#fff;text-align:center;padding:8px;font-size:12px;z-index:9998;cursor:pointer;';
+  b.textContent='⚠ Database offline — working in local mode. Click to retry.';
+  b.onclick=()=>{location.reload()};
+  document.body.appendChild(b);
+}
+function showSyncErr(err){
+  let b=document.getElementById('sync-err-bar');
+  if(!b){b=document.createElement('div');b.id='sync-err-bar';b.style.cssText='position:fixed;bottom:40px;right:16px;background:#c0392b;color:#fff;border-radius:8px;padding:8px 14px;font-size:12px;z-index:9999;max-width:320px;';document.body.appendChild(b)}
+  b.textContent='Save error: '+err;b.style.display='block';
+  clearTimeout(b._t);b._t=setTimeout(()=>b.style.display='none',6000);
+}
+
 
 </script>
 <script>
@@ -1101,72 +1206,44 @@ const PAGE_SIZE = 15;
 let confirmCallback = null;
 
 // Pre-load from Excel data
-const rawData = [
-  { propertyId: 422028, propertyName: 'Villa Veghera - Join Crete, Seaview, private pool', repFirst: 'Μιχαλης', repLast: 'Μωραιτακης', taxNumber: '137454414', taxOffice: 'Χανίων', idPassport: 'ΑΟ056175', birthdate: '1986-01-15', phone1: '6973206066', phone2: '', email1: 'mikemoras@gmail.com', email2: '', address: 'Φιλιππου 23', city: 'Πειραιας', pc: '', country: 'Ελλάδα', iban: 'GR1401401440144002101163563', bank: 'Alphabank', beneficiary: 'Μιχαήλ Μωραιτάκης', ownerEntity: 'Ατομική', companyName: '', startCooperation: '', endCooperation: '', startAgreement: '', durationAgreement: '', managementFee: '', documentType: 'Απόδειξη', status: 'Active', notes: '' },
-  { propertyId: 566307, propertyName: 'Corte Interna, free heated pool', repFirst: 'Μιχαλης', repLast: 'Μωραιτακης', taxNumber: '137454415', taxOffice: 'Χανίων', idPassport: 'ΑΟ056175', birthdate: '1986-01-15', phone1: '6973206066', phone2: '', email1: 'mikemoras@gmail.com', email2: '', address: 'Φιλιππου 23', city: 'Πειραιας', pc: '', country: 'Ελλάδα', iban: 'GR1401401440144002101163563', bank: 'Alphabank', beneficiary: 'Μιχαήλ Μωραιτάκης', ownerEntity: 'Ατομική', companyName: '', startCooperation: '', endCooperation: '', startAgreement: '', durationAgreement: '', managementFee: '', documentType: 'Απόδειξη', status: 'Active', notes: '' },
-  { propertyId: 422079, propertyName: 'Casa le Cicale the top villa in Falasarna', repFirst: 'Filippo', repLast: 'Furlanetto', taxNumber: '801521143', taxOffice: 'ΧΑΝΙΩΝ', idPassport: '', birthdate: '', phone1: '', phone2: '', email1: 'filippo.furlanetto@gmail.com', email2: '', address: '', city: '', pc: '', country: '', iban: '', bank: '', beneficiary: '', ownerEntity: 'ΙΚΕ', companyName: 'FALASARNA RENTALS AND INVESTMENTS ΙΚΕ', startCooperation: '', endCooperation: '', startAgreement: '', durationAgreement: '', managementFee: '10/1.24', documentType: 'Τιμολόγιο', status: 'Active', notes: '' },
-  { propertyId: 422080, propertyName: 'Villa Melissa 3, Spacious villa w private pool', repFirst: 'Julien', repLast: 'Palmaro', taxNumber: '803045431', taxOffice: '', idPassport: '', birthdate: '', phone1: '', phone2: '', email1: 'h28crete@gmail.com', email2: '', address: '', city: '', pc: '', country: '', iban: '', bank: '', beneficiary: '', ownerEntity: 'Α.Ε', companyName: 'H28 S.A', startCooperation: '', endCooperation: '', startAgreement: '', durationAgreement: '', managementFee: '', documentType: '', status: 'Active', notes: 'Co-rep: Pascal Lagier' },
-  { propertyId: 422081, propertyName: 'Villa Melissa 2, spacious, private pool, seaview', repFirst: 'Julien', repLast: 'Palmaro', taxNumber: '803045431', taxOffice: '', idPassport: '', birthdate: '', phone1: '', phone2: '', email1: 'h28crete@gmail.com', email2: '', address: '', city: '', pc: '', country: '', iban: '', bank: '', beneficiary: '', ownerEntity: 'Α.Ε', companyName: 'H28 S.A', startCooperation: '', endCooperation: '', startAgreement: '', durationAgreement: '', managementFee: '', documentType: '', status: 'Active', notes: 'Co-rep: Pascal Lagier' },
-  { propertyId: 422491, propertyName: 'Peaceful Melissa Villas, Luxury, 2 pools', repFirst: 'Julien', repLast: 'Palmaro', taxNumber: '803045431', taxOffice: '', idPassport: '', birthdate: '', phone1: '', phone2: '', email1: 'h28crete@gmail.com', email2: '', address: '', city: '', pc: '', country: '', iban: '', bank: '', beneficiary: '', ownerEntity: 'Α.Ε', companyName: 'H28 S.A', startCooperation: '', endCooperation: '', startAgreement: '', durationAgreement: '', managementFee: '', documentType: '', status: 'Active', notes: 'Co-rep: Pascal Lagier' },
-  { propertyId: 481314, propertyName: 'The Rock *Peaceful Retreat House', repFirst: 'Αργυρώ', repLast: 'Μαρκάκη', taxNumber: '49177768', taxOffice: '', idPassport: '', birthdate: '1990-06-28', phone1: '6940559489', phone2: '', email1: 'therockkampos@gmail.com', email2: '', address: 'ΛΕΩΦΟΡΟΣ ΚΑΖΑΤΖΑΚΗ 178 ΒΑΜΒΑΚΟΠΟΥΛΟ', city: 'Χανιά', pc: '', country: 'Ελλάδα', iban: 'GR6102601350000580102721541', bank: 'Eurobank', beneficiary: 'Μαρκάκη Αργυρώ', ownerEntity: 'Βραχυχρόνια', companyName: '', startCooperation: '2024-04-01', endCooperation: '2026-03-31', startAgreement: '', durationAgreement: '2', managementFee: '', documentType: 'Μαύρα', status: 'Active', notes: '' },
-  { propertyId: 491460, propertyName: "Cozy Nikola's Vineyard Apartment Ground Floor", repFirst: 'Καρδιακάκης', repLast: 'Γεώργιος', taxNumber: '130413945', taxOffice: '', idPassport: 'ΑΜ976618', birthdate: '1960-06-17', phone1: '', phone2: '', email1: '', email2: '', address: '', city: '', pc: '', country: '', iban: 'GR5501104950000049536594531', bank: 'Εθνική', beneficiary: 'ΚΑΡΔΙΑΚΑΚΗΣ ΓΕΩΡΓΙΟΣ ΙΩΑΝΝΗΣ', ownerEntity: 'Βραχυχρόνια', companyName: '', startCooperation: '2024-04-01', endCooperation: '2026-03-31', startAgreement: '', durationAgreement: '2', managementFee: '', documentType: 'Μαύρα', status: 'Active', notes: '' },
-  { propertyId: 494678, propertyName: "Cozy Nikola's Vineyard Apartment", repFirst: 'Καρδιακάκης', repLast: 'Γεώργιος', taxNumber: '130413945', taxOffice: '', idPassport: 'ΑΜ976618', birthdate: '1960-06-17', phone1: '', phone2: '', email1: '', email2: '', address: '', city: '', pc: '', country: '', iban: 'GR5501104950000049536594531', bank: 'Εθνική', beneficiary: 'ΚΑΡΔΙΑΚΑΚΗΣ ΓΕΩΡΓΙΟΣ ΙΩΑΝΝΗΣ', ownerEntity: 'Βραχυχρόνια', companyName: '', startCooperation: '2024-04-01', endCooperation: '2026-03-31', startAgreement: '', durationAgreement: '2', managementFee: '', documentType: 'Μαύρα', status: 'Active', notes: '' },
-  { propertyId: 498360, propertyName: 'Peaceful, Seaview Plagia Room 1', repFirst: 'Ντίλη', repLast: 'Ιωάννα', taxNumber: '131398911', taxOffice: '', idPassport: '', birthdate: '', phone1: '6945908670', phone2: '', email1: '', email2: '', address: '', city: '', pc: '', country: '', iban: 'GR5101727580005758102193677', bank: 'Πειραιώς', beneficiary: 'Ντίλη Ιωάννα', ownerEntity: 'Ατομική', companyName: '', startCooperation: '2024-04-01', endCooperation: '2026-03-31', startAgreement: '', durationAgreement: '', managementFee: '', documentType: 'Απόδειξη', status: 'Active', notes: '' },
-  { propertyId: 498359, propertyName: 'Peaceful house Plagia Room 2 bedroom', repFirst: 'Ντίλη', repLast: 'Ιωάννα', taxNumber: '131398911', taxOffice: '', idPassport: '', birthdate: '', phone1: '6945908670', phone2: '', email1: '', email2: '', address: '', city: '', pc: '', country: '', iban: 'GR5101727580005758102193677', bank: 'Πειραιώς', beneficiary: 'Ντίλη Ιωάννα', ownerEntity: 'Ατομική', companyName: '', startCooperation: '2024-04-01', endCooperation: '2026-03-31', startAgreement: '', durationAgreement: '', managementFee: '', documentType: 'Απόδειξη', status: 'Active', notes: '' },
-  { propertyId: 498361, propertyName: 'Cozy Studio Plagia Room 3', repFirst: 'Ντίλη', repLast: 'Ιωάννα', taxNumber: '131398911', taxOffice: '', idPassport: '', birthdate: '', phone1: '6945908670', phone2: '', email1: '', email2: '', address: '', city: '', pc: '', country: '', iban: 'GR5101727580005758102193677', bank: 'Πειραιώς', beneficiary: 'Ντίλη Ιωάννα', ownerEntity: 'Ατομική', companyName: '', startCooperation: '2024-04-01', endCooperation: '2026-03-31', startAgreement: '', durationAgreement: '', managementFee: '', documentType: 'Απόδειξη', status: 'Active', notes: '' },
-  { propertyId: 540809, propertyName: 'Villa Ovgoro, Provarma, pool, seaview balcony', repFirst: 'Παπαδομανωλάκης', repLast: 'Κωνσταντίνος', taxNumber: '', taxOffice: '', idPassport: 'ΑΚ481953', birthdate: '1976-07-19', phone1: '', phone2: '', email1: '', email2: '', address: '', city: '', pc: '', country: '', iban: 'GR9301713760006376010103713', bank: 'Πειραιώς', beneficiary: 'Παπαδομανωλάκης Κωνσταντίνος', ownerEntity: 'Ατομική', companyName: '', startCooperation: '', endCooperation: '', startAgreement: '', durationAgreement: '', managementFee: '', documentType: 'Απόδειξη', status: 'Active', notes: '' },
-  { propertyId: 549786, propertyName: 'Cozy Christina Apartment ground floor', repFirst: 'Κουρτάκης', repLast: 'Ιωάννης', taxNumber: '77147153', taxOffice: '', idPassport: 'ΑΙ471637', birthdate: '1974-07-16', phone1: '', phone2: '', email1: '', email2: '', address: '', city: '', pc: '', country: '', iban: 'GR7601101380000013861926023', bank: 'Εθνική', beneficiary: 'Ioannis Kourtakis', ownerEntity: 'Βραχυχρόνια', companyName: '', startCooperation: '2025-07-01', endCooperation: '2027-07-01', startAgreement: '', durationAgreement: '2', managementFee: '', documentType: 'Μαύρα', status: 'Active', notes: '' },
-  { propertyId: 550030, propertyName: 'Cozy Christina Apartment 1st Floor', repFirst: 'Κουρτάκης', repLast: 'Ιωάννης', taxNumber: '77147153', taxOffice: '', idPassport: 'ΑΙ471637', birthdate: '1974-07-16', phone1: '', phone2: '', email1: '', email2: '', address: '', city: '', pc: '', country: '', iban: 'GR7601101380000013861926023', bank: 'Εθνική', beneficiary: 'Ioannis Kourtakis', ownerEntity: 'Βραχυχρόνια', companyName: '', startCooperation: '', endCooperation: '', startAgreement: '', durationAgreement: '', managementFee: '', documentType: 'Μαύρα', status: 'Active', notes: '' },
-  { propertyId: 549787, propertyName: 'Cozy Christina Apartment 2nd Floor', repFirst: 'Κουρτάκης', repLast: 'Ιωάννης', taxNumber: '77147153', taxOffice: '', idPassport: 'ΑΙ471637', birthdate: '1974-07-16', phone1: '', phone2: '', email1: '', email2: '', address: '', city: '', pc: '', country: '', iban: 'GR7601101380000013861926023', bank: 'Εθνική', beneficiary: 'Ioannis Kourtakis', ownerEntity: 'Βραχυχρόνια', companyName: '', startCooperation: '', endCooperation: '', startAgreement: '', durationAgreement: '', managementFee: '', documentType: 'Μαύρα', status: 'Active', notes: '' },
-  { propertyId: 575697, propertyName: 'Ares Luxurious Residence', repFirst: 'Κουτσουρέλης', repLast: 'Αριστείδης', taxNumber: '', taxOffice: '', idPassport: '', birthdate: '', phone1: '', phone2: '', email1: '', email2: '', address: '', city: '', pc: '', country: '', iban: '', bank: '', beneficiary: '', ownerEntity: 'Βραχυχρόνια', companyName: '', startCooperation: '', endCooperation: '', startAgreement: '', durationAgreement: '', managementFee: '', documentType: 'Μαύρα', status: 'Active', notes: '' },
-  { propertyId: 604166, propertyName: 'Bluewind apartment A - near the sea', repFirst: 'Αποστολάκης', repLast: 'Χαράλαμπος', taxNumber: '103607132', taxOffice: '', idPassport: '', birthdate: '', phone1: '', phone2: '', email1: '', email2: '', address: '', city: '', pc: '', country: '', iban: 'GR2201720720005072098542433', bank: 'Πειραιώς', beneficiary: 'ΑΠΟΣΤΟΛΑΚΗΣ ΧΑΡΑΛΑΜΠΟΣ', ownerEntity: 'Βραχυχρόνια', companyName: '', startCooperation: '', endCooperation: '', startAgreement: '', durationAgreement: '', managementFee: '', documentType: 'Μαύρα', status: 'Active', notes: '' },
-  { propertyId: 604164, propertyName: 'Bluewind studio B near the sea', repFirst: 'Αποστολάκης', repLast: 'Χαράλαμπος', taxNumber: '103607132', taxOffice: '', idPassport: '', birthdate: '', phone1: '', phone2: '', email1: '', email2: '', address: '', city: '', pc: '', country: '', iban: 'GR2201720720005072098542433', bank: 'Πειραιώς', beneficiary: 'ΑΠΟΣΤΟΛΑΚΗΣ ΧΑΡΑΛΑΜΠΟΣ', ownerEntity: 'Βραχυχρόνια', companyName: '', startCooperation: '', endCooperation: '', startAgreement: '', durationAgreement: '', managementFee: '', documentType: 'Μαύρα', status: 'Active', notes: '' },
-  { propertyId: 604165, propertyName: 'Bluewind studio C near the sea', repFirst: 'Αποστολάκης', repLast: 'Χαράλαμπος', taxNumber: '103607132', taxOffice: '', idPassport: '', birthdate: '', phone1: '', phone2: '', email1: '', email2: '', address: '', city: '', pc: '', country: '', iban: 'GR2201720720005072098542433', bank: 'Πειραιώς', beneficiary: 'ΑΠΟΣΤΟΛΑΚΗΣ ΧΑΡΑΛΑΜΠΟΣ', ownerEntity: 'Βραχυχρόνια', companyName: '', startCooperation: '', endCooperation: '', startAgreement: '', durationAgreement: '', managementFee: '', documentType: 'Μαύρα', status: 'Active', notes: '' },
-  { propertyId: 604163, propertyName: 'Bluewind apartment D near the sea', repFirst: 'Αποστολάκης', repLast: 'Χαράλαμπος', taxNumber: '103607132', taxOffice: '', idPassport: '', birthdate: '', phone1: '', phone2: '', email1: '', email2: '', address: '', city: '', pc: '', country: '', iban: 'GR2201720720005072098542433', bank: 'Πειραιώς', beneficiary: 'ΑΠΟΣΤΟΛΑΚΗΣ ΧΑΡΑΛΑΜΠΟΣ', ownerEntity: 'Βραχυχρόνια', companyName: '', startCooperation: '', endCooperation: '', startAgreement: '', durationAgreement: '', managementFee: '', documentType: 'Μαύρα', status: 'Active', notes: '' },
-  { propertyId: 655618, propertyName: 'Erato Suite: Your Seaside Summer Escape in west Crete', repFirst: 'Φανουργιάκης', repLast: 'Ιωάννης', taxNumber: '', taxOffice: '', idPassport: 'ΑΡ731046', birthdate: '1955-05-20', phone1: '', phone2: '', email1: '', email2: '', address: '', city: '', pc: '', country: '', iban: '', bank: '', beneficiary: '', ownerEntity: 'Βραχυχρόνια', companyName: '', startCooperation: '', endCooperation: '', startAgreement: '', durationAgreement: '', managementFee: '', documentType: 'Μαύρα', status: 'Active', notes: '' },
-  { propertyId: 657777, propertyName: 'Villa Michaela Kissamos w Private Pool', repFirst: 'Ανουσάκη', repLast: 'Στυλιανή', taxNumber: '144028636', taxOffice: '', idPassport: '', birthdate: '', phone1: '', phone2: '', email1: '', email2: '', address: '', city: '', pc: '', country: '', iban: '', bank: '', beneficiary: '', ownerEntity: 'Βραχυχρόνια', companyName: '', startCooperation: '', endCooperation: '', startAgreement: '', durationAgreement: '', managementFee: '', documentType: 'Μαύρα', status: 'Active', notes: '' },
-  { propertyId: 657778, propertyName: 'Villa Antonia Relax at the private pool!', repFirst: 'Ανουσάκη', repLast: 'Στυλιανή', taxNumber: '144028636', taxOffice: '', idPassport: '', birthdate: '', phone1: '', phone2: '', email1: '', email2: '', address: '', city: '', pc: '', country: '', iban: '', bank: '', beneficiary: '', ownerEntity: 'Βραχυχρόνια', companyName: '', startCooperation: '', endCooperation: '', startAgreement: '', durationAgreement: '', managementFee: '', documentType: 'Μαύρα', status: 'Active', notes: '' },
-  { propertyId: 657779, propertyName: 'Villa Styliani: Historic Charm with private Jacuzzi!', repFirst: 'Ανουσάκη', repLast: 'Στυλιανή', taxNumber: '144028636', taxOffice: '', idPassport: '', birthdate: '', phone1: '', phone2: '', email1: '', email2: '', address: '', city: '', pc: '', country: '', iban: '', bank: '', beneficiary: '', ownerEntity: 'Ατομική', companyName: '', startCooperation: '', endCooperation: '', startAgreement: '', durationAgreement: '', managementFee: '', documentType: 'Απόδειξη', status: 'Active', notes: '' },
-  { propertyId: 686607, propertyName: 'Villa Alma Libre, Pool & Seaview', repFirst: 'Λάμπρου Μαρία', repLast: 'Κωνσταντίνου Θεοδώρα', taxNumber: '', taxOffice: '', idPassport: 'ΗΤ0410223 / CR0074980', birthdate: '1974-03-24', phone1: '', phone2: '', email1: '', email2: '', address: '', city: '', pc: '', country: '', iban: 'GR3301101100000011000204948', bank: 'Eurobank', beneficiary: 'Maria Lambrou', ownerEntity: 'Βραχυχρόνια', companyName: '', startCooperation: '2025-07-01', endCooperation: '2027-06-30', startAgreement: '', durationAgreement: '2', managementFee: '', documentType: 'Μαύρα', status: 'Active', notes: 'Two co-owners' },
-  { propertyId: 727007, propertyName: 'Kamera House - 10 min. to Seitan Limania Beach', repFirst: 'Πετρουλάκη', repLast: 'Αικατερίνη', taxNumber: '', taxOffice: '', idPassport: '', birthdate: '', phone1: '', phone2: '', email1: '', email2: '', address: '', city: '', pc: '', country: '', iban: '', bank: '', beneficiary: '', ownerEntity: '', companyName: '', startCooperation: '', endCooperation: '', startAgreement: '', durationAgreement: '', managementFee: '', documentType: '', status: 'Active', notes: '' },
-  { propertyId: 760547, propertyName: 'Sunny Luxury Apartment', repFirst: 'Μιχελιουδάκης', repLast: 'Μιχαήλ', taxNumber: '', taxOffice: '', idPassport: '', birthdate: '', phone1: '', phone2: '', email1: '', email2: '', address: '', city: '', pc: '', country: '', iban: '', bank: '', beneficiary: '', ownerEntity: '', companyName: '', startCooperation: '', endCooperation: '', startAgreement: '', durationAgreement: '', managementFee: '', documentType: '', status: 'Active', notes: '' },
-  { propertyId: 760548, propertyName: 'Summer Family Apartment', repFirst: 'Μιχελιουδάκης', repLast: 'Μιχαήλ', taxNumber: '', taxOffice: '', idPassport: '', birthdate: '', phone1: '', phone2: '', email1: '', email2: '', address: '', city: '', pc: '', country: '', iban: '', bank: '', beneficiary: '', ownerEntity: '', companyName: '', startCooperation: '', endCooperation: '', startAgreement: '', durationAgreement: '', managementFee: '', documentType: '', status: 'Active', notes: '' },
-  { propertyId: 433572, propertyName: 'Beachfront Blue Canvas Villa, Seaview', repFirst: 'Σιγάλας', repLast: 'Ιωάννης', taxNumber: '23076838', taxOffice: '', idPassport: '', birthdate: '', phone1: '', phone2: '', email1: '', email2: '', address: '', city: '', pc: '', country: '', iban: 'GR1701401900190002786090974', bank: 'Alpha Bank', beneficiary: 'ΣΙΓΑΛΑΣ ΙΩΑΝΝΗΣ', ownerEntity: 'Βραχυχρόνια', companyName: '', startCooperation: '', endCooperation: '', startAgreement: '', durationAgreement: '', managementFee: '', documentType: '', status: 'Active', notes: '' },
-];
+const rawData = []; // removed - use Supabase
 
 // ============ INIT ============
 async function init() {
-  // Group by owner (tax number or name) and assign IDs
-  const ownerMap = {};
-  rawData.forEach(row => {
-    const key = row.taxNumber || `${row.repFirst}_${row.repLast}`;
-    if (!ownerMap[key]) {
-      ownerMap[key] = {
-        id: key,
-        ...row,
-        properties: [],
-        archived: false
-      };
-    }
-    ownerMap[key].properties.push({ id: row.propertyId, name: row.propertyName });
-  });
-
-  owners = Object.values(ownerMap);
-
-  // Load from localStorage if exists
-  const saved = localStorage.getItem('zesty_owners');
-  if (saved) {
-    try { owners = JSON.parse(saved); } catch(e) {}
-  } else {
-    saveToStorage();
+  // Force-clear any cached data that came from old rawData embed
+  const _v = localStorage.getItem('zesty_data_version');
+  if (_v !== '2') {
+    ['zesty_owners','zesty_properties','zesty_employees','zesty_leaves',
+     'zesty_tasks','zesty_contacts','zesty_cleaning_staff','zesty_settings'].forEach(k => localStorage.removeItem(k));
+    localStorage.setItem('zesty_data_version', '2');
   }
 
+  // Show cached data instantly
+  const cached = SyncStore._getLocal('zesty_owners');
+  if (cached.length > 0) {
+    owners = cached;
+  }
   renderTable();
   updateStats();
+  const ol = document.getElementById('loadingOverlay');
+  if (ol) { ol.style.opacity='0'; ol.style.transition='opacity 0.3s'; setTimeout(()=>ol.remove(),300); }
+
+  // Load from Supabase
+  const result = await SyncStore.load('zesty_owners', 'owners');
+  showDbStatus(result.online);
+  if (result.data.length > 0) {
+    owners = result.data;
+    renderTable(); updateStats();
+  }
+
+  // 30-second poll
+  startPoll('owners', 'zesty_owners', 30000, (rows) => {
+    owners = rows; renderTable(); updateStats();
+  });
 }
 
-function saveToStorage() {
-  localStorage.setItem('zesty_owners', JSON.stringify(owners));
+async function saveToStorage() {
+  await SyncStore.saveAll('zesty_owners', 'owners', owners);
 }
 
 // ============ RENDER ============
@@ -1401,7 +1478,7 @@ function formatFileSize(bytes) {
   return (bytes/(1024*1024)).toFixed(1) + 'MB';
 }
 
-function saveOwner() {
+async function saveOwner() {
   const repFirst = document.getElementById('f_repFirst').value.trim();
   const repLast = document.getElementById('f_repLast').value.trim();
   if (!repFirst && !repLast) {
@@ -1452,7 +1529,7 @@ function saveOwner() {
     showToast('✓ Owner added successfully', 'success');
   }
 
-  saveToStorage();
+  await saveToStorage();
   closeModal('formModal');
   renderTable();
 }
@@ -1529,7 +1606,7 @@ function viewOwner(id) {
 }
 
 // ============ ARCHIVE / DELETE ============
-function toggleArchive(id) {
+async function toggleArchive(id) {
   const o = owners.find(x => x.id === id);
   if (!o) return;
   const action = o.archived ? 'restore' : 'archive';
@@ -1539,16 +1616,16 @@ function toggleArchive(id) {
     o.archived ? `${o.repFirst} ${o.repLast} will be restored to active.` : `${o.repFirst} ${o.repLast} will be archived. You can restore them anytime.`,
     o.archived ? 'btn-teal' : 'btn-archive',
     o.archived ? 'Restore' : 'Archive',
-    () => {
+    async () => {
       o.archived = !o.archived;
-      saveToStorage();
+      await saveToStorage();
       renderTable();
       showToast(o.archived ? '📦 Owner archived' : '↩ Owner restored', 'success');
     }
   );
 }
 
-function deleteOwner(id) {
+async function deleteOwner(id) {
   const o = owners.find(x => x.id === id);
   if (!o) return;
   showConfirm(
@@ -1557,11 +1634,12 @@ function deleteOwner(id) {
     `This will permanently delete ${o.repFirst} ${o.repLast} and all their data. This cannot be undone.`,
     'btn-danger',
     'Delete Permanently',
-    () => {
+    async () => {
       owners = owners.filter(x => x.id !== id);
-      saveToStorage();
+      const dr = await SyncStore.deleteOne('zesty_owners','owners',id,owners);
+      if(!dr.ok){ owners = (await SyncStore.load('zesty_owners','owners')).data; }
       renderTable();
-      showToast('🗑 Owner deleted', 'error');
+      showToast('Owner deleted', 'error');
     }
   );
 }
@@ -1586,11 +1664,11 @@ function exportCSV() {
   showToast('✓ CSV exported', 'success');
 }
 
-function importCSV(event) {
+async function importCSV(event) {
   const file = event.target.files[0];
   if (!file) return;
   const reader = new FileReader();
-  reader.onload = e => {
+  reader.onload = async e => {
     try {
       const lines = e.target.result.split('\n').slice(1);
       let added = 0;
@@ -1616,7 +1694,7 @@ function importCSV(event) {
           added++;
         }
       });
-      saveToStorage();
+      await saveToStorage();
       renderTable();
       showToast(`✓ Imported ${added} owners`, 'success');
     } catch(err) {
@@ -1673,7 +1751,7 @@ document.getElementById('confirmOverlay').addEventListener('click', e => { if(e.
 document.getElementById('f_attachments').addEventListener('change', function() {
   Array.from(this.files).forEach(file => {
     const reader = new FileReader();
-    reader.onload = e => {
+    reader.onload = async e => {
       tempAttachments.push({ name: file.name, size: file.size, type: file.type, dataUrl: e.target.result });
       renderAttachmentChips();
     };

@@ -23,7 +23,35 @@
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--text);min-height:100vh}
 
-/* HEADER */
+
+/* ── UNIFIED ERP NAVIGATION ── */
+.erp-header{background:var(--teal-dark);position:sticky;top:0;z-index:200;box-shadow:0 2px 20px rgba(0,0,0,.25)}
+.erp-nav-global{display:flex;align-items:center;padding:0 24px;height:48px;border-bottom:1px solid rgba(255,255,255,.1)}
+.erp-logo{font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:500;color:#fff;white-space:nowrap;margin-right:16px}
+.erp-logo span{color:var(--gold-light)}
+.erp-modules{display:flex;gap:2px;flex:1;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}
+.erp-modules::-webkit-scrollbar{display:none}
+.erp-mod-btn{padding:4px 10px;border-radius:5px;font-size:11px;font-weight:500;color:rgba(255,255,255,.7);text-decoration:none;white-space:nowrap;transition:all .15s;font-family:'DM Sans',sans-serif}
+.erp-mod-btn:hover{background:rgba(255,255,255,.12);color:#fff}
+.erp-mod-btn.active{background:var(--gold);color:var(--teal-dark);font-weight:700}
+.erp-nav-local{display:flex;align-items:center;padding:0 24px;height:44px;background:rgba(0,0,0,.15);gap:8px;flex-wrap:wrap}
+.erp-nav-local .nav-btn{background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.85);padding:4px 10px;border-radius:5px;font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s;text-decoration:none;display:inline-flex;align-items:center;gap:4px}
+.erp-nav-local .nav-btn:hover{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.6)}
+.erp-nav-local .nav-btn.active{background:var(--gold);color:var(--teal-dark);border-color:var(--gold);font-weight:600}
+.erp-nav-local .btn-primary{background:var(--gold);color:var(--teal-dark);font-weight:600;border:none}
+.erp-nav-local .btn-primary:hover{background:var(--gold-light)}
+.erp-local-title{font-size:13px;font-weight:600;color:rgba(255,255,255,.9);margin-right:8px}
+.erp-local-spacer{flex:1}
+/* Recurring jobs */
+.recurring-badge{display:inline-flex;align-items:center;gap:3px;padding:2px 7px;border-radius:10px;font-size:10px;font-weight:700;background:#e8f4f8;color:#2980b9;border:1px solid #b8d8e8}
+.recurring-section{margin-bottom:24px}
+.recurring-section-hdr{display:flex;align-items:center;gap:8px;padding:10px 16px;background:linear-gradient(90deg,#e8f4f8,transparent);border-left:3px solid #2980b9;border-radius:0 8px 8px 0;margin-bottom:8px;cursor:pointer}
+.recurring-section-hdr h4{font-size:13px;font-weight:600;color:#1a5a7a;flex:1}
+.profit-row{background:var(--success-light)!important}
+.profit-row td{color:var(--success)!important;font-weight:600!important}
+.owner-paid-badge{display:inline-block;padding:1px 6px;border-radius:4px;font-size:10px;font-weight:600;background:#e8f4ff;color:#1a5a7a;border:1px solid #b8d8f8}
+
+/* HEADER (legacy) */
 header{background:var(--teal-dark);padding:0 32px;display:flex;align-items:center;justify-content:space-between;height:64px;position:sticky;top:0;z-index:100;box-shadow:0 2px 20px rgba(0,0,0,0.2)}
 .logo{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:500;color:#fff;letter-spacing:.5px}
 .logo span{color:var(--gold-light)}
@@ -205,6 +233,7 @@ tr:hover td{background:#f7fbfa}
   .header-right{display:none}
 }
 </style>
+    <script src="https://unpkg.com/@azure/msal-browser@2.38.3/lib/msal-browser.min.js"></script>
     <script>
     (function(){
       const _msalConfig={
@@ -263,7 +292,7 @@ tr:hover td{background:#f7fbfa}
     })();
     </script>
     <!-- Azure MSAL Authentication -->
-    <script src="https://unpkg.com/@azure/msal-browser@2.38.3/lib/msal-browser.min.js"></script>
+    
     <script>
     (function(){
       const _msalConfig={
@@ -326,37 +355,52 @@ tr:hover td{background:#f7fbfa}
 </head>
 <body>
 
-<header>
-  <div class="logo">Zesty <span>Rentals</span> — Job Orders</div>
-  <div class="header-right">
-    <button class="nav-btn" onclick="location.href='index.html'">🏠 Home</button>
-    <button class="nav-btn" onclick="location.href='owners-crm.html'">👤 Owners</button>
-    <button class="nav-btn" onclick="location.href='properties-db.html'">🏠 Properties</button>
-    <button class="nav-btn" onclick="location.href='guests-crm.html'">✈️ Guests</button>
-    <button class="nav-btn" onclick="location.href='cleaning-system.html'">🧹 Cleaning</button>
-    <button class="nav-btn" onclick="location.href='contacts-crm.html'">📋 Contacts</button>
-    <button class="nav-btn" onclick="location.href='employees.html'">👥 Staff</button>
-    <button class="nav-btn" onclick="location.href='leave.html'">🏖️ Leave</button>
-    <button class="nav-btn" onclick="location.href='tasks.html'">✅ Tasks</button>
-    <button class="nav-btn" onclick="location.href='laundry.html'">👔 Laundry</button>
-    <button class="nav-btn" onclick="location.href='settings.html'">⚙️ Settings</button>
-    <button class="btn btn-primary btn-sm" onclick="openNewJob()">+ New Job Order</button>
+<header class="erp-header">
+  <div class="erp-nav-global">
+    <div class="erp-logo">Zesty <span>Rentals</span></div>
+    <nav class="erp-modules">
+      <a href="index.html" class="erp-mod-btn">🏠 Home</a>
+      <a href="owners-crm.html" class="erp-mod-btn">👤 Owners</a>
+      <a href="properties-db.html" class="erp-mod-btn">🏠 Properties</a>
+      <a href="guests-crm.html" class="erp-mod-btn">✈️ Guests</a>
+      <a href="cleaning-system.html" class="erp-mod-btn">🧹 Cleaning</a>
+      <a href="contacts-crm.html" class="erp-mod-btn">📋 Contacts</a>
+      <a href="employees.html" class="erp-mod-btn">👥 Staff</a>
+      <a href="leave.html" class="erp-mod-btn">🏖️ Leave</a>
+      <a href="tasks.html" class="erp-mod-btn">✅ Tasks</a>
+      <a href="jobs.html" class="erp-mod-btn active">🔧 Jobs</a>
+      <a href="laundry.html" class="erp-mod-btn">👔 Laundry</a>
+      <a href="onboarding.html" class="erp-mod-btn">📋 Onboarding</a>
+      <a href="settings.html" class="erp-mod-btn">⚙️ Settings</a>
+    </nav>
+    <div class="header-right"></div>
+  </div>
+  <div class="erp-nav-local">
+    <span class="erp-local-title">🔧 Job Orders</span>
+    <button class="nav-btn" onclick="openOwnerReport()">📊 Report</button>
+    <button class="nav-btn" onclick="exportCSV()">↓ CSV</button>
+    <button class="nav-btn" onclick="setFilter('status','')">All</button>
+    <button class="nav-btn" onclick="setFilter('status','In Progress')">In Progress</button>
+    <button class="nav-btn" onclick="setFilter('status','Completed')">Completed</button>
+    <button class="nav-btn" onclick="setFilter('paid','unpaid')">Unpaid</button>
+    <span class="erp-local-spacer"></span>
+    <button class="nav-btn btn-primary" onclick="openNewJob()">+ New Job</button>
   </div>
 </header>
 
 <div class="container">
 
   <!-- STATS -->
-  <div class="stats-bar">
+  <div class="stats-bar" style="grid-template-columns:repeat(6,1fr)">
     <div class="stat-card" onclick="setFilter('status','')">
       <div class="stat-label">Total Jobs</div>
       <div class="stat-value" id="st-total">0</div>
       <div class="stat-sub">All job orders</div>
     </div>
-    <div class="stat-card" onclick="setFilter('status','In Progress')">
-      <div class="stat-label">In Progress</div>
-      <div class="stat-value" id="st-progress">0</div>
-      <div class="stat-sub">Active jobs</div>
+    <div class="stat-card" onclick="setFilter('status','Open')">
+      <div class="stat-label">Open Jobs</div>
+      <div class="stat-value" style="color:var(--warning)" id="st-open">0</div>
+      <div class="stat-sub">Open &amp; In Progress</div>
     </div>
     <div class="stat-card" onclick="setFilter('status','Completed')">
       <div class="stat-label">Completed</div>
@@ -372,6 +416,11 @@ tr:hover td{background:#f7fbfa}
       <div class="stat-label">Collected</div>
       <div class="stat-value" id="st-paid">€0.00</div>
       <div class="stat-sub">Paid this year</div>
+    </div>
+    <div class="stat-card" style="border-color:var(--success)">
+      <div class="stat-label">Our Profit</div>
+      <div class="stat-value" style="color:var(--success)" id="st-profit">€0.00</div>
+      <div class="stat-sub">Excl. owner costs</div>
     </div>
   </div>
 
@@ -399,6 +448,27 @@ tr:hover td{background:#f7fbfa}
     <button class="btn btn-outline btn-sm" onclick="exportCSV()">↓ CSV</button>
   </div>
 
+  <!-- RECURRING JOBS SECTION -->
+  <div class="recurring-section" id="recurringSection" style="display:none">
+    <div class="recurring-section-hdr" onclick="toggleRecurringSection()">
+      <span style="font-size:16px">🔄</span>
+      <h4>Recurring Job Orders — Due / Upcoming</h4>
+      <span id="recurringCount" style="background:#2980b9;color:#fff;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700">0</span>
+      <span id="recurringChevron" style="color:#2980b9;font-size:14px">▼</span>
+    </div>
+    <div id="recurringBody" style="display:none">
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th>Job ID</th><th>Description</th><th>Property</th><th>Recurrence</th>
+            <th>Next Due</th><th>Status</th><th style="text-align:right">Actions</th>
+          </tr></thead>
+          <tbody id="recurringTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
   <!-- TABLE -->
   <div class="table-wrap">
     <div class="table-header">
@@ -416,8 +486,9 @@ tr:hover td{background:#f7fbfa}
             <th onclick="sortBy('dateStarted')">Started ↕</th>
             <th onclick="sortBy('dateCompleted')">Completed ↕</th>
             <th onclick="sortBy('status')">Status ↕</th>
-            <th style="text-align:right" onclick="sortBy('totalCost')">Our Cost ↕</th>
+            <th style="text-align:right" onclick="sortBy('totalCost')">Zesty Cost ↕</th>
             <th style="text-align:right" onclick="sortBy('totalCharge')">Charge ↕</th>
+            <th style="text-align:right;color:var(--success)">Profit</th>
             <th style="text-align:right">Paid</th>
             <th style="text-align:right">Actions</th>
           </tr>
@@ -491,6 +562,29 @@ tr:hover td{background:#f7fbfa}
           <label>Date Paid</label>
           <input type="date" id="f_datePaid">
         </div>
+        <!-- Recurring -->
+        <div class="form-group">
+          <label>Recurring</label>
+          <select id="f_recurringType" onchange="toggleRecurringFields()">
+            <option value="none">— Not Recurring —</option>
+            <option value="Weekly">Weekly</option>
+            <option value="Monthly">Monthly</option>
+            <option value="Annual">Annual</option>
+            <option value="Custom">Custom</option>
+          </select>
+        </div>
+        <div class="form-group" id="recurringIntervalGroup" style="display:none">
+          <label>Every (days)</label>
+          <input type="number" id="f_recurringInterval" placeholder="e.g. 14 for every 2 weeks" min="1">
+        </div>
+        <div class="form-group" id="recurringNextGroup" style="display:none">
+          <label>Next Due Date</label>
+          <input type="date" id="f_recurringNext">
+        </div>
+        <div class="form-group form-full" id="recurringNoteGroup" style="display:none">
+          <label>Recurring Note</label>
+          <input type="text" id="f_recurringNote" placeholder="e.g. Annual AC service, Monthly pool check...">
+        </div>
         <!-- Notes -->
         <div class="form-group form-full">
           <label>Notes</label>
@@ -523,8 +617,9 @@ tr:hover td{background:#f7fbfa}
         </div>
         <div class="line-totals">
           <div class="line-total-item">
-            <div class="line-total-label">Total Our Cost</div>
+            <div class="line-total-label">Zesty Cost</div>
             <div class="line-total-val" id="lt-cost">€0.00</div>
+            <div style="font-size:11px;color:var(--info);margin-top:2px">Owner-paid: <span id="lt-owner-cost">€0.00</span></div>
           </div>
           <div class="line-total-item">
             <div class="line-total-label">Charge to Owner</div>
@@ -828,14 +923,19 @@ function genJobId() {
 }
 
 function calcLineTotals() {
-  let totalCost = 0, totalCharge = 0;
+  let totalCost = 0, totalCharge = 0, ownerCost = 0, zestyCost = 0;
   document.querySelectorAll('#lineItemsBody tr').forEach(row => {
     const cost = parseFloat(row.querySelector('.li-cost')?.value) || 0;
     const charge = parseFloat(row.querySelector('.li-charge')?.value) || 0;
+    const paidBy = row.querySelector('.li-paidby')?.value || 'Zesty';
     totalCost += cost;
     totalCharge += charge;
+    if (paidBy === 'Owner') ownerCost += cost;
+    else zestyCost += cost;
   });
-  document.getElementById('lt-cost').textContent = '€' + fmtNum(totalCost);
+  document.getElementById('lt-cost').textContent = '€' + fmtNum(zestyCost);
+  const ownerEl = document.getElementById('lt-owner-cost');
+  if (ownerEl) ownerEl.textContent = ownerCost > 0 ? '€' + fmtNum(ownerCost) : '€0.00';
   document.getElementById('lt-charge').textContent = '€' + fmtNum(totalCharge);
   // update zesty fee and final total
   recalcZestyFee();
@@ -1058,16 +1158,25 @@ function renderTable() {
 
   tbody.innerHTML = pageData.map(j => {
     const totalCost = calcJobTotal(j, 'cost');
+    const zestyCost = calcJobTotal(j, 'zesty_cost');
+    const ownerCost = calcJobTotal(j, 'owner_cost');
     const totalCharge = calcJobTotal(j, 'charge');
+    const profit = calcJobProfit(j);
     const isPaid = j.status === 'Paid' || !!j.datePaid;
     const types = [...new Set((j.lineItems||[]).map(l=>l.type).filter(Boolean))];
+    const hasOwnerPaid = ownerCost > 0;
+    const isRecurring = !!(j.recurringType && j.recurringType !== 'none');
 
-    return `<tr>
-      <td><span class="job-id" onclick="viewJob('${j.id}')" style="cursor:pointer">${j.jobId||'—'}</span></td>
+    return `<tr class="${isRecurring?'recurring-job-row':''}">
+      <td>
+        <span class="job-id" onclick="viewJob('${j.id}')" style="cursor:pointer">${j.jobId||'—'}</span>
+        ${isRecurring?`<br><span class="recurring-badge">🔄 ${j.recurringType}</span>`:''}
+      </td>
       <td>
         <div class="job-title" style="cursor:pointer" onclick="viewJob('${j.id}')">${j.title||'—'}</div>
         <div style="display:flex;gap:4px;margin-top:3px;flex-wrap:wrap">
           ${types.slice(0,2).map(t=>`<span class="badge badge-type-${typeClass(t)}">${t}</span>`).join('')}
+          ${hasOwnerPaid?`<span class="owner-paid-badge">Owner paid: €${fmtNum(ownerCost)}</span>`:''}
         </div>
       </td>
       <td><div>${j.propertyName||'—'}</div></td>
@@ -1075,8 +1184,14 @@ function renderTable() {
       <td style="font-size:12px">${fmtDate(j.dateStarted)}</td>
       <td style="font-size:12px">${fmtDate(j.dateCompleted)}</td>
       <td><span class="badge badge-${statusClass(j.status)}">${j.status||'Open'}</span></td>
-      <td style="text-align:right"><span class="amount-cost">${fmt(totalCost)}</span></td>
+      <td style="text-align:right">
+        <span class="amount-cost">${fmt(zestyCost)}</span>
+        ${hasOwnerPaid?`<br><span style="font-size:10px;color:var(--text-muted)">+€${fmtNum(ownerCost)} owner</span>`:''}
+      </td>
       <td style="text-align:right"><span class="amount-charge">${fmt(totalCharge)}</span></td>
+      <td style="text-align:right;color:${profit>=0?'var(--success)':'var(--danger)'}">
+        <strong>${fmt(profit)}</strong>
+      </td>
       <td style="text-align:right">
         ${isPaid
           ? `<span class="paid-mark">✓ Paid</span>`
@@ -1112,7 +1227,27 @@ function calcJobTotal(job, type) {
     if (job.finalCharge != null) return parseFloat(job.finalCharge) || 0;
     return (job.lineItems||[]).reduce((sum, l) => sum + (parseFloat(l.chargeAmount)||0), 0);
   }
+  if (type === 'zesty_cost') {
+    // Only costs paid by Zesty (exclude owner-paid items)
+    return (job.lineItems||[])
+      .filter(l => (l.paidBy||'Zesty') === 'Zesty')
+      .reduce((sum, l) => sum + (parseFloat(l.ourCost)||0), 0);
+  }
+  if (type === 'owner_cost') {
+    // Costs paid directly by owner (not our expense)
+    return (job.lineItems||[])
+      .filter(l => l.paidBy === 'Owner')
+      .reduce((sum, l) => sum + (parseFloat(l.ourCost)||0), 0);
+  }
+  // type === 'cost' — total cost (all items, for display)
   return (job.lineItems||[]).reduce((sum, l) => sum + (parseFloat(l.ourCost)||0), 0);
+}
+
+function calcJobProfit(job) {
+  // Profit = what we charge - what WE pay (owner-paid costs excluded)
+  const charge = calcJobTotal(job, 'charge');
+  const zestyCost = calcJobTotal(job, 'zesty_cost');
+  return charge - zestyCost;
 }
 
 function renderPagination(total, pages) {
@@ -1134,22 +1269,32 @@ function renderPagination(total, pages) {
 // ── STATS ──
 function updateStats() {
   const total = jobs.length;
+  const openJobs = jobs.filter(j => j.status === 'Open' || j.status === 'In Progress').length;
   const inProgress = jobs.filter(j => j.status === 'In Progress').length;
   const completed = jobs.filter(j => j.status === 'Completed').length;
   const outstanding = jobs.filter(j => j.status !== 'Paid' && !j.datePaid)
     .reduce((s, j) => s + calcJobTotal(j, 'charge'), 0);
   const paid = jobs.filter(j => j.status === 'Paid' || j.datePaid)
     .reduce((s, j) => s + calcJobTotal(j, 'charge'), 0);
+  // Profit = charge minus only Zesty-paid costs
+  const totalProfit = jobs.reduce((s, j) => s + calcJobProfit(j), 0);
   // Only update DOM if value actually changed (prevents flicker)
   function setIfChanged(id, val) {
     const el = document.getElementById(id);
     if (el && el.textContent !== String(val)) el.textContent = val;
   }
   setIfChanged('st-total', total);
+  setIfChanged('st-open', openJobs);
   setIfChanged('st-progress', inProgress);
   setIfChanged('st-completed', completed);
   setIfChanged('st-outstanding', '€' + fmtNum(outstanding));
   setIfChanged('st-paid', '€' + fmtNum(paid));
+  setIfChanged('st-profit', '€' + fmtNum(totalProfit));
+  // Update home screen counter
+  try {
+    const homeEl = window.opener && window.opener.document.getElementById('stat-open-jobs');
+    if(homeEl) homeEl.textContent = openJobs;
+  } catch(e) {}
 }
 
 // ── LINE ITEMS ──
@@ -1289,6 +1434,11 @@ function openNewJob() {
   document.getElementById('f_dateInvoiced').value = '';
   document.getElementById('f_datePaid').value = '';
   document.getElementById('f_notes').value = '';
+  document.getElementById('f_recurringType').value = 'none';
+  document.getElementById('f_recurringInterval').value = '';
+  document.getElementById('f_recurringNext').value = '';
+  document.getElementById('f_recurringNote').value = '';
+  toggleRecurringFields();
   document.getElementById('lineItemsBody').innerHTML = '';
   document.getElementById('zf-method').value = 'none';
   document.getElementById('zf-pct').value = '';
@@ -1322,6 +1472,12 @@ function editJob(id) {
   document.getElementById('zf-pct').value = j.zestyFeePct || '';
   document.getElementById('zf-fixed').value = j.zestyFeeFixed || '';
   document.getElementById('zf-pct')._autoset = false;
+  // Recurring fields
+  document.getElementById('f_recurringType').value = j.recurringType || 'none';
+  document.getElementById('f_recurringInterval').value = j.recurringInterval || '';
+  document.getElementById('f_recurringNext').value = j.recurringNext || '';
+  document.getElementById('f_recurringNote').value = j.recurringNote || '';
+  toggleRecurringFields();
   calcLineTotals();
   document.getElementById('jobModal').classList.add('open');
 }
@@ -1348,6 +1504,7 @@ async function saveJob() {
   }
   const finalCharge = lineCharge + zestyFee;
 
+  const recurringType = document.getElementById('f_recurringType').value;
   const data = {
     jobId: document.getElementById('f_jobId').value,
     status: document.getElementById('f_status').value,
@@ -1367,6 +1524,10 @@ async function saveJob() {
     zestyFeeFixed: zfFixed,
     zestyFee,
     finalCharge,
+    recurringType,
+    recurringInterval: recurringType === 'Custom' ? parseInt(document.getElementById('f_recurringInterval').value)||0 : 0,
+    recurringNext: document.getElementById('f_recurringNext').value,
+    recurringNote: document.getElementById('f_recurringNote').value,
   };
 
   if (editingId) {
@@ -1382,7 +1543,9 @@ async function saveJob() {
   await SyncStore.saveAll('zesty_jobs', 'jobs', jobs);
   closeModal('jobModal');
   renderTable();
+  renderRecurring();
   updateStats();
+  updateHomeCounter();
 }
 
 // ── VIEW JOB ──
@@ -1408,8 +1571,10 @@ function viewJob(id) {
         <div class="view-field"><div class="view-label">Date Completed</div><div class="view-value">${fmtDate(j.dateCompleted)}</div></div>
         <div class="view-field"><div class="view-label">Date Invoiced</div><div class="view-value">${fmtDate(j.dateInvoiced)}</div></div>
         <div class="view-field"><div class="view-label">Date Paid</div><div class="view-value">${j.datePaid ? '<span style="color:var(--success)">✓ ' + fmtDate(j.datePaid) + '</span>' : '<span style="color:var(--warning)">Unpaid</span>'}</div></div>
-        <div class="view-field" style="grid-column:span 1"><div class="view-label">Total Our Cost</div><div class="view-value">${fmt(totalCost)}</div></div>
+        <div class="view-field"><div class="view-label">Zesty Cost (our expenses)</div><div class="view-value">${fmt(calcJobTotal(j,'zesty_cost'))}</div></div>
+        <div class="view-field"><div class="view-label">Owner-Paid Cost (excl. from profit)</div><div class="view-value" style="color:var(--info)">${fmt(calcJobTotal(j,'owner_cost'))}</div></div>
         <div class="view-field"><div class="view-label">Total Charge to Owner</div><div class="view-value" style="color:var(--teal-dark);font-size:16px;font-weight:700">${fmt(totalCharge)}</div></div>
+        <div class="view-field"><div class="view-label">Our Profit</div><div class="view-value" style="color:var(--success);font-size:16px;font-weight:700">${fmt(calcJobProfit(j))}</div></div>
       </div>
     </div>
     ${j.notes ? `<div class="view-section"><div class="view-section-title">Notes</div><div style="background:#f7fbfa;border-radius:8px;padding:12px 14px;font-size:13px;line-height:1.6">${j.notes}</div></div>` : ''}
@@ -1579,12 +1744,21 @@ function renderOwnerReport(filtered, ownerName, propName, statusFilter, single =
 // ── EXPORT CSV ──
 function exportCSV() {
   const filtered = getFiltered();
-  const headers = ['Job ID','Status','Title','Property','Owner','Date Started','Date Completed','Date Invoiced','Date Paid','Total Cost','Total Charge','Notes'];
-  const rows = filtered.map(j => [
-    j.jobId, j.status, j.title, j.propertyName, j.ownerName,
-    j.dateStarted, j.dateCompleted, j.dateInvoiced, j.datePaid,
-    calcJobTotal(j,'cost').toFixed(2), calcJobTotal(j,'charge').toFixed(2), j.notes
-  ].map(v => `"${(v||'').toString().replace(/"/g,'""')}"`).join(','));
+  const headers = ['Job ID','Status','Title','Property','Owner','Date Started','Date Completed','Date Invoiced','Date Paid','Total Cost (All)','Owner-Paid Cost','Zesty Cost','Total Charge','Our Profit','Paid By (per line)','Notes'];
+  const rows = filtered.map(j => {
+    const totalCost = calcJobTotal(j,'cost');
+    const ownerCost = calcJobTotal(j,'owner_cost');
+    const zestyCost = calcJobTotal(j,'zesty_cost');
+    const charge = calcJobTotal(j,'charge');
+    const profit = calcJobProfit(j);
+    const paidByList = (j.lineItems||[]).map(l=>`${l.type||''}:${l.paidBy||'Zesty'}`).join('; ');
+    return [
+      j.jobId, j.status, j.title, j.propertyName, j.ownerName,
+      j.dateStarted, j.dateCompleted, j.dateInvoiced, j.datePaid,
+      totalCost.toFixed(2), ownerCost.toFixed(2), zestyCost.toFixed(2),
+      charge.toFixed(2), profit.toFixed(2), paidByList, j.notes
+    ].map(v => `"${(v||'').toString().replace(/"/g,'""')}"`).join(',');
+  });
   const csv = [headers.join(','), ...rows].join('\n');
   const a = document.createElement('a');
   a.href = URL.createObjectURL(new Blob([csv], {type:'text/csv'}));
@@ -1620,6 +1794,93 @@ document.querySelectorAll('.modal-overlay').forEach(el => {
   el.addEventListener('click', e => { if (e.target === el) el.classList.remove('open'); });
 });
 document.getElementById('confirmOverlay').addEventListener('click', e => { if (e.target.id==='confirmOverlay') closeConfirm(); });
+
+// ── RECURRING JOBS ──────────────────────────────────────────────────────
+function toggleRecurringFields() {
+  const type = document.getElementById('f_recurringType').value;
+  const isRecurring = type !== 'none';
+  const isCustom = type === 'Custom';
+  document.getElementById('recurringIntervalGroup').style.display = isCustom ? 'block' : 'none';
+  document.getElementById('recurringNextGroup').style.display = isRecurring ? 'block' : 'none';
+  document.getElementById('recurringNoteGroup').style.display = isRecurring ? 'block' : 'none';
+}
+
+function toggleRecurringSection() {
+  const body = document.getElementById('recurringBody');
+  const chevron = document.getElementById('recurringChevron');
+  const isOpen = body.style.display !== 'none';
+  body.style.display = isOpen ? 'none' : 'block';
+  chevron.textContent = isOpen ? '▶' : '▼';
+}
+
+function renderRecurring() {
+  const recurring = jobs.filter(j => j.recurringType && j.recurringType !== 'none');
+  const section = document.getElementById('recurringSection');
+  const count = document.getElementById('recurringCount');
+  const tbody = document.getElementById('recurringTableBody');
+  if (!recurring.length) { section.style.display = 'none'; return; }
+  section.style.display = 'block';
+  count.textContent = recurring.length;
+  const today = new Date().toISOString().slice(0,10);
+  tbody.innerHTML = recurring.map(j => {
+    const isDue = j.recurringNext && j.recurringNext <= today;
+    const nextDue = j.recurringNext || '—';
+    return `<tr style="${isDue ? 'background:#fff3cd;' : ''}">
+      <td><span class="job-id" onclick="viewJob('${j.id}')" style="cursor:pointer">${j.jobId||'—'}</span></td>
+      <td onclick="viewJob('${j.id}')" style="cursor:pointer">
+        ${j.title||'—'}
+        ${j.recurringNote ? `<br><span style="font-size:11px;color:var(--text-muted)">${j.recurringNote}</span>` : ''}
+      </td>
+      <td>${j.propertyName||'—'}</td>
+      <td><span class="recurring-badge">🔄 ${j.recurringType}${j.recurringType==='Custom'&&j.recurringInterval?' (every '+j.recurringInterval+'d)':''}</span></td>
+      <td style="${isDue?'color:var(--danger);font-weight:600':''}">
+        ${isDue ? '⚠ ' : ''}${nextDue}
+      </td>
+      <td><span class="badge badge-${statusClass(j.status)}">${j.status||'Open'}</span></td>
+      <td style="text-align:right">
+        <button class="action-btn" title="Edit" onclick="editJob('${j.id}')">✏️</button>
+        <button class="action-btn" title="Mark done & schedule next" onclick="markRecurringDone('${j.id}')">✅</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+async function markRecurringDone(id) {
+  const j = jobs.find(x => x.id === id);
+  if (!j) return;
+  // Calculate next due date
+  let nextDate = '';
+  const now = new Date();
+  if (j.recurringType === 'Weekly') {
+    now.setDate(now.getDate() + 7);
+    nextDate = now.toISOString().slice(0,10);
+  } else if (j.recurringType === 'Monthly') {
+    now.setMonth(now.getMonth() + 1);
+    nextDate = now.toISOString().slice(0,10);
+  } else if (j.recurringType === 'Annual') {
+    now.setFullYear(now.getFullYear() + 1);
+    nextDate = now.toISOString().slice(0,10);
+  } else if (j.recurringType === 'Custom' && j.recurringInterval) {
+    now.setDate(now.getDate() + parseInt(j.recurringInterval));
+    nextDate = now.toISOString().slice(0,10);
+  }
+  const idx = jobs.findIndex(x => x.id === id);
+  if (idx !== -1) {
+    jobs[idx] = { ...jobs[idx], recurringNext: nextDate, status: 'Completed', dateCompleted: new Date().toISOString().slice(0,10) };
+  }
+  await SyncStore.saveAll('zesty_jobs','jobs',jobs);
+  renderTable();
+  renderRecurring();
+  updateStats();
+  showToast(`✓ Marked done. Next due: ${nextDate}`, 'success');
+}
+
+// ── UPDATE HOME SCREEN COUNTER ───────────────────────────────────────────
+function updateHomeCounter() {
+  // Store open jobs count in localStorage for index.html to read
+  const openCount = jobs.filter(j => j.status === 'Open' || j.status === 'In Progress').length;
+  localStorage.setItem('zesty_open_jobs_count', openCount);
+}
 
 init().catch(console.error);
 </script>

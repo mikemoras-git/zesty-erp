@@ -93,7 +93,41 @@ tr.task-row:hover{background:#f0faf8}
 .toast.show{transform:translateY(0);opacity:1}.toast.err{background:var(--danger)}
 #loadingOverlay{position:fixed;inset:0;background:var(--cream);display:flex;align-items:center;justify-content:center;z-index:9000;font-size:14px;color:var(--text-muted)}
 @media(max-width:900px){.stats-row{grid-template-columns:repeat(2,1fr)}.form-row{grid-template-columns:1fr}.form-row.three{grid-template-columns:1fr 1fr}table{font-size:12px}td,th{padding:8px 10px}}
+
+/* SUBTASKS */
+.subtask-section{margin-top:12px;padding-top:12px;border-top:1px dashed var(--border)}
+.subtask-list{display:flex;flex-direction:column;gap:6px;margin-bottom:8px}
+.subtask-item{display:flex;align-items:center;gap:8px;padding:6px 10px;background:var(--cream);border-radius:7px;border:1px solid var(--border)}
+.subtask-item input[type=checkbox]{width:15px;height:15px;accent-color:var(--teal);cursor:pointer;flex-shrink:0}
+.subtask-item .st-text{flex:1;font-size:13px;cursor:pointer}
+.subtask-item .st-text.done{text-decoration:line-through;color:var(--text-muted)}
+.subtask-item .st-del{background:none;border:none;cursor:pointer;color:var(--text-muted);font-size:14px;padding:0 2px}
+.subtask-item .st-del:hover{color:var(--danger)}
+.subtask-add-row{display:flex;gap:6px}
+.subtask-add-row input{flex:1;padding:6px 10px;border:1px solid var(--border);border-radius:7px;font-family:'DM Sans',sans-serif;font-size:13px;outline:none;background:var(--white)}
+.subtask-add-row input:focus{border-color:var(--teal-light)}
+.subtask-progress{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text-muted);margin-top:4px}
+.subtask-bar{flex:1;height:4px;background:var(--border);border-radius:2px;overflow:hidden}
+.subtask-bar-fill{height:100%;background:var(--teal);border-radius:2px;transition:width .3s}
+.has-subtasks-badge{display:inline-flex;align-items:center;gap:3px;padding:1px 6px;border-radius:8px;font-size:10px;font-weight:600;background:#e8f4f8;color:#1a5a7a;border:1px solid #b8d8e8}
+
+
+/* ── UNIFIED ERP NAVIGATION ── */
+.erp-header{background:linear-gradient(135deg,var(--teal-dark),var(--teal));position:sticky;top:0;z-index:200;box-shadow:0 2px 20px rgba(0,0,0,.2)}
+.erp-nav-global{display:flex;align-items:center;padding:0 24px;height:44px;border-bottom:1px solid rgba(255,255,255,.1)}
+.erp-logo{font-family:'DM Serif Display',serif;font-size:17px;color:#fff;white-space:nowrap;margin-right:14px}
+.erp-logo span{color:var(--gold-light)}
+.erp-modules{display:flex;gap:2px;flex:1;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}
+.erp-modules::-webkit-scrollbar{display:none}
+.erp-mod-btn{padding:4px 9px;border-radius:5px;font-size:11px;font-weight:500;color:rgba(255,255,255,.7);text-decoration:none;white-space:nowrap;transition:all .15s;font-family:'DM Sans',sans-serif}
+.erp-mod-btn:hover{background:rgba(255,255,255,.12);color:#fff}
+.erp-mod-btn.active{background:var(--gold);color:var(--teal-dark);font-weight:700}
+.erp-nav-local{display:flex;align-items:center;padding:0 20px;height:40px;background:rgba(0,0,0,.12);gap:8px}
+.erp-local-title{font-size:13px;font-weight:600;color:rgba(255,255,255,.9)}
+.erp-local-spacer{flex:1}
+
 </style>
+    <script src="https://unpkg.com/@azure/msal-browser@2.38.3/lib/msal-browser.min.js"></script>
     <script>
     (function(){
       const _msalConfig={
@@ -152,7 +186,7 @@ tr.task-row:hover{background:#f0faf8}
     })();
     </script>
     <!-- Azure MSAL Authentication -->
-    <script src="https://unpkg.com/@azure/msal-browser@2.38.3/lib/msal-browser.min.js"></script>
+    
     <script>
     (function(){
       const _msalConfig={
@@ -215,13 +249,32 @@ tr.task-row:hover{background:#f0faf8}
 </head>
 <body>
 <div id="loadingOverlay">Loading tasks...</div>
-<header>
-  <div class="logo">Zesty <span>ERP</span> &middot; Tasks</div>
-  <div class="header-right">    <button class="btn btn-outline" onclick="location.href='index.html'">Home</button>
-    <button class="btn btn-outline" onclick="location.href='employees.html'">Staff CRM</button>
-    <button class="btn btn-outline" onclick="location.href='leave.html'">Leave</button>
-    <button class="btn btn-active">Tasks</button>
-    <button class="btn btn-outline" onclick="location.href='settings.html'">&#9881; Settings</button></div>
+<header class="erp-header">
+  <div class="erp-nav-global">
+    <div class="erp-logo">Zesty <span>ERP</span></div>
+    <nav class="erp-modules">
+      <a href="index.html" class="erp-mod-btn">🏠 Home</a>
+      <a href="owners-crm.html" class="erp-mod-btn">👤 Owners</a>
+      <a href="properties-db.html" class="erp-mod-btn">🏠 Properties</a>
+      <a href="guests-crm.html" class="erp-mod-btn">✈️ Guests</a>
+      <a href="cleaning-system.html" class="erp-mod-btn">🧹 Cleaning</a>
+      <a href="contacts-crm.html" class="erp-mod-btn">📋 Contacts</a>
+      <a href="employees.html" class="erp-mod-btn">👥 Staff</a>
+      <a href="leave.html" class="erp-mod-btn">🏖️ Leave</a>
+      <a href="tasks.html" class="erp-mod-btn active">✅ Tasks</a>
+      <a href="jobs.html" class="erp-mod-btn">🔧 Jobs</a>
+      <a href="laundry.html" class="erp-mod-btn">👔 Laundry</a>
+      <a href="onboarding.html" class="erp-mod-btn">📋 Onboarding</a>
+      <a href="settings.html" class="erp-mod-btn">⚙️ Settings</a>
+    </nav>
+    <div class="header-right"></div>
+  </div>
+  <div class="erp-nav-local">
+    <span class="erp-local-title">✅ Tasks</span>
+    <span class="erp-local-spacer"></span>
+    <button class="btn btn-sm btn-ghost" onclick="exportCSV()" style="color:rgba(255,255,255,.8);border-color:rgba(255,255,255,.3)">↓ CSV</button>
+    <button class="btn btn-primary btn-sm" onclick="openAdd()">+ New Task</button>
+  </div>
 </header>
 <main>
   <div class="page-header">
@@ -319,6 +372,21 @@ tr.task-row:hover{background:#f0faf8}
         <div class="fg"><label>Completion Date</label><input type="date" id="m_completionDate"></div>
       </div>
       <div class="fg"><label>Comments</label><textarea id="m_comments" placeholder="Any notes or comments..."></textarea></div>
+      <!-- SUBTASKS -->
+      <div class="subtask-section">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+          <label style="font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em">Subtasks</label>
+          <span id="subtaskProgress" class="subtask-progress" style="display:none">
+            <span id="subtaskProgressText"></span>
+            <span class="subtask-bar"><span class="subtask-bar-fill" id="subtaskBarFill"></span></span>
+          </span>
+        </div>
+        <div class="subtask-list" id="subtaskList"></div>
+        <div class="subtask-add-row">
+          <input type="text" id="newSubtaskInput" placeholder="Add a subtask..." onkeydown="if(event.key==='Enter'){event.preventDefault();addSubtask()}">
+          <button class="btn btn-ghost btn-sm" onclick="addSubtask()">+ Add</button>
+        </div>
+      </div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-danger btn-sm" id="m_deleteBtn" onclick="deleteTask()" style="display:none">Delete Task</button>
@@ -673,6 +741,9 @@ function openAdd() {
   document.getElementById('m_dueDate').value = '';
   document.getElementById('m_completionDate').value = '';
   document.getElementById('m_comments').value = '';
+  currentSubtasks = [];
+  renderSubtasks();
+  document.getElementById('newSubtaskInput').value = '';
   document.getElementById('taskModal').classList.add('open');
 }
 
@@ -691,6 +762,9 @@ function openEdit(id) {
   document.getElementById('m_dueDate').value = t.dueDate||'';
   document.getElementById('m_completionDate').value = t.completionDate||'';
   document.getElementById('m_comments').value = t.comments||'';
+  currentSubtasks = t.subtasks ? JSON.parse(JSON.stringify(t.subtasks)) : [];
+  renderSubtasks();
+  document.getElementById('newSubtaskInput').value = '';
   document.getElementById('taskModal').classList.add('open');
 }
 
@@ -711,7 +785,8 @@ async function saveTask() {
     dateAssigned: document.getElementById('m_dateAssigned').value,
     dueDate: document.getElementById('m_dueDate').value,
     completionDate: document.getElementById('m_completionDate').value,
-    comments: document.getElementById('m_comments').value.trim()
+    comments: document.getElementById('m_comments').value.trim(),
+    subtasks: currentSubtasks
   };
 
   // Auto-set completion date when closing
@@ -770,6 +845,51 @@ function showToast(msg,type){
 }
 
 document.getElementById('taskModal').addEventListener('click',function(e){if(e.target===this)closeModal()});
+// ── SUBTASKS ──────────────────────────────────────────────────────────────
+let currentSubtasks = [];
+
+function renderSubtasks() {
+  const list = document.getElementById('subtaskList');
+  const prog = document.getElementById('subtaskProgress');
+  const progText = document.getElementById('subtaskProgressText');
+  const bar = document.getElementById('subtaskBarFill');
+  if (!list) return;
+  list.innerHTML = currentSubtasks.map((st,i) => `
+    <div class="subtask-item">
+      <input type="checkbox" ${st.done?'checked':''} onchange="toggleSubtask(${i})">
+      <span class="st-text ${st.done?'done':''}" onclick="toggleSubtask(${i})">${st.text}</span>
+      <button class="st-del" onclick="removeSubtask(${i})">✕</button>
+    </div>`).join('');
+  if (currentSubtasks.length > 0) {
+    const done = currentSubtasks.filter(s=>s.done).length;
+    const pct = Math.round(done/currentSubtasks.length*100);
+    prog.style.display = 'flex';
+    progText.textContent = `${done}/${currentSubtasks.length}`;
+    bar.style.width = pct + '%';
+  } else {
+    prog.style.display = 'none';
+  }
+}
+
+function addSubtask() {
+  const inp = document.getElementById('newSubtaskInput');
+  const text = inp.value.trim();
+  if (!text) return;
+  currentSubtasks.push({text, done: false});
+  inp.value = '';
+  renderSubtasks();
+}
+
+function toggleSubtask(i) {
+  currentSubtasks[i].done = !currentSubtasks[i].done;
+  renderSubtasks();
+}
+
+function removeSubtask(i) {
+  currentSubtasks.splice(i,1);
+  renderSubtasks();
+}
+
 document.addEventListener('DOMContentLoaded', init);
 
 </script>

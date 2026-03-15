@@ -58,7 +58,23 @@ main{max-width:1000px;margin:0 auto;padding:28px 24px 100px}
 .toast.show{transform:translateY(0);opacity:1}
 .toast.err{background:var(--danger)}
 #loadingOverlay{position:fixed;inset:0;background:var(--cream);display:flex;align-items:center;justify-content:center;z-index:9000;font-size:14px;color:var(--text-muted)}
-@media(max-width:700px){.entitlement-grid{grid-template-columns:1fr}}</style>
+@media(max-width:700px){.entitlement-grid{grid-template-columns:1fr}}
+/* ── UNIFIED ERP NAVIGATION ── */
+.erp-header{background:linear-gradient(135deg,var(--teal-dark),var(--teal));position:sticky;top:0;z-index:200;box-shadow:0 2px 20px rgba(0,0,0,.2)}
+.erp-nav-global{display:flex;align-items:center;padding:0 24px;height:44px;border-bottom:1px solid rgba(255,255,255,.1)}
+.erp-logo{font-family:'DM Serif Display',serif;font-size:17px;color:#fff;white-space:nowrap;margin-right:14px}
+.erp-logo span{color:var(--gold-light)}
+.erp-modules{display:flex;gap:2px;flex:1;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}
+.erp-modules::-webkit-scrollbar{display:none}
+.erp-mod-btn{padding:4px 9px;border-radius:5px;font-size:11px;font-weight:500;color:rgba(255,255,255,.7);text-decoration:none;white-space:nowrap;transition:all .15s;font-family:'DM Sans',sans-serif}
+.erp-mod-btn:hover{background:rgba(255,255,255,.12);color:#fff}
+.erp-mod-btn.active{background:var(--gold);color:var(--teal-dark);font-weight:700}
+.erp-nav-local{display:flex;align-items:center;padding:0 20px;height:40px;background:rgba(0,0,0,.12);gap:8px}
+.erp-local-title{font-size:13px;font-weight:600;color:rgba(255,255,255,.9)}
+.erp-local-spacer{flex:1}
+
+</style>
+    <script src="https://unpkg.com/@azure/msal-browser@2.38.3/lib/msal-browser.min.js"></script>
     <script>
     (function(){
       const _msalConfig={
@@ -117,7 +133,7 @@ main{max-width:1000px;margin:0 auto;padding:28px 24px 100px}
     })();
     </script>
     <!-- Azure MSAL Authentication -->
-    <script src="https://unpkg.com/@azure/msal-browser@2.38.3/lib/msal-browser.min.js"></script>
+    
     <script>
     (function(){
       const _msalConfig={
@@ -180,14 +196,31 @@ main{max-width:1000px;margin:0 auto;padding:28px 24px 100px}
 </head>
 <body>
 <div id="loadingOverlay">Loading settings...</div>
-<header>
-  <div class="logo">Zesty <span>ERP</span> &middot; Settings</div>
-  <div class="header-right">
-    <button class="btn btn-outline" onclick="location.href='index.html'">Home</button>
-    <button class="btn btn-outline" onclick="location.href='employees.html'">Employees</button>
-    <button class="btn btn-outline" onclick="location.href='leave.html'">Leave</button>
-    <button class="btn btn-outline" onclick="location.href='tasks.html'">&#9635; Tasks</button>
-    <button class="btn btn-active">&#9881; Settings</button></div>
+<header class="erp-header">
+  <div class="erp-nav-global">
+    <div class="erp-logo">Zesty <span>ERP</span></div>
+    <nav class="erp-modules">
+      <a href="index.html" class="erp-mod-btn">🏠 Home</a>
+      <a href="owners-crm.html" class="erp-mod-btn">👤 Owners</a>
+      <a href="properties-db.html" class="erp-mod-btn">🏠 Properties</a>
+      <a href="guests-crm.html" class="erp-mod-btn">✈️ Guests</a>
+      <a href="cleaning-system.html" class="erp-mod-btn">🧹 Cleaning</a>
+      <a href="contacts-crm.html" class="erp-mod-btn">📋 Contacts</a>
+      <a href="employees.html" class="erp-mod-btn">👥 Staff</a>
+      <a href="leave.html" class="erp-mod-btn">🏖️ Leave</a>
+      <a href="tasks.html" class="erp-mod-btn">✅ Tasks</a>
+      <a href="jobs.html" class="erp-mod-btn">🔧 Jobs</a>
+      <a href="laundry.html" class="erp-mod-btn">👔 Laundry</a>
+      <a href="onboarding.html" class="erp-mod-btn">📋 Onboarding</a>
+      <a href="settings.html" class="erp-mod-btn active">⚙️ Settings</a>
+    </nav>
+    <div class="header-right"></div>
+  </div>
+  <div class="erp-nav-local">
+    <span class="erp-local-title">⚙️ Settings</span>
+    <span class="erp-local-spacer"></span>
+    <button class="btn btn-sm" onclick="backupERP()" style="background:var(--gold);color:var(--teal-dark);font-weight:600;border:none;padding:5px 14px;border-radius:7px;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:12px">💾 Backup ERP</button>
+  </div>
 </header>
 <main>
   <div class="page-header">
@@ -316,6 +349,28 @@ main{max-width:1000px;margin:0 auto;padding:28px 24px 100px}
       <button class="btn btn-save" onclick="saveTaskLocs()">Save Locations</button>
     </div>
   </div>
+
+    <!-- BACKUP SECTION -->
+    <div class="settings-section">
+      <div class="section-header">
+        <div>
+          <h2>💾 ERP Backup</h2>
+          <p>Download a full JSON backup of all your ERP data</p>
+        </div>
+      </div>
+      <div class="section-body">
+        <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px">
+          This will download a complete backup of all modules: owners, properties, guests, contacts, staff, employees, jobs, tasks, leaves, and settings.
+          Store this file safely — you can use it to restore your data if needed.
+        </p>
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+          <button class="btn btn-save" onclick="backupERP()">💾 Download Full Backup</button>
+          <span id="backupStatus" style="font-size:12px;color:var(--text-muted)"></span>
+        </div>
+        <div id="backupHistory" style="margin-top:16px;font-size:12px;color:var(--text-muted)"></div>
+      </div>
+    </div>
+
 </main>
 <div id="toast" class="toast"></div>
 <script>
@@ -488,6 +543,9 @@ async function init(){
 
   const ol = document.getElementById('loadingOverlay');
   if(ol){ol.style.opacity='0';ol.style.transition='opacity 0.3s';setTimeout(()=>ol.remove(),300)}
+  const lastBackup = localStorage.getItem('zesty_last_backup');
+  const histEl = document.getElementById('backupHistory');
+  if (histEl && lastBackup) histEl.textContent = 'Last backup: ' + lastBackup;
 
   startPoll('settings','zesty_settings',30000,(rows)=>{
     const s=rows[0];if(!s)return;
@@ -608,6 +666,51 @@ function addTaskLoc(){
 function removeTaskLoc(i){taskLocations.splice(i,1);renderTaskLocs();}
 async function saveAssignees(){const ok=await saveAll();if(ok)showToast('Assignees saved');else showToast('Save failed','err');}
 async function saveTaskLocs(){const ok=await saveAll();if(ok)showToast('Locations saved');else showToast('Save failed','err');}
+
+// ── ERP BACKUP ──────────────────────────────────────────────────────────
+async function backupERP() {
+  const statusEl = document.getElementById('backupStatus');
+  statusEl.textContent = 'Collecting data...';
+  const SUPABASE_URL_B = 'https://whuytfjwdjjepayeiohj.supabase.co';
+  const SUPABASE_KEY_B = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndodXl0Zmp3ZGpqZXBheWVpb2hqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIyODQxMzQsImV4cCI6MjA4Nzg2MDEzNH0.pTDAqw_Cnzc9D3tJU-tU7Ch5qpapKmteiqI_ooSCufY';
+  const tables = ['owners','properties','guests','contacts','staff','employees','jobs','tasks','leaves','settings','onboardings'];
+  const backup = { exportedAt: new Date().toISOString(), version: '1.0', tables: {} };
+  for (const t of tables) {
+    try {
+      const res = await fetch(`${SUPABASE_URL_B}/rest/v1/${t}?select=*&limit=100000`, {
+        headers: { 'apikey': SUPABASE_KEY_B, 'Authorization': `Bearer ${SUPABASE_KEY_B}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        backup.tables[t] = data;
+        statusEl.textContent = `Collected ${t}...`;
+      } else {
+        backup.tables[t] = { error: 'HTTP ' + res.status };
+      }
+    } catch(e) {
+      backup.tables[t] = { error: e.message };
+    }
+  }
+  // Also backup localStorage keys
+  backup.localStorage = {};
+  ['zesty_jobs','zesty_tasks','zesty_leaves','zesty_owners','zesty_properties',
+   'zesty_guests','zesty_contacts','zesty_staff','zesty_employees','zesty_settings',
+   'zesty_onboardings'].forEach(k => {
+    const v = localStorage.getItem(k);
+    if (v) backup.localStorage[k] = JSON.parse(v);
+  });
+  const blob = new Blob([JSON.stringify(backup, null, 2)], {type: 'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `zesty_erp_backup_${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+  const ts = new Date().toLocaleString('el-GR');
+  statusEl.textContent = '✓ Backup downloaded at ' + ts;
+  // Save last backup time
+  localStorage.setItem('zesty_last_backup', ts);
+  const histEl = document.getElementById('backupHistory');
+  if (histEl) histEl.textContent = 'Last backup: ' + ts;
+}
 
 document.addEventListener('DOMContentLoaded', init);
 

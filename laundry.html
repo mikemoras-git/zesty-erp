@@ -168,6 +168,7 @@ tfoot td{background:#fafcfb;border-top:2px solid var(--border);font-weight:600}
   .container{padding:16px 12px 60px}
 }
 </style>
+    <script src="https://unpkg.com/@azure/msal-browser@2.38.3/lib/msal-browser.min.js"></script>
     <script>
     (function(){
       const _msalConfig={
@@ -226,7 +227,7 @@ tfoot td{background:#fafcfb;border-top:2px solid var(--border);font-weight:600}
     })();
     </script>
     <!-- Azure MSAL Authentication -->
-    <script src="https://unpkg.com/@azure/msal-browser@2.38.3/lib/msal-browser.min.js"></script>
+    
     <script>
     (function(){
       const _msalConfig={
@@ -290,45 +291,45 @@ tfoot td{background:#fafcfb;border-top:2px solid var(--border);font-weight:600}
 <body>
 
 <!-- HEADER -->
-<header>
-  <div class="logo">
-    <div class="logo-icon">👔</div>
-    <div>
-      <div>Zesty <span>Laundry</span></div>
-      <div style="font-family:'DM Sans',sans-serif;font-size:11px;color:rgba(255,255,255,.45);font-weight:300">Service Orders & Accounts</div>
+<header class="erp-header">
+  <div class="erp-nav-global">
+    <div class="erp-logo"><div class="erp-logo-icon">🧺</div>Zesty <span>Rentals</span></div>
+    <nav class="erp-modules">
+      <a href="index.html" class="erp-mod-btn">🏠 Home</a>
+      <a href="owners-crm.html" class="erp-mod-btn">👤 Owners</a>
+      <a href="properties-db.html" class="erp-mod-btn">🏠 Properties</a>
+      <a href="guests-crm.html" class="erp-mod-btn">✈️ Guests</a>
+      <a href="cleaning-system.html" class="erp-mod-btn">🧹 Cleaning</a>
+      <a href="contacts-crm.html" class="erp-mod-btn">📋 Contacts</a>
+      <a href="employees.html" class="erp-mod-btn">👥 Staff</a>
+      <a href="leave.html" class="erp-mod-btn">🏖️ Leave</a>
+      <a href="tasks.html" class="erp-mod-btn">✅ Tasks</a>
+      <a href="jobs.html" class="erp-mod-btn">🔧 Jobs</a>
+      <a href="laundry.html" class="erp-mod-btn active">👔 Laundry</a>
+      <a href="onboarding.html" class="erp-mod-btn">📋 Onboarding</a>
+      <a href="settings.html" class="erp-mod-btn">⚙️ Settings</a>
+    </nav>
+    <div class="header-right">
+      <span class="sync-dot" id="syncDot" title="Saved"></span>
     </div>
   </div>
-  <div class="header-right">
-    <button class="nav-btn" onclick="location.href='index.html'">🏠 Home</button>
-    <button class="nav-btn" onclick="location.href='owners-crm.html'">👤 Owners</button>
-    <button class="nav-btn" onclick="location.href='properties-db.html'">🏠 Properties</button>
-    <button class="nav-btn" onclick="location.href='guests-crm.html'">✈️ Guests</button>
-    <button class="nav-btn" onclick="location.href='cleaning-system.html'">🧹 Cleaning</button>
-    <button class="nav-btn" onclick="location.href='contacts-crm.html'">📋 Contacts</button>
-    <button class="nav-btn" onclick="location.href='employees.html'">👥 Staff</button>
-    <button class="nav-btn" onclick="location.href='leave.html'">🏖️ Leave</button>
-    <button class="nav-btn" onclick="location.href='tasks.html'">✅ Tasks</button>
-    <button class="nav-btn" onclick="location.href='jobs.html'">🔧 Jobs</button>
-    <button class="nav-btn active">👔 Laundry</button>
-    <button class="nav-btn" onclick="location.href='settings.html'">⚙️ Settings</button>
-    <span id="syncDot" class="sync-dot" title="Sync status"></span>
+  <div class="erp-nav-local">
+    <button class="ptab active" onclick="showPage('dashboard')">📊 Dashboard</button>
+    <button class="ptab" onclick="showPage('customers')">👥 Customers</button>
+    <button class="ptab" onclick="showPage('orders')">📋 Orders</button>
+    <button class="ptab" onclick="showPage('receipts')">💰 Receipts</button>
+    <button class="ptab" onclick="showPage('reports')">📈 Reports</button>
+    <button class="ptab" onclick="showPage('pricelists')">💲 Pricelists</button>
+    <button class="ptab" onclick="showPage('settings')">⚙️ Settings</button>
+    <span style="flex:1"></span>
+    <span id="langToggle" style="font-size:11px;color:rgba(255,255,255,.7);cursor:pointer;padding:3px 8px;border:1px solid rgba(255,255,255,.3);border-radius:5px" onclick="toggleLang()">🇬🇧/🇬🇷</span>
   </div>
 </header>
 
 <div class="container">
 
   <!-- PAGE TABS -->
-  <div class="page-tabs">
-    <button class="ptab active" onclick="showPage('dashboard')">📊 Dashboard</button>
-    <button class="ptab" onclick="showPage('customers')">👥 Customers</button>
-    <button class="ptab" onclick="showPage('orders')">📋 Service Orders</button>
-    <button class="ptab" onclick="showPage('receipts')">💰 Receipts</button>
-    <button class="ptab" onclick="showPage('reports')">📈 Reports</button>
-    <button class="ptab" onclick="showPage('pricelists')">🏷️ Pricelists</button>
-    <button class="ptab" onclick="showPage('settings')">⚙️ Settings</button>
-    <div style="margin-left:auto;display:flex;align-items:center;gap:8px;padding:8px 0">
-      <button class="btn btn-sm btn-outline" onclick="toggleLang()" id="langBtn">🇬🇷 GR</button>
-    </div>
+  <!-- page tabs moved to unified nav -->
   </div>
 
   <!-- ══════════════════════════════════════════ -->
@@ -520,7 +521,11 @@ tfoot td{background:#fafcfb;border-top:2px solid var(--border);font-weight:600}
     <div id="pl-tab-manage">
       <div class="section-row">
         <h2 style="color:var(--text-muted);font-size:13px">Active & archived pricelists</h2>
-        <button class="btn btn-primary" onclick="openPricelistModal()">+ New Pricelist</button>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-outline btn-sm" onclick="openExportHistory()">📋 Export History</button>
+          <button class="btn btn-teal btn-sm" onclick="openExportProposal()">📄 Export Proposal</button>
+          <button class="btn btn-primary" onclick="openPricelistModal()">+ New Pricelist</button>
+        </div>
       </div>
       <div id="pl-list"></div>
     </div>
@@ -541,7 +546,19 @@ tfoot td{background:#fafcfb;border-top:2px solid var(--border);font-weight:600}
     <div class="page-sub">System configuration and statistics</div>
 
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
-      <div class="card">
+      
+    <!-- PROPOSAL FOOTER TEXT -->
+    <div class="card" style="margin-bottom:16px">
+      <div class="card-header"><h3 style="font-size:14px">📄 Pricelist Proposal — Footer Text</h3></div>
+      <div class="card-body">
+        <p style="font-size:12px;color:var(--text-muted);margin-bottom:10px">This text will appear at the bottom of every exported pricelist proposal.</p>
+        <textarea id="proposal-footer-text" rows="4" style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;resize:vertical" placeholder="e.g. Prices are valid for 30 days. All prices include VAT. Payment terms: 30 days net..."></textarea>
+        <div style="margin-top:10px;display:flex;justify-content:flex-end">
+          <button class="btn btn-primary btn-sm" onclick="saveProposalFooter()">Save Footer Text</button>
+        </div>
+      </div>
+    </div>
+    <div class="card">
         <div class="card-header"><h3>🔒 Change Receipt Edit Password</h3></div>
         <div class="card-body">
           <div class="form-group"><label>Current Password</label><input type="password" id="pw-old"></div>
@@ -598,7 +615,7 @@ tfoot td{background:#fafcfb;border-top:2px solid var(--border);font-weight:600}
 
 <!-- SERVICE ORDER MODAL -->
 <div class="overlay" id="modal-order" style="display:none">
-  <div class="modal modal-lg">
+  <div class="modal" style="max-width:900px;max-height:92vh;overflow-y:auto">
     <div class="modal-title" id="so-modal-title">New Service Order</div>
     <input type="hidden" id="so-id">
     <div class="form-row">
@@ -620,6 +637,11 @@ tfoot td{background:#fafcfb;border-top:2px solid var(--border);font-weight:600}
           <td style="text-align:right;font-weight:700;font-size:16px;color:var(--teal)" id="so-grand-total">€0.00</td>
         </tr></tfoot>
       </table>
+    </div>
+    <!-- Add custom item row -->
+    <div style="display:flex;gap:8px;align-items:center;margin-top:8px">
+      <input type="text" id="so-new-item-name" placeholder="Add custom item..." style="flex:1;padding:5px 10px;border:1px solid var(--border);border-radius:6px;font-size:13px;font-family:'DM Sans',sans-serif">
+      <button class="btn btn-sm btn-teal" onclick="addCustomOrderItem()">+ Add Item</button>
     </div>
     <div class="form-row" style="margin-top:14px">
       <div class="form-group">
@@ -680,7 +702,7 @@ tfoot td{background:#fafcfb;border-top:2px solid var(--border);font-weight:600}
 
 <!-- PRICELIST MODAL -->
 <div class="overlay" id="modal-pricelist" style="display:none">
-  <div class="modal modal-lg">
+  <div class="modal" style="max-width:800px;max-height:90vh;overflow-y:auto">
     <div class="modal-title" id="pl-modal-title">New Pricelist</div>
     <input type="hidden" id="pl-id">
     <div class="form-row">
@@ -689,8 +711,19 @@ tfoot td{background:#fafcfb;border-top:2px solid var(--border);font-weight:600}
     </div>
     <div class="items-table-wrap">
       <table>
-        <thead><tr><th style="min-width:200px">Item</th><th style="text-align:right;width:120px">Price (€)</th></tr></thead>
+        <thead><tr><th style="min-width:200px">Item</th><th style="text-align:right;width:120px">Price (€)</th><th style="width:40px"></th></tr></thead>
         <tbody id="pl-items-tbody"></tbody>
+        <tfoot>
+          <tr id="pl-add-item-row">
+            <td>
+              <input type="text" id="pl-new-item-name" placeholder="New item name..." style="width:100%;padding:5px 8px;border:1px solid var(--border);border-radius:5px;font-size:13px;font-family:'DM Sans',sans-serif">
+            </td>
+            <td style="text-align:right;padding:5px 14px">
+              <input type="number" id="pl-new-item-price" step="0.05" placeholder="0.00" style="width:100px;padding:5px 8px;border:1px solid var(--border);border-radius:5px;text-align:right;font-family:'DM Sans',sans-serif;font-size:13px">
+            </td>
+            <td><button class="btn btn-sm btn-teal" onclick="addCustomPLItem()" style="padding:4px 8px">+</button></td>
+          </tr>
+        </tfoot>
       </table>
     </div>
     <div class="modal-footer">
@@ -729,6 +762,57 @@ tfoot td{background:#fafcfb;border-top:2px solid var(--border);font-weight:600}
 <!-- ══════════════════════════════════════════════════════════════════════ -->
 <!--  JAVASCRIPT                                                           -->
 <!-- ══════════════════════════════════════════════════════════════════════ -->
+<!-- EXPORT PROPOSAL MODAL -->
+<div class="overlay" id="modal-export-proposal" style="display:none">
+  <div class="modal" style="max-width:700px;max-height:92vh;overflow-y:auto">
+    <div class="modal-title">📄 Export Pricelist Proposal</div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Select Pricelist *</label>
+        <select id="exp-pricelist"><option value="">— Select Pricelist —</option></select>
+      </div>
+      <div class="form-group">
+        <label>Select Client *</label>
+        <select id="exp-client"><option value="">— Select Client —</option></select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Date</label>
+        <input type="date" id="exp-date">
+      </div>
+      <div class="form-group">
+        <label>Valid Until</label>
+        <input type="date" id="exp-valid">
+      </div>
+    </div>
+    <div class="form-group" style="margin-top:10px">
+      <label>Custom Note for this Proposal</label>
+      <textarea id="exp-note" rows="2" placeholder="Optional note specific to this proposal..." style="width:100%;padding:8px 12px;border:1px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;resize:vertical"></textarea>
+    </div>
+    <div style="margin-top:12px;padding:12px;background:#f0faf8;border-radius:8px;font-size:12px;color:var(--text-muted)">
+      <strong style="color:var(--teal)">Standard Footer Text:</strong>
+      <div id="exp-footer-preview" style="margin-top:4px;white-space:pre-wrap"></div>
+      <button class="btn btn-xs btn-outline" onclick="editExportFooter()" style="margin-top:6px">✏️ Edit Footer in Settings</button>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-export-proposal')">Cancel</button>
+      <button class="btn btn-teal" onclick="generateProposalPDF()">🖨 Print / Save as PDF</button>
+    </div>
+  </div>
+</div>
+
+<!-- EXPORT HISTORY MODAL -->
+<div class="overlay" id="modal-export-history" style="display:none">
+  <div class="modal" style="max-width:700px">
+    <div class="modal-title">📋 Export History</div>
+    <div id="export-history-list" style="max-height:60vh;overflow-y:auto"></div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-export-history')">Close</button>
+    </div>
+  </div>
+</div>
+
 <script>
 // ─── SUPABASE ────────────────────────────────────────────────────────────────
 const SUPA_URL = 'https://luwkxhmzlvotxycfigbd.supabase.co';
@@ -955,9 +1039,9 @@ async function saveKey(key, data) {
 // ─── PAGE NAVIGATION ──────────────────────────────────────────────────────────
 function showPage(p) {
   document.querySelectorAll('[id^="page-"]').forEach(el=>el.style.display='none');
-  document.querySelectorAll('.ptab').forEach((el,i)=>{
-    const pages=['dashboard','customers','orders','receipts','reports','pricelists','settings'];
-    el.classList.toggle('active', pages[i]===p);
+  document.querySelectorAll('.ptab').forEach(el=>{
+    const onclick = el.getAttribute('onclick')||'';
+    el.classList.toggle('active', onclick.includes("'"+p+"'") || onclick.includes('"'+p+'"'));
   });
   document.getElementById('page-'+p).style.display='';
   currentPage = p;
@@ -1519,8 +1603,51 @@ async function togglePLStatus(id) {
   renderPricelists();
 }
 
+function addCustomPLItem() {
+  const name = document.getElementById('pl-new-item-name').value.trim();
+  const price = parseFloat(document.getElementById('pl-new-item-price').value)||0;
+  if (!name) { alert('Enter item name'); return; }
+  // Add to ITEMS array if not already there
+  const code = 'CUSTOM_' + name.toUpperCase().replace(/[^A-Z0-9]/g,'_');
+  if (!ITEMS.find(i=>i.code===code)) {
+    ITEMS.push({code, en:name, gr:name});
+  }
+  // Add row to current pricelist tbody
+  const tbody = document.getElementById('pl-items-tbody');
+  const tr = document.createElement('tr');
+  tr.innerHTML = `<td style="font-size:12px">${name}</td>
+    <td style="text-align:right;padding:5px 14px">
+      <input type="number" step="0.05" style="width:100px;padding:5px 8px;border:1px solid var(--border);border-radius:5px;text-align:right;font-family:'DM Sans',sans-serif;font-size:13px" data-code="${code}" value="${price}">
+    </td>
+    <td><button class="btn btn-xs btn-danger" onclick="this.closest('tr').remove()" style="padding:3px 6px">✕</button></td>`;
+  tbody.appendChild(tr);
+  document.getElementById('pl-new-item-name').value='';
+  document.getElementById('pl-new-item-price').value='';
+}
+
+function addCustomOrderItem() {
+  const name = document.getElementById('so-new-item-name').value.trim();
+  if (!name) return;
+  const code = 'CUSTOM_' + name.toUpperCase().replace(/[^A-Z0-9]/g,'_');
+  if (!ITEMS.find(i=>i.code===code)) ITEMS.push({code, en:name, gr:name});
+  const tbody = document.getElementById('so-items-tbody');
+  const tr = document.createElement('tr');
+  tr.innerHTML = `<td style="font-size:12px">${name}</td>
+    <td style="text-align:center">
+      <input type="number" min="0" style="width:70px;padding:4px 6px;border:1px solid var(--border);border-radius:5px;text-align:center;font-size:13px" 
+        data-code="${code}" value="0" oninput="updateOrderGrandTotal(currentOrderPL)">
+    </td>
+    <td style="text-align:right;color:var(--text-muted);font-size:12px">—</td>
+    <td style="text-align:right;font-weight:600;color:var(--teal)" id="so-sub-${code}">€0.00</td>`;
+  tbody.appendChild(tr);
+  document.getElementById('so-new-item-name').value='';
+}
+
 // ─── SETTINGS ─────────────────────────────────────────────────────────────────
 function renderSettings() {
+  // Load footer text
+  const footerEl = document.getElementById('proposal-footer-text');
+  if (footerEl) footerEl.value = settings.proposalFooter || '';
   const totalCharged = serviceOrders.reduce((s,o)=>s+calcOrderTotal(o),0);
   const totalRec = receipts.reduce((s,r)=>s+((r.grossAmount||0)-(r.charges||0)),0);
   const stats = [
@@ -1616,6 +1743,155 @@ function toggleLang() {
 }
 
 // ─── INIT ─────────────────────────────────────────────────────────────────────
+// ─── EXPORT PROPOSAL ─────────────────────────────────────────────────────────
+let exportHistory = JSON.parse(localStorage.getItem('zesty_laundry_exports')||'[]');
+
+function openExportProposal() {
+  const plSel = document.getElementById('exp-pricelist');
+  const cliSel = document.getElementById('exp-client');
+  plSel.innerHTML = '<option value="">— Select Pricelist —</option>' +
+    pricelists.filter(p=>p.status==='active').map(p=>`<option value="${p.id}">${p.name}${p.nameEn?' / '+p.nameEn:''}</option>`).join('');
+  cliSel.innerHTML = '<option value="">— Select Client —</option>' +
+    customers.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
+  document.getElementById('exp-date').value = new Date().toISOString().slice(0,10);
+  const valid = new Date(); valid.setDate(valid.getDate()+30);
+  document.getElementById('exp-valid').value = valid.toISOString().slice(0,10);
+  document.getElementById('exp-note').value = '';
+  // Show footer preview
+  const footer = settings.proposalFooter || 'Prices are valid for the period indicated above. For questions, please contact us.';
+  document.getElementById('exp-footer-preview').textContent = footer;
+  document.getElementById('modal-export-proposal').style.display = 'flex';
+}
+
+function editExportFooter() {
+  closeModal('modal-export-proposal');
+  showPage('settings');
+  setTimeout(()=>{
+    const el = document.getElementById('proposal-footer-text');
+    if (el) { el.value = settings.proposalFooter||''; el.scrollIntoView({behavior:'smooth'}); el.focus(); }
+  }, 200);
+}
+
+function saveProposalFooter() {
+  const text = document.getElementById('proposal-footer-text').value.trim();
+  settings.proposalFooter = text;
+  saveKey('settings', settings);
+  showToast('Footer text saved');
+}
+
+function generateProposalPDF() {
+  const plId = document.getElementById('exp-pricelist').value;
+  const cliId = document.getElementById('exp-client').value;
+  if (!plId || !cliId) { alert('Please select a pricelist and a client'); return; }
+  const pl = pricelists.find(p=>p.id===plId);
+  const client = customers.find(c=>c.id===cliId);
+  const date = document.getElementById('exp-date').value;
+  const valid = document.getElementById('exp-valid').value;
+  const note = document.getElementById('exp-note').value;
+  const footer = settings.proposalFooter || 'Prices are valid for the period indicated above.';
+
+  // Save to export history
+  const exportRecord = {
+    id: 'EXP-'+Date.now(),
+    plId, plName: pl.name, clientId: cliId, clientName: client.name,
+    date, exportedAt: new Date().toISOString()
+  };
+  exportHistory.unshift(exportRecord);
+  if (exportHistory.length > 100) exportHistory = exportHistory.slice(0,100);
+  localStorage.setItem('zesty_laundry_exports', JSON.stringify(exportHistory));
+
+  // Generate printable HTML
+  const itemRows = ITEMS.filter(item=>(pl.prices[item.code]||0)>0).map(item=>`
+    <tr>
+      <td style="padding:8px 12px;border-bottom:1px solid #eee;font-size:13px">${item.gr}</td>
+      <td style="padding:8px 12px;border-bottom:1px solid #eee;font-size:13px;color:#666">${item.en}</td>
+      <td style="padding:8px 12px;border-bottom:1px solid #eee;font-size:13px;text-align:right;font-weight:600;color:#1a7a6e">€${(pl.prices[item.code]).toFixed(2)}</td>
+    </tr>`).join('');
+
+  const proposalHTML = `<!DOCTYPE html>
+<html><head><meta charset="UTF-8">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  body{font-family:'DM Sans',sans-serif;color:#1e2a28;margin:0;padding:0}
+  .header{background:linear-gradient(135deg,#0d3f38,#1a7a6e);padding:32px 40px;color:#fff;display:flex;justify-content:space-between;align-items:flex-start}
+  .logo{font-size:28px;font-weight:300;letter-spacing:1px}.logo span{color:#e8c97a}
+  .meta{text-align:right;font-size:12px;opacity:.85}
+  .body{padding:32px 40px}
+  .client-box{background:#f0faf8;border-left:4px solid #1a7a6e;padding:16px 20px;border-radius:0 8px 8px 0;margin-bottom:24px}
+  .client-box h2{font-size:14px;color:#6b7e7b;font-weight:500;margin-bottom:4px;text-transform:uppercase;letter-spacing:.05em}
+  .client-box h1{font-size:22px;font-weight:600;color:#115950}
+  table{width:100%;border-collapse:collapse}
+  thead{background:#f8f5f0}
+  th{padding:10px 12px;text-align:left;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#6b7e7b;border-bottom:2px solid #d4e0de}
+  .section-hdr{font-size:13px;font-weight:700;color:#1a7a6e;text-transform:uppercase;letter-spacing:.06em;padding:16px 0 8px;border-bottom:1px solid #d4e0de;margin-bottom:0}
+  .note{background:#fffbf0;border:1px solid #f0e0a0;border-radius:8px;padding:12px 16px;font-size:13px;margin-bottom:20px}
+  .footer{margin-top:32px;padding:20px;background:#f8f5f0;border-radius:8px;font-size:12px;color:#6b7e7b;line-height:1.6;white-space:pre-wrap}
+  .validity{display:inline-block;background:#e8f8f0;color:#27ae60;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600;margin-bottom:16px}
+  @media print{@page{margin:15mm}}
+</style></head>
+<body>
+  <div class="header">
+    <div>
+      <div class="logo">Zesty <span>Rentals</span></div>
+      <div style="font-size:13px;margin-top:6px;opacity:.8">Laundry Services — Pricelist Proposal</div>
+    </div>
+    <div class="meta">
+      <div>Date: ${date}</div>
+      <div>Reference: ${exportRecord.id}</div>
+      <div>Pricelist: ${pl.id} — ${pl.name}</div>
+    </div>
+  </div>
+  <div class="body">
+    <div class="client-box">
+      <h2>Prepared for</h2>
+      <h1>${client.name}</h1>
+    </div>
+    <div class="validity">✓ Valid until: ${valid}</div>
+    ${note?`<div class="note">💬 ${note}</div>`:''}
+    <div class="section-hdr">Pricelist — ${pl.name}${pl.nameEn?' / '+pl.nameEn:''}</div>
+    <table>
+      <thead><tr><th>Item (Greek)</th><th>Item (English)</th><th style="text-align:right">Unit Price</th></tr></thead>
+      <tbody>${itemRows}</tbody>
+    </table>
+    <div class="footer">${footer}</div>
+  </div>
+</body></html>`;
+
+  const w = window.open('','_blank');
+  w.document.write(proposalHTML);
+  w.document.close();
+  w.print();
+  closeModal('modal-export-proposal');
+  showToast('✓ Proposal generated');
+}
+
+function openExportHistory() {
+  const list = document.getElementById('export-history-list');
+  if (!exportHistory.length) {
+    list.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-muted)">No exports yet.</div>';
+  } else {
+    list.innerHTML = exportHistory.map(e=>`
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-bottom:1px solid var(--border);font-size:13px">
+        <div>
+          <span style="font-family:monospace;color:var(--teal);font-size:11px">${e.id}</span><br>
+          <strong>${e.clientName}</strong> — ${e.plName}
+        </div>
+        <div style="text-align:right;color:var(--text-muted)">
+          <div>${e.date}</div>
+          <div style="font-size:11px">${new Date(e.exportedAt).toLocaleString('el-GR')}</div>
+        </div>
+      </div>`).join('');
+  }
+  document.getElementById('modal-export-history').style.display = 'flex';
+}
+
+function showToast(msg) {
+  let t = document.getElementById('laundry-toast');
+  if (!t) { t=document.createElement('div'); t.id='laundry-toast'; t.style.cssText='position:fixed;bottom:20px;right:20px;background:#1a7a6e;color:#fff;padding:10px 18px;border-radius:10px;font-size:13px;z-index:9999;transition:opacity .3s'; document.body.appendChild(t); }
+  t.textContent=msg; t.style.opacity='1';
+  clearTimeout(t._t); t._t=setTimeout(()=>t.style.opacity='0',3000);
+}
+
 loadFromSupabase();
 </script>
 </body>

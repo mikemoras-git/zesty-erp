@@ -171,23 +171,169 @@
     .form-grid, .form-grid-4, .form-grid-6 { grid-template-columns: 1fr 1fr; }
     .view-grid { grid-template-columns: 1fr 1fr; }
   }
+
+/* ── UNIFIED ERP NAVIGATION ── */
+.erp-header{background:var(--teal-dark);position:sticky;top:0;z-index:200;box-shadow:0 2px 20px rgba(0,0,0,.25)}
+.erp-nav-global{display:flex;align-items:center;padding:0 24px;height:44px;border-bottom:1px solid rgba(255,255,255,.1)}
+.erp-logo{font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:500;color:#fff;white-space:nowrap;margin-right:14px}
+.erp-logo span{color:var(--gold-light)}
+.erp-modules{display:flex;gap:2px;flex:1;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}
+.erp-modules::-webkit-scrollbar{display:none}
+.erp-mod-btn{padding:4px 9px;border-radius:5px;font-size:11px;font-weight:500;color:rgba(255,255,255,.7);text-decoration:none;white-space:nowrap;transition:all .15s;font-family:'DM Sans',sans-serif}
+.erp-mod-btn:hover{background:rgba(255,255,255,.12);color:#fff}
+.erp-mod-btn.active{background:var(--gold);color:var(--teal-dark);font-weight:700}
+.erp-nav-local{display:flex;align-items:center;padding:0 20px;height:40px;background:rgba(0,0,0,.15);gap:8px}
+.erp-local-title{font-size:13px;font-weight:600;color:rgba(255,255,255,.9)}
+.erp-local-spacer{flex:1}
+
 </style>
+    <script src="https://unpkg.com/@azure/msal-browser@2.38.3/lib/msal-browser.min.js"></script>
+    <script>
+    (function(){
+      const _msalConfig={
+        auth:{
+          clientId:'0938023f-cbbf-45f1-a71d-b18c95745ea6',
+          authority:'https://login.microsoftonline.com/9c30b606-6648-4777-a623-64867e43e54f',
+          redirectUri:'https://kissamosrealestate.com/wp-content/erp/index.html'
+        },
+        cache:{cacheLocation:'sessionStorage',storeAuthStateInCookie:false}
+      };
+      const _msal=new msal.PublicClientApplication(_msalConfig);
+      const _loginRequest={scopes:['openid','profile','User.Read']};
+
+      async function _ensureLogin(){
+        await _msal.initialize();
+        try{ await _msal.handleRedirectPromise(); }catch(e){}
+        const accounts=_msal.getAllAccounts();
+        if(accounts.length>0){
+          const acct=accounts[0];
+          _showUserBadge(acct.name||acct.username);
+          return;
+        }
+        _msal.loginRedirect(_loginRequest);
+      }
+
+      function _showUserBadge(name){
+        const show=()=>{
+          const hdr=document.querySelector('.header-right');
+          if(!hdr)return;
+          if(document.getElementById('_azure_badge'))return;
+          const badge=document.createElement('div');
+          badge.id='_azure_badge';
+          badge.style.cssText='display:flex;align-items:center;gap:8px;margin-left:4px';
+          badge.innerHTML=`<span style="font-size:12px;color:rgba(255,255,255,.75);font-family:DM Sans,sans-serif">&#128100; ${name}</span>`+
+            `<button onclick="window._azureLogout()" style="padding:4px 10px;border-radius:7px;border:1px solid rgba(255,255,255,.3);background:transparent;color:rgba(255,255,255,.7);font-size:11px;cursor:pointer;font-family:DM Sans,sans-serif">Sign out</button>`;
+          hdr.appendChild(badge);
+        };
+        if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',show);}
+        else{show();}
+      }
+
+      window._azureLogout=function(){
+        const accounts=_msal.getAllAccounts();
+        if(accounts.length>0){_msal.logoutRedirect({account:accounts[0]});}
+      };
+
+      document.addEventListener('DOMContentLoaded',function(){
+        const accounts=_msal.getAllAccounts();
+        if(accounts.length===0){document.body.style.visibility='hidden';}
+        else{document.body.style.visibility='visible';}
+      });
+
+      _ensureLogin().then(()=>{
+        document.body.style.visibility='visible';
+      });
+    })();
+    </script>
+    <!-- Azure MSAL Authentication -->
+    
+    <script>
+    (function(){
+      const _msalConfig={
+        auth:{
+          clientId:'0938023f-cbbf-45f1-a71d-b18c95745ea6',
+          authority:'https://login.microsoftonline.com/9c30b606-6648-4777-a623-64867e43e54f',
+          redirectUri:'https://kissamosrealestate.com/wp-content/erp/index.html'
+        },
+        cache:{cacheLocation:'sessionStorage',storeAuthStateInCookie:false}
+      };
+      const _msal=new msal.PublicClientApplication(_msalConfig);
+      const _loginRequest={scopes:['openid','profile','User.Read']};
+
+      async function _ensureLogin(){
+        await _msal.initialize();
+        try{ await _msal.handleRedirectPromise(); }catch(e){}
+        const accounts=_msal.getAllAccounts();
+        if(accounts.length>0){
+          const acct=accounts[0];
+          if(acct.tenantId!=='9c30b606-6648-4777-a623-64867e43e54f'){
+            document.documentElement.style.visibility='visible';
+            document.body.innerHTML='<div style="display:flex;align-items:center;justify-content:center;height:100vh;font-family:sans-serif;flex-direction:column;gap:12px"><div style="font-size:48px">🔒</div><div style="font-size:18px;font-weight:600;color:#1e2a28">Access Denied</div><div style="font-size:14px;color:#666">Your account is not authorised to access this system.</div><button onclick="window._azureLogout()" style="margin-top:12px;padding:8px 20px;background:#1a7a6e;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:14px">Sign out</button></div>';
+            return;
+          }
+          _showUserBadge(acct.name||acct.username);
+          document.documentElement.style.visibility='visible';
+          return;
+        }
+        await _msal.loginRedirect(_loginRequest);
+      }
+
+      function _showUserBadge(name){
+        const show=()=>{
+          const hdr=document.querySelector('.header-right');
+          if(!hdr)return;
+          if(document.getElementById('_azure_badge'))return;
+          const badge=document.createElement('div');
+          badge.id='_azure_badge';
+          badge.style.cssText='display:flex;align-items:center;gap:8px;margin-left:4px';
+          badge.innerHTML='<span style="font-size:12px;color:rgba(255,255,255,.75);font-family:DM Sans,sans-serif">&#128100; '+name+'</span>'+
+            '<button onclick="window._azureLogout()" style="padding:4px 10px;border-radius:7px;border:1px solid rgba(255,255,255,.3);background:transparent;color:rgba(255,255,255,.7);font-size:11px;cursor:pointer;font-family:DM Sans,sans-serif">Sign out</button>';
+          hdr.appendChild(badge);
+        };
+        if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',show);}
+        else{show();}
+      }
+
+      window._azureLogout=function(){
+        const accounts=_msal.getAllAccounts();
+        if(accounts.length>0){_msal.logoutRedirect({account:accounts[0]});}
+      };
+
+      document.documentElement.style.visibility='hidden';
+
+      _ensureLogin().catch(function(){
+        _msal.loginRedirect(_loginRequest);
+      });
+    })();
+    </script>
 </head>
 <body>
 
-<header>
-  <div class="logo">Zesty <span>Rentals</span> — Properties</div>
-  <div style="display:flex;gap:10px">
-    <button class="btn btn-outline" style="color:var(--gold-light);border-color:rgba(255,255,255,.3);font-size:12px" onclick="window.location.href='index.html'">🏠 Home</button>
-    <button class="btn btn-outline" style="color:var(--gold-light);border-color:rgba(255,255,255,.3);font-size:12px" onclick="window.location.href='owners-crm.html'">👤 Owners</button>
-    <button class="btn btn-outline" style="color:var(--gold-light);border-color:rgba(255,255,255,.3);font-size:12px" onclick="window.location.href='guests-crm.html'">✈️ Guests</button>
-    <button class="btn btn-outline" style="color:var(--gold-light);border-color:rgba(255,255,255,.3);font-size:12px" onclick="window.location.href='cleaning-system.html'">🧹 Cleaning</button>
-    <button style="background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.9);padding:5px 11px;border-radius:6px;font-size:12px" onclick="window.location.href='contacts-crm.html'">📋 Contacts</button>
-    <button class="btn btn-outline" style="color:var(--gold-light);border-color:rgba(255,255,255,.3);font-size:12px" onclick="window.location.href='employees.html'">&#128100; Employees</button>
-    <button class="btn btn-outline" style="color:var(--gold-light);border-color:rgba(255,255,255,.3);font-size:12px" onclick="window.location.href='leave.html'">&#128197; Leave</button>
-    <button class="btn btn-outline" style="color:var(--gold-light);border-color:rgba(255,255,255,.3);font-size:12px" onclick="window.location.href='tasks.html'">&#9635; Tasks</button>
-    <button class="btn btn-outline" style="color:var(--gold-light);border-color:rgba(255,255,255,.3);font-size:12px" onclick="location.href='settings.html'">&#9881; Settings</button>
-    <button class="btn btn-primary" onclick="openAddModal()">＋ Add Property</button>
+<header class="erp-header">
+  <div class="erp-nav-global">
+    <div class="erp-logo">Zesty <span>Rentals</span></div>
+    <nav class="erp-modules">
+      <a href="index.html" class="erp-mod-btn">🏠 Home</a>
+      <a href="owners-crm.html" class="erp-mod-btn">👤 Owners</a>
+      <a href="properties-db.html" class="erp-mod-btn active">🏠 Properties</a>
+      <a href="guests-crm.html" class="erp-mod-btn">✈️ Guests</a>
+      <a href="cleaning-system.html" class="erp-mod-btn">🧹 Cleaning</a>
+      <a href="contacts-crm.html" class="erp-mod-btn">📋 Contacts</a>
+      <a href="employees.html" class="erp-mod-btn">👥 Staff</a>
+      <a href="leave.html" class="erp-mod-btn">🏖️ Leave</a>
+      <a href="tasks.html" class="erp-mod-btn">✅ Tasks</a>
+      <a href="jobs.html" class="erp-mod-btn">🔧 Jobs</a>
+      <a href="laundry.html" class="erp-mod-btn">👔 Laundry</a>
+      <a href="onboarding.html" class="erp-mod-btn">📋 Onboarding</a>
+      <a href="settings.html" class="erp-mod-btn">⚙️ Settings</a>
+    </nav>
+    <div class="header-right"></div>
+  </div>
+  <div class="erp-nav-local">
+    <span class="erp-local-title">🏠 Properties</span>
+    <span class="erp-local-spacer"></span>
+    <button class="btn btn-sm" onclick="exportCSV&&exportCSV()" style="background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);padding:4px 10px;border-radius:5px;cursor:pointer;font-size:12px;font-family:'DM Sans',sans-serif">↓ Export</button>
+    <button class="btn btn-sm" onclick="openAdd()" style="background:var(--gold);color:var(--teal-dark);font-weight:600;border:none;padding:5px 14px;border-radius:7px;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:12px">+ Add Property</button>
   </div>
 </header>
 
@@ -305,6 +451,16 @@
             <option value="">— No Owner —</option>
           </select>
           <input type="hidden" id="f_owner">
+        </div>
+        <div class="form-group col-span-2">
+          <label>AMA / MHTE (Registration Number)</label>
+          <input type="text" id="f_ama_mhte" placeholder="e.g. GR-1234567">
+        </div>
+        <div class="form-group col-span-2" id="onboardingLinkGroup" style="display:none">
+          <label>Onboarding Record</label>
+          <a id="onboardingLink" href="#" onclick="openOnboardingRecord(event)" style="display:inline-flex;align-items:center;gap:6px;padding:8px 12px;background:#f0faf8;border:1px solid var(--teal-light);border-radius:8px;font-size:13px;color:var(--teal);text-decoration:none;font-weight:500">
+            📋 View Onboarding Record →
+          </a>
         </div>
       </div>
 
@@ -727,6 +883,16 @@ function startPoll(table,lsKey,ms,onData){
   setInterval(poll,ms);
   return poll;
 }
+function openOnboardingRecord(e) {
+  e.preventDefault();
+  const onboardingId = e.currentTarget.dataset.onboardingId;
+  if (!onboardingId) return;
+  // Open onboarding.html filtered to this owner
+  const ownerName = document.getElementById('f_ownerName')?.value || '';
+  const url = 'onboarding.html?search=' + encodeURIComponent(ownerName);
+  window.location.href = url;
+}
+
 function showDbStatus(online){
   const old=document.getElementById('db-status-bar');if(old)old.remove();
   if(online)return;
@@ -991,6 +1157,18 @@ function editProperty(id) {
   document.querySelectorAll('input[name="cleanType"]').forEach(r => { r.checked = r.value === (p.cleanType || ''); });
   toggleCleanType();
   setField('f_notes', p.notes);
+  setField('f_ama_mhte', p.amaMhte||'');
+  // Show onboarding link if property came from onboarding
+  const onbGroup = document.getElementById('onboardingLinkGroup');
+  if (onbGroup) {
+    if (p.onboardingId) {
+      onbGroup.style.display = 'block';
+      const link = document.getElementById('onboardingLink');
+      if (link) link.dataset.onboardingId = p.onboardingId;
+    } else {
+      onbGroup.style.display = 'none';
+    }
+  }
   tempAttachments = (p.attachments || []).slice();
   renderAttachmentChips();
   openModal('formModal');
@@ -1005,7 +1183,7 @@ function setField(id, val) {
 function clearForm() {
   ['f_propertyId','f_shortName','f_propertyName','f_group','f_owner','f_bedrooms',
    'f_bathrooms','f_sqm','f_capacity','f_location','f_listingUrl','f_checkinCharge',
-   'f_transportCharge','f_cleaningFee','f_poolCost','f_poolRecharge','f_gardenerCost',
+   'f_transportCharge','f_cleaningFee','f_poolCost','f_poolRecharge','f_gardenerCost','f_ama_mhte',
    'f_gardenerRecharge','f_maintenance','f_notes']
     .forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
   ['f_status','f_checkin','f_pool','f_poolMaintenance','f_gardener','f_consumables','f_platform']
