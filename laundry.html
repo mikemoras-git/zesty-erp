@@ -167,6 +167,75 @@ tfoot td{background:#fafcfb;border-top:2px solid var(--border);font-weight:600}
   .page-tabs{overflow-x:auto;-webkit-overflow-scrolling:touch}
   .container{padding:16px 12px 60px}
 }
+
+/* ══════════════════════════════════════════
+   UNIFIED ERP HEADER — two clean rows
+   Row 1: all module links (scrollable)
+   Row 2: current module toolbar
+   ══════════════════════════════════════════ */
+.erp-header{
+  position:sticky;top:0;z-index:500;
+  box-shadow:0 2px 16px rgba(0,0,0,.3);
+}
+/* ROW 1 */
+.erp-nav-global{
+  display:flex;align-items:center;
+  background:linear-gradient(90deg,#0d3f38 0%,#115950 100%);
+  padding:0 20px;height:36px;
+  border-bottom:1px solid rgba(255,255,255,.08);
+}
+.erp-logo{
+  font-family:'Cormorant Garamond',serif;
+  font-size:15px;font-weight:600;color:#fff;
+  white-space:nowrap;margin-right:14px;
+  text-decoration:none;letter-spacing:.3px;flex-shrink:0;
+}
+.erp-logo span{color:#e8c97a}
+.erp-modules{
+  display:flex;gap:1px;flex:1;
+  overflow-x:auto;scrollbar-width:none;
+  -webkit-overflow-scrolling:touch;
+}
+.erp-modules::-webkit-scrollbar{display:none}
+.erp-mod-btn{
+  padding:3px 9px;border-radius:4px;
+  font-size:11px;font-weight:500;
+  color:rgba(255,255,255,.6);
+  text-decoration:none;white-space:nowrap;
+  transition:background .15s,color .15s;
+  font-family:'DM Sans',sans-serif;
+  display:inline-flex;align-items:center;gap:3px;
+  -webkit-tap-highlight-color:transparent;
+  flex-shrink:0;
+}
+.erp-mod-btn:hover{background:rgba(255,255,255,.1);color:#fff}
+.erp-mod-btn.active{background:#c9a84c;color:#0a3d36;font-weight:700}
+/* ROW 2 */
+.erp-nav-local{
+  background:rgba(0,0,0,.22);
+  display:flex;align-items:center;
+  padding:0 20px;height:38px;
+  gap:6px;overflow-x:auto;
+  scrollbar-width:none;
+  border-bottom:1px solid rgba(0,0,0,.15);
+}
+.erp-nav-local::-webkit-scrollbar{display:none}
+.erp-local-title{
+  font-size:12px;font-weight:700;
+  color:rgba(255,255,255,.85);
+  white-space:nowrap;flex-shrink:0;
+  padding-right:10px;margin-right:2px;
+  border-right:1px solid rgba(255,255,255,.15);
+}
+.erp-local-spacer{flex:1;min-width:4px}
+.header-right{display:flex;align-items:center;gap:6px;flex-shrink:0;margin-left:4px}
+/* Mobile */
+@media(max-width:768px){
+  .erp-nav-global{padding:0 10px}
+  .erp-nav-local{padding:0 10px;height:auto;min-height:36px;padding-top:4px;padding-bottom:4px}
+  .erp-mod-btn{font-size:10px;padding:3px 5px}
+}
+
 </style>
     <script src="https://unpkg.com/@azure/msal-browser@2.38.3/lib/msal-browser.min.js"></script>
     <script>
@@ -293,7 +362,7 @@ tfoot td{background:#fafcfb;border-top:2px solid var(--border);font-weight:600}
 <!-- HEADER -->
 <header class="erp-header">
   <div class="erp-nav-global">
-    <div class="erp-logo"><div class="erp-logo-icon">🧺</div>Zesty <span>Rentals</span></div>
+    <a href="index.html" class="erp-logo">Zesty <span>Rentals</span></a>
     <nav class="erp-modules">
       <a href="index.html" class="erp-mod-btn">🏠 Home</a>
       <a href="owners-crm.html" class="erp-mod-btn">👤 Owners</a>
