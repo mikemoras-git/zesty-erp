@@ -72,7 +72,7 @@ body {
   min-height: 100vh;
   display: grid;
   grid-template-rows: auto 1fr auto;
-  padding: 0 40px;
+  padding: 38px 40px 0;
   max-width: 1400px;
   margin: 0 auto;
 }
@@ -326,9 +326,61 @@ header { animation-delay: 0.05s; }
   .qs-item { flex: 1; min-width: 100px; }
   .activity-items { display: none; }
 }
+
+/* ── GLOBAL MOBILE RESPONSIVE ── */
+@media(max-width:768px){
+  .table-wrap,[style*="overflow-x"]{overflow-x:auto!important;-webkit-overflow-scrolling:touch}
+  table{min-width:500px}
+  .modal-overlay,.overlay{padding:8px!important}
+  .modal,.modal-lg{width:100%!important;max-width:100%!important;max-height:95vh!important;border-radius:12px!important;margin:auto}
+  .form-grid,.form-row,.form-grid-2,.form-grid-3,.form-grid-4,.form-grid-6{grid-template-columns:1fr!important}
+  .col-span-2,.col-span-4,.form-full{grid-column:1/-1!important}
+  .stats-bar,.kpi-grid,.kpi-grid-6,.stats-row{grid-template-columns:repeat(2,1fr)!important}
+  .container,main{padding-left:10px!important;padding-right:10px!important}
+  .modal-footer{flex-wrap:wrap}
+  .modal-footer .btn{min-width:100px}
+}
+@media(max-width:480px){
+  .stats-bar,.kpi-grid,.stats-row{grid-template-columns:1fr 1fr!important}
+  td,th{padding:6px 8px!important;font-size:11px!important}
+}
+
+/* ── UNIFIED NAV FOR INDEX ── */
+.erp-global-nav{position:fixed;top:0;left:0;right:0;z-index:600;background:rgba(10,61,54,0.95);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;padding:0 20px;height:38px;gap:3px}
+.erp-global-nav a.erp-logo-nav{font-family:'Cormorant Garamond',serif;font-size:15px;font-weight:500;color:#fff;text-decoration:none;white-space:nowrap;margin-right:10px;flex-shrink:0}
+.erp-global-nav a.erp-logo-nav span{color:#e8c97a}
+.erp-global-nav .erp-modules{display:flex;gap:2px;flex:1;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.erp-global-nav .erp-modules::-webkit-scrollbar{display:none}
+.erp-mod-btn{padding:3px 8px;border-radius:5px;font-size:11px;font-weight:500;color:rgba(255,255,255,.65);text-decoration:none;white-space:nowrap;transition:all .15s;font-family:'DM Sans',sans-serif;-webkit-tap-highlight-color:transparent}
+.erp-mod-btn:hover{background:rgba(255,255,255,.1);color:#fff}
+.erp-mod-btn.active{background:var(--gold);color:var(--teal-deep);font-weight:700}
+@media(max-width:768px){
+  .erp-mod-btn{font-size:10px;padding:3px 5px}
+  .erp-mod-btn span.mod-label{display:none}
+  .erp-mod-btn{padding:4px 5px;font-size:13px}
+}
 </style>
 </head>
 <body>
+<nav class="erp-global-nav">
+  <a href="index.html" class="erp-logo-nav">Zesty <span>ERP</span></a>
+  <div class="erp-modules">
+    <a href="index.html" class="erp-mod-btn active">🏠 <span class="mod-label">Home</span></a>
+    <a href="owners-crm.html" class="erp-mod-btn">👤 <span class="mod-label">Owners</span></a>
+    <a href="properties-db.html" class="erp-mod-btn">🏠 <span class="mod-label">Properties</span></a>
+    <a href="guests-crm.html" class="erp-mod-btn">✈️ <span class="mod-label">Guests</span></a>
+    <a href="cleaning-system.html" class="erp-mod-btn">🧹 <span class="mod-label">Cleaning</span></a>
+    <a href="contacts-crm.html" class="erp-mod-btn">📋 <span class="mod-label">Contacts</span></a>
+    <a href="employees.html" class="erp-mod-btn">👥 <span class="mod-label">Staff</span></a>
+    <a href="leave.html" class="erp-mod-btn">🏖️ <span class="mod-label">Leave</span></a>
+    <a href="tasks.html" class="erp-mod-btn">✅ <span class="mod-label">Tasks</span></a>
+    <a href="jobs.html" class="erp-mod-btn">🔧 <span class="mod-label">Jobs</span></a>
+    <a href="laundry.html" class="erp-mod-btn">👔 <span class="mod-label">Laundry</span></a>
+    <a href="onboarding.html" class="erp-mod-btn">📋 <span class="mod-label">Onboarding</span></a>
+    <a href="settings.html" class="erp-mod-btn">⚙️ <span class="mod-label">Settings</span></a>
+  </div>
+</nav>
+
 
 <div class="bg-canvas">
   <div class="bg-grid"></div>

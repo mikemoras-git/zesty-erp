@@ -232,6 +232,45 @@ tr:hover td{background:#f7fbfa}
   .stats-bar{grid-template-columns:1fr 1fr}
   .header-right{display:none}
 }
+
+/* ── GLOBAL MOBILE RESPONSIVE ── */
+@media(max-width:768px){
+  .table-wrap,[style*="overflow-x"]{overflow-x:auto!important;-webkit-overflow-scrolling:touch}
+  table{min-width:500px}
+  .modal-overlay,.overlay{padding:8px!important}
+  .modal,.modal-lg{width:100%!important;max-width:100%!important;max-height:95vh!important;border-radius:12px!important;margin:auto}
+  .form-grid,.form-row,.form-grid-2,.form-grid-3,.form-grid-4,.form-grid-6{grid-template-columns:1fr!important}
+  .col-span-2,.col-span-4,.form-full{grid-column:1/-1!important}
+  .stats-bar,.kpi-grid,.kpi-grid-6,.stats-row{grid-template-columns:repeat(2,1fr)!important}
+  .container,main{padding-left:10px!important;padding-right:10px!important}
+  .modal-footer{flex-wrap:wrap}
+  .modal-footer .btn{min-width:100px}
+}
+@media(max-width:480px){
+  .stats-bar,.kpi-grid,.stats-row{grid-template-columns:1fr 1fr!important}
+  td,th{padding:6px 8px!important;font-size:11px!important}
+}
+
+/* ── JOBS MODULE NAV BUTTONS ── */
+.jobs-filter-btn{
+  padding:3px 10px;border-radius:20px;font-size:11px;font-weight:500;
+  cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s;
+  background:transparent;border:1px solid rgba(255,255,255,.2);
+  color:rgba(255,255,255,.6);white-space:nowrap;
+  -webkit-tap-highlight-color:transparent;
+}
+.jobs-filter-btn:hover{background:rgba(255,255,255,.1);color:#fff;border-color:rgba(255,255,255,.35)}
+.jobs-filter-btn.active{background:rgba(255,255,255,.18);color:#fff;border-color:rgba(255,255,255,.4);font-weight:600}
+.jobs-action-btn{
+  padding:4px 10px;border-radius:6px;font-size:12px;font-weight:500;
+  cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s;
+  background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);
+  color:rgba(255,255,255,.8);white-space:nowrap;
+  -webkit-tap-highlight-color:transparent;
+}
+.jobs-action-btn:hover{background:rgba(255,255,255,.18);color:#fff}
+.jobs-action-btn.primary{background:#c9a84c;color:#0a3d36;font-weight:700;border-color:#c9a84c}
+.jobs-action-btn.primary:hover{background:#e8c97a}
 </style>
     <script src="https://unpkg.com/@azure/msal-browser@2.38.3/lib/msal-browser.min.js"></script>
     <script>
@@ -376,15 +415,21 @@ tr:hover td{background:#f7fbfa}
     <div class="header-right"></div>
   </div>
   <div class="erp-nav-local">
-    <span class="erp-local-title">🔧 Job Orders</span>
-    <button class="nav-btn" onclick="openOwnerReport()">📊 Report</button>
-    <button class="nav-btn" onclick="exportCSV()">↓ CSV</button>
-    <button class="nav-btn" onclick="setFilter('status','')">All</button>
-    <button class="nav-btn" onclick="setFilter('status','In Progress')">In Progress</button>
-    <button class="nav-btn" onclick="setFilter('status','Completed')">Completed</button>
-    <button class="nav-btn" onclick="setFilter('paid','unpaid')">Unpaid</button>
+    <span class="erp-local-title" style="color:rgba(255,255,255,.5);font-size:11px;border-right:1px solid rgba(255,255,255,.15);padding-right:10px;margin-right:4px">🔧 Jobs</span>
+    <!-- Filter chips -->
+    <span style="font-size:10px;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.08em;margin-right:2px">Filter:</span>
+    <button class="jobs-filter-btn active" id="jf-all" onclick="setJobFilter(this,'status','')">All</button>
+    <button class="jobs-filter-btn" id="jf-open" onclick="setJobFilter(this,'status','Open')">Open</button>
+    <button class="jobs-filter-btn" id="jf-progress" onclick="setJobFilter(this,'status','In Progress')">In Progress</button>
+    <button class="jobs-filter-btn" id="jf-completed" onclick="setJobFilter(this,'status','Completed')">Completed</button>
+    <button class="jobs-filter-btn" id="jf-unpaid" onclick="setJobFilter(this,'paid','unpaid')">Unpaid</button>
+    <!-- Divider -->
+    <span style="width:1px;height:18px;background:rgba(255,255,255,.15);margin:0 6px;flex-shrink:0"></span>
+    <!-- Actions -->
+    <button class="jobs-action-btn" onclick="openOwnerReport()">📊 Report</button>
+    <button class="jobs-action-btn" onclick="exportCSV()">↓ CSV</button>
     <span class="erp-local-spacer"></span>
-    <button class="nav-btn btn-primary" onclick="openNewJob()">+ New Job</button>
+    <button class="jobs-action-btn primary" onclick="openNewJob()">+ New Job</button>
   </div>
 </header>
 
@@ -1116,12 +1161,24 @@ function setFilter(type, val) {
   renderTable();
 }
 
+function setJobFilter(btn, type, val) {
+  // Update active state on filter chips
+  document.querySelectorAll('.jobs-filter-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  // Apply the filter
+  setFilter(type, val);
+}
+
 function clearFilters() {
   document.getElementById('searchInput').value = '';
   document.getElementById('filterStatus').value = '';
   document.getElementById('filterProp').value = '';
   document.getElementById('filterOwner').value = '';
   document.getElementById('filterType').value = '';
+  // Reset filter chip active state
+  document.querySelectorAll('.jobs-filter-btn').forEach(b => b.classList.remove('active'));
+  const allBtn = document.getElementById('jf-all');
+  if (allBtn) allBtn.classList.add('active');
   renderTable();
 }
 

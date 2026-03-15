@@ -61,7 +61,76 @@ tr.emp-row:hover{background:#f0faf8}
 .toast.show{transform:translateY(0);opacity:1}
 .toast.err{background:var(--danger)}
 #loadingOverlay{position:fixed;inset:0;background:var(--cream);display:flex;align-items:center;justify-content:center;z-index:9000;font-size:14px;color:var(--text-muted)}
-@media(max-width:900px){.stats-row{grid-template-columns:repeat(2,1fr)}.filter-bar{flex-direction:column}table{font-size:12px}td,th{padding:8px 10px}}</style>
+@media(max-width:900px){.stats-row{grid-template-columns:repeat(2,1fr)}.filter-bar{flex-direction:column}table{font-size:12px}td,th{padding:8px 10px}}
+/* ═══════════════════════════════════════════════════════
+   UNIFIED ERP NAV — mobile-first, fully responsive
+   ═══════════════════════════════════════════════════════ */
+html{scroll-behavior:smooth}
+.erp-header{background:var(--teal-dark,#115950);position:sticky;top:0;z-index:500;box-shadow:0 2px 20px rgba(0,0,0,.25)}
+/* Row 1 — global modules */
+.erp-nav-global{display:flex;align-items:center;padding:0 16px;height:40px;border-bottom:1px solid rgba(255,255,255,.1);gap:4px;min-width:0}
+.erp-logo{font-family:'Cormorant Garamond','DM Serif Display',serif;font-size:16px;font-weight:500;color:#fff;white-space:nowrap;margin-right:10px;flex-shrink:0;text-decoration:none}
+.erp-logo span{color:#e8c97a}
+.erp-modules{display:flex;gap:2px;flex:1;min-width:0;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.erp-modules::-webkit-scrollbar{display:none}
+.erp-mod-btn{padding:4px 8px;border-radius:5px;font-size:11px;font-weight:500;color:rgba(255,255,255,.7);text-decoration:none;white-space:nowrap;transition:all .15s;font-family:'DM Sans',sans-serif;display:inline-block;-webkit-tap-highlight-color:transparent}
+.erp-mod-btn:hover,.erp-mod-btn:focus{background:rgba(255,255,255,.12);color:#fff;outline:none}
+.erp-mod-btn.active{background:#c9a84c;color:#0a3d36;font-weight:700}
+/* Row 2 — local toolbar */
+.erp-nav-local{display:flex;align-items:center;padding:0 14px;min-height:38px;background:rgba(0,0,0,.15);gap:6px;flex-wrap:wrap;overflow-x:auto;scrollbar-width:none}
+.erp-nav-local::-webkit-scrollbar{display:none}
+.erp-local-title{font-size:12px;font-weight:600;color:rgba(255,255,255,.9);white-space:nowrap}
+.erp-local-spacer{flex:1}
+.erp-nav-local a,.erp-nav-local button{padding:4px 10px;border-radius:5px;font-size:12px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s;-webkit-tap-highlight-color:transparent;white-space:nowrap;text-decoration:none;display:inline-flex;align-items:center;gap:4px}
+.erp-nav-local a.nav-link-btn{background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.85)}
+.erp-nav-local a.nav-link-btn:hover{background:rgba(255,255,255,.1)}
+.erp-nav-local button.nav-btn-ghost{background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.85)}
+.erp-nav-local button.nav-btn-ghost:hover{background:rgba(255,255,255,.1)}
+.erp-nav-local button.nav-btn-primary,.erp-nav-local a.nav-btn-primary{background:#c9a84c;color:#0a3d36;font-weight:700;border:none}
+.erp-nav-local button.nav-btn-primary:hover,.erp-nav-local a.nav-btn-primary:hover{background:#e8c97a}
+/* Mobile hamburger */
+.erp-menu-toggle{display:none;background:transparent;border:1px solid rgba(255,255,255,.3);color:#fff;padding:4px 8px;border-radius:5px;cursor:pointer;font-size:16px;margin-left:auto;flex-shrink:0}
+/* Mobile responsive */
+@media(max-width:768px){
+  .erp-nav-global{padding:0 10px}
+  .erp-modules{gap:1px}
+  .erp-mod-btn{font-size:10px;padding:3px 6px}
+  .erp-logo{font-size:14px;margin-right:6px}
+  .erp-nav-local{padding:0 10px;gap:4px}
+  .erp-nav-local a,.erp-nav-local button{font-size:11px;padding:3px 8px}
+}
+@media(max-width:480px){
+  .erp-mod-btn span.mod-label{display:none}
+  .erp-mod-btn{padding:4px 5px;font-size:13px}
+}
+/* ── GLOBAL MOBILE RESPONSIVE ── */
+@media(max-width:768px){
+  /* Tables scroll horizontally */
+  .table-wrap,.table-container,[style*="overflow-x"]{overflow-x:auto!important;-webkit-overflow-scrolling:touch}
+  table{min-width:500px}
+  /* Modals full screen on mobile */
+  .modal-overlay,.overlay{padding:8px!important}
+  .modal,.modal-lg{width:100%!important;max-width:100%!important;max-height:95vh!important;border-radius:12px!important;margin:auto}
+  /* Form grids stack */
+  .form-grid,.form-row,.form-grid-2,.form-grid-3,.form-grid-4,.form-grid-6{grid-template-columns:1fr!important}
+  .col-span-2,.col-span-4,.form-full{grid-column:1/-1!important}
+  /* Stats bars collapse */
+  .stats-bar,.kpi-grid,.kpi-grid-6{grid-template-columns:repeat(2,1fr)!important}
+  /* Cards stack */
+  .stats-row{grid-template-columns:repeat(2,1fr)!important}
+  /* Container padding */
+  .container,main,[class*="container"]{padding-left:10px!important;padding-right:10px!important}
+  /* Hide some less important columns on mobile */
+  .hide-mobile{display:none!important}
+  /* Buttons full width in modal footer */
+  .modal-footer{flex-wrap:wrap}
+  .modal-footer .btn{flex:1;justify-content:center;min-width:100px}
+}
+@media(max-width:480px){
+  .stats-bar,.kpi-grid,.stats-row{grid-template-columns:1fr 1fr!important}
+  td,th{padding:6px 8px!important;font-size:11px!important}
+}
+</style>
     <script src="https://unpkg.com/@azure/msal-browser@2.38.3/lib/msal-browser.min.js"></script>
     <script>
     (function(){
@@ -184,19 +253,31 @@ tr.emp-row:hover{background:#f0faf8}
 </head>
 <body>
 <div id="loadingOverlay">Loading employees...</div>
-<header>
-  <div class="logo">Zesty <span>ERP</span> &middot; Employees</div>
-  <div class="header-right">
-    <button class="btn btn-outline" onclick="location.href='index.html'">Home</button>
-    <button class="btn btn-outline" onclick="location.href='owners-crm.html'">Owners</button>
-    <button class="btn btn-outline" onclick="location.href='properties-db.html'">Properties</button>
-    <button class="btn btn-outline" onclick="location.href='guests-crm.html'">Guests</button>
-    <button class="btn btn-outline" onclick="location.href='cleaning-system.html'">Cleaning</button>
-    <button class="btn btn-outline" onclick="location.href='contacts-crm.html'">Contacts</button>
-    <button class="btn btn-active">Employees</button>
-    <button class="btn btn-outline" onclick="location.href='leave.html'">Leave</button>
-    <button class="btn btn-outline" onclick="location.href='tasks.html'">&#9635; Tasks</button>
-    <button class="btn btn-outline" onclick="location.href='settings.html'">&#9881; Settings</button></div>
+<header class="erp-header">
+  <div class="erp-nav-global">
+    <a href="index.html" class="erp-logo">Zesty <span>ERP</span></a>
+    <nav class="erp-modules">
+      <a href="index.html" class="erp-mod-btn">🏠 <span class="mod-label">Home</span></a>
+      <a href="owners-crm.html" class="erp-mod-btn">👤 <span class="mod-label">Owners</span></a>
+      <a href="properties-db.html" class="erp-mod-btn">🏠 <span class="mod-label">Properties</span></a>
+      <a href="guests-crm.html" class="erp-mod-btn">✈️ <span class="mod-label">Guests</span></a>
+      <a href="cleaning-system.html" class="erp-mod-btn">🧹 <span class="mod-label">Cleaning</span></a>
+      <a href="contacts-crm.html" class="erp-mod-btn">📋 <span class="mod-label">Contacts</span></a>
+      <a href="employees.html" class="erp-mod-btn active">👥 <span class="mod-label">Staff</span></a>
+      <a href="leave.html" class="erp-mod-btn">🏖️ <span class="mod-label">Leave</span></a>
+      <a href="tasks.html" class="erp-mod-btn">✅ <span class="mod-label">Tasks</span></a>
+      <a href="jobs.html" class="erp-mod-btn">🔧 <span class="mod-label">Jobs</span></a>
+      <a href="laundry.html" class="erp-mod-btn">👔 <span class="mod-label">Laundry</span></a>
+      <a href="onboarding.html" class="erp-mod-btn">📋 <span class="mod-label">Onboarding</span></a>
+      <a href="settings.html" class="erp-mod-btn">⚙️ <span class="mod-label">Settings</span></a>
+    </nav>
+    <div class="header-right"></div>
+  </div>
+  <div class="erp-nav-local">
+    <span class="erp-local-title">👥 Staff</span>
+    <span class="erp-local-spacer"></span>
+    <button class="nav-btn-primary" onclick="openAddEmployee&&openAddEmployee()">+ Add Employee</button>
+  </div>
 </header>
 <main>
   <div class="page-header">
