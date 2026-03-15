@@ -286,17 +286,43 @@ tr:hover td{background:#f7fbfa}
       const _msal=new msal.PublicClientApplication(_msalConfig);
       const _loginRequest={scopes:['openid','profile','User.Read']};
 
+      
+      // ── MOBILE MSAL FIX: use popup on mobile to avoid redirect loop ──
+      const _isMobile = /iPhone|iPad|iPod|Android|Mobile/i.test(navigator.userAgent);
+
       async function _ensureLogin(){
         await _msal.initialize();
-        try{ await _msal.handleRedirectPromise(); }catch(e){}
-        const accounts=_msal.getAllAccounts();
-        if(accounts.length>0){
-          const acct=accounts[0];
-          _showUserBadge(acct.name||acct.username);
+        try { await _msal.handleRedirectPromise(); } catch(e) {}
+        const accounts = _msal.getAllAccounts();
+        if (accounts.length > 0) {
+          const acct = accounts[0];
+          if (acct.tenantId && acct.tenantId !== '9c30b606-6648-4777-a623-64867e43e54f') {
+            document.documentElement.style.visibility = 'visible';
+            document.body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100vh;font-family:sans-serif;flex-direction:column;gap:12px"><div style="font-size:48px">🔒</div><div style="font-size:18px;font-weight:600;color:#1e2a28">Access Denied</div><div style="font-size:14px;color:#666">Your account is not authorised.</div><button onclick="window._azureLogout()" style="margin-top:12px;padding:8px 20px;background:#1a7a6e;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:14px">Sign out</button></div>';
+            return;
+          }
+          _showUserBadge(acct.name || acct.username);
+          document.documentElement.style.visibility = 'visible';
           return;
         }
-        _msal.loginRedirect(_loginRequest);
+        // Mobile: use popup (avoids redirect loop on iOS/Android)
+        // Desktop: use redirect
+        if (_isMobile) {
+          try {
+            const result = await _msal.loginPopup(_loginRequest);
+            if (result && result.account) {
+              _showUserBadge(result.account.name || result.account.username);
+            }
+            document.documentElement.style.visibility = 'visible';
+          } catch(e) {
+            // Popup blocked or failed - fall back to redirect
+            await _msal.loginRedirect(_loginRequest);
+          }
+        } else {
+          await _msal.loginRedirect(_loginRequest);
+        }
       }
+
 
       function _showUserBadge(name){
         const show=()=>{
@@ -344,25 +370,6 @@ tr:hover td{background:#f7fbfa}
       };
       const _msal=new msal.PublicClientApplication(_msalConfig);
       const _loginRequest={scopes:['openid','profile','User.Read']};
-
-      async function _ensureLogin(){
-        await _msal.initialize();
-        try{ await _msal.handleRedirectPromise(); }catch(e){}
-        const accounts=_msal.getAllAccounts();
-        if(accounts.length>0){
-          const acct=accounts[0];
-          if(acct.tenantId!=='9c30b606-6648-4777-a623-64867e43e54f'){
-            document.documentElement.style.visibility='visible';
-            document.body.innerHTML='<div style="display:flex;align-items:center;justify-content:center;height:100vh;font-family:sans-serif;flex-direction:column;gap:12px"><div style="font-size:48px">🔒</div><div style="font-size:18px;font-weight:600;color:#1e2a28">Access Denied</div><div style="font-size:14px;color:#666">Your account is not authorised to access this system.</div><button onclick="window._azureLogout()" style="margin-top:12px;padding:8px 20px;background:#1a7a6e;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:14px">Sign out</button></div>';
-            return;
-          }
-          _showUserBadge(acct.name||acct.username);
-          document.documentElement.style.visibility='visible';
-          return;
-        }
-        await _msal.loginRedirect(_loginRequest);
-      }
-
       function _showUserBadge(name){
         const show=()=>{
           const hdr=document.querySelector('.header-right');
@@ -392,46 +399,56 @@ tr:hover td{background:#f7fbfa}
     })();
     </script>
 </head>
-<body>
+<body class="erp-layout">
 
-<header class="erp-header">
-  <div class="erp-nav-global">
-    <a href="index.html" class="erp-logo">Zesty <span>Rentals</span></a>
-    <nav class="erp-modules">
-      <a href="index.html" class="erp-mod-btn">🏠 Home</a>
-      <a href="owners-crm.html" class="erp-mod-btn">👤 Owners</a>
-      <a href="properties-db.html" class="erp-mod-btn">🏠 Properties</a>
-      <a href="guests-crm.html" class="erp-mod-btn">✈️ Guests</a>
-      <a href="cleaning-system.html" class="erp-mod-btn">🧹 Cleaning</a>
-      <a href="contacts-crm.html" class="erp-mod-btn">📋 Contacts</a>
-      <a href="employees.html" class="erp-mod-btn">👥 Staff</a>
-      <a href="leave.html" class="erp-mod-btn">🏖️ Leave</a>
-      <a href="tasks.html" class="erp-mod-btn">✅ Tasks</a>
-      <a href="jobs.html" class="erp-mod-btn active">🔧 Jobs</a>
-      <a href="laundry.html" class="erp-mod-btn">👔 Laundry</a>
-      <a href="onboarding.html" class="erp-mod-btn">📋 Onboarding</a>
-      <a href="settings.html" class="erp-mod-btn">⚙️ Settings</a>
-    </nav>
-    <div class="header-right"></div>
+<div class="erp-overlay" id="erpOverlay"></div>
+<aside class="erp-sidebar" id="erpSidebar">
+  <div class="erp-brand">
+    <div class="erp-brand-name">Zesty <span>ERP</span></div>
+    <div class="erp-brand-sub">Kissamos · Operations</div>
   </div>
-  <div class="erp-nav-local">
-    <span class="erp-local-title" style="color:rgba(255,255,255,.5);font-size:11px;border-right:1px solid rgba(255,255,255,.15);padding-right:10px;margin-right:4px">🔧 Jobs</span>
-    <!-- Filter chips -->
-    <span style="font-size:10px;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.08em;margin-right:2px">Filter:</span>
-    <button class="jobs-filter-btn active" id="jf-all" onclick="setJobFilter(this,'status','')">All</button>
-    <button class="jobs-filter-btn" id="jf-open" onclick="setJobFilter(this,'status','Open')">Open</button>
-    <button class="jobs-filter-btn" id="jf-progress" onclick="setJobFilter(this,'status','In Progress')">In Progress</button>
-    <button class="jobs-filter-btn" id="jf-completed" onclick="setJobFilter(this,'status','Completed')">Completed</button>
-    <button class="jobs-filter-btn" id="jf-unpaid" onclick="setJobFilter(this,'paid','unpaid')">Unpaid</button>
-    <!-- Divider -->
-    <span style="width:1px;height:18px;background:rgba(255,255,255,.15);margin:0 6px;flex-shrink:0"></span>
-    <!-- Actions -->
-    <button class="jobs-action-btn" onclick="openOwnerReport()">📊 Report</button>
-    <button class="jobs-action-btn" onclick="exportCSV()">↓ CSV</button>
-    <span class="erp-local-spacer"></span>
-    <button class="jobs-action-btn primary" onclick="openNewJob()">+ New Job</button>
+  <nav class="erp-nav-section">
+    <div class="erp-nav-section-label">Modules</div>
+      <a href="index.html" class="erp-nav-link"><span class="nav-icon">🏠</span><span class="nav-label">Home</span></a>
+      <a href="owners-crm.html" class="erp-nav-link"><span class="nav-icon">👤</span><span class="nav-label">Owners</span></a>
+      <a href="properties-db.html" class="erp-nav-link"><span class="nav-icon">🏠</span><span class="nav-label">Properties</span></a>
+      <a href="guests-crm.html" class="erp-nav-link"><span class="nav-icon">✈️</span><span class="nav-label">Guests</span></a>
+      <a href="cleaning-system.html" class="erp-nav-link"><span class="nav-icon">🧹</span><span class="nav-label">Cleaning</span></a>
+      <a href="contacts-crm.html" class="erp-nav-link"><span class="nav-icon">📋</span><span class="nav-label">Contacts</span></a>
+      <a href="employees.html" class="erp-nav-link"><span class="nav-icon">👥</span><span class="nav-label">Staff</span></a>
+      <a href="leave.html" class="erp-nav-link"><span class="nav-icon">🏖️</span><span class="nav-label">Leave</span></a>
+      <a href="tasks.html" class="erp-nav-link"><span class="nav-icon">✅</span><span class="nav-label">Tasks</span></a>
+      <a href="jobs.html" class="erp-nav-link active"><span class="nav-icon">🔧</span><span class="nav-label">Job Orders</span></a>
+      <a href="laundry.html" class="erp-nav-link"><span class="nav-icon">👔</span><span class="nav-label">Laundry ERP</span></a>
+      <a href="onboarding.html" class="erp-nav-link"><span class="nav-icon">📋</span><span class="nav-label">Onboarding</span></a>
+      <a href="settings.html" class="erp-nav-link"><span class="nav-icon">⚙️</span><span class="nav-label">Settings</span></a>
+  </nav>
+      <div class="erp-module-tabs">
+      <div class="erp-module-tabs-label">Module Sections</div>
+            <button class="erp-tab-link active" id="jf-all" onclick="setJobFilter(this,'status','')">📋 All Jobs</button>
+      <button class="erp-tab-link" id="jf-open" onclick="setJobFilter(this,'status','Open')">🔓 Open</button>
+      <button class="erp-tab-link" id="jf-progress" onclick="setJobFilter(this,'status','In Progress')">⚙️ In Progress</button>
+      <button class="erp-tab-link" id="jf-completed" onclick="setJobFilter(this,'status','Completed')">✅ Completed</button>
+      <button class="erp-tab-link" id="jf-paid" onclick="setJobFilter(this,'status','Paid')">💰 Paid</button>
+      <button class="erp-tab-link" id="jf-unpaid" onclick="setJobFilter(this,'paid','unpaid')">⚠️ Unpaid</button>
+    </div>
+  <div class="erp-sidebar-footer">
+    <div class="erp-user-badge" id="sidebarUser"></div>
+    <div class="erp-sync-row">
+      <span class="sync-dot" id="syncDot" title="Saved"></span>
+      <span class="sync-label" id="syncLabel">Synced</span>
+    </div>
   </div>
-</header>
+</aside>
+<div class="erp-topbar">
+    <button class="erp-hamburger" id="erpHamburger">☰</button>
+    <div class="erp-topbar-title">🔧 Job Orders</div>
+    <div class="erp-topbar-actions"><button class="btn btn-outline btn-sm" onclick="openOwnerReport()">📊 Report</button>
+      <button class="btn btn-outline btn-sm" onclick="exportCSV()">↓ CSV</button>
+      <button class="btn btn-primary btn-sm" onclick="openNewJob()">+ New Job</button></div>
+  </div>
+<div class="erp-main">
+
 
 <div class="container">
 
@@ -1162,10 +1179,8 @@ function setFilter(type, val) {
 }
 
 function setJobFilter(btn, type, val) {
-  // Update active state on filter chips
-  document.querySelectorAll('.jobs-filter-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.jobs-filter-btn,.erp-tab-link').forEach(b => b.classList.remove('active'));
   if (btn) btn.classList.add('active');
-  // Apply the filter
   setFilter(type, val);
 }
 
@@ -1939,7 +1954,50 @@ function updateHomeCounter() {
   localStorage.setItem('zesty_open_jobs_count', openCount);
 }
 
+// ── SIDEBAR NAVIGATION ──────────────────────────────────
+function _initSidebar() {
+  const sidebar = document.getElementById('erpSidebar');
+  const overlay = document.getElementById('erpOverlay');
+  const hamburger = document.getElementById('erpHamburger');
+  if (!sidebar) return;
+  // Hamburger toggle
+  if (hamburger) {
+    hamburger.addEventListener('click', () => {
+      sidebar.classList.toggle('open');
+      overlay.classList.toggle('open');
+    });
+  }
+  // Close on overlay click
+  if (overlay) {
+    overlay.addEventListener('click', () => {
+      sidebar.classList.remove('open');
+      overlay.classList.remove('open');
+    });
+  }
+  // Inject Azure user badge into sidebar footer
+  const origBadge = document.getElementById('_azure_badge');
+  const footerUser = document.getElementById('sidebarUser');
+  if (origBadge && footerUser) {
+    footerUser.innerHTML = origBadge.innerHTML;
+    origBadge.remove();
+  }
+  // Watch for badge to appear
+  const obs = new MutationObserver(() => {
+    const b = document.getElementById('_azure_badge');
+    const fu = document.getElementById('sidebarUser');
+    if (b && fu) {
+      fu.innerHTML = b.innerHTML;
+      b.remove();
+      obs.disconnect();
+    }
+  });
+  obs.observe(document.body, {childList:true, subtree:true});
+}
+document.addEventListener('DOMContentLoaded', _initSidebar);
+
+
 init().catch(console.error);
 </script>
+</div><!-- /erp-main -->
 </body>
 </html>

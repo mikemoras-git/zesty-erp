@@ -251,17 +251,43 @@ tfoot td{background:#fafcfb;border-top:2px solid var(--border);font-weight:600}
       const _msal=new msal.PublicClientApplication(_msalConfig);
       const _loginRequest={scopes:['openid','profile','User.Read']};
 
+      
+      // ── MOBILE MSAL FIX: use popup on mobile to avoid redirect loop ──
+      const _isMobile = /iPhone|iPad|iPod|Android|Mobile/i.test(navigator.userAgent);
+
       async function _ensureLogin(){
         await _msal.initialize();
-        try{ await _msal.handleRedirectPromise(); }catch(e){}
-        const accounts=_msal.getAllAccounts();
-        if(accounts.length>0){
-          const acct=accounts[0];
-          _showUserBadge(acct.name||acct.username);
+        try { await _msal.handleRedirectPromise(); } catch(e) {}
+        const accounts = _msal.getAllAccounts();
+        if (accounts.length > 0) {
+          const acct = accounts[0];
+          if (acct.tenantId && acct.tenantId !== '9c30b606-6648-4777-a623-64867e43e54f') {
+            document.documentElement.style.visibility = 'visible';
+            document.body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100vh;font-family:sans-serif;flex-direction:column;gap:12px"><div style="font-size:48px">🔒</div><div style="font-size:18px;font-weight:600;color:#1e2a28">Access Denied</div><div style="font-size:14px;color:#666">Your account is not authorised.</div><button onclick="window._azureLogout()" style="margin-top:12px;padding:8px 20px;background:#1a7a6e;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:14px">Sign out</button></div>';
+            return;
+          }
+          _showUserBadge(acct.name || acct.username);
+          document.documentElement.style.visibility = 'visible';
           return;
         }
-        _msal.loginRedirect(_loginRequest);
+        // Mobile: use popup (avoids redirect loop on iOS/Android)
+        // Desktop: use redirect
+        if (_isMobile) {
+          try {
+            const result = await _msal.loginPopup(_loginRequest);
+            if (result && result.account) {
+              _showUserBadge(result.account.name || result.account.username);
+            }
+            document.documentElement.style.visibility = 'visible';
+          } catch(e) {
+            // Popup blocked or failed - fall back to redirect
+            await _msal.loginRedirect(_loginRequest);
+          }
+        } else {
+          await _msal.loginRedirect(_loginRequest);
+        }
       }
+
 
       function _showUserBadge(name){
         const show=()=>{
@@ -309,25 +335,6 @@ tfoot td{background:#fafcfb;border-top:2px solid var(--border);font-weight:600}
       };
       const _msal=new msal.PublicClientApplication(_msalConfig);
       const _loginRequest={scopes:['openid','profile','User.Read']};
-
-      async function _ensureLogin(){
-        await _msal.initialize();
-        try{ await _msal.handleRedirectPromise(); }catch(e){}
-        const accounts=_msal.getAllAccounts();
-        if(accounts.length>0){
-          const acct=accounts[0];
-          if(acct.tenantId!=='9c30b606-6648-4777-a623-64867e43e54f'){
-            document.documentElement.style.visibility='visible';
-            document.body.innerHTML='<div style="display:flex;align-items:center;justify-content:center;height:100vh;font-family:sans-serif;flex-direction:column;gap:12px"><div style="font-size:48px">🔒</div><div style="font-size:18px;font-weight:600;color:#1e2a28">Access Denied</div><div style="font-size:14px;color:#666">Your account is not authorised to access this system.</div><button onclick="window._azureLogout()" style="margin-top:12px;padding:8px 20px;background:#1a7a6e;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:14px">Sign out</button></div>';
-            return;
-          }
-          _showUserBadge(acct.name||acct.username);
-          document.documentElement.style.visibility='visible';
-          return;
-        }
-        await _msal.loginRedirect(_loginRequest);
-      }
-
       function _showUserBadge(name){
         const show=()=>{
           const hdr=document.querySelector('.header-right');
@@ -357,42 +364,115 @@ tfoot td{background:#fafcfb;border-top:2px solid var(--border);font-weight:600}
     })();
     </script>
 </head>
-<body>
+<body class="erp-layout">
 
 <!-- HEADER -->
-<header class="erp-header">
-  <div class="erp-nav-global">
-    <a href="index.html" class="erp-logo">Zesty <span>Rentals</span></a>
-    <nav class="erp-modules">
-      <a href="index.html" class="erp-mod-btn">🏠 Home</a>
-      <a href="owners-crm.html" class="erp-mod-btn">👤 Owners</a>
-      <a href="properties-db.html" class="erp-mod-btn">🏠 Properties</a>
-      <a href="guests-crm.html" class="erp-mod-btn">✈️ Guests</a>
-      <a href="cleaning-system.html" class="erp-mod-btn">🧹 Cleaning</a>
-      <a href="contacts-crm.html" class="erp-mod-btn">📋 Contacts</a>
-      <a href="employees.html" class="erp-mod-btn">👥 Staff</a>
-      <a href="leave.html" class="erp-mod-btn">🏖️ Leave</a>
-      <a href="tasks.html" class="erp-mod-btn">✅ Tasks</a>
-      <a href="jobs.html" class="erp-mod-btn">🔧 Jobs</a>
-      <a href="laundry.html" class="erp-mod-btn active">👔 Laundry</a>
-      <a href="onboarding.html" class="erp-mod-btn">📋 Onboarding</a>
-      <a href="settings.html" class="erp-mod-btn">⚙️ Settings</a>
-    </nav>
-    <div class="header-right"></div>
+<!-- SIDEBAR OVERLAY (mobile) -->
+<div class="erp-overlay" id="erpOverlay"></div>
+
+<!-- SIDEBAR -->
+<aside class="erp-sidebar" id="erpSidebar">
+  <div class="erp-brand">
+    <div class="erp-brand-name">Zesty <span>ERP</span></div>
+    <div class="erp-brand-sub">Kissamos · Operations</div>
   </div>
-  <div class="erp-nav-local" id="laundryTabBar">
-    <button class="laundry-tab active" id="ltab-dashboard" onclick="showPage('dashboard')">📊 Dashboard</button>
-    <button class="laundry-tab" id="ltab-customers" onclick="showPage('customers')">👥 Customers</button>
-    <button class="laundry-tab" id="ltab-orders" onclick="showPage('orders')">📋 Orders</button>
-    <button class="laundry-tab" id="ltab-receipts" onclick="showPage('receipts')">💰 Receipts</button>
-    <button class="laundry-tab" id="ltab-reports" onclick="showPage('reports')">📈 Reports</button>
-    <button class="laundry-tab" id="ltab-pricelists" onclick="showPage('pricelists')">💲 Pricelists</button>
-    <button class="laundry-tab" id="ltab-settings" onclick="showPage('settings')">⚙️ Settings</button>
-    <span style="flex:1"></span>
-    <span style="font-size:11px;color:rgba(255,255,255,.6);cursor:pointer;padding:3px 10px;border:1px solid rgba(255,255,255,.25);border-radius:5px;font-family:'DM Sans',sans-serif" onclick="toggleLang()">🇬🇧/🇬🇷</span>
-    <span class="sync-dot" id="syncDot" title="Saved" style="margin-left:6px"></span>
+  <nav class="erp-nav-section">
+    <div class="erp-nav-section-label">Modules</div>
+      <a href="index.html" class="erp-nav-link">
+        <span class="nav-icon">🏠</span>
+        <span class="nav-label">Home</span>
+        
+      </a>
+      <a href="owners-crm.html" class="erp-nav-link">
+        <span class="nav-icon">👤</span>
+        <span class="nav-label">Owners</span>
+        <span class="nav-badge" id="mc-owners"></span>
+      </a>
+      <a href="properties-db.html" class="erp-nav-link">
+        <span class="nav-icon">🏠</span>
+        <span class="nav-label">Properties</span>
+        <span class="nav-badge" id="mc-props"></span>
+      </a>
+      <a href="guests-crm.html" class="erp-nav-link">
+        <span class="nav-icon">✈️</span>
+        <span class="nav-label">Guests</span>
+        <span class="nav-badge" id="mc-guests"></span>
+      </a>
+      <a href="cleaning-system.html" class="erp-nav-link">
+        <span class="nav-icon">🧹</span>
+        <span class="nav-label">Cleaning</span>
+        
+      </a>
+      <a href="contacts-crm.html" class="erp-nav-link">
+        <span class="nav-icon">📋</span>
+        <span class="nav-label">Contacts</span>
+        
+      </a>
+      <a href="employees.html" class="erp-nav-link">
+        <span class="nav-icon">👥</span>
+        <span class="nav-label">Staff</span>
+        
+      </a>
+      <a href="leave.html" class="erp-nav-link">
+        <span class="nav-icon">🏖️</span>
+        <span class="nav-label">Leave</span>
+        
+      </a>
+      <a href="tasks.html" class="erp-nav-link">
+        <span class="nav-icon">✅</span>
+        <span class="nav-label">Tasks</span>
+        
+      </a>
+      <a href="jobs.html" class="erp-nav-link">
+        <span class="nav-icon">🔧</span>
+        <span class="nav-label">Job Orders</span>
+        <span class="nav-badge" id="mc-jobs"></span>
+      </a>
+      <a href="laundry.html" class="erp-nav-link active">
+        <span class="nav-icon">👔</span>
+        <span class="nav-label">Laundry ERP</span>
+        
+      </a>
+      <a href="onboarding.html" class="erp-nav-link">
+        <span class="nav-icon">📋</span>
+        <span class="nav-label">Onboarding</span>
+        
+      </a>
+      <a href="settings.html" class="erp-nav-link">
+        <span class="nav-icon">⚙️</span>
+        <span class="nav-label">Settings</span>
+        
+      </a>
+  </nav>
+  
+    <div class="erp-module-tabs">
+      <div class="erp-module-tabs-label">Module</div>
+            <button class="erp-tab-link active" id="ltab-dashboard" onclick="showPage('dashboard')">📊 Dashboard</button>
+      <button class="erp-tab-link" id="ltab-customers" onclick="showPage('customers')">👥 Customers</button>
+      <button class="erp-tab-link" id="ltab-orders" onclick="showPage('orders')">📋 Orders</button>
+      <button class="erp-tab-link" id="ltab-receipts" onclick="showPage('receipts')">💰 Receipts</button>
+      <button class="erp-tab-link" id="ltab-reports" onclick="showPage('reports')">📈 Reports</button>
+      <button class="erp-tab-link" id="ltab-pricelists" onclick="showPage('pricelists')">💲 Pricelists</button>
+      <button class="erp-tab-link" id="ltab-laundry-settings" onclick="showPage('settings')">⚙️ Settings</button>
+    </div>
+  <div class="erp-sidebar-footer">
+    <div class="erp-user-badge" id="sidebarUser">👤 Loading...</div>
+    <div class="erp-sync-row">
+      <span class="sync-dot" id="syncDot" title="Saved"></span>
+      <span class="sync-label">Synced</span>
+    </div>
   </div>
-</header>
+</aside>
+
+<!-- TOP BAR -->
+<div class="erp-topbar">
+    <button class="erp-hamburger" id="erpHamburger">☰</button>
+    <div class="erp-topbar-title">👔 Laundry ERP</div>
+    <div class="erp-topbar-actions"><span style="font-size:11px;color:#6b7e7b;cursor:pointer;padding:3px 10px;border:1px solid #d4e0de;border-radius:5px;font-family:DM Sans,sans-serif" onclick="toggleLang()">🇬🇧/🇬🇷</span>
+      <button class="btn btn-primary btn-sm" onclick="openOrderModal()">+ New Order</button></div>
+  </div>
+<div class="erp-main">
+
 
 <div class="container">
 
@@ -1120,7 +1200,7 @@ async function saveKey(key, data) {
 // ─── PAGE NAVIGATION ──────────────────────────────────────────────────────────
 function showPage(p) {
   document.querySelectorAll('[id^="page-"]').forEach(el=>el.style.display='none');
-  document.querySelectorAll('.laundry-tab,.ptab').forEach(el=>{
+  document.querySelectorAll('.erp-tab-link,.laundry-tab,.ptab').forEach(el=>{
     const onclick = el.getAttribute('onclick')||'';
     el.classList.toggle('active', onclick.includes("'"+p+"'") || onclick.includes('"'+p+'"'));
   });
@@ -1965,6 +2045,7 @@ function generateProposalPDF() {
     </table>
     <div class="footer">${footer}</div>
   </div>
+</div><!-- /erp-main -->
 </body></html>`;
 
   const w = window.open('','_blank');
@@ -2001,6 +2082,48 @@ function showToast(msg) {
   t.textContent=msg; t.style.opacity='1';
   clearTimeout(t._t); t._t=setTimeout(()=>t.style.opacity='0',3000);
 }
+
+// ── SIDEBAR NAVIGATION ──────────────────────────────────
+function _initSidebar() {
+  const sidebar = document.getElementById('erpSidebar');
+  const overlay = document.getElementById('erpOverlay');
+  const hamburger = document.getElementById('erpHamburger');
+  if (!sidebar) return;
+  // Hamburger toggle
+  if (hamburger) {
+    hamburger.addEventListener('click', () => {
+      sidebar.classList.toggle('open');
+      overlay.classList.toggle('open');
+    });
+  }
+  // Close on overlay click
+  if (overlay) {
+    overlay.addEventListener('click', () => {
+      sidebar.classList.remove('open');
+      overlay.classList.remove('open');
+    });
+  }
+  // Inject Azure user badge into sidebar footer
+  const origBadge = document.getElementById('_azure_badge');
+  const footerUser = document.getElementById('sidebarUser');
+  if (origBadge && footerUser) {
+    footerUser.innerHTML = origBadge.innerHTML;
+    origBadge.remove();
+  }
+  // Watch for badge to appear
+  const obs = new MutationObserver(() => {
+    const b = document.getElementById('_azure_badge');
+    const fu = document.getElementById('sidebarUser');
+    if (b && fu) {
+      fu.innerHTML = b.innerHTML;
+      b.remove();
+      obs.disconnect();
+    }
+  });
+  obs.observe(document.body, {childList:true, subtree:true});
+}
+document.addEventListener('DOMContentLoaded', _initSidebar);
+
 
 loadFromSupabase();
 </script>

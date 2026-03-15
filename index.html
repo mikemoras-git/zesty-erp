@@ -359,30 +359,264 @@ header { animation-delay: 0.05s; }
   .erp-mod-btn span.mod-label{display:none}
   .erp-mod-btn{padding:4px 5px;font-size:13px}
 }
+
+/* ═══════════════════════════════════════════════════
+   ZESTY ERP — LEFT SIDEBAR NAVIGATION
+   ═══════════════════════════════════════════════════ */
+
+/* Reset old top header nav */
+.erp-header,.erp-nav-global,.erp-nav-local,
+.erp-modules,.erp-mod-btn,.erp-logo,
+.erp-local-title,.erp-local-spacer { all: unset; }
+.erp-header { display: none !important; }
+
+/* ── LAYOUT WRAPPER ── */
+body.erp-layout {
+  display: flex;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ── SIDEBAR ── */
+.erp-sidebar {
+  width: 220px;
+  min-width: 220px;
+  background: linear-gradient(180deg, #0a3d36 0%, #0d4a42 60%, #0f5248 100%);
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 0; left: 0; bottom: 0;
+  z-index: 600;
+  box-shadow: 3px 0 20px rgba(0,0,0,0.3);
+  transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,255,255,.1) transparent;
+}
+.erp-sidebar::-webkit-scrollbar { width: 4px; }
+.erp-sidebar::-webkit-scrollbar-track { background: transparent; }
+.erp-sidebar::-webkit-scrollbar-thumb { background: rgba(255,255,255,.1); border-radius: 2px; }
+
+/* ── SIDEBAR BRAND ── */
+.erp-brand {
+  padding: 20px 18px 16px;
+  border-bottom: 1px solid rgba(255,255,255,.08);
+  flex-shrink: 0;
+}
+.erp-brand-name {
+  font-family: 'Cormorant Garamond', 'DM Serif Display', serif;
+  font-size: 22px; font-weight: 600; color: #fff;
+  line-height: 1; letter-spacing: .3px;
+}
+.erp-brand-name span { color: #e8c97a; }
+.erp-brand-sub {
+  font-size: 10px; color: rgba(255,255,255,.35);
+  text-transform: uppercase; letter-spacing: 2px;
+  margin-top: 4px; font-weight: 400;
+}
+
+/* ── SIDEBAR NAV LINKS ── */
+.erp-nav-section {
+  padding: 10px 0 4px;
+}
+.erp-nav-section-label {
+  font-size: 9px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .12em;
+  color: rgba(255,255,255,.25);
+  padding: 0 18px; margin-bottom: 4px;
+}
+.erp-nav-link {
+  display: flex; align-items: center; gap: 9px;
+  padding: 8px 18px;
+  color: rgba(255,255,255,.6);
+  text-decoration: none;
+  font-size: 13px; font-weight: 500;
+  font-family: 'DM Sans', sans-serif;
+  transition: all .15s;
+  border-left: 3px solid transparent;
+  -webkit-tap-highlight-color: transparent;
+  cursor: pointer;
+  background: none; border-right: none;
+  border-top: none; border-bottom: none;
+  width: 100%; text-align: left;
+}
+.erp-nav-link:hover {
+  color: #fff;
+  background: rgba(255,255,255,.07);
+  border-left-color: rgba(255,255,255,.2);
+}
+.erp-nav-link.active {
+  color: #e8c97a;
+  background: rgba(201,168,76,.12);
+  border-left-color: #e8c97a;
+  font-weight: 600;
+}
+.erp-nav-link .nav-icon { font-size: 15px; flex-shrink: 0; width: 18px; text-align: center; }
+.erp-nav-link .nav-label { flex: 1; }
+.erp-nav-link .nav-badge {
+  font-size: 10px; font-weight: 700;
+  background: rgba(201,168,76,.25); color: #e8c97a;
+  padding: 1px 6px; border-radius: 8px;
+}
+.erp-nav-divider {
+  height: 1px; background: rgba(255,255,255,.06);
+  margin: 6px 14px;
+}
+
+/* ── MODULE TABS (inside sidebar, below nav links) ── */
+.erp-module-tabs {
+  margin-top: auto;
+  padding: 8px 0 12px;
+  border-top: 1px solid rgba(255,255,255,.08);
+}
+.erp-module-tabs-label {
+  font-size: 9px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .12em;
+  color: rgba(255,255,255,.25);
+  padding: 0 18px; margin-bottom: 4px;
+}
+.erp-tab-link {
+  display: flex; align-items: center; gap: 8px;
+  padding: 7px 18px;
+  color: rgba(255,255,255,.55);
+  font-size: 12px; font-weight: 500;
+  font-family: 'DM Sans', sans-serif;
+  transition: all .15s;
+  border-left: 3px solid transparent;
+  -webkit-tap-highlight-color: transparent;
+  cursor: pointer;
+  background: none; border-right: none;
+  border-top: none; border-bottom: none;
+  width: 100%; text-align: left; text-decoration: none;
+}
+.erp-tab-link:hover {
+  color: #fff; background: rgba(255,255,255,.06);
+}
+.erp-tab-link.active {
+  color: #c9a84c; font-weight: 600;
+  background: rgba(201,168,76,.1);
+  border-left-color: #c9a84c;
+}
+
+/* ── SIDEBAR FOOTER (user badge + sync) ── */
+.erp-sidebar-footer {
+  padding: 12px 18px;
+  border-top: 1px solid rgba(255,255,255,.08);
+  flex-shrink: 0;
+}
+.erp-user-badge {
+  font-size: 11px; color: rgba(255,255,255,.45);
+  display: flex; align-items: center; gap: 6px;
+}
+.erp-sync-row {
+  display: flex; align-items: center; gap: 6px;
+  margin-top: 6px;
+}
+.sync-label { font-size: 10px; color: rgba(255,255,255,.3); }
+
+/* ── MAIN CONTENT AREA ── */
+.erp-main {
+  margin-left: 220px;
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── TOP BAR (module title + actions) ── */
+.erp-topbar {
+  background: #fff;
+  border-bottom: 1px solid #d4e0de;
+  padding: 0 28px;
+  height: 52px;
+  display: flex; align-items: center; gap: 12px;
+  position: sticky; top: 0; z-index: 100;
+  box-shadow: 0 1px 8px rgba(26,122,110,.08);
+  flex-shrink: 0;
+}
+.erp-topbar-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 18px; font-weight: 600;
+  color: #115950; flex: 1;
+}
+.erp-topbar-actions { display: flex; gap: 8px; align-items: center; }
+
+/* ── HAMBURGER (mobile only) ── */
+.erp-hamburger {
+  display: none;
+  background: none; border: none;
+  color: #115950; font-size: 22px;
+  cursor: pointer; padding: 4px 8px;
+  border-radius: 6px;
+  -webkit-tap-highlight-color: transparent;
+}
+.erp-overlay {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.5);
+  z-index: 590;
+}
+
+/* ── MOBILE ── */
+@media (max-width: 900px) {
+  .erp-sidebar {
+    transform: translateX(-100%);
+  }
+  .erp-sidebar.open {
+    transform: translateX(0);
+  }
+  .erp-overlay.open { display: block; }
+  .erp-main { margin-left: 0; }
+  .erp-hamburger { display: block; }
+  .erp-topbar { padding: 0 14px; }
+}
+@media (max-width: 600px) {
+  .container, main { padding: 12px 10px 60px !important; }
+  table { min-width: 480px; }
+  .stats-bar, .kpi-grid { grid-template-columns: repeat(2,1fr) !important; }
+}
+
+
+/* ── INDEX SIDEBAR OVERRIDES ── */
+body.erp-layout { background: var(--teal-deep,#0a3d36); }
+.erp-sidebar { background: rgba(5,30,27,0.95); backdrop-filter: blur(12px); border-right: 1px solid rgba(255,255,255,.07); }
+.erp-main { background: transparent; min-height: 100vh; }
+.erp-topbar { display: none !important; }
+
 </style>
 </head>
-<body>
-<nav class="erp-global-nav">
-  <a href="index.html" class="erp-logo-nav">Zesty <span>ERP</span></a>
-  <div class="erp-modules">
-    <a href="index.html" class="erp-mod-btn active">🏠 <span class="mod-label">Home</span></a>
-    <a href="owners-crm.html" class="erp-mod-btn">👤 <span class="mod-label">Owners</span></a>
-    <a href="properties-db.html" class="erp-mod-btn">🏠 <span class="mod-label">Properties</span></a>
-    <a href="guests-crm.html" class="erp-mod-btn">✈️ <span class="mod-label">Guests</span></a>
-    <a href="cleaning-system.html" class="erp-mod-btn">🧹 <span class="mod-label">Cleaning</span></a>
-    <a href="contacts-crm.html" class="erp-mod-btn">📋 <span class="mod-label">Contacts</span></a>
-    <a href="employees.html" class="erp-mod-btn">👥 <span class="mod-label">Staff</span></a>
-    <a href="leave.html" class="erp-mod-btn">🏖️ <span class="mod-label">Leave</span></a>
-    <a href="tasks.html" class="erp-mod-btn">✅ <span class="mod-label">Tasks</span></a>
-    <a href="jobs.html" class="erp-mod-btn">🔧 <span class="mod-label">Jobs</span></a>
-    <a href="laundry.html" class="erp-mod-btn">👔 <span class="mod-label">Laundry</span></a>
-    <a href="onboarding.html" class="erp-mod-btn">📋 <span class="mod-label">Onboarding</span></a>
-    <a href="settings.html" class="erp-mod-btn">⚙️ <span class="mod-label">Settings</span></a>
+<body class="erp-layout">
+<div class="erp-overlay" id="erpOverlay"></div>
+<aside class="erp-sidebar" id="erpSidebar">
+  <div class="erp-brand">
+    <div class="erp-brand-name">Zesty <span>ERP</span></div>
+    <div class="erp-brand-sub">Kissamos · Operations</div>
   </div>
-</nav>
+  <nav class="erp-nav-section">
+    <div class="erp-nav-section-label">Modules</div>
+      <a href="index.html" class="erp-nav-link active"><span class="nav-icon">🏠</span><span class="nav-label">Home</span></a>
+      <a href="owners-crm.html" class="erp-nav-link"><span class="nav-icon">👤</span><span class="nav-label">Owners</span></a>
+      <a href="properties-db.html" class="erp-nav-link"><span class="nav-icon">🏠</span><span class="nav-label">Properties</span></a>
+      <a href="guests-crm.html" class="erp-nav-link"><span class="nav-icon">✈️</span><span class="nav-label">Guests</span></a>
+      <a href="cleaning-system.html" class="erp-nav-link"><span class="nav-icon">🧹</span><span class="nav-label">Cleaning</span></a>
+      <a href="contacts-crm.html" class="erp-nav-link"><span class="nav-icon">📋</span><span class="nav-label">Contacts</span></a>
+      <a href="employees.html" class="erp-nav-link"><span class="nav-icon">👥</span><span class="nav-label">Staff</span></a>
+      <a href="leave.html" class="erp-nav-link"><span class="nav-icon">🏖️</span><span class="nav-label">Leave</span></a>
+      <a href="tasks.html" class="erp-nav-link"><span class="nav-icon">✅</span><span class="nav-label">Tasks</span></a>
+      <a href="jobs.html" class="erp-nav-link"><span class="nav-icon">🔧</span><span class="nav-label">Job Orders</span></a>
+      <a href="laundry.html" class="erp-nav-link"><span class="nav-icon">👔</span><span class="nav-label">Laundry ERP</span></a>
+      <a href="onboarding.html" class="erp-nav-link"><span class="nav-icon">📋</span><span class="nav-label">Onboarding</span></a>
+      <a href="settings.html" class="erp-nav-link"><span class="nav-icon">⚙️</span><span class="nav-label">Settings</span></a>
+  </nav>
+  <div class="erp-sidebar-footer">
+    <div class="erp-user-badge" id="sidebarUser"></div>
+  </div>
+</aside>
+<button class="erp-hamburger" id="erpHamburger" style="position:fixed;top:10px;left:10px;z-index:700;background:rgba(10,61,54,.85);border:1px solid rgba(255,255,255,.2);color:#fff;font-size:20px;padding:5px 10px;border-radius:7px;cursor:pointer;display:none">☰</button>
 
 
-<div class="bg-canvas">
+
+<div class="erp-main"><div class="bg-canvas">
   <div class="bg-grid"></div>
   <div class="bg-orb bg-orb-1"></div>
   <div class="bg-orb bg-orb-2"></div>
@@ -844,9 +1078,53 @@ function safeJSON(key, def) {
   catch { return def; }
 }
 
+
+// ── SIDEBAR NAVIGATION ──────────────────────────────────
+function _initSidebar() {
+  const sidebar = document.getElementById('erpSidebar');
+  const overlay = document.getElementById('erpOverlay');
+  const hamburger = document.getElementById('erpHamburger');
+  if (!sidebar) return;
+  // Hamburger toggle
+  if (hamburger) {
+    hamburger.addEventListener('click', () => {
+      sidebar.classList.toggle('open');
+      overlay.classList.toggle('open');
+    });
+  }
+  // Close on overlay click
+  if (overlay) {
+    overlay.addEventListener('click', () => {
+      sidebar.classList.remove('open');
+      overlay.classList.remove('open');
+    });
+  }
+  // Inject Azure user badge into sidebar footer
+  const origBadge = document.getElementById('_azure_badge');
+  const footerUser = document.getElementById('sidebarUser');
+  if (origBadge && footerUser) {
+    footerUser.innerHTML = origBadge.innerHTML;
+    origBadge.remove();
+  }
+  // Watch for badge to appear
+  const obs = new MutationObserver(() => {
+    const b = document.getElementById('_azure_badge');
+    const fu = document.getElementById('sidebarUser');
+    if (b && fu) {
+      fu.innerHTML = b.innerHTML;
+      b.remove();
+      obs.disconnect();
+    }
+  });
+  obs.observe(document.body, {childList:true, subtree:true});
+}
+document.addEventListener('DOMContentLoaded', _initSidebar);
+
+
 loadStats();
 // Refresh stats every 30 seconds
 setInterval(loadStats, 30000);
 </script>
+</div><!-- /erp-main -->
 </body>
 </html>
