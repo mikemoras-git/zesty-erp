@@ -6,107 +6,68 @@
 <title>Zesty ERP — Tickets & Changelog</title>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400&display=swap" rel="stylesheet">
 <style>
-:root {
-  --teal:#1a7a6e;--teal-dark:#115950;--teal-deep:#0a3d36;
-  --gold:#c9a84c;--gold-light:#e8c97a;
-  --cream:#f8f5f0;--white:#fff;
-  --text:#1e2a28;--text-muted:#6b7e7b;
-  --border:#d4e0de;
-  --danger:#c0392b;--danger-bg:#fdf0ef;
-  --success:#27ae60;--success-bg:#eafaf1;
-  --warning:#e67e22;--warning-bg:#fef9ec;
-  --purple:#8e44ad;--purple-bg:#f5eefb;
-  --radius:12px;--shadow:0 2px 16px rgba(26,122,110,.1);
-}
+:root{--teal:#1a7a6e;--teal-dark:#115950;--teal-deep:#0a3d36;--gold:#c9a84c;--gold-light:#e8c97a;--cream:#f8f5f0;--white:#fff;--text:#1e2a28;--text-muted:#6b7e7b;--border:#d4e0de;--danger:#c0392b;--danger-bg:#fdf0ef;--success:#27ae60;--success-bg:#eafaf1;--warning:#e67e22;--warning-bg:#fef9ec;--purple:#8e44ad;--radius:12px;--shadow:0 2px 16px rgba(26,122,110,.1)}
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--text);min-height:100vh}
 .container{max-width:1100px;margin:0 auto;padding:32px 24px 80px}
-
-/* PAGE HEADER */
-.page-hdr{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:32px;flex-wrap:wrap;gap:16px}
+.page-hdr{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:28px;flex-wrap:wrap;gap:16px}
 .page-title{font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:400;color:var(--teal-dark)}
 .page-sub{font-size:13px;color:var(--text-muted);margin-top:4px}
-
-/* TABS */
-.tabs{display:flex;gap:0;border-bottom:2px solid var(--border);margin-bottom:28px}
+.stats{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:24px}
+.stat{background:var(--white);border-radius:var(--radius);padding:14px 18px;box-shadow:var(--shadow);border-left:4px solid var(--teal)}
+.stat.danger{border-color:var(--danger)}.stat.warning{border-color:var(--warning)}.stat.success{border-color:var(--success)}.stat.purple{border-color:var(--purple)}
+.stat-val{font-size:26px;font-weight:700;color:var(--teal)}.stat.danger .stat-val{color:var(--danger)}.stat.warning .stat-val{color:var(--warning)}.stat.success .stat-val{color:var(--success)}.stat.purple .stat-val{color:var(--purple)}
+.stat-lbl{font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted);margin-top:4px}
+.tabs{display:flex;gap:0;border-bottom:2px solid var(--border);margin-bottom:24px}
 .tab{padding:10px 20px;cursor:pointer;font-size:13px;font-weight:500;color:var(--text-muted);border-bottom:2px solid transparent;margin-bottom:-2px;background:transparent;border-top:none;border-left:none;border-right:none;font-family:'DM Sans',sans-serif;transition:all .2s}
 .tab.active{color:var(--teal);border-bottom-color:var(--teal);font-weight:600}
-.tab:hover{color:var(--teal)}
-
-/* STATS ROW */
-.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:28px}
-.stat{background:var(--white);border-radius:var(--radius);padding:16px 20px;box-shadow:var(--shadow);border-left:4px solid var(--teal)}
-.stat.danger{border-color:var(--danger)}.stat.success{border-color:var(--success)}.stat.warning{border-color:var(--warning)}.stat.purple{border-color:var(--purple)}
-.stat-val{font-size:28px;font-weight:700;color:var(--teal);line-height:1}
-.stat.danger .stat-val{color:var(--danger)}.stat.success .stat-val{color:var(--success)}.stat.warning .stat-val{color:var(--warning)}.stat.purple .stat-val{color:var(--purple)}
-.stat-lbl{font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted);margin-top:5px}
-
-/* FILTERS */
-.filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px;align-items:center}
+.filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;align-items:center}
 .filter-btn{padding:5px 14px;border-radius:20px;border:1px solid var(--border);background:var(--white);font-size:12px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s;color:var(--text-muted)}
 .filter-btn.active,.filter-btn:hover{border-color:var(--teal);color:var(--teal);background:#f0faf8}
 .filter-btn.active{font-weight:700}
-
-/* TICKET CARDS */
-.ticket{background:var(--white);border-radius:var(--radius);padding:18px 20px;box-shadow:var(--shadow);margin-bottom:12px;display:grid;grid-template-columns:auto 1fr auto;gap:16px;align-items:start;border-left:4px solid var(--border);transition:box-shadow .2s}
-.ticket:hover{box-shadow:0 4px 24px rgba(26,122,110,.15)}
-.ticket.bug{border-left-color:var(--danger)}
-.ticket.improvement{border-left-color:var(--warning)}
-.ticket.idea{border-left-color:var(--success)}
-.ticket.fixed{border-left-color:var(--teal);opacity:.7}
-.ticket-icon{font-size:22px;margin-top:2px}
-.ticket-id{font-family:'DM Mono',monospace;font-size:10px;color:var(--text-muted);margin-bottom:4px}
-.ticket-text{font-size:14px;font-weight:500;color:var(--text);margin-bottom:6px;line-height:1.4}
-.ticket-meta{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
-.ticket-page{font-size:11px;color:var(--text-muted);background:var(--cream);padding:2px 8px;border-radius:4px}
-.ticket-date{font-size:11px;color:var(--text-muted)}
-.ticket-version{font-size:10px;font-family:'DM Mono',monospace;color:var(--text-muted);background:var(--cream);padding:1px 6px;border-radius:3px}
+.ticket{background:var(--white);border-radius:var(--radius);padding:16px 20px;box-shadow:var(--shadow);margin-bottom:10px;display:grid;grid-template-columns:auto 1fr auto;gap:14px;align-items:start;border-left:4px solid var(--border);transition:box-shadow .2s}
+.ticket:hover{box-shadow:0 4px 24px rgba(26,122,110,.12)}
+.ticket.bug{border-left-color:var(--danger)}.ticket.improvement{border-left-color:var(--warning)}.ticket.idea{border-left-color:var(--success)}
+.ticket-icon{font-size:20px;margin-top:2px}
+.ticket-id{font-family:'DM Mono',monospace;font-size:10px;color:var(--text-muted);margin-bottom:3px}
+.ticket-text{font-size:14px;font-weight:500;color:var(--text);margin-bottom:5px;line-height:1.4}
+.ticket-meta{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.chip{font-size:11px;color:var(--text-muted);background:var(--cream);padding:2px 8px;border-radius:4px}
 .badge{display:inline-flex;align-items:center;padding:2px 10px;border-radius:12px;font-size:11px;font-weight:600}
 .badge-open{background:var(--danger-bg);color:var(--danger)}
 .badge-fixed{background:var(--success-bg);color:var(--success)}
 .badge-wip{background:var(--warning-bg);color:var(--warning)}
-.ticket-actions{display:flex;gap:6px;flex-direction:column;align-items:flex-end}
-.btn{padding:6px 14px;border-radius:7px;border:none;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;cursor:pointer;transition:all .2s;white-space:nowrap}
+.ticket-actions{display:flex;gap:6px;align-items:flex-start;flex-wrap:wrap;justify-content:flex-end}
+.btn{padding:5px 12px;border-radius:7px;border:none;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;cursor:pointer;transition:all .2s;white-space:nowrap}
 .btn-teal{background:var(--teal);color:#fff}.btn-teal:hover{background:var(--teal-dark)}
 .btn-outline{background:transparent;border:1px solid var(--border);color:var(--text-muted)}.btn-outline:hover{border-color:var(--teal);color:var(--teal)}
 .btn-danger{background:var(--danger-bg);color:var(--danger);border:1px solid #f5c6c2}.btn-danger:hover{background:var(--danger);color:#fff}
 .btn-gold{background:var(--gold);color:var(--teal-deep);font-weight:700}.btn-gold:hover{background:var(--gold-light)}
+.btn-sm{padding:4px 10px;font-size:11px}
 .empty{text-align:center;padding:60px 20px;color:var(--text-muted);font-size:14px}
 .empty-icon{font-size:48px;margin-bottom:12px}
-
-/* CHANGELOG */
-.version-block{background:var(--white);border-radius:var(--radius);padding:24px;box-shadow:var(--shadow);margin-bottom:20px}
-.version-hdr{display:flex;align-items:center;gap:14px;margin-bottom:16px;flex-wrap:wrap}
-.version-tag{font-family:'DM Mono',monospace;font-size:18px;font-weight:700;color:var(--teal);background:#f0faf8;padding:4px 14px;border-radius:8px}
+.version-block{background:var(--white);border-radius:var(--radius);padding:22px 24px;box-shadow:var(--shadow);margin-bottom:16px}
+.version-hdr{display:flex;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap}
+.version-tag{font-family:'DM Mono',monospace;font-size:16px;font-weight:700;color:var(--teal);background:#f0faf8;padding:3px 12px;border-radius:6px}
 .version-date{font-size:12px;color:var(--text-muted)}
 .version-count{font-size:12px;font-weight:600;color:var(--teal);background:#e0f5f2;padding:2px 10px;border-radius:10px;margin-left:auto}
-.version-item{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)}
+.version-item{display:flex;align-items:flex-start;gap:10px;padding:7px 0;border-bottom:1px solid var(--border)}
 .version-item:last-child{border-bottom:none}
-.vi-icon{font-size:14px;flex-shrink:0;margin-top:1px}
 .vi-text{font-size:13px;color:var(--text);line-height:1.4}
 .vi-page{font-size:11px;color:var(--text-muted);margin-left:6px;background:var(--cream);padding:1px 6px;border-radius:3px}
-
-/* NEW VERSION FORM */
-.new-version-form{background:var(--white);border-radius:var(--radius);padding:24px;box-shadow:var(--shadow);margin-bottom:24px;border:2px dashed var(--border)}
-.new-version-form h3{font-size:16px;font-weight:600;color:var(--teal-dark);margin-bottom:16px}
-.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
-.form-group label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);display:block;margin-bottom:5px}
-.form-group input,.form-group textarea,.form-group select{width:100%;padding:8px 12px;border:1px solid var(--border);border-radius:7px;font-family:'DM Sans',sans-serif;font-size:13px;outline:none}
-.form-group input:focus,.form-group textarea:focus{border-color:var(--teal)}
-
-/* MODAL */
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1000;align-items:center;justify-content:center}
 .modal-overlay.open{display:flex}
 .modal{background:var(--white);border-radius:16px;padding:28px;width:90%;max-width:500px;box-shadow:0 20px 60px rgba(0,0,0,.3)}
 .modal h2{font-family:'Cormorant Garamond',serif;font-size:22px;color:var(--teal-dark);margin-bottom:16px}
+.form-group{margin-bottom:14px}
+.form-group label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);display:block;margin-bottom:5px}
+.form-group input,.form-group textarea,.form-group select{width:100%;padding:8px 12px;border:1px solid var(--border);border-radius:7px;font-family:'DM Sans',sans-serif;font-size:13px;outline:none}
+.form-group input:focus,.form-group textarea:focus{border-color:var(--teal)}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .modal-footer{display:flex;gap:10px;justify-content:flex-end;margin-top:20px;padding-top:16px;border-top:1px solid var(--border)}
-
-@media(max-width:700px){
-  .stats{grid-template-columns:1fr 1fr}
-  .form-row{grid-template-columns:1fr}
-  .ticket{grid-template-columns:auto 1fr}
-  .ticket-actions{flex-direction:row;grid-column:1/-1}
-}
+.sync-bar{position:fixed;bottom:20px;right:20px;background:rgba(26,122,110,.92);color:#fff;padding:8px 16px;border-radius:10px;font-size:12px;font-family:'DM Sans',sans-serif;z-index:900;display:none;align-items:center;gap:8px}
+.loading{text-align:center;padding:40px;color:var(--text-muted)}
+@media(max-width:700px){.stats{grid-template-columns:repeat(3,1fr)}.form-row{grid-template-columns:1fr}.ticket{grid-template-columns:auto 1fr}.ticket-actions{grid-column:1/-1;flex-direction:row}}
 </style>
 </head>
 <body>
@@ -114,48 +75,52 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--text);
   <div class="page-hdr">
     <div>
       <div class="page-title">🎫 Tickets & Changelog</div>
-      <div class="page-sub">Track issues, ideas and system improvements</div>
+      <div class="page-sub">Shared across all team members — powered by Supabase</div>
     </div>
-    <button class="btn btn-gold" onclick="openVersionModal()">📦 Create Version</button>
+    <button class="btn btn-gold" onclick="openVersionModal()">📦 New Version</button>
   </div>
 
-  <!-- STATS -->
   <div class="stats">
-    <div class="stat danger"><div class="stat-val" id="st-open">0</div><div class="stat-lbl">🐛 Open Bugs</div></div>
-    <div class="stat warning"><div class="stat-val" id="st-improvements">0</div><div class="stat-lbl">⚡ Improvements</div></div>
-    <div class="stat purple"><div class="stat-val" id="st-ideas">0</div><div class="stat-lbl">💡 Ideas</div></div>
-    <div class="stat success"><div class="stat-val" id="st-fixed">0</div><div class="stat-lbl">✅ Fixed</div></div>
+    <div class="stat danger"><div class="stat-val" id="st-bugs">—</div><div class="stat-lbl">🐛 Bugs</div></div>
+    <div class="stat warning"><div class="stat-val" id="st-imp">—</div><div class="stat-lbl">⚡ Improvements</div></div>
+    <div class="stat purple"><div class="stat-val" id="st-ideas">—</div><div class="stat-lbl">💡 Ideas</div></div>
+    <div class="stat success"><div class="stat-val" id="st-fixed">—</div><div class="stat-lbl">✅ Fixed</div></div>
+    <div class="stat"><div class="stat-val" id="st-total">—</div><div class="stat-lbl">📋 Total</div></div>
   </div>
 
-  <!-- TABS -->
   <div class="tabs">
-    <button class="tab active" onclick="showTab('tickets',this)">🎫 Open Tickets</button>
+    <button class="tab active" onclick="showTab('open',this)">🔴 Open</button>
+    <button class="tab" onclick="showTab('wip',this)">🔄 In Progress</button>
     <button class="tab" onclick="showTab('all',this)">📋 All Tickets</button>
     <button class="tab" onclick="showTab('changelog',this)">📦 Changelog</button>
   </div>
 
-  <!-- TICKETS TAB -->
-  <div id="tab-tickets">
+  <div id="tab-open">
     <div class="filters">
-      <span style="font-size:12px;color:var(--text-muted);font-weight:600">Filter:</span>
-      <button class="filter-btn active" onclick="filterTickets('all',this)">All</button>
-      <button class="filter-btn" onclick="filterTickets('bug',this)">🐛 Bugs</button>
-      <button class="filter-btn" onclick="filterTickets('improvement',this)">⚡ Improvements</button>
-      <button class="filter-btn" onclick="filterTickets('idea',this)">💡 Ideas</button>
+      <span style="font-size:12px;color:var(--text-muted);font-weight:600">Type:</span>
+      <button class="filter-btn active" onclick="setFilter('all',this)">All</button>
+      <button class="filter-btn" onclick="setFilter('bug',this)">🐛 Bug</button>
+      <button class="filter-btn" onclick="setFilter('improvement',this)">⚡ Improvement</button>
+      <button class="filter-btn" onclick="setFilter('idea',this)">💡 Idea</button>
       <span style="flex:1"></span>
-      <button class="btn btn-outline" onclick="clearAllFixed()">🗑 Clear Fixed</button>
+      <button class="btn btn-outline btn-sm" onclick="loadAll()">🔄 Refresh</button>
     </div>
-    <div id="tickets-list"></div>
+    <div id="open-list"><div class="loading">Loading...</div></div>
   </div>
 
-  <!-- ALL TICKETS TAB -->
+  <div id="tab-wip" style="display:none">
+    <div id="wip-list"><div class="loading">Loading...</div></div>
+  </div>
+
   <div id="tab-all" style="display:none">
-    <div id="all-tickets-list"></div>
+    <div class="filters">
+      <button class="btn btn-outline btn-sm" onclick="exportCSV()">↓ Export CSV</button>
+    </div>
+    <div id="all-list"><div class="loading">Loading...</div></div>
   </div>
 
-  <!-- CHANGELOG TAB -->
   <div id="tab-changelog" style="display:none">
-    <div id="changelog-list"></div>
+    <div id="changelog-list"><div class="loading">Loading...</div></div>
   </div>
 </div>
 
@@ -164,214 +129,212 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--text);
   <div class="modal">
     <h2>📦 Create New Version</h2>
     <div class="form-row">
-      <div class="form-group">
-        <label>Version Number</label>
-        <input type="text" id="v-number" placeholder="e.g. v2.1" />
-      </div>
-      <div class="form-group">
-        <label>Date</label>
-        <input type="date" id="v-date" />
-      </div>
+      <div class="form-group"><label>Version</label><input type="text" id="v-number" placeholder="e.g. v2.1"></div>
+      <div class="form-group"><label>Date</label><input type="date" id="v-date"></div>
     </div>
-    <div class="form-group" style="margin-bottom:14px">
-      <label>Notes (optional)</label>
-      <textarea id="v-notes" rows="3" placeholder="What changed in this version..."></textarea>
-    </div>
-    <p style="font-size:12px;color:var(--text-muted)">All currently open tickets marked as "fixed" will be included in this version.</p>
+    <div class="form-group"><label>Notes</label><textarea id="v-notes" rows="3" placeholder="What changed..."></textarea></div>
+    <p style="font-size:12px;color:var(--text-muted);padding:10px;background:var(--cream);border-radius:6px">All tickets marked as <strong>Fixed</strong> will be included and archived.</p>
     <div class="modal-footer">
-      <button class="btn btn-outline" onclick="closeVersionModal()">Cancel</button>
+      <button class="btn btn-outline" onclick="closeModal('modal-version')">Cancel</button>
       <button class="btn btn-gold" onclick="saveVersion()">Create Version</button>
     </div>
   </div>
 </div>
 
+<div class="sync-bar" id="syncBar">⏳ Saving...</div>
+
 <script>
-let tickets = JSON.parse(localStorage.getItem('zesty_tickets') || '[]');
-let changelog = JSON.parse(localStorage.getItem('zesty_changelog') || '[]');
-let currentFilter = 'all';
+const SUPA_URL = 'https://whuytfjwdjjepayeiohj.supabase.co';
+const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndodXl0Zmp3ZGpqZXBheWVpb2hqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIyODQxMzQsImV4cCI6MjA4Nzg2MDEzNH0.pTDAqw_Cnzc9D3tJU-tU7Ch5qpapKmteiqI_ooSCufY';
 
-function saveData() {
-  localStorage.setItem('zesty_tickets', JSON.stringify(tickets));
-  localStorage.setItem('zesty_changelog', JSON.stringify(changelog));
+async function supa(table, method='GET', body=null, query='') {
+  const url = `${SUPA_URL}/rest/v1/${table}${query}`;
+  const headers = { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}`, 'Content-Type': 'application/json', 'Prefer': 'return=representation' };
+  const opts = { method, headers };
+  if (body) opts.body = JSON.stringify(body);
+  const r = await fetch(url, opts);
+  if (!r.ok) throw new Error(await r.text());
+  if (method === 'DELETE' || r.status === 204) return null;
+  return r.json();
 }
 
-function showTab(tab, btn) {
-  ['tickets','all','changelog'].forEach(t => {
-    document.getElementById('tab-'+t).style.display = t===tab ? '' : 'none';
-  });
-  document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  if (tab==='tickets') renderTickets('open');
-  else if (tab==='all') renderAllTickets();
-  else renderChangelog();
+let tickets = [], changelog = [], currentFilter = 'all', currentTab = 'open';
+const ICONS = { bug:'🐛', improvement:'⚡', idea:'💡' };
+
+async function loadAll() {
+  try {
+    tickets = await supa('tickets','GET',null,'?order=created_at.desc');
+    changelog = await supa('changelog','GET',null,'?order=date.desc');
+  } catch(e) {
+    console.error('Load error:', e);
+    tickets = []; changelog = [];
+  }
+  renderAll();
 }
 
-function filterTickets(type, btn) {
-  currentFilter = type;
-  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  renderTickets('open');
-}
-
-const TYPE_ICONS = { bug: '🐛', improvement: '⚡', idea: '💡' };
-const TYPE_LABELS = { bug: 'Bug', improvement: 'Improvement', idea: 'Idea' };
-
-function renderTickets(statusFilter) {
+function renderAll() {
   updateStats();
-  let list = tickets.filter(t => statusFilter==='open' ? t.status!=='fixed' : true);
-  if (currentFilter !== 'all') list = list.filter(t => t.type === currentFilter);
-  list.sort((a,b) => new Date(b.created) - new Date(a.created));
-
-  const container = document.getElementById('tickets-list');
-  if (!list.length) {
-    container.innerHTML = `<div class="empty"><div class="empty-icon">🎉</div>No open tickets. All clear!</div>`;
-    return;
-  }
-  container.innerHTML = list.map(t => `
-    <div class="ticket ${t.type}" id="ticket-${t.id}">
-      <div class="ticket-icon">${TYPE_ICONS[t.type]||'📋'}</div>
-      <div>
-        <div class="ticket-id">${t.id}</div>
-        <div class="ticket-text">${t.text}</div>
-        <div class="ticket-meta">
-          <span class="ticket-page">📍 ${t.page}</span>
-          <span class="ticket-date">${new Date(t.created).toLocaleDateString('en-GB')}</span>
-          ${t.version ? `<span class="ticket-version">${t.version}</span>` : ''}
-          <span class="badge badge-${t.status==='fixed'?'fixed':t.status==='wip'?'wip':'open'}">${t.status==='fixed'?'✅ Fixed':t.status==='wip'?'🔄 In Progress':'🔴 Open'}</span>
-        </div>
-      </div>
-      <div class="ticket-actions">
-        ${t.status!=='fixed' ? `
-          <button class="btn btn-teal" onclick="markFixed('${t.id}')">✅ Mark Fixed</button>
-          <button class="btn btn-outline" onclick="markWIP('${t.id}')">${t.status==='wip'?'↩ Reopen':'🔄 In Progress'}</button>
-        ` : `<button class="btn btn-outline" onclick="reopenTicket('${t.id}')">↩ Reopen</button>`}
-        <button class="btn btn-danger" onclick="deleteTicket('${t.id}')">🗑</button>
-      </div>
-    </div>`).join('');
+  renderTab(currentTab);
 }
 
-function renderAllTickets() {
-  const container = document.getElementById('all-tickets-list');
-  const list = [...tickets].sort((a,b) => new Date(b.created) - new Date(a.created));
-  if (!list.length) {
-    container.innerHTML = `<div class="empty"><div class="empty-icon">🎫</div>No tickets yet. Use the 🎫 button on any page to add one.</div>`;
-    return;
+function updateStats() {
+  const open = t => t.status !== 'fixed';
+  document.getElementById('st-bugs').textContent   = tickets.filter(t=>t.type==='bug'&&open(t)).length;
+  document.getElementById('st-imp').textContent    = tickets.filter(t=>t.type==='improvement'&&open(t)).length;
+  document.getElementById('st-ideas').textContent  = tickets.filter(t=>t.type==='idea'&&open(t)).length;
+  document.getElementById('st-fixed').textContent  = tickets.filter(t=>t.status==='fixed').length;
+  document.getElementById('st-total').textContent  = tickets.length;
+}
+
+function renderTab(tab) {
+  if (tab === 'open') {
+    let list = tickets.filter(t => t.status === 'open');
+    if (currentFilter !== 'all') list = list.filter(t => t.type === currentFilter);
+    document.getElementById('open-list').innerHTML = renderTicketList(list);
+  } else if (tab === 'wip') {
+    let list = tickets.filter(t => t.status === 'wip');
+    document.getElementById('wip-list').innerHTML = renderTicketList(list);
+  } else if (tab === 'all') {
+    document.getElementById('all-list').innerHTML = renderTicketList(tickets);
+  } else if (tab === 'changelog') {
+    renderChangelog();
   }
-  container.innerHTML = list.map(t => `
+}
+
+function renderTicketList(list) {
+  if (!list.length) return `<div class="empty"><div class="empty-icon">🎉</div>Nothing here.</div>`;
+  return list.map(t => `
     <div class="ticket ${t.type}">
-      <div class="ticket-icon">${TYPE_ICONS[t.type]||'📋'}</div>
+      <div class="ticket-icon">${ICONS[t.type]||'📋'}</div>
       <div>
         <div class="ticket-id">${t.id}</div>
         <div class="ticket-text">${t.text}</div>
         <div class="ticket-meta">
-          <span class="ticket-page">📍 ${t.page}</span>
-          <span class="ticket-date">${new Date(t.created).toLocaleDateString('en-GB')}</span>
-          <span class="badge badge-${t.status==='fixed'?'fixed':t.status==='wip'?'wip':'open'}">${t.status==='fixed'?'✅ Fixed':t.status==='wip'?'🔄 WIP':'🔴 Open'}</span>
+          <span class="chip">📍 ${t.page}</span>
+          <span class="chip">${t.created_by||'Unknown'}</span>
+          <span class="chip">${new Date(t.created_at).toLocaleDateString('en-GB')}</span>
+          <span class="badge badge-${t.status}">${t.status==='fixed'?'✅ Fixed':t.status==='wip'?'🔄 In Progress':'🔴 Open'}</span>
         </div>
       </div>
       <div class="ticket-actions">
-        ${t.status!=='fixed' ? `<button class="btn btn-teal" onclick="markFixed('${t.id}');renderAllTickets()">✅ Fixed</button>` : `<button class="btn btn-outline" onclick="reopenTicket('${t.id}');renderAllTickets()">↩ Reopen</button>`}
-        <button class="btn btn-danger" onclick="deleteTicket('${t.id}');renderAllTickets()">🗑</button>
+        ${t.status==='open'?`<button class="btn btn-outline btn-sm" onclick="updateStatus('${t.id}','wip')">🔄 Start</button>`:''}
+        ${t.status==='wip'?`<button class="btn btn-outline btn-sm" onclick="updateStatus('${t.id}','open')">↩ Reopen</button>`:''}
+        ${t.status!=='fixed'?`<button class="btn btn-teal btn-sm" onclick="updateStatus('${t.id}','fixed')">✅ Fixed</button>`:`<button class="btn btn-outline btn-sm" onclick="updateStatus('${t.id}','open')">↩ Reopen</button>`}
+        <button class="btn btn-danger btn-sm" onclick="deleteTicket('${t.id}')">🗑</button>
       </div>
     </div>`).join('');
 }
 
 function renderChangelog() {
-  const container = document.getElementById('changelog-list');
   if (!changelog.length) {
-    container.innerHTML = `<div class="empty"><div class="empty-icon">📦</div>No versions yet. Fix some tickets then click "Create Version".</div>`;
+    document.getElementById('changelog-list').innerHTML = `<div class="empty"><div class="empty-icon">📦</div>No versions yet. Fix some tickets then click "New Version".</div>`;
     return;
   }
-  container.innerHTML = [...changelog].sort((a,b) => new Date(b.date) - new Date(a.date)).map(v => `
-    <div class="version-block">
+  document.getElementById('changelog-list').innerHTML = changelog.map(v => {
+    const items = Array.isArray(v.items) ? v.items : [];
+    return `<div class="version-block">
       <div class="version-hdr">
         <span class="version-tag">${v.version}</span>
         <span class="version-date">📅 ${new Date(v.date).toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'})}</span>
-        <span class="version-count">${v.items.length} change${v.items.length!==1?'s':''}</span>
+        <span class="version-count">${items.length} change${items.length!==1?'s':''}</span>
       </div>
-      ${v.notes ? `<p style="font-size:13px;color:var(--text-muted);margin-bottom:12px;padding:10px 14px;background:var(--cream);border-radius:7px">${v.notes}</p>` : ''}
-      ${v.items.map(item => `
-        <div class="version-item">
-          <span class="vi-icon">${TYPE_ICONS[item.type]||'📋'}</span>
-          <span class="vi-text">${item.text}<span class="vi-page">${item.page}</span></span>
-        </div>`).join('')}
-    </div>`).join('');
+      ${v.notes?`<p style="font-size:13px;color:var(--text-muted);margin-bottom:12px;padding:10px;background:var(--cream);border-radius:6px">${v.notes}</p>`:''}
+      ${items.map(i=>`<div class="version-item"><span style="font-size:14px;flex-shrink:0">${ICONS[i.type]||'📋'}</span><span class="vi-text">${i.text}<span class="vi-page">${i.page}</span></span></div>`).join('')}
+    </div>`;
+  }).join('');
 }
 
-function updateStats() {
-  const open = tickets.filter(t=>t.type==='bug'&&t.status!=='fixed').length;
-  const imp = tickets.filter(t=>t.type==='improvement'&&t.status!=='fixed').length;
-  const ideas = tickets.filter(t=>t.type==='idea'&&t.status!=='fixed').length;
-  const fixed = tickets.filter(t=>t.status==='fixed').length;
-  document.getElementById('st-open').textContent = open;
-  document.getElementById('st-improvements').textContent = imp;
-  document.getElementById('st-ideas').textContent = ideas;
-  document.getElementById('st-fixed').textContent = fixed;
+function showTab(tab, btn) {
+  currentTab = tab;
+  ['open','wip','all','changelog'].forEach(t => document.getElementById('tab-'+t).style.display = t===tab?'':'none');
+  document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderTab(tab);
 }
 
-function markFixed(id) {
-  tickets = tickets.map(t => t.id===id ? {...t, status:'fixed', fixedAt: new Date().toISOString()} : t);
-  saveData(); renderTickets('open');
+function setFilter(f, btn) {
+  currentFilter = f;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderTab('open');
 }
-function markWIP(id) {
-  tickets = tickets.map(t => t.id===id ? {...t, status: t.status==='wip'?'open':'wip'} : t);
-  saveData(); renderTickets('open');
+
+async function updateStatus(id, status) {
+  showSync('Saving...');
+  try {
+    const body = { status };
+    if (status === 'fixed') body.fixed_at = new Date().toISOString();
+    await supa('tickets','PATCH',body,`?id=eq.${id}`);
+    await loadAll();
+    showSync('Saved ✓', true);
+  } catch(e) { showSync('Error: '+e.message); }
 }
-function reopenTicket(id) {
-  tickets = tickets.map(t => t.id===id ? {...t, status:'open', fixedAt:null} : t);
-  saveData(); renderTickets('open');
-}
-function deleteTicket(id) {
+
+async function deleteTicket(id) {
   if (!confirm('Delete this ticket?')) return;
-  tickets = tickets.filter(t => t.id!==id);
-  saveData(); renderTickets('open');
-}
-function clearAllFixed() {
-  if (!confirm('Remove all fixed tickets from the list?')) return;
-  tickets = tickets.filter(t => t.status!=='fixed');
-  saveData(); renderTickets('open');
+  showSync('Deleting...');
+  try {
+    await supa('tickets','DELETE',null,`?id=eq.${id}`);
+    await loadAll();
+    showSync('Deleted ✓', true);
+  } catch(e) { showSync('Error: '+e.message); }
 }
 
 function openVersionModal() {
   const fixed = tickets.filter(t=>t.status==='fixed');
-  if (!fixed.length) { alert('No fixed tickets to include in a version. Mark some tickets as fixed first.'); return; }
+  if (!fixed.length) { alert('No fixed tickets to include. Mark some as fixed first.'); return; }
   document.getElementById('v-number').value = '';
   document.getElementById('v-date').value = new Date().toISOString().slice(0,10);
   document.getElementById('v-notes').value = '';
   document.getElementById('modal-version').classList.add('open');
 }
-function closeVersionModal() {
-  document.getElementById('modal-version').classList.remove('open');
-}
-function saveVersion() {
+
+async function saveVersion() {
   const ver = document.getElementById('v-number').value.trim();
   if (!ver) { alert('Enter a version number'); return; }
   const fixed = tickets.filter(t=>t.status==='fixed');
-  const version = {
-    version: ver,
-    date: document.getElementById('v-date').value,
-    notes: document.getElementById('v-notes').value.trim(),
-    items: fixed.map(t => ({type:t.type, text:t.text, page:t.page, id:t.id}))
-  };
-  changelog.unshift(version);
-  // Update tickets with version number, mark as archived
-  tickets = tickets.map(t => t.status==='fixed' ? {...t, status:'archived', versionTag:ver} : t);
-  // Remove archived from main list
-  tickets = tickets.filter(t => t.status !== 'archived');
-  saveData();
-  closeVersionModal();
-  // Switch to changelog tab
-  document.querySelectorAll('.tab')[2].click();
+  showSync('Creating version...');
+  try {
+    // Save changelog entry
+    await supa('changelog','POST',{
+      id: 'CL-' + Date.now(),
+      version: ver,
+      date: document.getElementById('v-date').value,
+      notes: document.getElementById('v-notes').value.trim(),
+      items: fixed.map(t=>({type:t.type,text:t.text,page:t.page,id:t.id}))
+    });
+    // Archive all fixed tickets - delete them
+    for (const t of fixed) {
+      await supa('tickets','DELETE',null,`?id=eq.${t.id}`);
+    }
+    await loadAll();
+    closeModal('modal-version');
+    showTab('changelog', document.querySelectorAll('.tab')[3]);
+    showSync('Version created ✓', true);
+  } catch(e) { showSync('Error: '+e.message); }
 }
 
-// Close modal on overlay click
-document.getElementById('modal-version').addEventListener('click', function(e) {
-  if (e.target===this) closeVersionModal();
-});
+function exportCSV() {
+  const rows = [['ID','Type','Text','Page','Status','Created By','Date']];
+  tickets.forEach(t => rows.push([t.id, t.type, `"${t.text}"`, t.page, t.status, t.created_by||'', new Date(t.created_at).toLocaleDateString('en-GB')]));
+  const csv = rows.map(r=>r.join(',')).join('\n');
+  const blob = new Blob([csv],{type:'text/csv'});
+  const a = document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='tickets.csv'; a.click();
+}
 
-// Init
-renderTickets('open');
-updateStats();
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+document.getElementById('modal-version').addEventListener('click',function(e){if(e.target===this)closeModal('modal-version');});
+
+function showSync(msg, success=false) {
+  const bar = document.getElementById('syncBar');
+  bar.textContent = msg;
+  bar.style.display = 'flex';
+  bar.style.background = success ? 'rgba(39,174,96,.9)' : 'rgba(26,122,110,.92)';
+  if (success) setTimeout(()=>bar.style.display='none', 2000);
+}
+
+// Load on start
+loadAll();
 </script>
 <script src="erp-nav.js"></script>
 </body>
