@@ -279,7 +279,7 @@ tr:hover td{background:#f7fbfa}
         auth:{
           clientId:'0938023f-cbbf-45f1-a71d-b18c95745ea6',
           authority:'https://login.microsoftonline.com/9c30b606-6648-4777-a623-64867e43e54f',
-          redirectUri:'https://kissamosrealestate.com/wp-content/erp/index.html'
+          redirectUri:window.location.href.split('#')[0].split('?')[0]
         },
         cache:{cacheLocation:'sessionStorage',storeAuthStateInCookie:false}
       };
@@ -383,7 +383,7 @@ tr:hover td{background:#f7fbfa}
         auth:{
           clientId:'0938023f-cbbf-45f1-a71d-b18c95745ea6',
           authority:'https://login.microsoftonline.com/9c30b606-6648-4777-a623-64867e43e54f',
-          redirectUri:'https://kissamosrealestate.com/wp-content/erp/index.html'
+          redirectUri:window.location.href.split('#')[0].split('?')[0]
         },
         cache:{cacheLocation:'sessionStorage',storeAuthStateInCookie:false}
       };

@@ -107,6 +107,56 @@ body{font-family:'DM Sans',sans-serif;background:var(--teal-deep);color:var(--wh
 @media(max-width:900px){.kpi-strip{grid-template-columns:repeat(3,1fr)}.dashboard-grid,.dashboard-grid-3{grid-template-columns:1fr}.quick-links{grid-template-columns:repeat(2,1fr)}.layout{padding:0 16px 60px}}
 @media(max-width:500px){.kpi-strip{grid-template-columns:repeat(2,1fr)}.quick-links{grid-template-columns:1fr}}
 </style>
+
+<!-- Azure MSAL - handles redirect from login -->
+<script src="https://unpkg.com/@azure/msal-browser@2.38.3/lib/msal-browser.min.js"></script>
+<script>
+(function(){
+  const _msalConfig = {
+    auth: {
+      clientId: '0938023f-cbbf-45f1-a71d-b18c95745ea6',
+      authority: 'https://login.microsoftonline.com/9c30b606-6648-4777-a623-64867e43e54f',
+      redirectUri: window.location.href.split('#')[0].split('?')[0]
+    },
+    cache: { cacheLocation: 'sessionStorage', storeAuthStateInCookie: false }
+  };
+  const _msal = new msal.PublicClientApplication(_msalConfig);
+
+  (async function() {
+    await _msal.initialize();
+    try {
+      // Handle the redirect result - this consumes the #code from the URL
+      const result = await _msal.handleRedirectPromise();
+      if (result && result.account) {
+        // Store the account - other pages will pick it up from sessionStorage
+        _msal.setActiveAccount(result.account);
+        // Check if we should go back to another page
+        const returnUrl = sessionStorage.getItem('msal_return_url');
+        if (returnUrl && !returnUrl.includes('index.html')) {
+          sessionStorage.removeItem('msal_return_url');
+          window.location.href = returnUrl;
+          return;
+        }
+      }
+    } catch(e) { console.warn('MSAL redirect handler:', e); }
+
+    // Check if logged in
+    const accounts = _msal.getAllAccounts();
+    if (accounts.length === 0) {
+      // Not logged in - show login button or redirect
+      const loginBtn = document.getElementById('loginBtn');
+      if (loginBtn) loginBtn.style.display = 'flex';
+    } else {
+      // Show username in sidebar
+      window._erpUserName = accounts[0].name || accounts[0].username;
+    }
+    window._azureLogout = function() {
+      sessionStorage.removeItem('msal_return_url');
+      _msal.logoutRedirect({ account: _msal.getAllAccounts()[0] });
+    };
+  })();
+})();
+</script>
 </head>
 <body>
 <div class="bg-canvas"><div class="bg-grid"></div><div class="bg-orb bg-orb-1"></div><div class="bg-orb bg-orb-2"></div></div>
