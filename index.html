@@ -108,8 +108,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--teal-deep);color:var(--wh
 @media(max-width:500px){.kpi-strip{grid-template-columns:repeat(2,1fr)}.quick-links{grid-template-columns:1fr}}
 </style>
 
-<!-- Azure MSAL - handles redirect from login -->
-<script src="https://unpkg.com/@azure/msal-browser@2.38.3/lib/msal-browser.min.js"></script>
 <script>
 (function(){
   const _msalConfig = {
@@ -153,6 +151,46 @@ body{font-family:'DM Sans',sans-serif;background:var(--teal-deep);color:var(--wh
     window._azureLogout = function() {
       sessionStorage.removeItem('msal_return_url');
       _msal.logoutRedirect({ account: _msal.getAllAccounts()[0] });
+    };
+  })();
+})();
+</script>
+<script src="https://unpkg.com/@azure/msal-browser@2.38.3/lib/msal-browser.min.js"></script>
+<script>
+(function(){
+  const _msalConfig = {
+    auth: {
+      clientId: '0938023f-cbbf-45f1-a71d-b18c95745ea6',
+      authority: 'https://login.microsoftonline.com/9c30b606-6648-4777-a623-64867e43e54f',
+      redirectUri: 'https://kissamosrealestate.com/wp-content/erp/index.html'
+    },
+    cache: { cacheLocation: 'sessionStorage', storeAuthStateInCookie: false }
+  };
+  const _msal = new msal.PublicClientApplication(_msalConfig);
+  (async function() {
+    await _msal.initialize();
+    try {
+      const result = await _msal.handleRedirectPromise();
+      if (result && result.account) {
+        _msal.setActiveAccount(result.account);
+        window._erpUserName = result.account.name || result.account.username;
+        // Forward to the page user originally wanted
+        const returnUrl = sessionStorage.getItem('msal_return_url');
+        if (returnUrl && !returnUrl.includes('index.html')) {
+          sessionStorage.removeItem('msal_return_url');
+          window.location.replace(returnUrl);
+          return;
+        }
+      }
+    } catch(e) { console.warn('MSAL:', e); }
+    const accounts = _msal.getAllAccounts();
+    if (accounts.length > 0) {
+      window._erpUserName = accounts[0].name || accounts[0].username;
+    }
+    window._azureLogout = function() {
+      sessionStorage.removeItem('msal_return_url');
+      const accts = _msal.getAllAccounts();
+      if (accts.length > 0) _msal.logoutRedirect({ account: accts[0] });
     };
   })();
 })();
