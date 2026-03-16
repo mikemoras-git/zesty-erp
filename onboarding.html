@@ -634,7 +634,6 @@ main{max-width:1400px;margin:0 auto;padding:24px 20px 80px}
 </div>
 
 <div class="toast" id="toast"></div>
-<script src="erp-nav.js"></script>
 </body>
 </html>
 <script>
@@ -1446,8 +1445,7 @@ function printItems(lang){
     });
     html+=`</table>`;
   });
-  html+=`<script src="erp-nav.js"></script>
-</body></html>`;
+  html+=`</body></html>`;
   const w=window.open('','_blank');w.document.write(html);w.document.close();w.print();
 }
 
@@ -1468,8 +1466,7 @@ function printSeasonCheck(){
     const status=sc.status==='ok'?'✓ OK':sc.status==='attention'?'⚠ Attention':'—';
     html+=`<tr><td>${j.job}<br><span style="color:#6b7e7b">${j.jobEn}</span></td><td>${status}</td><td>${sc.comment||''}</td></tr>`;
   });
-  html+=`</table><script src="erp-nav.js"></script>
-</body></html>`;
+  html+=`</table></body></html>`;
   const w=window.open('','_blank');w.document.write(html);w.document.close();w.print();
 }
 
@@ -1538,3 +1535,4 @@ function showDbStatus(online){
 
 init().catch(console.error);
 </script>
+<script src="erp-nav.js"></script>

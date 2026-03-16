@@ -1917,8 +1917,7 @@ function printSchedule() {
   });
 
   const w = window.open('', '_blank');
-  w.document.write(`<html><head><title>Cleaning Schedule ${monthName}</title><style>${buildPrintStyles()}</style></head><body>${printContent || '<p style="padding:40px;font-family:Arial">No jobs found for this period.</p>'}<script src="erp-nav.js"></script>
-</body></html>`);
+  w.document.write(`<html><head><title>Cleaning Schedule ${monthName}</title><style>${buildPrintStyles()}</style></head><body>${printContent || '<p style="padding:40px;font-family:Arial">No jobs found for this period.</p>'}</body></html>`);
   w.document.close();
   setTimeout(() => w.print(), 600);
 }
@@ -1990,8 +1989,7 @@ function printAllJobs() {
       </div>
       ${rows || '<p style="padding:20px;color:#999">No jobs found.</p>'}
     </div>
-  <script src="erp-nav.js"></script>
-</body></html>`);
+  </body></html>`);
   w.document.close();
   setTimeout(() => w.print(), 600);
 }
