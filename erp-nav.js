@@ -18,6 +18,7 @@
     { url: 'laundry.html',         icon: '👔', label: 'Laundry ERP' },
     { url: 'onboarding.html',      icon: '📋', label: 'Onboarding' },
     { url: 'settings.html',        icon: '⚙️', label: 'Settings' },
+    { url: 'tickets.html',         icon: '🎫', label: 'Tickets' },
   ];
 
   const MODULE_SECTIONS = {
@@ -110,12 +111,8 @@
     /* Push ALL page content right by sidebar width */
     body { margin-left:210px !important; }
 
-    /* Fix existing sticky headers on modules that have their own */
-    body.zs-has-own-header > header {
-      left: 210px !important;
-      right: 0 !important;
-      width: auto !important;
-    }
+    /* Hide all old built-in page headers - sidebar replaces them */
+    header { display: none !important; }
 
     /* Mobile */
     @media (max-width:900px) {
@@ -162,10 +159,7 @@
     style.textContent = CSS;
     document.head.appendChild(style);
 
-    // If this page has its own full-width sticky header, mark body
-    if (PAGES_WITH_OWN_HEADER.includes(cur)) {
-      document.body.classList.add('zs-has-own-header');
-    }
+    // Old headers are now hidden globally via CSS
 
     // Create overlay
     const overlay = document.createElement('div');
@@ -186,6 +180,29 @@
     burger.setAttribute('aria-label', 'Open menu');
     burger.addEventListener('click', toggleSidebar);
     document.body.prepend(burger);
+
+    // Add ticket button and modal
+    document.body.insertAdjacentHTML('beforeend', `
+  <!-- TICKET BUTTON -->
+  <button id="zesty-ticket-btn" title="Report issue / idea" onclick="zsOpenTicket()">🎫</button>
+  <!-- TICKET MODAL -->
+  <div id="zesty-ticket-modal-overlay">
+    <div id="zesty-ticket-modal">
+      <h2>📝 Feedback</h2>
+      <div class="tm-sub" id="tm-location"></div>
+      <div class="tm-type-row">
+        <button class="tm-type-btn bug" onclick="zsSelectType('bug',this)">🐛 Bug</button>
+        <button class="tm-type-btn" onclick="zsSelectType('improvement',this)">⚡ Improvement</button>
+        <button class="tm-type-btn idea" onclick="zsSelectType('idea',this)">💡 Idea</button>
+      </div>
+      <textarea id="tm-text" placeholder="Describe the issue or idea..."></textarea>
+      <div class="tm-footer">
+        <button class="tm-btn cancel" onclick="zsCloseTicket()">Cancel</button>
+        <button class="tm-btn submit" onclick="zsSubmitTicket()">Submit</button>
+      </div>
+    </div>
+  </div>
+`);
 
     // Watch for Azure badge and move name to sidebar footer
     const obs = new MutationObserver(() => {
@@ -210,23 +227,37 @@
     });
     obs.observe(document.body, { childList: true, subtree: true });
 
-    // Mirror sync dot state
-    const syncObs = new MutationObserver(() => {
+    // Mirror sync dot + user badge
+    let _syncMirrorActive = false;
+    function _mirrorSyncDot() {
+      if (_syncMirrorActive) return;
       const dot = document.getElementById('syncDot');
       const zsDot = document.getElementById('zsDot');
       const zsSync = document.getElementById('zsSync');
-      if (dot && zsDot) {
-        const mirror = () => {
-          if (dot.classList.contains('error')) { zsDot.style.background='#e74c3c'; if(zsSync) zsSync.textContent='Error'; }
-          else if (dot.classList.contains('syncing')) { zsDot.style.background='#c9a84c'; if(zsSync) zsSync.textContent='Saving...'; }
-          else { zsDot.style.background='#27ae60'; if(zsSync) zsSync.textContent='Connected'; }
-        };
-        mirror();
-        new MutationObserver(mirror).observe(dot, { attributes: true });
-        syncObs.disconnect();
+      if (!dot || !zsDot) return;
+      _syncMirrorActive = true;
+      const mirror = () => {
+        const cls = dot.className || '';
+        if (cls.includes('error')) { zsDot.style.background='#e74c3c'; if(zsSync) zsSync.textContent='Error'; }
+        else if (cls.includes('syncing')) { zsDot.style.background='#c9a84c'; if(zsSync) zsSync.textContent='Saving...'; }
+        else { zsDot.style.background='#27ae60'; if(zsSync) zsSync.textContent='Connected'; }
+      };
+      mirror();
+      new MutationObserver(mirror).observe(dot, { attributes: true, attributeFilter: ['class','title'] });
+    }
+    // Check periodically for syncDot (laundry creates it late)
+    const _syncInterval = setInterval(() => {
+      _mirrorSyncDot();
+      // Also update user badge if name becomes available
+      const zsUser = document.getElementById('zsUser');
+      if (zsUser && window._erpUserName && zsUser.textContent.includes('Loading')) {
+        zsUser.innerHTML = '<span>👤 ' + window._erpUserName + '</span>' +
+          '<button onclick="window._azureLogout&&window._azureLogout()" style="background:transparent;border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.5);font-size:10px;padding:2px 7px;border-radius:4px;cursor:pointer;font-family:DM Sans,sans-serif;margin-left:4px">Sign out</button>';
       }
-    });
-    syncObs.observe(document.body, { childList: true, subtree: true });
+      if (_syncMirrorActive && zsUser && !zsUser.textContent.includes('Loading')) {
+        clearInterval(_syncInterval);
+      }
+    }, 500);
   }
 
   function toggleSidebar() {
@@ -238,7 +269,55 @@
     document.getElementById('zesty-overlay').classList.remove('open');
   }
 
-  if (document.readyState === 'loading') {
+
+  // ── TICKET SYSTEM ──────────────────────────────────────
+  let _zsTicketType = 'bug';
+  function zsOpenTicket() {
+    const page = window.location.pathname.split('/').pop() || 'index.html';
+    document.getElementById('tm-location').textContent = '📍 ' + page;
+    document.getElementById('tm-text').value = '';
+    _zsTicketType = 'bug';
+    document.querySelectorAll('.tm-type-btn').forEach(b => b.classList.remove('selected'));
+    document.querySelector('.tm-type-btn.bug').classList.add('selected');
+    document.getElementById('zesty-ticket-modal-overlay').classList.add('open');
+    setTimeout(() => document.getElementById('tm-text').focus(), 100);
+  }
+  function zsCloseTicket() {
+    document.getElementById('zesty-ticket-modal-overlay').classList.remove('open');
+  }
+  function zsSelectType(type, btn) {
+    _zsTicketType = type;
+    document.querySelectorAll('.tm-type-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+  }
+  function zsSubmitTicket() {
+    const text = document.getElementById('tm-text').value.trim();
+    if (!text) { document.getElementById('tm-text').style.borderColor='#e74c3c'; return; }
+    const ticket = {
+      id: 'TK-' + Date.now(),
+      type: _zsTicketType,
+      page: window.location.pathname.split('/').pop() || 'index.html',
+      text,
+      status: 'open',
+      created: new Date().toISOString(),
+      version: localStorage.getItem('zesty_erp_version') || '1.0'
+    };
+    const tickets = JSON.parse(localStorage.getItem('zesty_tickets') || '[]');
+    tickets.unshift(ticket);
+    localStorage.setItem('zesty_tickets', JSON.stringify(tickets));
+    zsCloseTicket();
+    // Show confirmation
+    const btn = document.getElementById('zesty-ticket-btn');
+    btn.textContent = '✓';
+    btn.style.background = '#27ae60';
+    setTimeout(() => { btn.textContent = '🎫'; btn.style.background = '#c9a84c'; }, 2000);
+  }
+  // Close on overlay click
+  document.getElementById('zesty-ticket-modal-overlay').addEventListener('click', function(e) {
+    if (e.target === this) zsCloseTicket();
+  });
+
+    if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);
   } else {
     init();

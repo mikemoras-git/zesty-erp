@@ -3,699 +3,343 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Zesty Rentals — Operations Hub</title>
+<title>Zesty ERP — Operations Hub</title>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400&display=swap" rel="stylesheet">
 <style>
 :root {
-  --teal: #1a7a6e;
-  --teal-light: #23a090;
-  --teal-dark: #115950;
-  --teal-deep: #0a3d36;
-  --gold: #c9a84c;
-  --gold-light: #e8c97a;
-  --gold-dim: #a07a2a;
-  --cream: #f8f5f0;
-  --cream-dark: #ede9e2;
-  --white: #ffffff;
-  --text: #1e2a28;
-  --text-muted: #6b7e7b;
-  --border: #d4e0de;
+  --teal:#1a7a6e;--teal-light:#23a090;--teal-dark:#115950;--teal-deep:#0a3d36;
+  --gold:#c9a84c;--gold-light:#e8c97a;--gold-dim:#a07a2a;
+  --cream:#f8f5f0;--cream-dark:#ede9e2;--white:#fff;
+  --text:#1e2a28;--text-muted:#6b7e7b;--border:#d4e0de;
+  --danger:#c0392b;--success:#27ae60;--warning:#e67e22;
+  --shadow:0 2px 16px rgba(26,122,110,.1);--radius:14px;
 }
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:var(--teal-deep);color:var(--white);min-height:100vh;overflow-x:hidden}
 
-* { box-sizing: border-box; margin: 0; padding: 0; }
+/* Background */
+.bg-canvas{position:fixed;inset:0;z-index:0;overflow:hidden}
+.bg-canvas::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 10% 0%,rgba(26,122,110,.45) 0%,transparent 60%),radial-gradient(ellipse 60% 50% at 90% 100%,rgba(201,168,76,.15) 0%,transparent 55%)}
+.bg-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);background-size:60px 60px}
+.bg-orb{position:absolute;border-radius:50%;filter:blur(80px);opacity:.15;animation:drift 18s ease-in-out infinite}
+.bg-orb-1{width:500px;height:500px;background:var(--teal);top:-100px;left:-100px}
+.bg-orb-2{width:350px;height:350px;background:var(--gold);bottom:-50px;right:100px;animation-delay:-6s}
+@keyframes drift{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(30px,-20px) scale(1.05)}66%{transform:translate(-20px,30px) scale(.95)}}
 
-body {
-  font-family: 'DM Sans', sans-serif;
-  background: var(--teal-deep);
-  color: var(--white);
-  min-height: 100vh;
-  overflow-x: hidden;
-}
+/* Layout */
+.layout{position:relative;z-index:1;padding:0 32px 60px;max-width:1200px;margin:0 auto}
 
-/* ── BACKGROUND ── */
-.bg-canvas {
-  position: fixed; inset: 0; z-index: 0;
-  background: var(--teal-deep);
-  overflow: hidden;
-}
-.bg-canvas::before {
-  content: '';
-  position: absolute; inset: 0;
-  background:
-    radial-gradient(ellipse 80% 60% at 10% 0%, rgba(26,122,110,0.45) 0%, transparent 60%),
-    radial-gradient(ellipse 60% 50% at 90% 100%, rgba(201,168,76,0.15) 0%, transparent 55%),
-    radial-gradient(ellipse 40% 40% at 50% 50%, rgba(10,61,54,0.8) 0%, transparent 70%);
-}
-.bg-grid {
-  position: absolute; inset: 0;
-  background-image:
-    linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
-  background-size: 60px 60px;
-}
-.bg-orb {
-  position: absolute; border-radius: 50%;
-  filter: blur(80px); opacity: 0.2; animation: drift 18s ease-in-out infinite;
-}
-.bg-orb-1 { width: 500px; height: 500px; background: var(--teal); top: -100px; left: -100px; animation-delay: 0s; }
-.bg-orb-2 { width: 350px; height: 350px; background: var(--gold); bottom: -50px; right: 100px; animation-delay: -6s; }
-.bg-orb-3 { width: 280px; height: 280px; background: var(--teal-light); top: 50%; right: -80px; animation-delay: -12s; }
-@keyframes drift {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  33% { transform: translate(30px, -20px) scale(1.05); }
-  66% { transform: translate(-20px, 30px) scale(0.95); }
-}
+/* Header */
+.page-header{padding:28px 0 24px;border-bottom:1px solid rgba(255,255,255,.08);margin-bottom:32px;display:flex;align-items:flex-start;justify-content:space-between}
+.brand-name{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:300;color:#fff}
+.brand-name strong{font-weight:600;color:var(--gold-light)}
+.brand-tagline{font-size:11px;text-transform:uppercase;letter-spacing:3px;color:rgba(255,255,255,.35);margin-top:4px}
+.header-right{display:flex;align-items:flex-end;flex-direction:column;gap:6px}
+.live-clock{font-family:'DM Mono',monospace;font-size:20px;color:var(--gold-light)}
+.live-date{font-size:12px;color:rgba(255,255,255,.4)}
 
-/* ── LAYOUT ── */
-.layout {
-  position: relative; z-index: 1;
-  min-height: 100vh;
-  display: grid;
-  grid-template-rows: auto 1fr auto;
-  padding: 0 40px;
-  max-width: 1400px;
-  margin: 0 auto;
-}
+/* Section label */
+.section-lbl{font-size:10px;text-transform:uppercase;letter-spacing:3px;color:rgba(255,255,255,.3);margin-bottom:14px;font-weight:500}
 
-/* ── HEADER ── */
-header {
-  padding: 36px 0 0;
-  display: flex; align-items: flex-start; justify-content: space-between;
-  border-bottom: 1px solid rgba(255,255,255,0.08);
-  padding-bottom: 28px;
-  margin-bottom: 48px;
-}
-.brand {
-  display: flex; flex-direction: column; gap: 2px;
-}
-.brand-name {
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 32px; font-weight: 300; letter-spacing: 1px;
-  color: white;
-  line-height: 1;
-}
-.brand-name strong { font-weight: 600; color: var(--gold-light); }
-.brand-tagline {
-  font-size: 11px; text-transform: uppercase; letter-spacing: 3px;
-  color: rgba(255,255,255,0.4); font-weight: 300;
-}
-.header-meta {
-  display: flex; flex-direction: column; align-items: flex-end; gap: 6px;
-}
-.live-clock {
-  font-family: 'DM Mono', monospace;
-  font-size: 22px; color: var(--gold-light); font-weight: 400;
-}
-.live-date {
-  font-size: 12px; color: rgba(255,255,255,0.45); letter-spacing: 0.5px;
-}
+/* KPI STRIP */
+.kpi-strip{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:32px}
+.kpi{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.09);border-radius:12px;padding:16px 18px;backdrop-filter:blur(10px);transition:all .2s;cursor:default}
+.kpi:hover{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.18)}
+.kpi-val{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:500;color:#fff;line-height:1}
+.kpi-val.gold{color:var(--gold-light)}
+.kpi-val.danger{color:#ff7b7b}
+.kpi-val.success{color:#5dde9a}
+.kpi-lbl{font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:rgba(255,255,255,.35);margin-top:5px}
 
-/* ── HERO ROW ── */
-.hero-row {
-  display: flex; align-items: center; justify-content: space-between;
-  margin-bottom: 52px; gap: 40px;
-}
-.hero-greeting {
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 48px; font-weight: 300; line-height: 1.1;
-  color: white;
-}
-.hero-greeting em { font-style: italic; color: var(--gold-light); }
-.hero-sub {
-  font-size: 14px; color: rgba(255,255,255,0.5); margin-top: 8px; font-weight: 300;
-}
-.quick-stats {
-  display: flex; gap: 1px; background: rgba(255,255,255,0.06); border-radius: 14px; overflow: hidden;
-  border: 1px solid rgba(255,255,255,0.08);
-  flex-shrink: 0;
-}
-.qs-item {
-  padding: 18px 28px; text-align: center; background: rgba(255,255,255,0.03);
-  transition: background 0.2s;
-}
-.qs-item:hover { background: rgba(255,255,255,0.07); }
-.qs-val {
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 30px; font-weight: 500; color: white; line-height: 1;
-}
-.qs-val.gold { color: var(--gold-light); }
-.qs-lbl { font-size: 10px; text-transform: uppercase; letter-spacing: 1.5px; color: rgba(255,255,255,0.4); margin-top: 4px; }
+/* GRID */
+.dashboard-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px}
+.dashboard-grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;margin-bottom:20px}
+.card{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.09);border-radius:var(--radius);padding:22px 24px;backdrop-filter:blur(10px)}
+.card-title{font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:500;color:#fff;margin-bottom:4px;display:flex;align-items:center;gap:8px}
+.card-sub{font-size:11px;color:rgba(255,255,255,.4);margin-bottom:16px}
 
-/* ── MODULES GRID ── */
-.section-label {
-  font-size: 10px; text-transform: uppercase; letter-spacing: 3px;
-  color: rgba(255,255,255,0.35); margin-bottom: 20px; font-weight: 400;
-}
-.modules-grid {
-  display: grid;
-  grid-template-columns: repeat(12, 1fr);
-  grid-template-rows: auto auto;
-  gap: 16px;
-  margin-bottom: 20px;
-}
+/* Activity strip */
+.activity-strip{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:14px 20px;margin-bottom:28px;display:flex;align-items:center;gap:16px;overflow:hidden}
+.activity-dot{width:6px;height:6px;border-radius:50%;background:var(--teal-light);flex-shrink:0}
+.activity-item{display:flex;align-items:center;gap:8px;font-size:12px;color:rgba(255,255,255,.5);white-space:nowrap}
+.activity-item strong{color:rgba(255,255,255,.8)}
 
-/* ── MODULE CARDS ── */
-.module-card {
-  position: relative; border-radius: 16px; overflow: hidden;
-  cursor: pointer; text-decoration: none; color: inherit;
-  border: 1px solid rgba(255,255,255,0.08);
-  transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.3s;
-  display: flex; flex-direction: column; justify-content: flex-end;
-  padding: 24px;
-  min-height: 180px;
-  background: rgba(255,255,255,0.04);
-  backdrop-filter: blur(10px);
-}
-.module-card::before {
-  content: ''; position: absolute; inset: 0;
-  background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, transparent 60%);
-  pointer-events: none;
-}
-.module-card:hover {
-  transform: translateY(-5px) scale(1.01);
-  box-shadow: 0 24px 48px rgba(0,0,0,0.4);
-  border-color: rgba(255,255,255,0.16);
-}
-.module-card:hover .card-arrow { opacity: 1; transform: translate(3px,-3px); }
+/* BAR CHART */
+.bar-chart{display:flex;flex-direction:column;gap:8px}
+.bar-row{display:flex;align-items:center;gap:10px}
+.bar-label{font-size:11px;color:rgba(255,255,255,.5);width:100px;flex-shrink:0;text-overflow:ellipsis;overflow:hidden;white-space:nowrap}
+.bar-track{flex:1;height:8px;background:rgba(255,255,255,.08);border-radius:4px;overflow:hidden}
+.bar-fill{height:100%;border-radius:4px;transition:width .8s cubic-bezier(.4,0,.2,1)}
+.bar-val{font-size:11px;color:rgba(255,255,255,.5);width:50px;text-align:right;flex-shrink:0}
 
-/* Colour variants */
-.card-teal { background: linear-gradient(135deg, rgba(26,122,110,0.5), rgba(17,89,80,0.3)); }
-.card-gold { background: linear-gradient(135deg, rgba(201,168,76,0.35), rgba(160,122,42,0.2)); }
-.card-slate { background: linear-gradient(135deg, rgba(44,62,80,0.6), rgba(22,31,40,0.4)); }
-.card-purple { background: linear-gradient(135deg, rgba(142,68,173,0.35), rgba(90,40,110,0.2)); }
-.card-emerald { background: linear-gradient(135deg, rgba(35,160,144,0.4), rgba(20,100,90,0.25)); }
-.card-amber { background: linear-gradient(135deg, rgba(230,126,34,0.35), rgba(160,80,20,0.2)); }
+/* DONUT CHART */
+.donut-wrap{display:flex;align-items:center;gap:20px}
+.donut-svg{flex-shrink:0}
+.donut-legend{display:flex;flex-direction:column;gap:8px}
+.legend-item{display:flex;align-items:center;gap:8px;font-size:12px;color:rgba(255,255,255,.6)}
+.legend-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
 
-/* Span */
-.span-4 { grid-column: span 4; }
-.span-3 { grid-column: span 3; }
-.span-5 { grid-column: span 5; }
-.span-7 { grid-column: span 7; }
-.span-6 { grid-column: span 6; }
+/* JOB STATUS TABLE */
+.mini-table{width:100%;border-collapse:collapse}
+.mini-table th{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,.3);font-weight:600;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.08);text-align:left}
+.mini-table td{font-size:12px;color:rgba(255,255,255,.65);padding:8px 0;border-bottom:1px solid rgba(255,255,255,.05)}
+.mini-table td:last-child{text-align:right}
+.status-dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:6px}
 
-.card-icon {
-  font-size: 36px; position: absolute; top: 22px; left: 22px;
-  filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
-  transition: transform 0.3s;
-}
-.module-card:hover .card-icon { transform: scale(1.15) rotate(-5deg); }
+/* QUICK LINKS */
+.quick-links{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:32px}
+.quick-link{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:16px;text-decoration:none;color:#fff;display:flex;align-items:center;gap:12px;transition:all .2s}
+.quick-link:hover{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.18);transform:translateY(-2px)}
+.ql-icon{font-size:22px;width:40px;height:40px;background:rgba(255,255,255,.08);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.ql-label{font-size:12px;font-weight:500}
+.ql-count{font-size:11px;color:rgba(255,255,255,.4);margin-top:2px}
 
-.card-badge {
-  position: absolute; top: 18px; right: 18px;
-  background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.15);
-  padding: 3px 10px; border-radius: 20px;
-  font-size: 10px; font-weight: 500; letter-spacing: 0.5px; color: rgba(255,255,255,0.7);
-}
-.card-badge.new-badge { background: rgba(201,168,76,0.25); border-color: rgba(201,168,76,0.4); color: var(--gold-light); }
+/* TICKETS WIDGET */
+.ticket-mini{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.06)}
+.ticket-mini:last-child{border:none}
+.tm-icon{font-size:14px;flex-shrink:0;margin-top:1px}
+.tm-text{font-size:12px;color:rgba(255,255,255,.7);flex:1;line-height:1.3}
+.tm-page{font-size:10px;color:rgba(255,255,255,.35);margin-top:2px}
+.badge-mini{font-size:9px;font-weight:700;padding:1px 6px;border-radius:6px;flex-shrink:0}
+.bm-open{background:rgba(192,57,43,.3);color:#ff9999}
+.bm-wip{background:rgba(230,126,34,.3);color:#ffd099}
 
-.card-title {
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 21px; font-weight: 500; color: white; line-height: 1.1; margin-bottom: 4px;
-}
-.card-desc {
-  font-size: 12px; color: rgba(255,255,255,0.5); font-weight: 300; line-height: 1.4;
-}
-.card-stat {
-  position: absolute; bottom: 22px; right: 22px;
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 26px; font-weight: 500; color: rgba(255,255,255,0.25);
-}
-.card-arrow {
-  position: absolute; top: 20px; right: 20px;
-  color: rgba(255,255,255,0.5); font-size: 16px;
-  opacity: 0; transition: all 0.3s; pointer-events: none;
-}
-
-/* Coming soon overlay */
-.coming-soon .card-title { color: rgba(255,255,255,0.5); }
-.coming-soon .card-desc { color: rgba(255,255,255,0.3); }
-.coming-soon { cursor: default; }
-.coming-soon:hover { transform: none; box-shadow: none; }
-.coming-soon::after {
-  content: '';
-  position: absolute; inset: 0;
-  background: rgba(0,0,0,0.25);
-  pointer-events: none;
-}
-
-/* ── BOTTOM BAR ── */
-.bottom-bar {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 24px 0 36px;
-  border-top: 1px solid rgba(255,255,255,0.06);
-  margin-top: 20px;
-}
-.bottom-links { display: flex; gap: 20px; }
-.bottom-link {
-  font-size: 12px; color: rgba(255,255,255,0.35);
-  text-decoration: none; letter-spacing: 0.5px;
-  transition: color 0.2s;
-}
-.bottom-link:hover { color: var(--gold-light); }
-.version-tag {
-  font-family: 'DM Mono', monospace;
-  font-size: 11px; color: rgba(255,255,255,0.2); letter-spacing: 1px;
-}
-
-/* ── NOTIFICATIONS ── */
-.notif-dot {
-  position: absolute; top: 16px; right: 16px;
-  width: 8px; height: 8px; border-radius: 50%;
-  background: var(--gold); box-shadow: 0 0 6px var(--gold);
-  animation: pulse-dot 2s ease-in-out infinite;
-}
-@keyframes pulse-dot {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.6; transform: scale(1.3); }
-}
-
-/* ── ACTIVITY STRIP ── */
-.activity-strip {
-  background: rgba(255,255,255,0.03);
-  border: 1px solid rgba(255,255,255,0.06);
-  border-radius: 12px;
-  padding: 14px 20px;
-  margin-bottom: 24px;
-  display: flex; align-items: center; gap: 16px;
-  overflow: hidden;
-}
-.activity-label {
-  font-size: 10px; text-transform: uppercase; letter-spacing: 2px;
-  color: var(--gold-light); white-space: nowrap; font-weight: 500;
-  flex-shrink: 0;
-}
-.activity-divider { width: 1px; height: 20px; background: rgba(255,255,255,0.1); flex-shrink: 0; }
-.activity-items { display: flex; gap: 24px; overflow: hidden; }
-.activity-item {
-  display: flex; align-items: center; gap: 8px;
-  font-size: 12px; color: rgba(255,255,255,0.5); white-space: nowrap;
-}
-.activity-item strong { color: rgba(255,255,255,0.8); }
-.activity-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--teal-light); flex-shrink: 0; }
-
-/* ── FADE IN ── */
-@keyframes fadeUp {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-.layout > * { animation: fadeUp 0.6s ease both; }
-header { animation-delay: 0.05s; }
-.hero-row { animation-delay: 0.15s; }
-.activity-strip { animation-delay: 0.22s; }
-.section-label { animation-delay: 0.28s; }
-.modules-grid { animation-delay: 0.32s; }
-.bottom-bar { animation-delay: 0.5s; }
-
-/* ── RESPONSIVE ── */
-@media (max-width: 1100px) {
-  .layout { padding: 0 24px; }
-  .span-4 { grid-column: span 6; }
-  .span-3 { grid-column: span 6; }
-  .span-5 { grid-column: span 6; }
-  .span-7 { grid-column: span 12; }
-  .span-6 { grid-column: span 6; }
-  .hero-row { flex-direction: column; align-items: flex-start; }
-  .quick-stats { width: 100%; }
-}
-@media (max-width: 700px) {
-  .layout { padding: 0 16px; }
-  .span-4, .span-3, .span-5, .span-6 { grid-column: span 12; }
-  .brand-name { font-size: 24px; }
-  .hero-greeting { font-size: 34px; }
-  .quick-stats { flex-wrap: wrap; }
-  .qs-item { flex: 1; min-width: 100px; }
-  .activity-items { display: none; }
-}
+@media(max-width:900px){.kpi-strip{grid-template-columns:repeat(3,1fr)}.dashboard-grid,.dashboard-grid-3{grid-template-columns:1fr}.quick-links{grid-template-columns:repeat(2,1fr)}.layout{padding:0 16px 60px}}
+@media(max-width:500px){.kpi-strip{grid-template-columns:repeat(2,1fr)}.quick-links{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
-
-<div class="bg-canvas">
-  <div class="bg-grid"></div>
-  <div class="bg-orb bg-orb-1"></div>
-  <div class="bg-orb bg-orb-2"></div>
-  <div class="bg-orb bg-orb-3"></div>
-</div>
+<div class="bg-canvas"><div class="bg-grid"></div><div class="bg-orb bg-orb-1"></div><div class="bg-orb bg-orb-2"></div></div>
 
 <div class="layout">
-
   <!-- HEADER -->
-  <header>
-    <div class="brand">
+  <div class="page-header">
+    <div>
       <div class="brand-name">Zesty <strong>Rentals</strong></div>
       <div class="brand-tagline">Operations Hub &nbsp;·&nbsp; Kissamos, Crete</div>
     </div>
-    <div class="header-meta">
+    <div class="header-right">
       <div class="live-clock" id="clock">00:00:00</div>
       <div class="live-date" id="dateLine">—</div>
     </div>
-  </header>
+  </div>
 
-  <!-- HERO ROW -->
-  <div class="hero-row">
-    <div>
-      <div class="hero-greeting" id="greeting">Good morning, <em>Zesty</em></div>
-      <div class="hero-sub" id="heroSub">Loading your portfolio overview…</div>
-    </div>
-    <div class="quick-stats" id="quickStats">
-      <div class="qs-item"><div class="qs-val" id="qs-props">—</div><div class="qs-lbl">Properties</div></div>
-      <div class="qs-item"><div class="qs-val" id="qs-owners">—</div><div class="qs-lbl">Owners</div></div>
-      <div class="qs-item"><div class="qs-val gold" id="qs-guests">—</div><div class="qs-lbl">Guests</div></div>
-      <div class="qs-item"><div class="qs-val" id="qs-jobs">—</div><div class="qs-lbl">Jobs Today</div></div>
-    </div>
+  <!-- KPI STRIP -->
+  <div class="section-lbl">Live Portfolio</div>
+  <div class="kpi-strip">
+    <div class="kpi"><div class="kpi-val gold" id="kpi-props">—</div><div class="kpi-lbl">Properties</div></div>
+    <div class="kpi"><div class="kpi-val" id="kpi-owners">—</div><div class="kpi-lbl">Owners</div></div>
+    <div class="kpi"><div class="kpi-val gold" id="kpi-guests">—</div><div class="kpi-lbl">Guests</div></div>
+    <div class="kpi"><div class="kpi-val danger" id="kpi-open-jobs">—</div><div class="kpi-lbl">Open Jobs</div></div>
+    <div class="kpi"><div class="kpi-val success" id="kpi-staff">—</div><div class="kpi-lbl">Active Staff</div></div>
+    <div class="kpi"><div class="kpi-val" id="kpi-tasks">—</div><div class="kpi-lbl">Open Tasks</div></div>
   </div>
 
   <!-- ACTIVITY STRIP -->
   <div class="activity-strip">
-    <span class="activity-label">Live Data</span>
-    <div class="activity-divider"></div>
-    <div class="activity-items" id="activityItems">
-      <div class="activity-item"><span class="activity-dot"></span> Loading portfolio data…</div>
-    </div>
+    <span style="font-size:10px;text-transform:uppercase;letter-spacing:2px;color:var(--gold-light);white-space:nowrap;font-weight:500;flex-shrink:0">Live Data</span>
+    <div style="width:1px;height:20px;background:rgba(255,255,255,.1);flex-shrink:0"></div>
+    <div id="activity-items" style="display:flex;gap:24px;overflow:hidden;flex-wrap:nowrap"></div>
   </div>
 
-  <!-- SECTION LABEL -->
-  <div class="section-label">Modules</div>
+  <!-- QUICK LINKS -->
+  <div class="section-lbl">Quick Access</div>
+  <div class="quick-links">
+    <a href="owners-crm.html" class="quick-link"><div class="ql-icon">👤</div><div><div class="ql-label">Owners</div><div class="ql-count" id="ql-owners">—</div></div></a>
+    <a href="properties-db.html" class="quick-link"><div class="ql-icon">🏠</div><div><div class="ql-label">Properties</div><div class="ql-count" id="ql-props">—</div></div></a>
+    <a href="cleaning-system.html" class="quick-link"><div class="ql-icon">🧹</div><div><div class="ql-label">Cleaning</div><div class="ql-count" id="ql-cleaning">—</div></div></a>
+    <a href="jobs.html" class="quick-link"><div class="ql-icon">🔧</div><div><div class="ql-label">Job Orders</div><div class="ql-count" id="ql-jobs">—</div></div></a>
+    <a href="laundry.html" class="quick-link"><div class="ql-icon">👔</div><div><div class="ql-label">Laundry ERP</div><div class="ql-count" id="ql-laundry">—</div></div></a>
+    <a href="onboarding.html" class="quick-link"><div class="ql-icon">📋</div><div><div class="ql-label">Onboarding</div><div class="ql-count" id="ql-onboarding">—</div></div></a>
+    <a href="tasks.html" class="quick-link"><div class="ql-icon">✅</div><div><div class="ql-label">Tasks</div><div class="ql-count" id="ql-tasks">—</div></div></a>
+    <a href="tickets.html" class="quick-link"><div class="ql-icon">🎫</div><div><div class="ql-label">Tickets</div><div class="ql-count" id="ql-tickets">—</div></div></a>
+  </div>
 
-  <!-- MODULES GRID -->
-  <div class="modules-grid">
+  <!-- CHARTS ROW -->
+  <div class="section-lbl">Analytics</div>
+  <div class="dashboard-grid-3" style="margin-bottom:20px">
 
-    <!-- Owners CRM — large -->
-    <a href="owners-crm.html" class="module-card card-teal span-4">
-      <div class="card-icon">👤</div>
-      <div class="card-badge">CRM</div>
-      <div class="card-title">Owners CRM</div>
-      <div class="card-desc">Property owners, agreements, commissions & documents</div>
-      <div class="card-stat" id="mc-owners">—</div>
-      <span class="card-arrow">↗</span>
-    </a>
-
-    <!-- Properties DB -->
-    <a href="properties-db.html" class="module-card card-emerald span-4">
-      <div class="card-icon">🏠</div>
-      <div class="card-badge">Database</div>
-      <div class="card-title">Properties</div>
-      <div class="card-desc">Listings, fees, pools, cleaning schedules & platforms</div>
-      <div class="card-stat" id="mc-props">—</div>
-      <span class="card-arrow">↗</span>
-    </a>
-
-    <!-- Guests CRM -->
-    <a href="guests-crm.html" class="module-card card-gold span-4">
-      <div class="card-icon">✈️</div>
-      <div class="card-badge">Guests</div>
-      <div class="card-title">Guest CRM</div>
-      <div class="card-desc">Guest profiles, booking history & repeat visitor tracking</div>
-      <div class="card-stat" id="mc-guests">—</div>
-      <span class="card-arrow">↗</span>
-    </a>
-
-    <!-- Cleaning System — wide -->
-    <a href="cleaning-system.html" class="module-card card-slate span-5">
-      <div class="card-icon">🧹</div>
-      <div class="card-badge">Operations</div>
-      <div class="notif-dot" id="cleaningDot" style="display:none"></div>
-      <div class="card-title">Cleaning System</div>
-      <div class="card-desc">Staff database, auto-schedule from Lodgify, assignments & printable per-cleaner PDF schedules</div>
-      <div class="card-stat" id="mc-jobs">—</div>
-      <span class="card-arrow">↗</span>
-    </a>
-
-    <!-- Bookings — coming soon -->
-    <div class="module-card card-purple span-4 coming-soon">
-      <div class="card-icon" style="opacity:.4">📅</div>
-      <div class="card-badge new-badge">Coming Soon</div>
-      <div class="card-title">Bookings</div>
-      <div class="card-desc">Live calendar, availability & revenue per booking</div>
+    <!-- Job Orders Status -->
+    <div class="card">
+      <div class="card-title">🔧 Job Orders</div>
+      <div class="card-sub">By status</div>
+      <div class="donut-wrap" id="jobs-donut">
+        <svg class="donut-svg" width="80" height="80" viewBox="0 0 80 80">
+          <circle cx="40" cy="40" r="30" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="12"/>
+          <circle id="donut-open" cx="40" cy="40" r="30" fill="none" stroke="#e74c3c" stroke-width="12" stroke-dasharray="0 189" stroke-linecap="round" transform="rotate(-90 40 40)" style="transition:stroke-dasharray .8s"/>
+          <circle id="donut-progress" cx="40" cy="40" r="30" fill="none" stroke="#e67e22" stroke-width="12" stroke-dasharray="0 189" stroke-linecap="round" transform="rotate(-90 40 40)" style="transition:stroke-dasharray .8s;opacity:.8"/>
+          <circle id="donut-done" cx="40" cy="40" r="30" fill="none" stroke="#27ae60" stroke-width="12" stroke-dasharray="0 189" stroke-linecap="round" transform="rotate(-90 40 40)" style="transition:stroke-dasharray .8s;opacity:.7"/>
+        </svg>
+        <div class="donut-legend" id="jobs-legend"></div>
+      </div>
     </div>
 
-    <!-- Reports — coming soon -->
-    <div class="module-card card-amber span-3 coming-soon">
-      <div class="card-icon" style="opacity:.4">📊</div>
-      <div class="card-badge new-badge">Coming Soon</div>
-      <div class="card-title">Reports</div>
-      <div class="card-desc">Monthly P&L, owner payouts & occupancy rates</div>
+    <!-- Staff Overview -->
+    <div class="card">
+      <div class="card-title">👥 Staff</div>
+      <div class="card-sub">By department</div>
+      <div class="bar-chart" id="staff-bars"></div>
+    </div>
+
+    <!-- Tasks -->
+    <div class="card">
+      <div class="card-title">✅ Tasks</div>
+      <div class="card-sub">Status breakdown</div>
+      <div class="bar-chart" id="tasks-bars"></div>
     </div>
 
   </div>
 
-  <!-- BOTTOM BAR -->
-  <div class="bottom-bar">
-    <div class="bottom-links">
-      <a href="owners-crm.html" class="bottom-link">Owners</a>
-      <a href="properties-db.html" class="bottom-link">Properties</a>
-      <a href="guests-crm.html" class="bottom-link">Guests</a>
-      <a href="cleaning-system.html" class="bottom-link">Cleaning</a>
+  <div class="dashboard-grid">
+
+    <!-- Properties -->
+    <div class="card">
+      <div class="card-title">🏠 Properties</div>
+      <div class="card-sub">By type & status</div>
+      <div class="bar-chart" id="props-bars"></div>
     </div>
-    <div class="version-tag">ZESTY ERP v1.0 · 2026</div>
+
+    <!-- Open Tickets -->
+    <div class="card">
+      <div class="card-title">🎫 Open Tickets</div>
+      <div class="card-sub">Recent issues & ideas</div>
+      <div id="tickets-list-home"></div>
+    </div>
+
   </div>
 
 </div>
 
-
 <script>
-// ── SUPABASE CONFIG — PASTE YOUR VALUES HERE ──────────────
-const SUPABASE_URL = 'https://whuytfjwdjjepayeiohj.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_v_3owFJT933i27Ot0Ii-2Q_mgU6Uq5Y';
-// ──────────────────────────────────────────────────────────
-
-// Lightweight Supabase adapter — no SDK needed
-const DB = {
-  _ready: false,
-  _offline: false,
-
-  _h() {
-    return {
-      'apikey': SUPABASE_KEY,
-      'Authorization': 'Bearer ' + SUPABASE_KEY,
-      'Content-Type': 'application/json',
-      'Prefer': 'return=representation'
-    };
-  },
-
-  _configured() {
-    return !!(SUPABASE_URL && SUPABASE_KEY && SUPABASE_URL.includes('supabase.co'));
-  },
-
-  async _req(method, table, body, query) {
-    if (!this._configured() || this._offline) return null;
-    try {
-      const url = `${SUPABASE_URL}/rest/v1/${table}${query || ''}`;
-      const res = await fetch(url, { method, headers: this._h(), body: body ? JSON.stringify(body) : undefined });
-      if (!res.ok) { console.warn('DB error', res.status, await res.text()); return null; }
-      if (res.status === 204) return [];
-      return await res.json();
-    } catch(e) {
-      console.warn('DB offline, using localStorage:', e.message);
-      this._offline = true;
-      return null;
-    }
-  },
-
-  // Load all rows from a table → returns array of data objects
-  async loadAll(table) {
-    const rows = await this._req('GET', table, null, '?select=id,data&order=created_at.asc');
-    if (!rows) return null; // null = offline
-    return rows.map(r => ({ ...r.data, id: r.id }));
-  },
-
-  // Save one record (upsert)
-  async save(table, record) {
-    const { id, ...rest } = record;
-    const row = { id, data: rest };
-    const res = await this._req('POST', table, row, '?on_conflict=id');
-    return res !== null;
-  },
-
-  // Save many records (upsert batch, up to 500 at a time)
-  async saveMany(table, records) {
-    if (!records.length) return true;
-    const rows = records.map(({ id, ...rest }) => ({ id, data: rest }));
-    // Batch in chunks of 500
-    for (let i = 0; i < rows.length; i += 500) {
-      const chunk = rows.slice(i, i + 500);
-      const res = await this._req('POST', table, chunk, '?on_conflict=id');
-      if (res === null) return false;
-    }
-    return true;
-  },
-
-  // Delete one record
-  async delete(table, id) {
-    const res = await this._req('DELETE', table, null, `?id=eq.${encodeURIComponent(id)}`);
-    return res !== null;
-  },
-
-  // Check if Supabase is reachable
-  async ping() {
-    if (!this._configured()) return false;
-    try {
-      const res = await fetch(`${SUPABASE_URL}/rest/v1/owners?select=id&limit=1`, { headers: this._h() });
-      this._offline = !res.ok;
-      return res.ok;
-    } catch { this._offline = true; return false; }
-  },
-
-  isConfigured() { return this._configured(); }
-};
-
-// ── SYNC LAYER ──────────────────────────────────────────────
-// Wraps localStorage with Supabase sync.
-// Usage: await SyncStore.load('zesty_owners', 'owners')
-//        await SyncStore.save('zesty_owners', 'owners', array)
-
-const SyncStore = {
-  _migrated: {},
-
-  // Load data: tries Supabase first, falls back to localStorage, migrates if needed
-  async load(lsKey, table) {
-    const online = await DB.ping();
-    if (online) {
-      const remote = await DB.loadAll(table);
-      if (remote !== null) {
-        // Migrate localStorage → Supabase if remote is empty and local has data
-        const local = SyncStore._getLocal(lsKey);
-        if (remote.length === 0 && local.length > 0 && !this._migrated[table]) {
-          this._migrated[table] = true;
-          console.log(`Migrating ${local.length} ${table} records to Supabase...`);
-          await DB.saveMany(table, local);
-          return local;
-        }
-        // Cache in localStorage for offline use
-        localStorage.setItem(lsKey, JSON.stringify(remote));
-        return remote;
-      }
-    }
-    // Offline fallback
-    return SyncStore._getLocal(lsKey);
-  },
-
-  // Save full array to both Supabase and localStorage
-  async saveAll(lsKey, table, data) {
-    localStorage.setItem(lsKey, JSON.stringify(data));
-    if (DB._configured() && !DB._offline) {
-      await DB.saveMany(table, data);
-    }
-  },
-
-  // Save a single record
-  async saveOne(lsKey, table, record, allData) {
-    // Update localStorage with the full array
-    localStorage.setItem(lsKey, JSON.stringify(allData));
-    // Sync single record to Supabase
-    if (DB._configured() && !DB._offline) {
-      await DB.save(table, record);
-    }
-  },
-
-  // Delete a record
-  async deleteOne(lsKey, table, id, allData) {
-    localStorage.setItem(lsKey, JSON.stringify(allData));
-    if (DB._configured() && !DB._offline) {
-      await DB.delete(table, id);
-    }
-  },
-
-  _getLocal(key) {
-    try { return JSON.parse(localStorage.getItem(key) || '[]') || []; }
-    catch { return []; }
-  }
-};
-
-// ── STATUS INDICATOR ────────────────────────────────────────
-function showDbStatus() {
-  const existing = document.getElementById('db-status-bar');
-  if (existing) existing.remove();
-  const bar = document.createElement('div');
-  bar.id = 'db-status-bar';
-  const isConfigured = DB.isConfigured();
-  const isOffline = DB._offline;
-  if (!isConfigured) {
-    bar.style.cssText = 'position:fixed;bottom:0;left:0;right:0;background:#c0392b;color:white;text-align:center;padding:8px;font-size:12px;font-family:DM Sans,sans-serif;z-index:9999;';
-    bar.innerHTML = '⚠️ Supabase not configured — data is saved locally only. <a href="supabase-setup-guide.html" style="color:white;font-weight:600">Setup Guide →</a>';
-  } else if (isOffline) {
-    bar.style.cssText = 'position:fixed;bottom:0;left:0;right:0;background:#e67e22;color:white;text-align:center;padding:8px;font-size:12px;font-family:DM Sans,sans-serif;z-index:9999;';
-    bar.innerHTML = '🔴 Database offline — working in local mode. Changes will sync when connection is restored.';
-  } else {
-    bar.style.cssText = 'position:fixed;bottom:0;right:0;background:rgba(26,122,110,0.9);color:white;padding:5px 14px;font-size:11px;font-family:DM Sans,sans-serif;z-index:9999;border-radius:6px 0 0 0;';
-    bar.innerHTML = '🟢 Supabase connected';
-    setTimeout(() => bar.style.opacity = '0', 3000);
-    setTimeout(() => bar.remove(), 3500);
-  }
-  document.body.appendChild(bar);
-}
-
-</script>
-<script>
-// ── CLOCK ──
+// ── CLOCK ──────────────────────────────────────────────
 function updateClock() {
   const now = new Date();
-  document.getElementById('clock').textContent = now.toLocaleTimeString('el-GR', {hour:'2-digit',minute:'2-digit',second:'2-digit'});
-  document.getElementById('dateLine').textContent = now.toLocaleDateString('en-GB', {weekday:'long',day:'numeric',month:'long',year:'numeric'});
-  const h = now.getHours();
-  const greeting = h < 6 ? 'Good night' : h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : h < 21 ? 'Good evening' : 'Good night';
-  document.getElementById('greeting').innerHTML = `${greeting}, <em>Zesty</em>`;
+  document.getElementById('clock').textContent = now.toLocaleTimeString('el-GR',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  document.getElementById('dateLine').textContent = now.toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
 }
-updateClock();
-setInterval(updateClock, 1000);
+updateClock(); setInterval(updateClock,1000);
 
-// ── PULL LIVE COUNTS FROM localStorage ──
+// ── DATA LOADER ────────────────────────────────────────
+function safe(key, def) {
+  try { return JSON.parse(localStorage.getItem(key)||'null')||def; } catch{return def;}
+}
+
+function renderBar(label, val, max, color) {
+  const pct = max > 0 ? Math.round((val/max)*100) : 0;
+  return `<div class="bar-row">
+    <span class="bar-label" title="${label}">${label}</span>
+    <div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:${color}"></div></div>
+    <span class="bar-val">${val}</span>
+  </div>`;
+}
+
 function loadStats() {
-  const props    = safeJSON('zesty_properties', []);
-  const owners   = safeJSON('zesty_owners', []);
-  const guests   = safeJSON('zesty_guests', []);
-  const jobs     = safeJSON('zesty_jobs', []);
-  const staff    = safeJSON('zesty_staff', []);
+  const props      = safe('zesty_properties',[]);
+  const owners     = safe('zesty_owners',[]);
+  const guests     = safe('zesty_guests',[]);
+  const jobs       = safe('zesty_jobs',[]);
+  const staff      = safe('zesty_staff',[]);
+  const employees  = safe('zesty_employees',[]);
+  const tasks      = safe('zesty_tasks',[]);
+  const onboardings= safe('zesty_onboardings',[]);
+  const tickets    = safe('zesty_tickets',[]);
 
-  const activeProps  = props.filter(p => !p.archived && p.status === 'Active');
-  const activeOwners = owners.filter(o => !o.archived && o.status !== 'Inactive');
-  const repeatGuests = guests.filter(g => (g.bookings||[]).length > 1);
-  const today = new Date().toISOString().slice(0, 10);
-  const todayJobs = jobs.filter(j => j.date === today);
-  const unassigned = todayJobs.filter(j => !(j.cleanerIds||[]).length);
+  const activeProps  = props.filter(p=>!p.archived&&p.status==='Active').length || props.length;
+  const activeOwners = owners.filter(o=>!o.archived&&o.status!=='Inactive').length || owners.length;
+  const openJobs     = jobs.filter(j=>j.status==='Open'||j.status==='In Progress').length;
+  const activeStaff  = (staff.filter(s=>s.status!=='Inactive').length || 0) + (employees.filter(e=>e.status==='Active').length || 0);
+  const openTasks    = tasks.filter(t=>t.status==='Open'||t.status==='In Progress').length;
 
-  // Header quick stats
-  document.getElementById('qs-props').textContent   = activeProps.length || props.length || '—';
-  document.getElementById('qs-owners').textContent  = activeOwners.length || owners.length || '—';
-  document.getElementById('qs-guests').textContent  = guests.length ? guests.length.toLocaleString() : '—';
-  document.getElementById('qs-jobs').textContent    = todayJobs.length || '0';
+  // KPIs
+  document.getElementById('kpi-props').textContent     = activeProps||'—';
+  document.getElementById('kpi-owners').textContent    = activeOwners||'—';
+  document.getElementById('kpi-guests').textContent    = guests.length||'—';
+  document.getElementById('kpi-open-jobs').textContent = openJobs||'—';
+  document.getElementById('kpi-staff').textContent     = activeStaff||'—';
+  document.getElementById('kpi-tasks').textContent     = openTasks||'—';
 
-  // Module card stats
-  document.getElementById('mc-owners').textContent = owners.length ? owners.length : '';
-  document.getElementById('mc-props').textContent  = props.length  ? props.length  : '';
-  document.getElementById('mc-guests').textContent = guests.length ? guests.length.toLocaleString() : '';
-  document.getElementById('mc-jobs').textContent   = jobs.length   ? jobs.length   : '';
-
-  // Cleaning notification dot
-  if (unassigned.length > 0) {
-    document.getElementById('cleaningDot').style.display = 'block';
-  }
-
-  // Hero sub text
-  const revenue = guests.reduce((s,g)=>s+(g.bookings||[]).reduce((s2,b)=>s2+(parseFloat(b.total)||0),0),0);
-  document.getElementById('heroSub').textContent = props.length
-    ? `${activeProps.length} active properties · ${activeOwners.length} owners · ${guests.length.toLocaleString()} guests · €${Math.round(revenue).toLocaleString()} total revenue`
-    : 'Open any module below to get started.';
+  // Quick links
+  document.getElementById('ql-owners').textContent   = activeOwners ? activeOwners+' active' : '—';
+  document.getElementById('ql-props').textContent    = activeProps  ? activeProps+' active' : '—';
+  document.getElementById('ql-cleaning').textContent = staff.length  ? staff.length+' cleaners' : '—';
+  document.getElementById('ql-jobs').textContent     = openJobs     ? openJobs+' open' : jobs.length ? jobs.length+' total' : '—';
+  document.getElementById('ql-tasks').textContent    = openTasks    ? openTasks+' open' : '—';
+  document.getElementById('ql-onboarding').textContent = onboardings.filter(o=>o.stage&&o.stage!=='completed'&&o.stage!=='declined').length || onboardings.length || '—';
+  const openTickets = tickets.filter(t=>t.status!=='fixed').length;
+  document.getElementById('ql-tickets').textContent  = openTickets ? openTickets+' open' : '—';
+  document.getElementById('ql-laundry').textContent  = '—';
 
   // Activity strip
-  const activities = [];
-  if (props.length)   activities.push(`<div class="activity-item"><span class="activity-dot"></span> <strong>${activeProps.length}</strong> active properties</div>`);
-  if (owners.length)  activities.push(`<div class="activity-item"><span class="activity-dot" style="background:var(--gold-light)"></span> <strong>${activeOwners.length}</strong> active owners</div>`);
-  if (guests.length)  activities.push(`<div class="activity-item"><span class="activity-dot" style="background:#c9a84c"></span> <strong>${repeatGuests.length}</strong> repeat guests</div>`);
-  if (todayJobs.length) activities.push(`<div class="activity-item"><span class="activity-dot" style="background:#e67e22"></span> <strong>${todayJobs.length}</strong> cleaning job${todayJobs.length!==1?'s':''} today${unassigned.length ? ` · <span style="color:#e74c3c">${unassigned.length} unassigned</span>` : ''}</div>`);
-  if (staff.length)   activities.push(`<div class="activity-item"><span class="activity-dot" style="background:#8e44ad"></span> <strong>${staff.filter(s=>s.status!=='Inactive').length}</strong> active cleaners</div>`);
-  if (activities.length) document.getElementById('activityItems').innerHTML = activities.join('');
-  else document.getElementById('activityItems').innerHTML = '<div class="activity-item"><span class="activity-dot"></span> Open any module to start loading data</div>';
-}
+  const acts = [];
+  if (activeProps)  acts.push(`<div class="activity-item"><span class="activity-dot"></span><strong>${activeProps}</strong>&nbsp;active properties</div>`);
+  if (activeOwners) acts.push(`<div class="activity-item"><span class="activity-dot" style="background:var(--gold-light)"></span><strong>${activeOwners}</strong>&nbsp;owners</div>`);
+  if (guests.length) acts.push(`<div class="activity-item"><span class="activity-dot" style="background:#c9a84c"></span><strong>${guests.length.toLocaleString()}</strong>&nbsp;guests</div>`);
+  if (openJobs)     acts.push(`<div class="activity-item"><span class="activity-dot" style="background:#e74c3c"></span><strong>${openJobs}</strong>&nbsp;open jobs</div>`);
+  if (activeStaff)  acts.push(`<div class="activity-item"><span class="activity-dot" style="background:#8e44ad"></span><strong>${activeStaff}</strong>&nbsp;staff active</div>`);
+  if (openTasks)    acts.push(`<div class="activity-item"><span class="activity-dot" style="background:#27ae60"></span><strong>${openTasks}</strong>&nbsp;open tasks</div>`);
+  document.getElementById('activity-items').innerHTML = acts.join('') || '<div class="activity-item">Open any module to load data</div>';
 
-function safeJSON(key, def) {
-  try { return JSON.parse(localStorage.getItem(key) || 'null') || def; }
-  catch { return def; }
+  // Jobs donut chart
+  const jOpen = jobs.filter(j=>j.status==='Open').length;
+  const jProg = jobs.filter(j=>j.status==='In Progress').length;
+  const jDone = jobs.filter(j=>j.status==='Completed'||j.status==='Paid').length;
+  const jTotal = jobs.length || 1;
+  const circ = 188.5;
+  // Calculate offsets for stacked donut
+  const openDash = (jOpen/jTotal)*circ;
+  const progDash = (jProg/jTotal)*circ;
+  const doneDash = (jDone/jTotal)*circ;
+  document.getElementById('donut-open').style.strokeDasharray = `${openDash} ${circ}`;
+  document.getElementById('donut-progress').style.strokeDasharray = `${progDash} ${circ}`;
+  document.getElementById('donut-progress').style.transform = `rotate(${-90+(jOpen/jTotal)*360}deg) translate(0) rotate(0)`;
+  document.getElementById('donut-done').style.strokeDasharray = `${doneDash} ${circ}`;
+  document.getElementById('jobs-legend').innerHTML = [
+    ['#e74c3c','Open',jOpen],
+    ['#e67e22','In Progress',jProg],
+    ['#27ae60','Done/Paid',jDone],
+  ].map(([c,l,v])=>`<div class="legend-item"><span class="legend-dot" style="background:${c}"></span>${l}: <strong>${v}</strong></div>`).join('');
+
+  // Staff bars by department
+  const depts = {};
+  [...staff,...employees].forEach(s=>{
+    const d = s.department||s.zone||'Other';
+    depts[d]=(depts[d]||0)+1;
+  });
+  const maxD = Math.max(...Object.values(depts),1);
+  const COLORS=['#c9a84c','#27ae60','#1a7a6e','#8e44ad','#e67e22','#3498db'];
+  document.getElementById('staff-bars').innerHTML = Object.entries(depts).sort(([,a],[,b])=>b-a).slice(0,6).map(([k,v],i)=>renderBar(k,v,maxD,COLORS[i%COLORS.length])).join('') || '<div style="color:rgba(255,255,255,.3);font-size:12px">No staff data loaded</div>';
+
+  // Tasks bars
+  const taskOpen = tasks.filter(t=>t.status==='Open').length;
+  const taskProg = tasks.filter(t=>t.status==='In Progress').length;
+  const taskDone = tasks.filter(t=>t.status==='Done'||t.status==='Completed').length;
+  const maxT = Math.max(taskOpen,taskProg,taskDone,1);
+  document.getElementById('tasks-bars').innerHTML = [
+    ['Open',taskOpen,'#e74c3c'],
+    ['In Progress',taskProg,'#e67e22'],
+    ['Done',taskDone,'#27ae60'],
+  ].map(([l,v,c])=>renderBar(l,v,maxT,c)).join('') || '<div style="color:rgba(255,255,255,.3);font-size:12px">No tasks data loaded</div>';
+
+  // Properties bars by type
+  const ptypes = {};
+  props.forEach(p=>{ const t=p.type||'Other'; ptypes[t]=(ptypes[t]||0)+1; });
+  const maxP = Math.max(...Object.values(ptypes),1);
+  document.getElementById('props-bars').innerHTML = Object.entries(ptypes).sort(([,a],[,b])=>b-a).slice(0,6).map(([k,v],i)=>renderBar(k,v,maxP,COLORS[i%COLORS.length])).join('') || '<div style="color:rgba(255,255,255,.3);font-size:12px">No properties data loaded</div>';
+
+  // Open tickets
+  const openT = tickets.filter(t=>t.status!=='fixed').slice(0,5);
+  const TICONS = {bug:'🐛',improvement:'⚡',idea:'💡'};
+  document.getElementById('tickets-list-home').innerHTML = openT.length ?
+    openT.map(t=>`<div class="ticket-mini">
+      <span class="tm-icon">${TICONS[t.type]||'📋'}</span>
+      <div><div class="tm-text">${t.text.slice(0,70)}${t.text.length>70?'...':''}</div><div class="tm-page">📍 ${t.page}</div></div>
+      <span class="badge-mini bm-${t.status==='wip'?'wip':'open'}">${t.status==='wip'?'WIP':'NEW'}</span>
+    </div>`).join('') :
+    '<div style="color:rgba(255,255,255,.3);font-size:12px;padding:20px 0;text-align:center">No open tickets 🎉</div>';
 }
 
 loadStats();
-// Refresh stats every 30 seconds
-setInterval(loadStats, 30000);
+setInterval(loadStats,30000);
 </script>
 <script src="erp-nav.js"></script>
 </body>

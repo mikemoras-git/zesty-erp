@@ -126,6 +126,242 @@ tr.task-row:hover{background:#f0faf8}
 .erp-local-title{font-size:13px;font-weight:600;color:rgba(255,255,255,.9)}
 .erp-local-spacer{flex:1}
 
+
+/* ── GLOBAL MOBILE RESPONSIVE ── */
+@media(max-width:768px){
+  .table-wrap,[style*="overflow-x"]{overflow-x:auto!important;-webkit-overflow-scrolling:touch}
+  table{min-width:500px}
+  .modal-overlay,.overlay{padding:8px!important}
+  .modal,.modal-lg{width:100%!important;max-width:100%!important;max-height:95vh!important;border-radius:12px!important;margin:auto}
+  .form-grid,.form-row,.form-grid-2,.form-grid-3,.form-grid-4,.form-grid-6{grid-template-columns:1fr!important}
+  .col-span-2,.col-span-4,.form-full{grid-column:1/-1!important}
+  .stats-bar,.kpi-grid,.kpi-grid-6,.stats-row{grid-template-columns:repeat(2,1fr)!important}
+  .container,main{padding-left:10px!important;padding-right:10px!important}
+  .modal-footer{flex-wrap:wrap}
+  .modal-footer .btn{min-width:100px}
+}
+@media(max-width:480px){
+  .stats-bar,.kpi-grid,.stats-row{grid-template-columns:1fr 1fr!important}
+  td,th{padding:6px 8px!important;font-size:11px!important}
+}
+
+/* ═══════════════════════════════════════════════════
+   ZESTY ERP — LEFT SIDEBAR NAVIGATION
+   ═══════════════════════════════════════════════════ */
+
+/* Reset old top header nav */
+.erp-header,.erp-nav-global,.erp-nav-local,
+.erp-modules,.erp-mod-btn,.erp-logo,
+.erp-local-title,.erp-local-spacer { all: unset; }
+.erp-header { display: none !important; }
+
+/* ── LAYOUT WRAPPER ── */
+body.erp-layout {
+  display: flex;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ── SIDEBAR ── */
+.erp-sidebar {
+  width: 220px;
+  min-width: 220px;
+  background: linear-gradient(180deg, #0a3d36 0%, #0d4a42 60%, #0f5248 100%);
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 0; left: 0; bottom: 0;
+  z-index: 600;
+  box-shadow: 3px 0 20px rgba(0,0,0,0.3);
+  transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,255,255,.1) transparent;
+}
+.erp-sidebar::-webkit-scrollbar { width: 4px; }
+.erp-sidebar::-webkit-scrollbar-track { background: transparent; }
+.erp-sidebar::-webkit-scrollbar-thumb { background: rgba(255,255,255,.1); border-radius: 2px; }
+
+/* ── SIDEBAR BRAND ── */
+.erp-brand {
+  padding: 20px 18px 16px;
+  border-bottom: 1px solid rgba(255,255,255,.08);
+  flex-shrink: 0;
+}
+.erp-brand-name {
+  font-family: 'Cormorant Garamond', 'DM Serif Display', serif;
+  font-size: 22px; font-weight: 600; color: #fff;
+  line-height: 1; letter-spacing: .3px;
+}
+.erp-brand-name span { color: #e8c97a; }
+.erp-brand-sub {
+  font-size: 10px; color: rgba(255,255,255,.35);
+  text-transform: uppercase; letter-spacing: 2px;
+  margin-top: 4px; font-weight: 400;
+}
+
+/* ── SIDEBAR NAV LINKS ── */
+.erp-nav-section {
+  padding: 10px 0 4px;
+}
+.erp-nav-section-label {
+  font-size: 9px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .12em;
+  color: rgba(255,255,255,.25);
+  padding: 0 18px; margin-bottom: 4px;
+}
+.erp-nav-link {
+  display: flex; align-items: center; gap: 9px;
+  padding: 8px 18px;
+  color: rgba(255,255,255,.6);
+  text-decoration: none;
+  font-size: 13px; font-weight: 500;
+  font-family: 'DM Sans', sans-serif;
+  transition: all .15s;
+  border-left: 3px solid transparent;
+  -webkit-tap-highlight-color: transparent;
+  cursor: pointer;
+  background: none; border-right: none;
+  border-top: none; border-bottom: none;
+  width: 100%; text-align: left;
+}
+.erp-nav-link:hover {
+  color: #fff;
+  background: rgba(255,255,255,.07);
+  border-left-color: rgba(255,255,255,.2);
+}
+.erp-nav-link.active {
+  color: #e8c97a;
+  background: rgba(201,168,76,.12);
+  border-left-color: #e8c97a;
+  font-weight: 600;
+}
+.erp-nav-link .nav-icon { font-size: 15px; flex-shrink: 0; width: 18px; text-align: center; }
+.erp-nav-link .nav-label { flex: 1; }
+.erp-nav-link .nav-badge {
+  font-size: 10px; font-weight: 700;
+  background: rgba(201,168,76,.25); color: #e8c97a;
+  padding: 1px 6px; border-radius: 8px;
+}
+.erp-nav-divider {
+  height: 1px; background: rgba(255,255,255,.06);
+  margin: 6px 14px;
+}
+
+/* ── MODULE TABS (inside sidebar, below nav links) ── */
+.erp-module-tabs {
+  margin-top: auto;
+  padding: 8px 0 12px;
+  border-top: 1px solid rgba(255,255,255,.08);
+}
+.erp-module-tabs-label {
+  font-size: 9px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .12em;
+  color: rgba(255,255,255,.25);
+  padding: 0 18px; margin-bottom: 4px;
+}
+.erp-tab-link {
+  display: flex; align-items: center; gap: 8px;
+  padding: 7px 18px;
+  color: rgba(255,255,255,.55);
+  font-size: 12px; font-weight: 500;
+  font-family: 'DM Sans', sans-serif;
+  transition: all .15s;
+  border-left: 3px solid transparent;
+  -webkit-tap-highlight-color: transparent;
+  cursor: pointer;
+  background: none; border-right: none;
+  border-top: none; border-bottom: none;
+  width: 100%; text-align: left; text-decoration: none;
+}
+.erp-tab-link:hover {
+  color: #fff; background: rgba(255,255,255,.06);
+}
+.erp-tab-link.active {
+  color: #c9a84c; font-weight: 600;
+  background: rgba(201,168,76,.1);
+  border-left-color: #c9a84c;
+}
+
+/* ── SIDEBAR FOOTER (user badge + sync) ── */
+.erp-sidebar-footer {
+  padding: 12px 18px;
+  border-top: 1px solid rgba(255,255,255,.08);
+  flex-shrink: 0;
+}
+.erp-user-badge {
+  font-size: 11px; color: rgba(255,255,255,.45);
+  display: flex; align-items: center; gap: 6px;
+}
+.erp-sync-row {
+  display: flex; align-items: center; gap: 6px;
+  margin-top: 6px;
+}
+.sync-label { font-size: 10px; color: rgba(255,255,255,.3); }
+
+/* ── MAIN CONTENT AREA ── */
+.erp-main {
+  margin-left: 220px;
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── TOP BAR (module title + actions) ── */
+.erp-topbar {
+  background: #fff;
+  border-bottom: 1px solid #d4e0de;
+  padding: 0 28px;
+  height: 52px;
+  display: flex; align-items: center; gap: 12px;
+  position: sticky; top: 0; z-index: 100;
+  box-shadow: 0 1px 8px rgba(26,122,110,.08);
+  flex-shrink: 0;
+}
+.erp-topbar-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 18px; font-weight: 600;
+  color: #115950; flex: 1;
+}
+.erp-topbar-actions { display: flex; gap: 8px; align-items: center; }
+
+/* ── HAMBURGER (mobile only) ── */
+.erp-hamburger {
+  display: none;
+  background: none; border: none;
+  color: #115950; font-size: 22px;
+  cursor: pointer; padding: 4px 8px;
+  border-radius: 6px;
+  -webkit-tap-highlight-color: transparent;
+}
+.erp-overlay {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.5);
+  z-index: 590;
+}
+
+/* ── MOBILE ── */
+@media (max-width: 900px) {
+  .erp-sidebar {
+    transform: translateX(-100%);
+  }
+  .erp-sidebar.open {
+    transform: translateX(0);
+  }
+  .erp-overlay.open { display: block; }
+  .erp-main { margin-left: 0; }
+  .erp-hamburger { display: block; }
+  .erp-topbar { padding: 0 14px; }
+}
+@media (max-width: 600px) {
+  .container, main { padding: 12px 10px 60px !important; }
+  table { min-width: 480px; }
+  .stats-bar, .kpi-grid { grid-template-columns: repeat(2,1fr) !important; }
+}
+
+
 </style>
     <script src="https://unpkg.com/@azure/msal-browser@2.38.3/lib/msal-browser.min.js"></script>
     <script>
@@ -141,32 +377,77 @@ tr.task-row:hover{background:#f0faf8}
       const _msal=new msal.PublicClientApplication(_msalConfig);
       const _loginRequest={scopes:['openid','profile','User.Read']};
 
-      async function _ensureLogin(){
+      
+      // ── MSAL AUTH ──────────────────────────────────────────
+      const _isMobile = /iPhone|iPad|iPod|Android|Mobile/i.test(navigator.userAgent);
+
+      async function _ensureLogin() {
         await _msal.initialize();
-        try{ await _msal.handleRedirectPromise(); }catch(e){}
-        const accounts=_msal.getAllAccounts();
-        if(accounts.length>0){
-          const acct=accounts[0];
-          _showUserBadge(acct.name||acct.username);
+        // Handle any redirect result first
+        try {
+          const redirectResult = await _msal.handleRedirectPromise();
+          if (redirectResult && redirectResult.account) {
+            _msal.setActiveAccount(redirectResult.account);
+            _showUserBadge(redirectResult.account.name || redirectResult.account.username);
+            document.documentElement.style.visibility = 'visible';
+            return;
+          }
+        } catch(e) { console.warn('Redirect promise:', e); }
+
+        // Check for existing session
+        const accounts = _msal.getAllAccounts();
+        if (accounts.length > 0) {
+          _msal.setActiveAccount(accounts[0]);
+          _showUserBadge(accounts[0].name || accounts[0].username);
+          document.documentElement.style.visibility = 'visible';
           return;
         }
-        _msal.loginRedirect(_loginRequest);
+
+        // No session - login
+        if (_isMobile) {
+          // Mobile: try popup first, fallback to redirect
+          try {
+            const result = await _msal.loginPopup(_loginRequest);
+            if (result && result.account) {
+              _msal.setActiveAccount(result.account);
+              _showUserBadge(result.account.name || result.account.username);
+            }
+            document.documentElement.style.visibility = 'visible';
+          } catch(e) {
+            if (e.errorCode !== 'user_cancelled') {
+              sessionStorage.setItem('msal_return_url', window.location.href);
+              await _msal.loginRedirect(_loginRequest);
+            } else {
+              document.documentElement.style.visibility = 'visible';
+            }
+          }
+        } else {
+          // Desktop: store current page, redirect to login, come back
+          sessionStorage.setItem('msal_return_url', window.location.href);
+          await _msal.loginRedirect(_loginRequest);
+        }
       }
 
-      function _showUserBadge(name){
-        const show=()=>{
-          const hdr=document.querySelector('.header-right');
-          if(!hdr)return;
-          if(document.getElementById('_azure_badge'))return;
-          const badge=document.createElement('div');
-          badge.id='_azure_badge';
-          badge.style.cssText='display:flex;align-items:center;gap:8px;margin-left:4px';
-          badge.innerHTML=`<span style="font-size:12px;color:rgba(255,255,255,.75);font-family:DM Sans,sans-serif">&#128100; ${name}</span>`+
-            `<button onclick="window._azureLogout()" style="padding:4px 10px;border-radius:7px;border:1px solid rgba(255,255,255,.3);background:transparent;color:rgba(255,255,255,.7);font-size:11px;cursor:pointer;font-family:DM Sans,sans-serif">Sign out</button>`;
+
+      function _showUserBadge(name) {
+        // Store name globally for sidebar to pick up
+        window._erpUserName = name;
+        // Try to update sidebar user display
+        const zsUser = document.getElementById('zsUser');
+        if (zsUser) {
+          zsUser.innerHTML = '<span>👤 ' + name + '</span>' +
+            '<button onclick="window._azureLogout()" style="background:transparent;border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.5);font-size:10px;padding:2px 7px;border-radius:4px;cursor:pointer;font-family:DM Sans,sans-serif;margin-left:4px">Sign out</button>';
+        }
+        // Also try old header-right for backwards compat
+        const hdr = document.querySelector('.header-right');
+        if (hdr && !document.getElementById('_azure_badge')) {
+          const badge = document.createElement('div');
+          badge.id = '_azure_badge';
+          badge.style.cssText = 'display:flex;align-items:center;gap:8px';
+          badge.innerHTML = '<span style="font-size:12px;color:rgba(255,255,255,.75);font-family:DM Sans,sans-serif">👤 ' + name + '</span>' +
+            '<button onclick="window._azureLogout()" style="padding:4px 10px;border-radius:7px;border:1px solid rgba(255,255,255,.3);background:transparent;color:rgba(255,255,255,.7);font-size:11px;cursor:pointer;font-family:DM Sans,sans-serif">Sign out</button>';
           hdr.appendChild(badge);
-        };
-        if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',show);}
-        else{show();}
+        }
       }
 
       window._azureLogout=function(){
@@ -199,39 +480,25 @@ tr.task-row:hover{background:#f0faf8}
       };
       const _msal=new msal.PublicClientApplication(_msalConfig);
       const _loginRequest={scopes:['openid','profile','User.Read']};
-
-      async function _ensureLogin(){
-        await _msal.initialize();
-        try{ await _msal.handleRedirectPromise(); }catch(e){}
-        const accounts=_msal.getAllAccounts();
-        if(accounts.length>0){
-          const acct=accounts[0];
-          if(acct.tenantId!=='9c30b606-6648-4777-a623-64867e43e54f'){
-            document.documentElement.style.visibility='visible';
-            document.body.innerHTML='<div style="display:flex;align-items:center;justify-content:center;height:100vh;font-family:sans-serif;flex-direction:column;gap:12px"><div style="font-size:48px">🔒</div><div style="font-size:18px;font-weight:600;color:#1e2a28">Access Denied</div><div style="font-size:14px;color:#666">Your account is not authorised to access this system.</div><button onclick="window._azureLogout()" style="margin-top:12px;padding:8px 20px;background:#1a7a6e;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:14px">Sign out</button></div>';
-            return;
-          }
-          _showUserBadge(acct.name||acct.username);
-          document.documentElement.style.visibility='visible';
-          return;
+      function _showUserBadge(name) {
+        // Store name globally for sidebar to pick up
+        window._erpUserName = name;
+        // Try to update sidebar user display
+        const zsUser = document.getElementById('zsUser');
+        if (zsUser) {
+          zsUser.innerHTML = '<span>👤 ' + name + '</span>' +
+            '<button onclick="window._azureLogout()" style="background:transparent;border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.5);font-size:10px;padding:2px 7px;border-radius:4px;cursor:pointer;font-family:DM Sans,sans-serif;margin-left:4px">Sign out</button>';
         }
-        await _msal.loginRedirect(_loginRequest);
-      }
-
-      function _showUserBadge(name){
-        const show=()=>{
-          const hdr=document.querySelector('.header-right');
-          if(!hdr)return;
-          if(document.getElementById('_azure_badge'))return;
-          const badge=document.createElement('div');
-          badge.id='_azure_badge';
-          badge.style.cssText='display:flex;align-items:center;gap:8px;margin-left:4px';
-          badge.innerHTML='<span style="font-size:12px;color:rgba(255,255,255,.75);font-family:DM Sans,sans-serif">&#128100; '+name+'</span>'+
+        // Also try old header-right for backwards compat
+        const hdr = document.querySelector('.header-right');
+        if (hdr && !document.getElementById('_azure_badge')) {
+          const badge = document.createElement('div');
+          badge.id = '_azure_badge';
+          badge.style.cssText = 'display:flex;align-items:center;gap:8px';
+          badge.innerHTML = '<span style="font-size:12px;color:rgba(255,255,255,.75);font-family:DM Sans,sans-serif">👤 ' + name + '</span>' +
             '<button onclick="window._azureLogout()" style="padding:4px 10px;border-radius:7px;border:1px solid rgba(255,255,255,.3);background:transparent;color:rgba(255,255,255,.7);font-size:11px;cursor:pointer;font-family:DM Sans,sans-serif">Sign out</button>';
           hdr.appendChild(badge);
-        };
-        if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',show);}
-        else{show();}
+        }
       }
 
       window._azureLogout=function(){
@@ -247,618 +514,52 @@ tr.task-row:hover{background:#f0faf8}
     })();
     </script>
 </head>
-<body>
+<body class="erp-layout">
 <div id="loadingOverlay">Loading tasks...</div>
-<header class="erp-header">
-  <div class="erp-nav-global">
-    <div class="erp-logo">Zesty <span>ERP</span></div>
-    <nav class="erp-modules">
-      <a href="index.html" class="erp-mod-btn">🏠 Home</a>
-      <a href="owners-crm.html" class="erp-mod-btn">👤 Owners</a>
-      <a href="properties-db.html" class="erp-mod-btn">🏠 Properties</a>
-      <a href="guests-crm.html" class="erp-mod-btn">✈️ Guests</a>
-      <a href="cleaning-system.html" class="erp-mod-btn">🧹 Cleaning</a>
-      <a href="contacts-crm.html" class="erp-mod-btn">📋 Contacts</a>
-      <a href="employees.html" class="erp-mod-btn">👥 Staff</a>
-      <a href="leave.html" class="erp-mod-btn">🏖️ Leave</a>
-      <a href="tasks.html" class="erp-mod-btn active">✅ Tasks</a>
-      <a href="jobs.html" class="erp-mod-btn">🔧 Jobs</a>
-      <a href="laundry.html" class="erp-mod-btn">👔 Laundry</a>
-      <a href="onboarding.html" class="erp-mod-btn">📋 Onboarding</a>
-      <a href="settings.html" class="erp-mod-btn">⚙️ Settings</a>
-    </nav>
-    <div class="header-right"></div>
+<div class="erp-overlay" id="erpOverlay"></div>
+<aside class="erp-sidebar" id="erpSidebar">
+  <div class="erp-brand">
+    <div class="erp-brand-name">Zesty <span>ERP</span></div>
+    <div class="erp-brand-sub">Kissamos · Operations</div>
   </div>
-  <div class="erp-nav-local">
-    <span class="erp-local-title">✅ Tasks</span>
-    <span class="erp-local-spacer"></span>
-    <button class="btn btn-sm btn-ghost" onclick="exportCSV()" style="color:rgba(255,255,255,.8);border-color:rgba(255,255,255,.3)">↓ CSV</button>
-    <button class="btn btn-primary btn-sm" onclick="openAdd()">+ New Task</button>
+  <nav class="erp-nav-section">
+    <div class="erp-nav-section-label">Modules</div>
+      <a href="index.html" class="erp-nav-link"><span class="nav-icon">🏠</span><span class="nav-label">Home</span></a>
+      <a href="owners-crm.html" class="erp-nav-link"><span class="nav-icon">👤</span><span class="nav-label">Owners</span></a>
+      <a href="properties-db.html" class="erp-nav-link"><span class="nav-icon">🏠</span><span class="nav-label">Properties</span></a>
+      <a href="guests-crm.html" class="erp-nav-link"><span class="nav-icon">✈️</span><span class="nav-label">Guests</span></a>
+      <a href="cleaning-system.html" class="erp-nav-link"><span class="nav-icon">🧹</span><span class="nav-label">Cleaning</span></a>
+      <a href="contacts-crm.html" class="erp-nav-link"><span class="nav-icon">📋</span><span class="nav-label">Contacts</span></a>
+      <a href="employees.html" class="erp-nav-link"><span class="nav-icon">👥</span><span class="nav-label">Staff</span></a>
+      <a href="leave.html" class="erp-nav-link"><span class="nav-icon">🏖️</span><span class="nav-label">Leave</span></a>
+      <a href="tasks.html" class="erp-nav-link active"><span class="nav-icon">✅</span><span class="nav-label">Tasks</span></a>
+      <a href="jobs.html" class="erp-nav-link"><span class="nav-icon">🔧</span><span class="nav-label">Job Orders</span></a>
+      <a href="laundry.html" class="erp-nav-link"><span class="nav-icon">👔</span><span class="nav-label">Laundry ERP</span></a>
+      <a href="onboarding.html" class="erp-nav-link"><span class="nav-icon">📋</span><span class="nav-label">Onboarding</span></a>
+      <a href="settings.html" class="erp-nav-link"><span class="nav-icon">⚙️</span><span class="nav-label">Settings</span></a>
+  </nav>
+  
+  <div class="erp-sidebar-footer">
+    <div class="erp-user-badge" id="sidebarUser"></div>
+    <div class="erp-sync-row">
+      <span class="sync-dot" id="syncDot" title="Saved" style="display:inline-block"></span>
+      <span class="sync-label">Connected</span>
+    </div>
   </div>
-</header>
+</aside>
+
+<div class="erp-main">
+<div class="erp-topbar">
+    <button class="erp-hamburger" id="erpHamburger">☰</button>
+    <div class="erp-topbar-title">✅ Tasks</div>
+    <div class="erp-topbar-actions"><button class="btn btn-outline btn-sm" onclick="exportCSV&&exportCSV()">↓ CSV</button></div>
+  </div>
+
 <main>
   <div class="page-header">
     <div><h1>Task Tracker</h1><p id="taskSubtitle">Loading...</p></div>
     <div style="display:flex;gap:8px;flex-wrap:wrap">
-      <button class="btn btn-ghost btn-sm" onclick="exportCSV()">&#8595; Export</button>
-      <button class="btn btn-primary" onclick="openAdd()">+ New Task</button>
-    </div>
-  </div>
-
-  <div class="stats-row">
-    <div class="stat-card" onclick="filterByStatus('')" id="sc-all"><div class="num" id="s-all">0</div><div class="lbl">Total</div></div>
-    <div class="stat-card open" onclick="filterByStatus('Open')" id="sc-open"><div class="num" id="s-open">0</div><div class="lbl">Open</div></div>
-    <div class="stat-card inprog" onclick="filterByStatus('In Progress')" id="sc-inprog"><div class="num" id="s-inprog">0</div><div class="lbl">In Progress</div></div>
-    <div class="stat-card closed" onclick="filterByStatus('Closed')" id="sc-closed"><div class="num" id="s-closed">0</div><div class="lbl">Closed</div></div>
-    <div class="stat-card high" onclick="filterByPriority('High')" id="sc-high"><div class="num" id="s-high">0</div><div class="lbl">High Priority</div></div>
-  </div>
-
-  <div class="filter-bar">
-    <input type="text" id="fSearch" placeholder="Search description, location, assignee..." oninput="renderTable()">
-    <select id="fStatus" onchange="renderTable()">
-      <option value="">All Statuses</option>
-      <option value="Open">Open</option>
-      <option value="In Progress">In Progress</option>
-      <option value="Closed">Closed</option>
-    </select>
-    <select id="fPriority" onchange="renderTable()">
-      <option value="">All Priorities</option>
-      <option value="High">High</option>
-      <option value="Medium">Medium</option>
-      <option value="Low">Low</option>
-    </select>
-    <select id="fAssignee" onchange="renderTable()"><option value="">All Assignees</option></select>
-    <select id="fLocation" onchange="renderTable()"><option value="">All Locations</option></select>
-    <button class="btn btn-ghost btn-sm" onclick="clearFilters()">Clear</button>
-  </div>
-
-  <div class="table-wrap">
-    <table>
-      <thead>
-        <tr>
-          <th onclick="sort('id')" id="th_id">#</th>
-          <th onclick="sort('description')" id="th_description">Description</th>
-          <th onclick="sort('assignedTo')" id="th_assignedTo">Assigned To</th>
-          <th onclick="sort('priority')" id="th_priority">Priority</th>
-          <th onclick="sort('location')" id="th_location">Location</th>
-          <th onclick="sort('dateAssigned')" id="th_dateAssigned">Assigned</th>
-          <th onclick="sort('dueDate')" id="th_dueDate">Due Date</th>
-          <th onclick="sort('status')" id="th_status">Status</th>
-          <th>Days Open</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody id="taskTableBody"></tbody>
-    </table>
-  </div>
-</main>
-
-<!-- ADD/EDIT MODAL -->
-<div id="taskModal" class="modal-overlay">
-  <div class="modal">
-    <div class="modal-header">
-      <h2 id="modalTitle">New Task</h2>
-      <button class="modal-close" onclick="closeModal()">&#10005;</button>
-    </div>
-    <div class="modal-body">
-      <div class="fg"><label>Description *</label><textarea id="m_desc" placeholder="What needs to be done?"></textarea></div>
-      <div class="form-row">
-        <div class="fg"><label>Assigned To *</label>
-          <select id="m_assignee"><option value="">Select assignee</option></select>
-        </div>
-        <div class="fg"><label>Location / Property</label>
-          <select id="m_location"><option value="">— Select or type —</option></select>
-        </div>
-      </div>
-      <div class="form-row three">
-        <div class="fg"><label>Priority</label>
-          <select id="m_priority">
-            <option value="High">High</option>
-            <option value="Medium" selected>Medium</option>
-            <option value="Low">Low</option>
-          </select>
-        </div>
-        <div class="fg"><label>Status</label>
-          <select id="m_status">
-            <option value="Open" selected>Open</option>
-            <option value="In Progress">In Progress</option>
-            <option value="Closed">Closed</option>
-          </select>
-        </div>
-        <div class="fg"><label>Date Assigned</label><input type="date" id="m_dateAssigned"></div>
-      </div>
-      <div class="form-row">
-        <div class="fg"><label>Due Date</label><input type="date" id="m_dueDate"></div>
-        <div class="fg"><label>Completion Date</label><input type="date" id="m_completionDate"></div>
-      </div>
-      <div class="fg"><label>Comments</label><textarea id="m_comments" placeholder="Any notes or comments..."></textarea></div>
-      <!-- SUBTASKS -->
-      <div class="subtask-section">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-          <label style="font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em">Subtasks</label>
-          <span id="subtaskProgress" class="subtask-progress" style="display:none">
-            <span id="subtaskProgressText"></span>
-            <span class="subtask-bar"><span class="subtask-bar-fill" id="subtaskBarFill"></span></span>
-          </span>
-        </div>
-        <div class="subtask-list" id="subtaskList"></div>
-        <div class="subtask-add-row">
-          <input type="text" id="newSubtaskInput" placeholder="Add a subtask..." onkeydown="if(event.key==='Enter'){event.preventDefault();addSubtask()}">
-          <button class="btn btn-ghost btn-sm" onclick="addSubtask()">+ Add</button>
-        </div>
-      </div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-danger btn-sm" id="m_deleteBtn" onclick="deleteTask()" style="display:none">Delete Task</button>
-      <div style="display:flex;gap:8px">
-        <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
-        <button class="btn btn-save" onclick="saveTask()">Save Task</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div id="toast" class="toast"></div>
-<script>
-const SUPABASE_URL='https://whuytfjwdjjepayeiohj.supabase.co';
-const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndodXl0Zmp3ZGpqZXBheWVpb2hqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIyODQxMzQsImV4cCI6MjA4Nzg2MDEzNH0.pTDAqw_Cnzc9D3tJU-tU7Ch5qpapKmteiqI_ooSCufY';
-const DB={
-  _h(){return{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json','Prefer':'return=representation,resolution=merge-duplicates'}},
-  _hG(){return{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY}},
-  _hD(){return{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json'}},
-  _ok(){return!!(SUPABASE_URL&&SUPABASE_KEY&&SUPABASE_URL.includes('supabase.co'))},
-  async _fetch(method,table,body,query,ms){
-    if(!this._ok())return{ok:false,data:null,err:'Not configured'};
-    const ctrl=new AbortController(),t=setTimeout(()=>ctrl.abort(),ms||15000);
-    try{
-      const url=SUPABASE_URL+'/rest/v1/'+table+(query||'');
-      const headers=method==='GET'?this._hG():method==='DELETE'?this._hD():this._h();
-      const opts={method,headers,signal:ctrl.signal};
-      if(body)opts.body=JSON.stringify(body);
-      const res=await fetch(url,opts);clearTimeout(t);
-      if(!res.ok){
-        let e='HTTP '+res.status;
-        try{const j=await res.json();e=j.message||j.hint||j.error||e}catch(x){}
-        return{ok:false,data:null,err:e};
-      }
-      if(res.status===204||method==='DELETE')return{ok:true,data:[]};
-      const ct=res.headers.get('content-type')||'';
-      if(!ct.includes('json'))return{ok:true,data:[]};
-      try{return{ok:true,data:await res.json()}}catch(x){return{ok:true,data:[]}}
-    }catch(e){clearTimeout(t);return{ok:false,data:null,err:e.name==='AbortError'?'Timeout':e.message}}
-  },
-  async loadAll(table){
-    const r=await this._fetch('GET',table,null,'?select=id,data,updated_at&order=created_at.asc&limit=100000');
-    if(!r.ok)return{ok:false,rows:null,err:r.err};
-    const rows=(r.data||[]).map(row=>({id:row.id,...(row.data||{})}));
-    return{ok:true,rows};
-  },
-  async upsertOne(table,record){
-    const{id,...rest}=record;
-    const rid=id||('rec_'+Date.now()+'_'+Math.random().toString(36).slice(2,6));
-    const row={id:rid,data:rest,updated_at:new Date().toISOString()};
-    const r=await this._fetch('POST',table,row,'?on_conflict=id');
-    return{ok:r.ok,id:rid,err:r.err};
-  },
-  async upsertMany(table,records){
-    if(!records.length)return{ok:true};
-    const rows=records.map(({id,...rest})=>({id:id||('rec_'+Date.now()+'_'+Math.random().toString(36).slice(2,6)),data:rest,updated_at:new Date().toISOString()}));
-    const size=200;
-    for(let i=0;i<rows.length;i+=size){
-      const r=await this._fetch('POST',table,rows.slice(i,i+size),'?on_conflict=id');
-      if(!r.ok)return{ok:false,err:r.err};
-    }
-    return{ok:true};
-  },
-  async deleteOne(table,id){
-    const r=await this._fetch('DELETE',table,null,'?id=eq.'+encodeURIComponent(id));
-    return{ok:r.ok,err:r.err};
-  },
-  isConfigured(){return this._ok()}
-};
-const SyncStore={
-  _pendingDeletes:{},
-  async load(lsKey,table){
-    const cached=this._getLocal(lsKey);
-    const result=await DB.loadAll(table);
-    if(result.ok&&result.rows!==null){
-      const pending=this._pendingDeletes[table]||new Set();
-      const rows=result.rows.filter(r=>!pending.has(r.id));
-      localStorage.setItem(lsKey,JSON.stringify(rows));
-      return{data:rows,fromCache:false,online:true};
-    }
-    return{data:cached,fromCache:true,online:false};
-  },
-  async saveOne(lsKey,table,record,all){
-    localStorage.setItem(lsKey,JSON.stringify(all));
-    const r=await DB.upsertOne(table,record);
-    if(!r.ok)showSyncErr(r.err);
-    return r;
-  },
-  async saveAll(lsKey,table,records){
-    localStorage.setItem(lsKey,JSON.stringify(records));
-    const r=await DB.upsertMany(table,records);
-    if(!r.ok)showSyncErr(r.err);
-    return r.ok;
-  },
-  async deleteOne(lsKey,table,id,all){
-    if(!this._pendingDeletes[table])this._pendingDeletes[table]=new Set();
-    this._pendingDeletes[table].add(id);
-    localStorage.setItem(lsKey,JSON.stringify(all));
-    const r=await DB.deleteOne(table,id);
-    if(!r.ok){
-      this._pendingDeletes[table].delete(id);
-      showSyncErr('Delete failed: '+r.err);
-      return{ok:false,err:r.err};
-    }
-    setTimeout(()=>{if(this._pendingDeletes[table])this._pendingDeletes[table].delete(id)},120000);
-    return{ok:true};
-  },
-  _getLocal(key){try{return JSON.parse(localStorage.getItem(key)||'[]')||[]}catch{return[]}}
-};
-function startPoll(table,lsKey,ms,onData){
-  let lastHash='';
-  const poll=async()=>{
-    const result=await DB.loadAll(table);
-    if(!result.ok||!result.rows)return;
-    const pending=SyncStore._pendingDeletes[table]||new Set();
-    const rows=result.rows.filter(r=>!pending.has(r.id));
-    const hash=rows.length+'|'+rows.map(r=>r.id).join(',');
-    if(hash!==lastHash){lastHash=hash;localStorage.setItem(lsKey,JSON.stringify(rows));onData(rows)}
-  };
-  setInterval(poll,ms);
-  return poll;
-}
-function showDbStatus(online){
-  const old=document.getElementById('db-status-bar');if(old)old.remove();
-  if(online)return;
-  const b=document.createElement('div');b.id='db-status-bar';
-  b.style.cssText='position:fixed;bottom:0;left:0;right:0;background:#c0392b;color:#fff;text-align:center;padding:8px;font-size:12px;z-index:9998;cursor:pointer;';
-  b.textContent='⚠ Database offline — working in local mode. Click to retry.';
-  b.onclick=()=>{location.reload()};
-  document.body.appendChild(b);
-}
-function showSyncErr(err){
-  let b=document.getElementById('sync-err-bar');
-  if(!b){b=document.createElement('div');b.id='sync-err-bar';b.style.cssText='position:fixed;bottom:40px;right:16px;background:#c0392b;color:#fff;border-radius:8px;padding:8px 14px;font-size:12px;z-index:9999;max-width:320px;';document.body.appendChild(b)}
-  b.textContent='Save error: '+err;b.style.display='block';
-  clearTimeout(b._t);b._t=setTimeout(()=>b.style.display='none',6000);
-}
-
-
-
-
-let tasks = [];
-let employees = [];
-let properties = [];
-let settings = {};
-let editingId = null;
-let sortCol = 'dateAssigned', sortDir = -1;
-let filterStatus = '', filterPriority = '';
-
-async function init() {
-  const today = new Date().toISOString().slice(0,10);
-  document.getElementById('m_dateAssigned').value = today;
-
-  const ol = document.getElementById('loadingOverlay');
-
-  // Load all data in parallel
-  const [tR, eR, pR, sR] = await Promise.all([
-    SyncStore.load('zesty_tasks','tasks'),
-    SyncStore.load('zesty_employees','employees'),
-    SyncStore.load('zesty_properties','properties'),
-    SyncStore.load('zesty_settings','settings')
-  ]);
-
-  showDbStatus(tR.online);
-  tasks = tR.data;
-  employees = eR.data.filter(e=>e.status !== 'inactive');
-  properties = pR.data;
-  settings = sR.data[0] || {};
-
-  populateDropdowns();
-  renderTable();
-  updateStats();
-
-  if(ol){ol.style.opacity='0';ol.style.transition='opacity 0.3s';setTimeout(()=>ol.remove(),300)}
-
-  // Poll all
-  startPoll('tasks','zesty_tasks',30000,(rows)=>{tasks=rows;renderTable();updateStats();});
-  startPoll('employees','zesty_employees',30000,(rows)=>{employees=rows.filter(e=>e.status!=='inactive');populateDropdowns();});
-  startPoll('properties','zesty_properties',30000,(rows)=>{properties=rows;populateDropdowns();});
-  startPoll('settings','zesty_settings',30000,(rows)=>{settings=rows[0]||{};populateDropdowns();});
-}
-
-function getAssignees() {
-  const fromEmp = employees.map(e=>((e.firstName||'')+' '+(e.lastName||'')).trim()).filter(Boolean);
-  const manual = settings.taskAssignees || [];
-  return [...new Set([...fromEmp, ...manual])].sort();
-}
-
-function getLocations() {
-  const fromProps = properties.map(p=>p.name||p.propertyName||'').filter(Boolean);
-  const manual = settings.taskLocations || [];
-  return [...new Set([...fromProps, ...manual])].sort();
-}
-
-function populateDropdowns() {
-  const assignees = getAssignees();
-  const locations = getLocations();
-
-  // Filter dropdowns
-  const fA = document.getElementById('fAssignee');
-  const curA = fA.value;
-  fA.innerHTML = '<option value="">All Assignees</option>' + assignees.map(a=>`<option${a===curA?' selected':''}>${a}</option>`).join('');
-
-  const fL = document.getElementById('fLocation');
-  const curL = fL.value;
-  fL.innerHTML = '<option value="">All Locations</option>' + locations.map(l=>`<option${l===curL?' selected':''}>${l}</option>`).join('');
-
-  // Modal dropdowns
-  const mA = document.getElementById('m_assignee');
-  const mAcur = mA.value;
-  mA.innerHTML = '<option value="">Select assignee</option>' + assignees.map(a=>`<option${a===mAcur?' selected':''}>${a}</option>`).join('');
-
-  const mL = document.getElementById('m_location');
-  const mLcur = mL.value;
-  mL.innerHTML = '<option value="">— No location —</option>' + locations.map(l=>`<option${l===mLcur?' selected':''}>${l}</option>`).join('');
-}
-
-function getFiltered() {
-  const q = document.getElementById('fSearch').value.toLowerCase();
-  const fS = document.getElementById('fStatus').value || filterStatus;
-  const fP = document.getElementById('fPriority').value || filterPriority;
-  const fA = document.getElementById('fAssignee').value;
-  const fL = document.getElementById('fLocation').value;
-  return tasks.filter(t=> {
-    return (!q || (t.description||'').toLowerCase().includes(q)
-                || (t.assignedTo||'').toLowerCase().includes(q)
-                || (t.location||'').toLowerCase().includes(q))
-      && (!fS || t.status===fS)
-      && (!fP || t.priority===fP)
-      && (!fA || t.assignedTo===fA)
-      && (!fL || t.location===fL);
-  });
-}
-
-const STATUS_BADGE = {Open:'b-open',['In Progress']:'b-inprog',Closed:'b-closed'};
-const PRIORITY_BADGE = {High:'b-high',Medium:'b-medium',Low:'b-low'};
-
-function agingBucket(days) {
-  if(days===null||days===undefined||days==='') return '';
-  const d = parseInt(days);
-  if(d<=3) return `<span class="days-chip dc-0">${d}d</span>`;
-  if(d<=7) return `<span class="days-chip dc-3">${d}d</span>`;
-  return `<span class="days-chip dc-7">${d}d</span>`;
-}
-
-function calcDaysOpen(t) {
-  if(!t.dateAssigned) return null;
-  const start = new Date(t.dateAssigned);
-  const end = t.status==='Closed' && t.completionDate ? new Date(t.completionDate) : new Date();
-  const diff = Math.round((end-start)/86400000);
-  return diff >= 0 ? diff : 0;
-}
-
-function isOverdue(t) {
-  if(t.status==='Closed') return false;
-  if(!t.dueDate) return false;
-  return t.dueDate < new Date().toISOString().slice(0,10);
-}
-
-function sort(col) {
-  if(sortCol===col) sortDir*=-1; else {sortCol=col;sortDir=1;}
-  document.querySelectorAll('th').forEach(t=>t.classList.remove('sorted'));
-  const th=document.getElementById('th_'+col);
-  if(th) th.classList.add('sorted');
-  renderTable();
-}
-
-function renderTable() {
-  const list = getFiltered().sort((a,b)=>{
-    let va=a[sortCol]||'', vb=b[sortCol]||'';
-    if(sortCol==='id'){va=parseInt(a.taskNum||a.id||0);vb=parseInt(b.taskNum||b.id||0);}
-    return va<vb?-sortDir:va>vb?sortDir:0;
-  });
-
-  document.getElementById('taskSubtitle').textContent = list.length+' of '+tasks.length+' tasks';
-
-  const tbody = document.getElementById('taskTableBody');
-  if(!list.length){
-    tbody.innerHTML='<tr class="empty-row"><td colspan="10">No tasks found.</td></tr>';
-    return;
-  }
-
-  tbody.innerHTML = list.map(t=>{
-    const sBadge = STATUS_BADGE[t.status]||'';
-    const pBadge = PRIORITY_BADGE[t.priority]||'';
-    const days = calcDaysOpen(t);
-    const overdue = isOverdue(t);
-    return `<tr class="task-row" onclick="openEdit('${t.id}')">
-      <td style="color:var(--text-muted);font-size:12px">${t.taskNum||''}</td>
-      <td><div style="max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500">${t.description||'—'}</div></td>
-      <td><span class="badge b-assign">${t.assignedTo||'—'}</span></td>
-      <td>${t.priority?`<span class="badge ${pBadge}">${t.priority}</span>`:'—'}</td>
-      <td>${t.location?`<span class="badge b-loc">${t.location}</span>`:'—'}</td>
-      <td style="color:var(--text-muted);font-size:12px">${t.dateAssigned||'—'}</td>
-      <td class="${overdue?'overdue':''}" style="font-size:12px">${t.dueDate||'—'}${overdue?' ⚠':''}</td>
-      <td>${sBadge?`<span class="badge ${sBadge}">${t.status}</span>`:'—'}</td>
-      <td>${agingBucket(days)}</td>
-      <td onclick="event.stopPropagation()"><button class="btn btn-ghost btn-sm" onclick="openEdit('${t.id}')">Edit</button></td>
-    </tr>`;
-  }).join('');
-}
-
-function updateStats() {
-  const t = tasks;
-  document.getElementById('s-all').textContent = t.length;
-  document.getElementById('s-open').textContent = t.filter(x=>x.status==='Open').length;
-  document.getElementById('s-inprog').textContent = t.filter(x=>x.status==='In Progress').length;
-  document.getElementById('s-closed').textContent = t.filter(x=>x.status==='Closed').length;
-  document.getElementById('s-high').textContent = t.filter(x=>x.priority==='High'&&x.status!=='Closed').length;
-}
-
-function filterByStatus(s) {
-  filterStatus=s; filterPriority='';
-  document.getElementById('fStatus').value=s;
-  document.getElementById('fPriority').value='';
-  document.querySelectorAll('.stat-card').forEach(c=>c.classList.remove('active-filter'));
-  const map={'':'sc-all','Open':'sc-open','In Progress':'sc-inprog','Closed':'sc-closed'};
-  if(map[s]) document.getElementById(map[s]).classList.add('active-filter');
-  renderTable();
-}
-
-function filterByPriority(p) {
-  filterPriority=p; filterStatus='';
-  document.getElementById('fPriority').value=p;
-  document.getElementById('fStatus').value='';
-  document.querySelectorAll('.stat-card').forEach(c=>c.classList.remove('active-filter'));
-  if(p==='High') document.getElementById('sc-high').classList.add('active-filter');
-  renderTable();
-}
-
-function clearFilters() {
-  filterStatus=''; filterPriority='';
-  document.getElementById('fSearch').value='';
-  document.getElementById('fStatus').value='';
-  document.getElementById('fPriority').value='';
-  document.getElementById('fAssignee').value='';
-  document.getElementById('fLocation').value='';
-  document.querySelectorAll('.stat-card').forEach(c=>c.classList.remove('active-filter'));
-  renderTable();
-}
-
-function openAdd() {
-  editingId = null;
-  document.getElementById('modalTitle').textContent = 'New Task';
-  document.getElementById('m_deleteBtn').style.display = 'none';
-  document.getElementById('m_desc').value = '';
-  document.getElementById('m_assignee').value = '';
-  document.getElementById('m_location').value = '';
-  document.getElementById('m_priority').value = 'Medium';
-  document.getElementById('m_status').value = 'Open';
-  document.getElementById('m_dateAssigned').value = new Date().toISOString().slice(0,10);
-  document.getElementById('m_dueDate').value = '';
-  document.getElementById('m_completionDate').value = '';
-  document.getElementById('m_comments').value = '';
-  currentSubtasks = [];
-  renderSubtasks();
-  document.getElementById('newSubtaskInput').value = '';
-  document.getElementById('taskModal').classList.add('open');
-}
-
-function openEdit(id) {
-  const t = tasks.find(x=>x.id===id);
-  if(!t) return;
-  editingId = id;
-  document.getElementById('modalTitle').textContent = 'Edit Task';
-  document.getElementById('m_deleteBtn').style.display = 'inline-flex';
-  document.getElementById('m_desc').value = t.description||'';
-  document.getElementById('m_assignee').value = t.assignedTo||'';
-  document.getElementById('m_location').value = t.location||'';
-  document.getElementById('m_priority').value = t.priority||'Medium';
-  document.getElementById('m_status').value = t.status||'Open';
-  document.getElementById('m_dateAssigned').value = t.dateAssigned||'';
-  document.getElementById('m_dueDate').value = t.dueDate||'';
-  document.getElementById('m_completionDate').value = t.completionDate||'';
-  document.getElementById('m_comments').value = t.comments||'';
-  currentSubtasks = t.subtasks ? JSON.parse(JSON.stringify(t.subtasks)) : [];
-  renderSubtasks();
-  document.getElementById('newSubtaskInput').value = '';
-  document.getElementById('taskModal').classList.add('open');
-}
-
-async function saveTask() {
-  const desc = document.getElementById('m_desc').value.trim();
-  const assignee = document.getElementById('m_assignee').value;
-  if(!desc){showToast('Description is required.','err');return}
-  if(!assignee){showToast('Please select an assignee.','err');return}
-
-  const record = {
-    id: editingId || ('task_'+Date.now()+'_'+Math.random().toString(36).slice(2,5)),
-    taskNum: editingId ? (tasks.find(x=>x.id===editingId)||{}).taskNum : (tasks.length ? Math.max(...tasks.map(x=>parseInt(x.taskNum)||0))+1 : 1),
-    description: desc,
-    assignedTo: assignee,
-    location: document.getElementById('m_location').value,
-    priority: document.getElementById('m_priority').value,
-    status: document.getElementById('m_status').value,
-    dateAssigned: document.getElementById('m_dateAssigned').value,
-    dueDate: document.getElementById('m_dueDate').value,
-    completionDate: document.getElementById('m_completionDate').value,
-    comments: document.getElementById('m_comments').value.trim(),
-    subtasks: currentSubtasks
-  };
-
-  // Auto-set completion date when closing
-  if(record.status==='Closed' && !record.completionDate) {
-    record.completionDate = new Date().toISOString().slice(0,10);
-    document.getElementById('m_completionDate').value = record.completionDate;
-  }
-
-  const allResult = await SyncStore.load('zesty_tasks','tasks');
-  let all = allResult.data;
-  const idx = all.findIndex(x=>x.id===record.id);
-  if(idx!==-1) all[idx]=record; else all.push(record);
-  tasks = all;
-
-  const r = await SyncStore.saveOne('zesty_tasks','tasks',record,all);
-  if(r.ok!==false){
-    showToast(editingId?'Task updated':'Task created');
-    closeModal();
-    renderTable();
-    updateStats();
-  } else showToast('Save failed','err');
-}
-
-async function deleteTask() {
-  if(!editingId) return;
-  if(!confirm('Delete this task permanently?')) return;
-  const all = tasks.filter(x=>x.id!==editingId);
-  const r = await SyncStore.deleteOne('zesty_tasks','tasks',editingId,all);
-  if(r.ok){
-    tasks = all;
-    showToast('Task deleted');
-    closeModal();
-    renderTable();
-    updateStats();
-  } else showToast('Delete failed','err');
-}
-
-function closeModal() {
-  document.getElementById('taskModal').classList.remove('open');
-  editingId = null;
-}
-
-function exportCSV() {
-  const h = ['#','Description','Assigned To','Priority','Location','Date Assigned','Due Date','Completion Date','Status','Comments'];
-  const rows = tasks.map(t=>[t.taskNum,t.description,t.assignedTo,t.priority,t.location,t.dateAssigned,t.dueDate,t.completionDate,t.status,t.comments].map(v=>`"${(v||'').toString().replace(/"/g,'""')}"`));
-  const csv = [h.join(','),...rows.map(r=>r.join(','))].join('\n');
-  const a=document.createElement('a');
-  a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
-  a.download='tasks_'+new Date().toISOString().slice(0,10)+'.csv';
-  a.click();
-}
-
-function showToast(msg,type){
-  const t=document.getElementById('toast');t.textContent=msg;t.className='toast show'+(type==='err'?' err':'');
-  clearTimeout(t._t);t._t=setTimeout(()=>t.className='toast',3000);
-}
-
-document.getElementById('taskModal').addEventListener('click',function(e){if(e.target===this)closeModal()});
-// ── SUBTASKS ──────────────────────────────────────────────────────────────
-let currentSubtasks = [];
-
-function renderSubtasks() {
-  const list = document.getElementById('subtaskList');
-  const prog = document.getElementById('subtaskProgress');
-  const progText = document.getElementById('subtaskProgressText');
-  const bar = document.getElementById('subtaskBarFill');
-  if (!list) return;
-  list.innerHTML = currentSubtasks.map((st,i) => `
-    <div class="subtask-item">
-      <input type="checkbox" ${st.done?'checked':''} onchange="toggleSubtask(${i})">
-      <span class="st-text ${st.done?'done':''}" onclick="toggleSubtask(${i})">${st.text}</span>
-      <button class="st-del" onclick="removeSubtask(${i})">✕</button>
+      
     </div>`).join('');
   if (currentSubtasks.length > 0) {
     const done = currentSubtasks.filter(s=>s.done).length;
@@ -890,9 +591,53 @@ function removeSubtask(i) {
   renderSubtasks();
 }
 
+
+// ── SIDEBAR NAVIGATION ──────────────────────────────────
+function _initSidebar() {
+  const sidebar = document.getElementById('erpSidebar');
+  const overlay = document.getElementById('erpOverlay');
+  const hamburger = document.getElementById('erpHamburger');
+  if (!sidebar) return;
+  // Hamburger toggle
+  if (hamburger) {
+    hamburger.addEventListener('click', () => {
+      sidebar.classList.toggle('open');
+      overlay.classList.toggle('open');
+    });
+  }
+  // Close on overlay click
+  if (overlay) {
+    overlay.addEventListener('click', () => {
+      sidebar.classList.remove('open');
+      overlay.classList.remove('open');
+    });
+  }
+  // Inject Azure user badge into sidebar footer
+  const origBadge = document.getElementById('_azure_badge');
+  const footerUser = document.getElementById('sidebarUser');
+  if (origBadge && footerUser) {
+    footerUser.innerHTML = origBadge.innerHTML;
+    origBadge.remove();
+  }
+  // Watch for badge to appear
+  const obs = new MutationObserver(() => {
+    const b = document.getElementById('_azure_badge');
+    const fu = document.getElementById('sidebarUser');
+    if (b && fu) {
+      fu.innerHTML = b.innerHTML;
+      b.remove();
+      obs.disconnect();
+    }
+  });
+  obs.observe(document.body, {childList:true, subtree:true});
+}
+document.addEventListener('DOMContentLoaded', _initSidebar);
+
+
 document.addEventListener('DOMContentLoaded', init);
 
 </script>
 <script src="erp-nav.js"></script>
+</div><!-- /erp-main -->
 </body>
 </html>

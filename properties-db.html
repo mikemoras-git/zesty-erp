@@ -186,6 +186,242 @@
 .erp-local-title{font-size:13px;font-weight:600;color:rgba(255,255,255,.9)}
 .erp-local-spacer{flex:1}
 
+
+/* ── GLOBAL MOBILE RESPONSIVE ── */
+@media(max-width:768px){
+  .table-wrap,[style*="overflow-x"]{overflow-x:auto!important;-webkit-overflow-scrolling:touch}
+  table{min-width:500px}
+  .modal-overlay,.overlay{padding:8px!important}
+  .modal,.modal-lg{width:100%!important;max-width:100%!important;max-height:95vh!important;border-radius:12px!important;margin:auto}
+  .form-grid,.form-row,.form-grid-2,.form-grid-3,.form-grid-4,.form-grid-6{grid-template-columns:1fr!important}
+  .col-span-2,.col-span-4,.form-full{grid-column:1/-1!important}
+  .stats-bar,.kpi-grid,.kpi-grid-6,.stats-row{grid-template-columns:repeat(2,1fr)!important}
+  .container,main{padding-left:10px!important;padding-right:10px!important}
+  .modal-footer{flex-wrap:wrap}
+  .modal-footer .btn{min-width:100px}
+}
+@media(max-width:480px){
+  .stats-bar,.kpi-grid,.stats-row{grid-template-columns:1fr 1fr!important}
+  td,th{padding:6px 8px!important;font-size:11px!important}
+}
+
+/* ═══════════════════════════════════════════════════
+   ZESTY ERP — LEFT SIDEBAR NAVIGATION
+   ═══════════════════════════════════════════════════ */
+
+/* Reset old top header nav */
+.erp-header,.erp-nav-global,.erp-nav-local,
+.erp-modules,.erp-mod-btn,.erp-logo,
+.erp-local-title,.erp-local-spacer { all: unset; }
+.erp-header { display: none !important; }
+
+/* ── LAYOUT WRAPPER ── */
+body.erp-layout {
+  display: flex;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ── SIDEBAR ── */
+.erp-sidebar {
+  width: 220px;
+  min-width: 220px;
+  background: linear-gradient(180deg, #0a3d36 0%, #0d4a42 60%, #0f5248 100%);
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 0; left: 0; bottom: 0;
+  z-index: 600;
+  box-shadow: 3px 0 20px rgba(0,0,0,0.3);
+  transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,255,255,.1) transparent;
+}
+.erp-sidebar::-webkit-scrollbar { width: 4px; }
+.erp-sidebar::-webkit-scrollbar-track { background: transparent; }
+.erp-sidebar::-webkit-scrollbar-thumb { background: rgba(255,255,255,.1); border-radius: 2px; }
+
+/* ── SIDEBAR BRAND ── */
+.erp-brand {
+  padding: 20px 18px 16px;
+  border-bottom: 1px solid rgba(255,255,255,.08);
+  flex-shrink: 0;
+}
+.erp-brand-name {
+  font-family: 'Cormorant Garamond', 'DM Serif Display', serif;
+  font-size: 22px; font-weight: 600; color: #fff;
+  line-height: 1; letter-spacing: .3px;
+}
+.erp-brand-name span { color: #e8c97a; }
+.erp-brand-sub {
+  font-size: 10px; color: rgba(255,255,255,.35);
+  text-transform: uppercase; letter-spacing: 2px;
+  margin-top: 4px; font-weight: 400;
+}
+
+/* ── SIDEBAR NAV LINKS ── */
+.erp-nav-section {
+  padding: 10px 0 4px;
+}
+.erp-nav-section-label {
+  font-size: 9px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .12em;
+  color: rgba(255,255,255,.25);
+  padding: 0 18px; margin-bottom: 4px;
+}
+.erp-nav-link {
+  display: flex; align-items: center; gap: 9px;
+  padding: 8px 18px;
+  color: rgba(255,255,255,.6);
+  text-decoration: none;
+  font-size: 13px; font-weight: 500;
+  font-family: 'DM Sans', sans-serif;
+  transition: all .15s;
+  border-left: 3px solid transparent;
+  -webkit-tap-highlight-color: transparent;
+  cursor: pointer;
+  background: none; border-right: none;
+  border-top: none; border-bottom: none;
+  width: 100%; text-align: left;
+}
+.erp-nav-link:hover {
+  color: #fff;
+  background: rgba(255,255,255,.07);
+  border-left-color: rgba(255,255,255,.2);
+}
+.erp-nav-link.active {
+  color: #e8c97a;
+  background: rgba(201,168,76,.12);
+  border-left-color: #e8c97a;
+  font-weight: 600;
+}
+.erp-nav-link .nav-icon { font-size: 15px; flex-shrink: 0; width: 18px; text-align: center; }
+.erp-nav-link .nav-label { flex: 1; }
+.erp-nav-link .nav-badge {
+  font-size: 10px; font-weight: 700;
+  background: rgba(201,168,76,.25); color: #e8c97a;
+  padding: 1px 6px; border-radius: 8px;
+}
+.erp-nav-divider {
+  height: 1px; background: rgba(255,255,255,.06);
+  margin: 6px 14px;
+}
+
+/* ── MODULE TABS (inside sidebar, below nav links) ── */
+.erp-module-tabs {
+  margin-top: auto;
+  padding: 8px 0 12px;
+  border-top: 1px solid rgba(255,255,255,.08);
+}
+.erp-module-tabs-label {
+  font-size: 9px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .12em;
+  color: rgba(255,255,255,.25);
+  padding: 0 18px; margin-bottom: 4px;
+}
+.erp-tab-link {
+  display: flex; align-items: center; gap: 8px;
+  padding: 7px 18px;
+  color: rgba(255,255,255,.55);
+  font-size: 12px; font-weight: 500;
+  font-family: 'DM Sans', sans-serif;
+  transition: all .15s;
+  border-left: 3px solid transparent;
+  -webkit-tap-highlight-color: transparent;
+  cursor: pointer;
+  background: none; border-right: none;
+  border-top: none; border-bottom: none;
+  width: 100%; text-align: left; text-decoration: none;
+}
+.erp-tab-link:hover {
+  color: #fff; background: rgba(255,255,255,.06);
+}
+.erp-tab-link.active {
+  color: #c9a84c; font-weight: 600;
+  background: rgba(201,168,76,.1);
+  border-left-color: #c9a84c;
+}
+
+/* ── SIDEBAR FOOTER (user badge + sync) ── */
+.erp-sidebar-footer {
+  padding: 12px 18px;
+  border-top: 1px solid rgba(255,255,255,.08);
+  flex-shrink: 0;
+}
+.erp-user-badge {
+  font-size: 11px; color: rgba(255,255,255,.45);
+  display: flex; align-items: center; gap: 6px;
+}
+.erp-sync-row {
+  display: flex; align-items: center; gap: 6px;
+  margin-top: 6px;
+}
+.sync-label { font-size: 10px; color: rgba(255,255,255,.3); }
+
+/* ── MAIN CONTENT AREA ── */
+.erp-main {
+  margin-left: 220px;
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── TOP BAR (module title + actions) ── */
+.erp-topbar {
+  background: #fff;
+  border-bottom: 1px solid #d4e0de;
+  padding: 0 28px;
+  height: 52px;
+  display: flex; align-items: center; gap: 12px;
+  position: sticky; top: 0; z-index: 100;
+  box-shadow: 0 1px 8px rgba(26,122,110,.08);
+  flex-shrink: 0;
+}
+.erp-topbar-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 18px; font-weight: 600;
+  color: #115950; flex: 1;
+}
+.erp-topbar-actions { display: flex; gap: 8px; align-items: center; }
+
+/* ── HAMBURGER (mobile only) ── */
+.erp-hamburger {
+  display: none;
+  background: none; border: none;
+  color: #115950; font-size: 22px;
+  cursor: pointer; padding: 4px 8px;
+  border-radius: 6px;
+  -webkit-tap-highlight-color: transparent;
+}
+.erp-overlay {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.5);
+  z-index: 590;
+}
+
+/* ── MOBILE ── */
+@media (max-width: 900px) {
+  .erp-sidebar {
+    transform: translateX(-100%);
+  }
+  .erp-sidebar.open {
+    transform: translateX(0);
+  }
+  .erp-overlay.open { display: block; }
+  .erp-main { margin-left: 0; }
+  .erp-hamburger { display: block; }
+  .erp-topbar { padding: 0 14px; }
+}
+@media (max-width: 600px) {
+  .container, main { padding: 12px 10px 60px !important; }
+  table { min-width: 480px; }
+  .stats-bar, .kpi-grid { grid-template-columns: repeat(2,1fr) !important; }
+}
+
+
 </style>
     <script src="https://unpkg.com/@azure/msal-browser@2.38.3/lib/msal-browser.min.js"></script>
     <script>
@@ -201,32 +437,77 @@
       const _msal=new msal.PublicClientApplication(_msalConfig);
       const _loginRequest={scopes:['openid','profile','User.Read']};
 
-      async function _ensureLogin(){
+      
+      // ── MSAL AUTH ──────────────────────────────────────────
+      const _isMobile = /iPhone|iPad|iPod|Android|Mobile/i.test(navigator.userAgent);
+
+      async function _ensureLogin() {
         await _msal.initialize();
-        try{ await _msal.handleRedirectPromise(); }catch(e){}
-        const accounts=_msal.getAllAccounts();
-        if(accounts.length>0){
-          const acct=accounts[0];
-          _showUserBadge(acct.name||acct.username);
+        // Handle any redirect result first
+        try {
+          const redirectResult = await _msal.handleRedirectPromise();
+          if (redirectResult && redirectResult.account) {
+            _msal.setActiveAccount(redirectResult.account);
+            _showUserBadge(redirectResult.account.name || redirectResult.account.username);
+            document.documentElement.style.visibility = 'visible';
+            return;
+          }
+        } catch(e) { console.warn('Redirect promise:', e); }
+
+        // Check for existing session
+        const accounts = _msal.getAllAccounts();
+        if (accounts.length > 0) {
+          _msal.setActiveAccount(accounts[0]);
+          _showUserBadge(accounts[0].name || accounts[0].username);
+          document.documentElement.style.visibility = 'visible';
           return;
         }
-        _msal.loginRedirect(_loginRequest);
+
+        // No session - login
+        if (_isMobile) {
+          // Mobile: try popup first, fallback to redirect
+          try {
+            const result = await _msal.loginPopup(_loginRequest);
+            if (result && result.account) {
+              _msal.setActiveAccount(result.account);
+              _showUserBadge(result.account.name || result.account.username);
+            }
+            document.documentElement.style.visibility = 'visible';
+          } catch(e) {
+            if (e.errorCode !== 'user_cancelled') {
+              sessionStorage.setItem('msal_return_url', window.location.href);
+              await _msal.loginRedirect(_loginRequest);
+            } else {
+              document.documentElement.style.visibility = 'visible';
+            }
+          }
+        } else {
+          // Desktop: store current page, redirect to login, come back
+          sessionStorage.setItem('msal_return_url', window.location.href);
+          await _msal.loginRedirect(_loginRequest);
+        }
       }
 
-      function _showUserBadge(name){
-        const show=()=>{
-          const hdr=document.querySelector('.header-right');
-          if(!hdr)return;
-          if(document.getElementById('_azure_badge'))return;
-          const badge=document.createElement('div');
-          badge.id='_azure_badge';
-          badge.style.cssText='display:flex;align-items:center;gap:8px;margin-left:4px';
-          badge.innerHTML=`<span style="font-size:12px;color:rgba(255,255,255,.75);font-family:DM Sans,sans-serif">&#128100; ${name}</span>`+
-            `<button onclick="window._azureLogout()" style="padding:4px 10px;border-radius:7px;border:1px solid rgba(255,255,255,.3);background:transparent;color:rgba(255,255,255,.7);font-size:11px;cursor:pointer;font-family:DM Sans,sans-serif">Sign out</button>`;
+
+      function _showUserBadge(name) {
+        // Store name globally for sidebar to pick up
+        window._erpUserName = name;
+        // Try to update sidebar user display
+        const zsUser = document.getElementById('zsUser');
+        if (zsUser) {
+          zsUser.innerHTML = '<span>👤 ' + name + '</span>' +
+            '<button onclick="window._azureLogout()" style="background:transparent;border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.5);font-size:10px;padding:2px 7px;border-radius:4px;cursor:pointer;font-family:DM Sans,sans-serif;margin-left:4px">Sign out</button>';
+        }
+        // Also try old header-right for backwards compat
+        const hdr = document.querySelector('.header-right');
+        if (hdr && !document.getElementById('_azure_badge')) {
+          const badge = document.createElement('div');
+          badge.id = '_azure_badge';
+          badge.style.cssText = 'display:flex;align-items:center;gap:8px';
+          badge.innerHTML = '<span style="font-size:12px;color:rgba(255,255,255,.75);font-family:DM Sans,sans-serif">👤 ' + name + '</span>' +
+            '<button onclick="window._azureLogout()" style="padding:4px 10px;border-radius:7px;border:1px solid rgba(255,255,255,.3);background:transparent;color:rgba(255,255,255,.7);font-size:11px;cursor:pointer;font-family:DM Sans,sans-serif">Sign out</button>';
           hdr.appendChild(badge);
-        };
-        if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',show);}
-        else{show();}
+        }
       }
 
       window._azureLogout=function(){
@@ -259,39 +540,25 @@
       };
       const _msal=new msal.PublicClientApplication(_msalConfig);
       const _loginRequest={scopes:['openid','profile','User.Read']};
-
-      async function _ensureLogin(){
-        await _msal.initialize();
-        try{ await _msal.handleRedirectPromise(); }catch(e){}
-        const accounts=_msal.getAllAccounts();
-        if(accounts.length>0){
-          const acct=accounts[0];
-          if(acct.tenantId!=='9c30b606-6648-4777-a623-64867e43e54f'){
-            document.documentElement.style.visibility='visible';
-            document.body.innerHTML='<div style="display:flex;align-items:center;justify-content:center;height:100vh;font-family:sans-serif;flex-direction:column;gap:12px"><div style="font-size:48px">🔒</div><div style="font-size:18px;font-weight:600;color:#1e2a28">Access Denied</div><div style="font-size:14px;color:#666">Your account is not authorised to access this system.</div><button onclick="window._azureLogout()" style="margin-top:12px;padding:8px 20px;background:#1a7a6e;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:14px">Sign out</button></div>';
-            return;
-          }
-          _showUserBadge(acct.name||acct.username);
-          document.documentElement.style.visibility='visible';
-          return;
+      function _showUserBadge(name) {
+        // Store name globally for sidebar to pick up
+        window._erpUserName = name;
+        // Try to update sidebar user display
+        const zsUser = document.getElementById('zsUser');
+        if (zsUser) {
+          zsUser.innerHTML = '<span>👤 ' + name + '</span>' +
+            '<button onclick="window._azureLogout()" style="background:transparent;border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.5);font-size:10px;padding:2px 7px;border-radius:4px;cursor:pointer;font-family:DM Sans,sans-serif;margin-left:4px">Sign out</button>';
         }
-        await _msal.loginRedirect(_loginRequest);
-      }
-
-      function _showUserBadge(name){
-        const show=()=>{
-          const hdr=document.querySelector('.header-right');
-          if(!hdr)return;
-          if(document.getElementById('_azure_badge'))return;
-          const badge=document.createElement('div');
-          badge.id='_azure_badge';
-          badge.style.cssText='display:flex;align-items:center;gap:8px;margin-left:4px';
-          badge.innerHTML='<span style="font-size:12px;color:rgba(255,255,255,.75);font-family:DM Sans,sans-serif">&#128100; '+name+'</span>'+
+        // Also try old header-right for backwards compat
+        const hdr = document.querySelector('.header-right');
+        if (hdr && !document.getElementById('_azure_badge')) {
+          const badge = document.createElement('div');
+          badge.id = '_azure_badge';
+          badge.style.cssText = 'display:flex;align-items:center;gap:8px';
+          badge.innerHTML = '<span style="font-size:12px;color:rgba(255,255,255,.75);font-family:DM Sans,sans-serif">👤 ' + name + '</span>' +
             '<button onclick="window._azureLogout()" style="padding:4px 10px;border-radius:7px;border:1px solid rgba(255,255,255,.3);background:transparent;color:rgba(255,255,255,.7);font-size:11px;cursor:pointer;font-family:DM Sans,sans-serif">Sign out</button>';
           hdr.appendChild(badge);
-        };
-        if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',show);}
-        else{show();}
+        }
       }
 
       window._azureLogout=function(){
@@ -307,35 +574,47 @@
     })();
     </script>
 </head>
-<body>
+<body class="erp-layout">
 
-<header class="erp-header">
-  <div class="erp-nav-global">
-    <div class="erp-logo">Zesty <span>Rentals</span></div>
-    <nav class="erp-modules">
-      <a href="index.html" class="erp-mod-btn">🏠 Home</a>
-      <a href="owners-crm.html" class="erp-mod-btn">👤 Owners</a>
-      <a href="properties-db.html" class="erp-mod-btn active">🏠 Properties</a>
-      <a href="guests-crm.html" class="erp-mod-btn">✈️ Guests</a>
-      <a href="cleaning-system.html" class="erp-mod-btn">🧹 Cleaning</a>
-      <a href="contacts-crm.html" class="erp-mod-btn">📋 Contacts</a>
-      <a href="employees.html" class="erp-mod-btn">👥 Staff</a>
-      <a href="leave.html" class="erp-mod-btn">🏖️ Leave</a>
-      <a href="tasks.html" class="erp-mod-btn">✅ Tasks</a>
-      <a href="jobs.html" class="erp-mod-btn">🔧 Jobs</a>
-      <a href="laundry.html" class="erp-mod-btn">👔 Laundry</a>
-      <a href="onboarding.html" class="erp-mod-btn">📋 Onboarding</a>
-      <a href="settings.html" class="erp-mod-btn">⚙️ Settings</a>
-    </nav>
-    <div class="header-right"></div>
+<div class="erp-overlay" id="erpOverlay"></div>
+<aside class="erp-sidebar" id="erpSidebar">
+  <div class="erp-brand">
+    <div class="erp-brand-name">Zesty <span>ERP</span></div>
+    <div class="erp-brand-sub">Kissamos · Operations</div>
   </div>
-  <div class="erp-nav-local">
-    <span class="erp-local-title">🏠 Properties</span>
-    <span class="erp-local-spacer"></span>
-    <button class="btn btn-sm" onclick="exportCSV&&exportCSV()" style="background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);padding:4px 10px;border-radius:5px;cursor:pointer;font-size:12px;font-family:'DM Sans',sans-serif">↓ Export</button>
-    <button class="btn btn-sm" onclick="openAdd()" style="background:var(--gold);color:var(--teal-dark);font-weight:600;border:none;padding:5px 14px;border-radius:7px;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:12px">+ Add Property</button>
+  <nav class="erp-nav-section">
+    <div class="erp-nav-section-label">Modules</div>
+      <a href="index.html" class="erp-nav-link"><span class="nav-icon">🏠</span><span class="nav-label">Home</span></a>
+      <a href="owners-crm.html" class="erp-nav-link"><span class="nav-icon">👤</span><span class="nav-label">Owners</span></a>
+      <a href="properties-db.html" class="erp-nav-link active"><span class="nav-icon">🏠</span><span class="nav-label">Properties</span></a>
+      <a href="guests-crm.html" class="erp-nav-link"><span class="nav-icon">✈️</span><span class="nav-label">Guests</span></a>
+      <a href="cleaning-system.html" class="erp-nav-link"><span class="nav-icon">🧹</span><span class="nav-label">Cleaning</span></a>
+      <a href="contacts-crm.html" class="erp-nav-link"><span class="nav-icon">📋</span><span class="nav-label">Contacts</span></a>
+      <a href="employees.html" class="erp-nav-link"><span class="nav-icon">👥</span><span class="nav-label">Staff</span></a>
+      <a href="leave.html" class="erp-nav-link"><span class="nav-icon">🏖️</span><span class="nav-label">Leave</span></a>
+      <a href="tasks.html" class="erp-nav-link"><span class="nav-icon">✅</span><span class="nav-label">Tasks</span></a>
+      <a href="jobs.html" class="erp-nav-link"><span class="nav-icon">🔧</span><span class="nav-label">Job Orders</span></a>
+      <a href="laundry.html" class="erp-nav-link"><span class="nav-icon">👔</span><span class="nav-label">Laundry ERP</span></a>
+      <a href="onboarding.html" class="erp-nav-link"><span class="nav-icon">📋</span><span class="nav-label">Onboarding</span></a>
+      <a href="settings.html" class="erp-nav-link"><span class="nav-icon">⚙️</span><span class="nav-label">Settings</span></a>
+  </nav>
+  
+  <div class="erp-sidebar-footer">
+    <div class="erp-user-badge" id="sidebarUser"></div>
+    <div class="erp-sync-row">
+      <span class="sync-dot" id="syncDot" title="Saved" style="display:inline-block"></span>
+      <span class="sync-label">Connected</span>
+    </div>
   </div>
-</header>
+</aside>
+
+<div class="erp-main">
+<div class="erp-topbar">
+    <button class="erp-hamburger" id="erpHamburger">☰</button>
+    <div class="erp-topbar-title">🏠 Properties</div>
+    <div class="erp-topbar-actions"><button class="btn btn-outline btn-sm" onclick="exportCSV&&exportCSV()">↓ Export</button><button class="btn btn-primary btn-sm" onclick="openAdd&&openAdd()">+ Add Property</button></div>
+  </div>
+
 
 <div id="syncBar" style="display:none;position:fixed;bottom:60px;right:16px;background:rgba(26,200,160,0.92);color:#fff;padding:7px 14px;border-radius:8px;font-size:12px;font-family:'DM Sans',sans-serif;z-index:300;"></div>
 <div id="loadingOverlay" style="position:fixed;inset:0;background:var(--teal-dark);color:white;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;font-family:'DM Sans',sans-serif;gap:12px;">
@@ -1621,9 +1900,53 @@ function calcMaintFee() {
 
 
 
+
+// ── SIDEBAR NAVIGATION ──────────────────────────────────
+function _initSidebar() {
+  const sidebar = document.getElementById('erpSidebar');
+  const overlay = document.getElementById('erpOverlay');
+  const hamburger = document.getElementById('erpHamburger');
+  if (!sidebar) return;
+  // Hamburger toggle
+  if (hamburger) {
+    hamburger.addEventListener('click', () => {
+      sidebar.classList.toggle('open');
+      overlay.classList.toggle('open');
+    });
+  }
+  // Close on overlay click
+  if (overlay) {
+    overlay.addEventListener('click', () => {
+      sidebar.classList.remove('open');
+      overlay.classList.remove('open');
+    });
+  }
+  // Inject Azure user badge into sidebar footer
+  const origBadge = document.getElementById('_azure_badge');
+  const footerUser = document.getElementById('sidebarUser');
+  if (origBadge && footerUser) {
+    footerUser.innerHTML = origBadge.innerHTML;
+    origBadge.remove();
+  }
+  // Watch for badge to appear
+  const obs = new MutationObserver(() => {
+    const b = document.getElementById('_azure_badge');
+    const fu = document.getElementById('sidebarUser');
+    if (b && fu) {
+      fu.innerHTML = b.innerHTML;
+      b.remove();
+      obs.disconnect();
+    }
+  });
+  obs.observe(document.body, {childList:true, subtree:true});
+}
+document.addEventListener('DOMContentLoaded', _initSidebar);
+
+
 init().catch(console.error);
 showDbStatus();
 </script>
 <script src="erp-nav.js"></script>
+</div><!-- /erp-main -->
 </body>
 </html>
