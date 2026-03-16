@@ -290,7 +290,7 @@
     document.querySelectorAll('.tm-type-btn').forEach(b => b.classList.remove('selected'));
     btn.classList.add('selected');
   }
-  function zsSubmitTicket() {
+  async function zsSubmitTicket() {
     const text = document.getElementById('tm-text').value.trim();
     if (!text) { document.getElementById('tm-text').style.borderColor='#e74c3c'; return; }
     const ticket = {
@@ -299,18 +299,28 @@
       page: window.location.pathname.split('/').pop() || 'index.html',
       text,
       status: 'open',
-      created: new Date().toISOString(),
-      version: localStorage.getItem('zesty_erp_version') || '1.0'
+      created_by: window._erpUserName || 'Unknown',
+      created_at: new Date().toISOString()
     };
-    const tickets = JSON.parse(localStorage.getItem('zesty_tickets') || '[]');
-    tickets.unshift(ticket);
-    localStorage.setItem('zesty_tickets', JSON.stringify(tickets));
     zsCloseTicket();
-    // Show confirmation
     const btn = document.getElementById('zesty-ticket-btn');
-    btn.textContent = '✓';
-    btn.style.background = '#27ae60';
-    setTimeout(() => { btn.textContent = '🎫'; btn.style.background = '#c9a84c'; }, 2000);
+    btn.textContent = '⏳';
+    try {
+      const SUPA_URL = 'https://whuytfjwdjjepayeiohj.supabase.co';
+      const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndodXl0Zmp3ZGpqZXBheWVpb2hqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIyODQxMzQsImV4cCI6MjA4Nzg2MDEzNH0.pTDAqw_Cnzc9D3tJU-tU7Ch5qpapKmteiqI_ooSCufY';
+      await fetch(`${SUPA_URL}/rest/v1/tickets`, {
+        method: 'POST',
+        headers: { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}`, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+        body: JSON.stringify(ticket)
+      });
+      btn.textContent = '✓';
+      btn.style.background = '#27ae60';
+    } catch(e) {
+      btn.textContent = '!';
+      btn.style.background = '#e74c3c';
+      console.error('Ticket save failed:', e);
+    }
+    setTimeout(() => { btn.textContent = '🎫'; btn.style.background = '#c9a84c'; }, 2500);
   }
   // Close on overlay click
   document.getElementById('zesty-ticket-modal-overlay').addEventListener('click', function(e) {
