@@ -291,40 +291,7 @@ tfoot td{background:#fafcfb;border-top:2px solid var(--border);font-weight:600}
 <body>
 
 <!-- HEADER -->
-<header class="erp-header">
-  <div class="erp-nav-global">
-    <div class="erp-logo"><div class="erp-logo-icon">🧺</div>Zesty <span>Rentals</span></div>
-    <nav class="erp-modules">
-      <a href="index.html" class="erp-mod-btn">🏠 Home</a>
-      <a href="owners-crm.html" class="erp-mod-btn">👤 Owners</a>
-      <a href="properties-db.html" class="erp-mod-btn">🏠 Properties</a>
-      <a href="guests-crm.html" class="erp-mod-btn">✈️ Guests</a>
-      <a href="cleaning-system.html" class="erp-mod-btn">🧹 Cleaning</a>
-      <a href="contacts-crm.html" class="erp-mod-btn">📋 Contacts</a>
-      <a href="employees.html" class="erp-mod-btn">👥 Staff</a>
-      <a href="leave.html" class="erp-mod-btn">🏖️ Leave</a>
-      <a href="tasks.html" class="erp-mod-btn">✅ Tasks</a>
-      <a href="jobs.html" class="erp-mod-btn">🔧 Jobs</a>
-      <a href="laundry.html" class="erp-mod-btn active">👔 Laundry</a>
-      <a href="onboarding.html" class="erp-mod-btn">📋 Onboarding</a>
-      <a href="settings.html" class="erp-mod-btn">⚙️ Settings</a>
-    </nav>
-    <div class="header-right">
-      <span class="sync-dot" id="syncDot" title="Saved"></span>
-    </div>
-  </div>
-  <div class="erp-nav-local">
-    <button class="ptab active" onclick="showPage('dashboard')">📊 Dashboard</button>
-    <button class="ptab" onclick="showPage('customers')">👥 Customers</button>
-    <button class="ptab" onclick="showPage('orders')">📋 Orders</button>
-    <button class="ptab" onclick="showPage('receipts')">💰 Receipts</button>
-    <button class="ptab" onclick="showPage('reports')">📈 Reports</button>
-    <button class="ptab" onclick="showPage('pricelists')">💲 Pricelists</button>
-    <button class="ptab" onclick="showPage('settings')">⚙️ Settings</button>
-    <span style="flex:1"></span>
-    <span id="langToggle" style="font-size:11px;color:rgba(255,255,255,.7);cursor:pointer;padding:3px 8px;border:1px solid rgba(255,255,255,.3);border-radius:5px" onclick="toggleLang()">🇬🇧/🇬🇷</span>
-  </div>
-</header>
+<!-- nav handled by erp-nav.js -->
 
 <div class="container">
 
@@ -815,8 +782,8 @@ tfoot td{background:#fafcfb;border-top:2px solid var(--border);font-weight:600}
 
 <script>
 // ─── SUPABASE ────────────────────────────────────────────────────────────────
-const SUPA_URL = 'https://luwkxhmzlvotxycfigbd.supabase.co';
-const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx1d2t4aG16bHZvdHh5Y2ZpZ2JkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDA5MzA2MzUsImV4cCI6MjA1NjUwNjYzNX0.hbo7mI8YHjALsApFMVAnCuuM1GYfFGYRHRjSwJa6Yjw';
+const SUPA_URL = 'https://whuytfjwdjjepayeiohj.supabase.co';
+const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndodXl0Zmp3ZGpqZXBheWVpb2hqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIyODQxMzQsImV4cCI6MjA4Nzg2MDEzNH0.pTDAqw_Cnzc9D3tJU-tU7Ch5qpapKmteiqI_ooSCufY';
 
 async function supaFetch(table, method='GET', body=null, match=null) {
   let url = `${SUPA_URL}/rest/v1/${table}`;
@@ -1896,3 +1863,5 @@ loadFromSupabase();
 </script>
 </body>
 </html>
+
+<script src="erp-nav.js"></script>
