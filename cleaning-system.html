@@ -652,9 +652,10 @@ body.erp-layout {
   </nav>
       <div class="erp-module-tabs">
       <div class="erp-module-tabs-label">Module Sections</div>
-            <button class="erp-tab-link active" onclick="showTab&&showTab('staff')">👥 Staff</button>
-      <button class="erp-tab-link" onclick="showTab&&showTab('schedule')">📅 Schedule</button>
-      <button class="erp-tab-link" onclick="showTab&&showTab('jobs')">🔧 Jobs</button>
+            <button class="erp-tab-link active" onclick="showTab('staff')">👥 Staff</button>
+      <button class="erp-tab-link" onclick="showTab('schedule')">📅 Schedule</button>
+      <button class="erp-tab-link" onclick="showTab('jobs')">🔧 Jobs</button>
+      <button class="erp-tab-link" onclick="showTab('import')">📥 Import CSV</button>
     </div>
   <div class="erp-sidebar-footer">
     <div class="erp-user-badge" id="sidebarUser"></div>
@@ -1260,11 +1261,11 @@ async function syncCleaningData() {
       SyncStore.load('zesty_jobs', 'cleaning_jobs'),
       SyncStore.load('zesty_import_history', 'import_history'),
     ]);
-    // New API returns {data, online, fromCache}
+    // API returns {data, fromCache}
     let changed = false;
-    if (rs.online) { staff = rs.data; changed = true; }
-    if (rj.online && rj.data.length !== cleaningJobs.length) { cleaningJobs = rj.data; changed = true; }
-    if (rh.online && rh.data.length > 0) importHistory = rh.data;
+    if (rs.data && rs.data.length >= 0) { staff = rs.data; changed = true; }
+    if (rj.data && rj.data.length !== cleaningJobs.length) { cleaningJobs = rj.data; changed = true; }
+    if (rh.data && rh.data.length > 0) importHistory = rh.data;
     if (changed) {
       renderStaff(); renderCalendar(); renderJobs(); renderImportHistory();
       updateStaffDropdowns(); updateStaffStats(); updateJobStats();
@@ -1361,11 +1362,18 @@ function formatDate(d) {
 function showPage(name) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  document.getElementById('page-' + name).classList.add('active');
-  event.target.classList.add('active');
+  const pg = document.getElementById('page-' + name);
+  if (pg) pg.classList.add('active');
+  // Mark active tab in sidebar
+  document.querySelectorAll('.erp-tab-link').forEach(t => {
+    t.classList.toggle('active', t.textContent.toLowerCase().includes(name));
+  });
+  if (event && event.target) event.target.classList.add('active');
   if (name === 'schedule') renderCalendar();
   if (name === 'jobs') renderJobs();
 }
+// Alias so sidebar buttons work
+function showTab(name) { showPage(name); }
 
 // ============ STAFF ============
 function renderStaff() {
