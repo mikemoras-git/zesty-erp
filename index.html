@@ -204,6 +204,17 @@ body {
     </div>
   </div>
 
+  <!-- LODGIFY CSV UPLOAD -->
+  <div id="csv-drop" onclick="document.getElementById('csv-file-input').click()" ondragover="event.preventDefault();this.style.borderColor='var(--gold)'" ondragleave="this.style.borderColor='rgba(255,255,255,.12)'" ondrop="csvDropped(event)"
+    style="border:2px dashed rgba(255,255,255,.12);border-radius:12px;padding:14px 20px;margin-bottom:20px;cursor:pointer;display:flex;align-items:center;gap:14px;transition:border-color .2s;background:rgba(255,255,255,.03)">
+    <span style="font-size:24px">📥</span>
+    <div>
+      <div style="font-size:13px;font-weight:500;color:rgba(255,255,255,.7)">Upload Lodgify CSV → Auto-generate cleaning jobs</div>
+      <div style="font-size:11px;color:rgba(255,255,255,.35);margin-top:2px" id="csv-status">Click or drag & drop BookingReport_*.csv here</div>
+    </div>
+    <input type="file" id="csv-file-input" accept=".csv" style="display:none" onchange="csvFileSelected(this.files[0])">
+  </div>
+
   <!-- KPI STRIP -->
   <div class="sec-lbl">At a glance</div>
   <div class="kpi-strip">
@@ -375,24 +386,32 @@ function bar(label,val,max,color){
 async function loadAll(){
   let props=[],owners=[],guests=[],jobs=[],staff=[],employees=[],tasks=[],tickets=[];
 
-  // Fetch each table independently — one failure won't kill everything
-  const tryGet = async (table, lsKey, def=[]) => {
-    try { const r = await sbGet(table); return r.length >= 0 ? r : safe(lsKey, def); }
-    catch { return safe(lsKey, def); }
+  // Fetch wrapped {id,data} tables and unwrap them
+  const tryGet = async (table, lsKey) => {
+    try {
+      const url = `${SB}/rest/v1/${table}?select=id,data&limit=5000`;
+      const r = await fetch(url, {headers:{'apikey':SK,'Authorization':'Bearer '+SK}});
+      if (!r.ok) return safe(lsKey, []);
+      const rows = await r.json();
+      if (!Array.isArray(rows) || !rows.length) return safe(lsKey, []);
+      // Unwrap {id, data} wrapper
+      return rows.map(row => row.data ? {id: row.id, ...row.data} : row);
+    } catch { return safe(lsKey, []); }
   };
-  // tickets table has flat schema (not {id,data} wrapper) — fetch directly
+  // Flat schema tables (tickets, guests) — no wrapper
   const tryGetFlat = async (table, lsKey) => {
     try {
       const url = `${SB}/rest/v1/${table}?select=*&limit=5000`;
       const r = await fetch(url, {headers:{'apikey':SK,'Authorization':'Bearer '+SK}});
       if (!r.ok) return safe(lsKey, []);
-      return await r.json();
+      const rows = await r.json();
+      return Array.isArray(rows) ? rows : safe(lsKey, []);
     } catch { return safe(lsKey, []); }
   };
   [props,owners,guests,jobs,staff,employees,tasks,tickets] = await Promise.all([
     tryGet('properties','zesty_properties'),
     tryGet('owners','zesty_owners'),
-    tryGet('guests','zesty_guests'),
+    tryGetFlat('guests','zesty_guests'),
     tryGet('jobs','zesty_jobs'),
     tryGet('staff','zesty_staff'),
     tryGet('employees','zesty_employees'),
@@ -502,6 +521,36 @@ async function loadAll(){
 
 loadAll();
 setInterval(loadAll,60000);
+
+/* ── CSV UPLOAD FOR CLEANING ── */
+function csvDropped(e) {
+  e.preventDefault();
+  document.getElementById('csv-drop').style.borderColor='rgba(255,255,255,.12)';
+  const file = e.dataTransfer.files[0];
+  if (file) csvFileSelected(file);
+}
+function csvFileSelected(file) {
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    localStorage.setItem('zesty_raw_lodgify_csv', JSON.stringify({
+      text: e.target.result, filename: file.name, savedAt: new Date().toISOString()
+    }));
+    const el = document.getElementById('csv-status');
+    if (el) el.innerHTML = `✓ <strong>${file.name}</strong> saved — go to <a href="cleaning-system.html" style="color:var(--gold-light)">Cleaning</a> and click ⚡ Import Now`;
+    document.getElementById('csv-file-input').value = '';
+  };
+  reader.readAsText(file, 'utf-8');
+}
+// Show last uploaded CSV if any
+(function(){
+  const raw = JSON.parse(localStorage.getItem('zesty_raw_lodgify_csv')||'null');
+  const el = document.getElementById('csv-status');
+  if (raw && raw.filename && el) {
+    const d = new Date(raw.savedAt).toLocaleDateString('en-GB');
+    el.innerHTML = `Last upload: <strong>${raw.filename}</strong> on ${d} — <a href="cleaning-system.html" style="color:var(--gold-light)">go to Cleaning to import</a>`;
+  }
+})();
 </script>
 
 <script src="erp-nav.js"></script>

@@ -693,6 +693,13 @@ body.erp-layout {
 
 <!-- ==================== STAFF PAGE ==================== -->
 <div id="page-staff" class="page active">
+  <!-- Module navigation tabs -->
+  <div style="display:flex;gap:6px;margin-bottom:22px;flex-wrap:wrap">
+    <button onclick="showPage('staff')" style="padding:8px 18px;border-radius:8px;border:2px solid var(--teal);background:var(--teal);color:#fff;font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif">👥 Staff</button>
+    <button onclick="showPage('schedule')" style="padding:8px 18px;border-radius:8px;border:1px solid var(--border);background:#fff;color:var(--text-muted);font-size:13px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif">📅 Schedule</button>
+    <button onclick="showPage('jobs')" style="padding:8px 18px;border-radius:8px;border:1px solid var(--border);background:#fff;color:var(--text-muted);font-size:13px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif">🔧 Jobs</button>
+    <button onclick="showPage('import')" style="padding:8px 18px;border-radius:8px;border:1px solid var(--border);background:#fff;color:var(--text-muted);font-size:13px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif">📥 Import CSV</button>
+  </div>
   <div class="stats-bar">
     <div class="stat-card"><div class="stat-label">Total Staff</div><div class="stat-value" id="s-total">0</div></div>
     <div class="stat-card"><div class="stat-label">Active</div><div class="stat-value" id="s-active">0</div></div>
@@ -737,6 +744,12 @@ body.erp-layout {
 
 <!-- ==================== SCHEDULE PAGE ==================== -->
 <div id="page-schedule" class="page">
+  <div style="display:flex;gap:6px;margin-bottom:22px;flex-wrap:wrap">
+    <button onclick="showPage('staff')" style="padding:8px 18px;border-radius:8px;border:1px solid var(--border);background:#fff;color:var(--text-muted);font-size:13px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif">👥 Staff</button>
+    <button onclick="showPage('schedule')" style="padding:8px 18px;border-radius:8px;border:1px solid var(--border);background:#fff;color:var(--text-muted);font-size:13px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif">📅 Schedule</button>
+    <button onclick="showPage('jobs')" style="padding:8px 18px;border-radius:8px;border:1px solid var(--border);background:#fff;color:var(--text-muted);font-size:13px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif">🔧 Jobs</button>
+    <button onclick="showPage('import')" style="padding:8px 18px;border-radius:8px;border:1px solid var(--border);background:#fff;color:var(--text-muted);font-size:13px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif">📥 Import CSV</button>
+  </div>
   <div class="toolbar">
     <input type="month" id="calMonth" onchange="renderCalendar()">
     <select id="calCleaner" onchange="renderCalendar()">
@@ -788,6 +801,12 @@ body.erp-layout {
 
 <!-- ==================== IMPORT PAGE ==================== -->
 <div id="page-import" class="page">
+  <div style="display:flex;gap:6px;margin-bottom:22px;flex-wrap:wrap">
+    <button onclick="showPage('staff')" style="padding:8px 18px;border-radius:8px;border:1px solid var(--border);background:#fff;color:var(--text-muted);font-size:13px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif">👥 Staff</button>
+    <button onclick="showPage('schedule')" style="padding:8px 18px;border-radius:8px;border:1px solid var(--border);background:#fff;color:var(--text-muted);font-size:13px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif">📅 Schedule</button>
+    <button onclick="showPage('jobs')" style="padding:8px 18px;border-radius:8px;border:1px solid var(--border);background:#fff;color:var(--text-muted);font-size:13px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif">🔧 Jobs</button>
+    <button onclick="showPage('import')" style="padding:8px 18px;border-radius:8px;border:1px solid var(--border);background:#fff;color:var(--text-muted);font-size:13px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif">📥 Import CSV</button>
+  </div>
   <div class="import-panel">
     <h3>📥 Import Bookings from Lodgify</h3>
     <p>Export your bookings from Lodgify as CSV and drop the file below. The system will automatically create checkout cleaning jobs and calculate mid-stay cleans based on each property's schedule.</p>
@@ -852,6 +871,12 @@ body.erp-layout {
 
 <!-- ==================== JOBS PAGE ==================== -->
 <div id="page-jobs" class="page">
+  <div style="display:flex;gap:6px;margin-bottom:22px;flex-wrap:wrap">
+    <button onclick="showPage('staff')" style="padding:8px 18px;border-radius:8px;border:1px solid var(--border);background:#fff;color:var(--text-muted);font-size:13px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif">👥 Staff</button>
+    <button onclick="showPage('schedule')" style="padding:8px 18px;border-radius:8px;border:1px solid var(--border);background:#fff;color:var(--text-muted);font-size:13px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif">📅 Schedule</button>
+    <button onclick="showPage('jobs')" style="padding:8px 18px;border-radius:8px;border:1px solid var(--border);background:#fff;color:var(--text-muted);font-size:13px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif">🔧 Jobs</button>
+    <button onclick="showPage('import')" style="padding:8px 18px;border-radius:8px;border:1px solid var(--border);background:#fff;color:var(--text-muted);font-size:13px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif">📥 Import CSV</button>
+  </div>
   <div class="stats-bar">
     <div class="stat-card"><div class="stat-label">Total Jobs</div><div class="stat-value" id="j-total">0</div></div>
     <div class="stat-card"><div class="stat-label">This Month</div><div class="stat-value" id="j-month">0</div></div>
@@ -1219,7 +1244,7 @@ async function init() {
   // Show cache instantly
   const _s = SyncStore._getLocal('zesty_staff');
   const _j = SyncStore._getLocal('zesty_jobs');
-  const _h = SyncStore._getLocal('zesty_import_history');
+  const _h = JSON.parse(localStorage.getItem('zesty_import_history') || '[]');
   if (_s.length) staff = _s;
   if (_j.length) cleaningJobs = _j;
   if (_h.length) importHistory = _h;
@@ -1256,16 +1281,17 @@ async function syncCleaningData() {
   const bar = document.getElementById('syncBar');
   if (bar) { bar.textContent = 'Syncing...'; bar.style.display = 'block'; }
   try {
-    const [rs, rj, rh] = await Promise.all([
+    const [rs, rj] = await Promise.all([
       SyncStore.load('zesty_staff', 'cleaning_staff'),
       SyncStore.load('zesty_jobs', 'cleaning_jobs'),
-      SyncStore.load('zesty_import_history', 'import_history'),
     ]);
+    // Import history from localStorage only
+    const _ih = JSON.parse(localStorage.getItem('zesty_import_history') || '[]');
+    if (_ih.length) importHistory = _ih;
     // API returns {data, fromCache}
     let changed = false;
     if (rs.data && rs.data.length >= 0) { staff = rs.data; changed = true; }
     if (rj.data && rj.data.length !== cleaningJobs.length) { cleaningJobs = rj.data; changed = true; }
-    if (rh.data && rh.data.length > 0) importHistory = rh.data;
     if (changed) {
       renderStaff(); renderCalendar(); renderJobs(); renderImportHistory();
       updateStaffDropdowns(); updateStaffStats(); updateJobStats();
@@ -1369,9 +1395,11 @@ async function runAutoImport() {
 
 
 async function save() {
+  // Save staff and jobs to Supabase
   await SyncStore.saveAll('zesty_staff', 'cleaning_staff', staff);
   await SyncStore.saveAll('zesty_jobs', 'cleaning_jobs', cleaningJobs);
-  await SyncStore.saveAll('zesty_import_history', 'import_history', importHistory);
+  // Import history: localStorage only (no dedicated Supabase table needed)
+  localStorage.setItem('zesty_import_history', JSON.stringify(importHistory));
 }
 
 function formatMonthValue(d) {
