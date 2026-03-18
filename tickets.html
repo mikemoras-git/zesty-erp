@@ -2,194 +2,339 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Zesty ERP — Tickets</title>
-<link rel="stylesheet" href="erp-style.css">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Zesty ERP — Tickets & Changelog</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400&display=swap" rel="stylesheet">
+<style>
+:root{--teal:#1a7a6e;--teal-dark:#115950;--teal-deep:#0a3d36;--gold:#c9a84c;--gold-light:#e8c97a;--cream:#f8f5f0;--white:#fff;--text:#1e2a28;--text-muted:#6b7e7b;--border:#d4e0de;--danger:#c0392b;--danger-bg:#fdf0ef;--success:#27ae60;--success-bg:#eafaf1;--warning:#e67e22;--warning-bg:#fef9ec;--purple:#8e44ad;--radius:12px;--shadow:0 2px 16px rgba(26,122,110,.1)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--text);min-height:100vh}
+.container{max-width:1100px;margin:0 auto;padding:32px 24px 80px}
+.page-hdr{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:28px;flex-wrap:wrap;gap:16px}
+.page-title{font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:400;color:var(--teal-dark)}
+.page-sub{font-size:13px;color:var(--text-muted);margin-top:4px}
+.stats{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:24px}
+.stat{background:var(--white);border-radius:var(--radius);padding:14px 18px;box-shadow:var(--shadow);border-left:4px solid var(--teal)}
+.stat.danger{border-color:var(--danger)}.stat.warning{border-color:var(--warning)}.stat.success{border-color:var(--success)}.stat.purple{border-color:var(--purple)}
+.stat-val{font-size:26px;font-weight:700;color:var(--teal)}.stat.danger .stat-val{color:var(--danger)}.stat.warning .stat-val{color:var(--warning)}.stat.success .stat-val{color:var(--success)}.stat.purple .stat-val{color:var(--purple)}
+.stat-lbl{font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted);margin-top:4px}
+.tabs{display:flex;gap:0;border-bottom:2px solid var(--border);margin-bottom:24px}
+.tab{padding:10px 20px;cursor:pointer;font-size:13px;font-weight:500;color:var(--text-muted);border-bottom:2px solid transparent;margin-bottom:-2px;background:transparent;border-top:none;border-left:none;border-right:none;font-family:'DM Sans',sans-serif;transition:all .2s}
+.tab.active{color:var(--teal);border-bottom-color:var(--teal);font-weight:600}
+.filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;align-items:center}
+.filter-btn{padding:5px 14px;border-radius:20px;border:1px solid var(--border);background:var(--white);font-size:12px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s;color:var(--text-muted)}
+.filter-btn.active,.filter-btn:hover{border-color:var(--teal);color:var(--teal);background:#f0faf8}
+.filter-btn.active{font-weight:700}
+.ticket{background:var(--white);border-radius:var(--radius);padding:16px 20px;box-shadow:var(--shadow);margin-bottom:10px;display:grid;grid-template-columns:auto 1fr auto;gap:14px;align-items:start;border-left:4px solid var(--border);transition:box-shadow .2s}
+.ticket:hover{box-shadow:0 4px 24px rgba(26,122,110,.12)}
+.ticket.bug{border-left-color:var(--danger)}.ticket.improvement{border-left-color:var(--warning)}.ticket.idea{border-left-color:var(--success)}
+.ticket-icon{font-size:20px;margin-top:2px}
+.ticket-id{font-family:'DM Mono',monospace;font-size:10px;color:var(--text-muted);margin-bottom:3px}
+.ticket-text{font-size:14px;font-weight:500;color:var(--text);margin-bottom:5px;line-height:1.4}
+.ticket-meta{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.chip{font-size:11px;color:var(--text-muted);background:var(--cream);padding:2px 8px;border-radius:4px}
+.badge{display:inline-flex;align-items:center;padding:2px 10px;border-radius:12px;font-size:11px;font-weight:600}
+.badge-open{background:var(--danger-bg);color:var(--danger)}
+.badge-fixed{background:var(--success-bg);color:var(--success)}
+.badge-wip{background:var(--warning-bg);color:var(--warning)}
+.ticket-actions{display:flex;gap:6px;align-items:flex-start;flex-wrap:wrap;justify-content:flex-end}
+.btn{padding:5px 12px;border-radius:7px;border:none;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;cursor:pointer;transition:all .2s;white-space:nowrap}
+.btn-teal{background:var(--teal);color:#fff}.btn-teal:hover{background:var(--teal-dark)}
+.btn-outline{background:transparent;border:1px solid var(--border);color:var(--text-muted)}.btn-outline:hover{border-color:var(--teal);color:var(--teal)}
+.btn-danger{background:var(--danger-bg);color:var(--danger);border:1px solid #f5c6c2}.btn-danger:hover{background:var(--danger);color:#fff}
+.btn-gold{background:var(--gold);color:var(--teal-deep);font-weight:700}.btn-gold:hover{background:var(--gold-light)}
+.btn-sm{padding:4px 10px;font-size:11px}
+.empty{text-align:center;padding:60px 20px;color:var(--text-muted);font-size:14px}
+.empty-icon{font-size:48px;margin-bottom:12px}
+.version-block{background:var(--white);border-radius:var(--radius);padding:22px 24px;box-shadow:var(--shadow);margin-bottom:16px}
+.version-hdr{display:flex;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap}
+.version-tag{font-family:'DM Mono',monospace;font-size:16px;font-weight:700;color:var(--teal);background:#f0faf8;padding:3px 12px;border-radius:6px}
+.version-date{font-size:12px;color:var(--text-muted)}
+.version-count{font-size:12px;font-weight:600;color:var(--teal);background:#e0f5f2;padding:2px 10px;border-radius:10px;margin-left:auto}
+.version-item{display:flex;align-items:flex-start;gap:10px;padding:7px 0;border-bottom:1px solid var(--border)}
+.version-item:last-child{border-bottom:none}
+.vi-text{font-size:13px;color:var(--text);line-height:1.4}
+.vi-page{font-size:11px;color:var(--text-muted);margin-left:6px;background:var(--cream);padding:1px 6px;border-radius:3px}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1000;align-items:center;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal{background:var(--white);border-radius:16px;padding:28px;width:90%;max-width:500px;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.modal h2{font-family:'Cormorant Garamond',serif;font-size:22px;color:var(--teal-dark);margin-bottom:16px}
+.form-group{margin-bottom:14px}
+.form-group label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);display:block;margin-bottom:5px}
+.form-group input,.form-group textarea,.form-group select{width:100%;padding:8px 12px;border:1px solid var(--border);border-radius:7px;font-family:'DM Sans',sans-serif;font-size:13px;outline:none}
+.form-group input:focus,.form-group textarea:focus{border-color:var(--teal)}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.modal-footer{display:flex;gap:10px;justify-content:flex-end;margin-top:20px;padding-top:16px;border-top:1px solid var(--border)}
+.sync-bar{position:fixed;bottom:20px;right:20px;background:rgba(26,122,110,.92);color:#fff;padding:8px 16px;border-radius:10px;font-size:12px;font-family:'DM Sans',sans-serif;z-index:900;display:none;align-items:center;gap:8px}
+.loading{text-align:center;padding:40px;color:var(--text-muted)}
+@media(max-width:700px){.stats{grid-template-columns:repeat(3,1fr)}.form-row{grid-template-columns:1fr}.ticket{grid-template-columns:auto 1fr}.ticket-actions{grid-column:1/-1;flex-direction:row}}
+</style>
 </head>
 <body>
 <div class="container">
-  <div class="page-title-bar">
-    <div><h1>Bug Tracker</h1><p>Internal bugs, improvements and ideas submitted via the 🎫 button</p></div>
-    <div class="page-actions">
-      <div class="sync-status"><span class="sync-dot" id="syncDot"></span><span>Connected</span></div>
-      <button class="btn btn-outline btn-sm" onclick="exportCSV()">↓ Export</button>
+  <div class="page-hdr">
+    <div>
+      <div class="page-title">🎫 Tickets & Changelog</div>
+      <div class="page-sub">Shared across all team members — powered by Supabase</div>
     </div>
+    <button class="btn btn-gold" onclick="openVersionModal()">📦 New Version</button>
   </div>
 
-  <div class="stats-bar">
-    <div class="stat-card" onclick="setFilter('open')"><div class="stat-label">Open</div><div class="stat-value danger" id="st-open">—</div></div>
-    <div class="stat-card" onclick="setFilter('wip')"><div class="stat-label">In Progress</div><div class="stat-value gold" id="st-wip">—</div></div>
-    <div class="stat-card" onclick="setFilter('fixed')"><div class="stat-label">Fixed</div><div class="stat-value success" id="st-fixed">—</div></div>
-    <div class="stat-card" onclick="setTypeFilter('bug')"><div class="stat-label">Bugs</div><div class="stat-value danger" id="st-bugs">—</div></div>
-    <div class="stat-card" onclick="setTypeFilter('improvement')"><div class="stat-label">Improvements</div><div class="stat-value" style="color:var(--info)" id="st-improve">—</div></div>
-    <div class="stat-card" onclick="setTypeFilter('idea')"><div class="stat-label">Ideas</div><div class="stat-value success" id="st-ideas">—</div></div>
+  <div class="stats">
+    <div class="stat danger"><div class="stat-val" id="st-bugs">—</div><div class="stat-lbl">🐛 Bugs</div></div>
+    <div class="stat warning"><div class="stat-val" id="st-imp">—</div><div class="stat-lbl">⚡ Improvements</div></div>
+    <div class="stat purple"><div class="stat-val" id="st-ideas">—</div><div class="stat-lbl">💡 Ideas</div></div>
+    <div class="stat success"><div class="stat-val" id="st-fixed">—</div><div class="stat-lbl">✅ Fixed</div></div>
+    <div class="stat"><div class="stat-val" id="st-total">—</div><div class="stat-lbl">📋 Total</div></div>
   </div>
 
-  <div class="filter-bar">
-    <input type="search" id="q" placeholder="Search ticket text, page…" oninput="render()">
-    <select id="fStatus" onchange="render()">
-      <option value="">All statuses</option>
-      <option value="open">Open</option>
-      <option value="wip">In Progress</option>
-      <option value="fixed">Fixed</option>
-    </select>
-    <select id="fType" onchange="render()">
-      <option value="">All types</option>
-      <option value="bug">Bug</option>
-      <option value="improvement">Improvement</option>
-      <option value="idea">Idea</option>
-    </select>
-    <div class="filter-spacer"></div>
+  <div class="tabs">
+    <button class="tab active" onclick="showTab('open',this)">🔴 Open</button>
+    <button class="tab" onclick="showTab('wip',this)">🔄 In Progress</button>
+    <button class="tab" onclick="showTab('all',this)">📋 All Tickets</button>
+    <button class="tab" onclick="showTab('changelog',this)">📦 Changelog</button>
   </div>
 
-  <div class="table-wrap">
-    <div class="table-header"><h3 id="tableCount">Tickets</h3></div>
-    <table>
-      <thead><tr>
-        <th onclick="sortBy('type')">Type</th>
-        <th onclick="sortBy('text')">Description</th>
-        <th onclick="sortBy('page')">Page</th>
-        <th onclick="sortBy('created_by')">Submitted By</th>
-        <th onclick="sortBy('created_at')">Date</th>
-        <th onclick="sortBy('status')">Status</th>
-        <th style="width:120px"></th>
-      </tr></thead>
-      <tbody id="tBody"><tr class="empty-row"><td colspan="7"><div class="empty-icon">🎫</div><p>Loading tickets…</p></td></tr></tbody>
-    </table>
-    <div class="pagination" id="pagination"></div>
+  <div id="tab-open">
+    <div class="filters">
+      <span style="font-size:12px;color:var(--text-muted);font-weight:600">Type:</span>
+      <button class="filter-btn active" onclick="setFilter('all',this)">All</button>
+      <button class="filter-btn" onclick="setFilter('bug',this)">🐛 Bug</button>
+      <button class="filter-btn" onclick="setFilter('improvement',this)">⚡ Improvement</button>
+      <button class="filter-btn" onclick="setFilter('idea',this)">💡 Idea</button>
+      <span style="flex:1"></span>
+      <button class="btn btn-outline btn-sm" onclick="loadAll()">🔄 Refresh</button>
+    </div>
+    <div id="open-list"><div class="loading">Loading...</div></div>
+  </div>
+
+  <div id="tab-wip" style="display:none">
+    <div id="wip-list"><div class="loading">Loading...</div></div>
+  </div>
+
+  <div id="tab-all" style="display:none">
+    <div class="filters">
+      <button class="btn btn-outline btn-sm" onclick="exportCSV()">↓ Export CSV</button>
+    </div>
+    <div id="all-list"><div class="loading">Loading...</div></div>
+  </div>
+
+  <div id="tab-changelog" style="display:none">
+    <div id="changelog-list"><div class="loading">Loading...</div></div>
   </div>
 </div>
 
-<script src="erp-base.js"></script>
-<script>
-let tickets = [];
-let sort = { field: 'created_at', dir: -1 };
-let page = 1;
-const PAGE = 25;
+<!-- VERSION MODAL -->
+<div class="modal-overlay" id="modal-version">
+  <div class="modal">
+    <h2>📦 Create New Version</h2>
+    <div class="form-row">
+      <div class="form-group"><label>Version</label><input type="text" id="v-number" placeholder="e.g. v2.1"></div>
+      <div class="form-group"><label>Date</label><input type="date" id="v-date"></div>
+    </div>
+    <div class="form-group"><label>Notes</label><textarea id="v-notes" rows="3" placeholder="What changed..."></textarea></div>
+    <p style="font-size:12px;color:var(--text-muted);padding:10px;background:var(--cream);border-radius:6px">All tickets marked as <strong>Fixed</strong> will be included and archived.</p>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-version')">Cancel</button>
+      <button class="btn btn-gold" onclick="saveVersion()">Create Version</button>
+    </div>
+  </div>
+</div>
 
+<div class="sync-bar" id="syncBar">⏳ Saving...</div>
+
+<script>
 const SUPA_URL = 'https://whuytfjwdjjepayeiohj.supabase.co';
 const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndodXl0Zmp3ZGpqZXBheWVpb2hqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIyODQxMzQsImV4cCI6MjA4Nzg2MDEzNH0.pTDAqw_Cnzc9D3tJU-tU7Ch5qpapKmteiqI_ooSCufY';
 
-async function loadTickets() {
-  // Tickets use a flat schema (not the id+data wrapper), so load directly
-  setSyncDot('syncing');
+async function supa(table, method='GET', body=null, query='') {
+  const url = `${SUPA_URL}/rest/v1/${table}${query}`;
+  const headers = { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}`, 'Content-Type': 'application/json', 'Prefer': 'return=representation' };
+  const opts = { method, headers };
+  if (body) opts.body = JSON.stringify(body);
+  const r = await fetch(url, opts);
+  if (!r.ok) throw new Error(await r.text());
+  if (method === 'DELETE' || r.status === 204) return null;
+  return r.json();
+}
+
+let tickets = [], changelog = [], currentFilter = 'all', currentTab = 'open';
+const ICONS = { bug:'🐛', improvement:'⚡', idea:'💡' };
+
+async function loadAll() {
   try {
-    const r = await fetch(`${SUPA_URL}/rest/v1/tickets?select=*&order=created_at.desc&limit=5000`, {
-      headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY }
-    });
-    if (r.ok) {
-      tickets = await r.json();
-      setSyncDot('ok');
-    } else { throw new Error(); }
-  } catch {
-    setSyncDot('error');
-    try { tickets = JSON.parse(localStorage.getItem('zesty_tickets')||'[]')||[]; } catch { tickets=[]; }
+    tickets = await supa('tickets','GET',null,'?order=created_at.desc');
+    changelog = await supa('changelog','GET',null,'?order=date.desc');
+  } catch(e) {
+    console.error('Load error:', e);
+    tickets = []; changelog = [];
   }
-  render();
-}
-loadTickets();
-
-const TYPE_ICON = { bug:'🐛', improvement:'⚡', idea:'💡' };
-const TYPE_BADGE = { bug:'b-inactive', improvement:'b-progress', idea:'b-active' };
-
-function statusBadge(s) {
-  if (s==='fixed') return '<span class="badge b-active">Fixed</span>';
-  if (s==='wip') return '<span class="badge b-pending">WIP</span>';
-  return '<span class="badge b-inactive">Open</span>';
+  renderAll();
 }
 
-function render() {
-  const q = (document.getElementById('q').value||'').toLowerCase();
-  const fStatus = document.getElementById('fStatus').value;
-  const fType = document.getElementById('fType').value;
-  let list = tickets.filter(t => {
-    if (fStatus && t.status!==fStatus) return false;
-    if (fType && t.type!==fType) return false;
-    if (q && !((t.text||'')+(t.page||'')+(t.created_by||'')).toLowerCase().includes(q)) return false;
-    return true;
-  });
-  list.sort((a,b)=>((a[sort.field]||'')<(b[sort.field]||'')?-sort.dir:sort.dir));
+function renderAll() {
+  updateStats();
+  renderTab(currentTab);
+}
 
-  const total = list.length;
-  const pages = Math.ceil(total/PAGE)||1;
-  if(page>pages)page=1;
-  const slice = list.slice((page-1)*PAGE, page*PAGE);
+function updateStats() {
+  const open = t => t.status !== 'fixed';
+  document.getElementById('st-bugs').textContent   = tickets.filter(t=>t.type==='bug'&&open(t)).length;
+  document.getElementById('st-imp').textContent    = tickets.filter(t=>t.type==='improvement'&&open(t)).length;
+  document.getElementById('st-ideas').textContent  = tickets.filter(t=>t.type==='idea'&&open(t)).length;
+  document.getElementById('st-fixed').textContent  = tickets.filter(t=>t.status==='fixed').length;
+  document.getElementById('st-total').textContent  = tickets.length;
+}
 
-  document.getElementById('st-open').textContent = tickets.filter(t=>t.status==='open').length;
-  document.getElementById('st-wip').textContent = tickets.filter(t=>t.status==='wip').length;
-  document.getElementById('st-fixed').textContent = tickets.filter(t=>t.status==='fixed').length;
-  document.getElementById('st-bugs').textContent = tickets.filter(t=>t.type==='bug').length;
-  document.getElementById('st-improve').textContent = tickets.filter(t=>t.type==='improvement').length;
-  document.getElementById('st-ideas').textContent = tickets.filter(t=>t.type==='idea').length;
-  document.getElementById('tableCount').textContent = `${total} Ticket${total!==1?'s':''}`;
-
-  document.getElementById('tBody').innerHTML = !slice.length
-    ? `<tr class="empty-row"><td colspan="7"><div class="empty-icon">🎉</div><p>No tickets!</p></td></tr>`
-    : slice.map(t => `<tr>
-        <td><span class="badge ${TYPE_BADGE[t.type]||'b-individual'}">${TYPE_ICON[t.type]||'📋'} ${t.type||'—'}</span></td>
-        <td style="max-width:280px">${(t.text||'').slice(0,100)}${(t.text||'').length>100?'…':''}</td>
-        <td style="font-size:11px;font-family:monospace;color:var(--teal)">${t.page||'—'}</td>
-        <td style="font-size:12px">${t.created_by||'—'}</td>
-        <td style="font-size:11px;color:var(--text-muted)">${t.created_at?new Date(t.created_at).toLocaleDateString('el-GR'):''}</td>
-        <td>${statusBadge(t.status)}</td>
-        <td>
-          <div class="table-actions">
-            ${t.status!=='wip'?`<button class="btn btn-outline btn-xs" onclick="setStatus('${t.id}','wip')">⚙️ WIP</button>`:''}
-            ${t.status!=='fixed'?`<button class="btn btn-success btn-xs" onclick="setStatus('${t.id}','fixed')">✓ Fix</button>`:''}
-            <button class="btn btn-danger btn-xs" onclick="delTicket('${t.id}')">🗑</button>
-          </div>
-        </td>
-      </tr>`).join('');
-
-  const pg = document.getElementById('pagination');
-  if(pages<=1){pg.innerHTML='';return;}
-  let h=`<span>${total} total</span><div class="pagination-spacer"></div>`;
-  for(let i=1;i<=pages;i++){
-    if(i===1||i===pages||Math.abs(i-page)<=1)h+=`<button class="page-btn ${i===page?'active':''}" onclick="page=${i};render()">${i}</button>`;
-    else if(Math.abs(i-page)===2)h+='<span>…</span>';
+function renderTab(tab) {
+  if (tab === 'open') {
+    let list = tickets.filter(t => t.status === 'open');
+    if (currentFilter !== 'all') list = list.filter(t => t.type === currentFilter);
+    document.getElementById('open-list').innerHTML = renderTicketList(list);
+  } else if (tab === 'wip') {
+    let list = tickets.filter(t => t.status === 'wip');
+    document.getElementById('wip-list').innerHTML = renderTicketList(list);
+  } else if (tab === 'all') {
+    document.getElementById('all-list').innerHTML = renderTicketList(tickets);
+  } else if (tab === 'changelog') {
+    renderChangelog();
   }
-  pg.innerHTML=h;
 }
 
-function sortBy(f){if(sort.field===f)sort.dir*=-1;else{sort.field=f;sort.dir=1;}render();}
-function setFilter(s){document.getElementById('fStatus').value=s;page=1;render();}
-function setTypeFilter(t){document.getElementById('fType').value=t;page=1;render();}
+function renderTicketList(list) {
+  if (!list.length) return `<div class="empty"><div class="empty-icon">🎉</div>Nothing here.</div>`;
+  return list.map(t => `
+    <div class="ticket ${t.type}">
+      <div class="ticket-icon">${ICONS[t.type]||'📋'}</div>
+      <div>
+        <div class="ticket-id">${t.id}</div>
+        <div class="ticket-text">${t.text}</div>
+        <div class="ticket-meta">
+          <span class="chip">📍 ${t.page}</span>
+          <span class="chip">${t.created_by||'Unknown'}</span>
+          <span class="chip">${new Date(t.created_at).toLocaleDateString('en-GB')}</span>
+          <span class="badge badge-${t.status}">${t.status==='fixed'?'✅ Fixed':t.status==='wip'?'🔄 In Progress':'🔴 Open'}</span>
+        </div>
+      </div>
+      <div class="ticket-actions">
+        ${t.status==='open'?`<button class="btn btn-outline btn-sm" onclick="updateStatus('${t.id}','wip')">🔄 Start</button>`:''}
+        ${t.status==='wip'?`<button class="btn btn-outline btn-sm" onclick="updateStatus('${t.id}','open')">↩ Reopen</button>`:''}
+        ${t.status!=='fixed'?`<button class="btn btn-teal btn-sm" onclick="updateStatus('${t.id}','fixed')">✅ Fixed</button>`:`<button class="btn btn-outline btn-sm" onclick="updateStatus('${t.id}','open')">↩ Reopen</button>`}
+        <button class="btn btn-danger btn-sm" onclick="deleteTicket('${t.id}')">🗑</button>
+      </div>
+    </div>`).join('');
+}
 
-async function setStatus(id, status) {
-  const t = tickets.find(x=>x.id===id); if(!t)return;
-  t.status = status;
-  setSyncDot('syncing');
+function renderChangelog() {
+  if (!changelog.length) {
+    document.getElementById('changelog-list').innerHTML = `<div class="empty"><div class="empty-icon">📦</div>No versions yet. Fix some tickets then click "New Version".</div>`;
+    return;
+  }
+  document.getElementById('changelog-list').innerHTML = changelog.map(v => {
+    const items = Array.isArray(v.items) ? v.items : [];
+    return `<div class="version-block">
+      <div class="version-hdr">
+        <span class="version-tag">${v.version}</span>
+        <span class="version-date">📅 ${new Date(v.date).toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'})}</span>
+        <span class="version-count">${items.length} change${items.length!==1?'s':''}</span>
+      </div>
+      ${v.notes?`<p style="font-size:13px;color:var(--text-muted);margin-bottom:12px;padding:10px;background:var(--cream);border-radius:6px">${v.notes}</p>`:''}
+      ${items.map(i=>`<div class="version-item"><span style="font-size:14px;flex-shrink:0">${ICONS[i.type]||'📋'}</span><span class="vi-text">${i.text}<span class="vi-page">${i.page}</span></span></div>`).join('')}
+    </div>`;
+  }).join('');
+}
+
+function showTab(tab, btn) {
+  currentTab = tab;
+  ['open','wip','all','changelog'].forEach(t => document.getElementById('tab-'+t).style.display = t===tab?'':'none');
+  document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderTab(tab);
+}
+
+function setFilter(f, btn) {
+  currentFilter = f;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderTab('open');
+}
+
+async function updateStatus(id, status) {
+  showSync('Saving...');
   try {
-    await fetch(`${SUPA_URL}/rest/v1/tickets?id=eq.${encodeURIComponent(id)}`, {
-      method:'PATCH', headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY,'Content-Type':'application/json'},
-      body: JSON.stringify({status})
-    });
-    setSyncDot('ok');
-  } catch { setSyncDot('error'); }
-  render();
-  showToast(`✓ Marked ${status}`, 'success');
+    const body = { status };
+    if (status === 'fixed') body.fixed_at = new Date().toISOString();
+    await supa('tickets','PATCH',body,`?id=eq.${id}`);
+    await loadAll();
+    showSync('Saved ✓', true);
+  } catch(e) { showSync('Error: '+e.message); }
 }
 
-async function delTicket(id) {
-  const t=tickets.find(x=>x.id===id); if(!t)return;
-  showConfirm('🗑️','Delete Ticket?','Delete this ticket?','btn-danger','Delete',async()=>{
-    tickets=tickets.filter(x=>x.id!==id);
-    setSyncDot('syncing');
-    try {
-      await fetch(`${SUPA_URL}/rest/v1/tickets?id=eq.${encodeURIComponent(id)}`,{method:'DELETE',headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY}});
-      setSyncDot('ok');
-    } catch { setSyncDot('error'); }
-    render(); showToast('Deleted','error');
-  });
+async function deleteTicket(id) {
+  if (!confirm('Delete this ticket?')) return;
+  showSync('Deleting...');
+  try {
+    await supa('tickets','DELETE',null,`?id=eq.${id}`);
+    await loadAll();
+    showSync('Deleted ✓', true);
+  } catch(e) { showSync('Error: '+e.message); }
+}
+
+function openVersionModal() {
+  const fixed = tickets.filter(t=>t.status==='fixed');
+  if (!fixed.length) { alert('No fixed tickets to include. Mark some as fixed first.'); return; }
+  document.getElementById('v-number').value = '';
+  document.getElementById('v-date').value = new Date().toISOString().slice(0,10);
+  document.getElementById('v-notes').value = '';
+  document.getElementById('modal-version').classList.add('open');
+}
+
+async function saveVersion() {
+  const ver = document.getElementById('v-number').value.trim();
+  if (!ver) { alert('Enter a version number'); return; }
+  const fixed = tickets.filter(t=>t.status==='fixed');
+  showSync('Creating version...');
+  try {
+    // Save changelog entry
+    await supa('changelog','POST',{
+      id: 'CL-' + Date.now(),
+      version: ver,
+      date: document.getElementById('v-date').value,
+      notes: document.getElementById('v-notes').value.trim(),
+      items: fixed.map(t=>({type:t.type,text:t.text,page:t.page,id:t.id}))
+    });
+    // Archive all fixed tickets - delete them
+    for (const t of fixed) {
+      await supa('tickets','DELETE',null,`?id=eq.${t.id}`);
+    }
+    await loadAll();
+    closeModal('modal-version');
+    showTab('changelog', document.querySelectorAll('.tab')[3]);
+    showSync('Version created ✓', true);
+  } catch(e) { showSync('Error: '+e.message); }
 }
 
 function exportCSV() {
-  const rows=[['ID','Type','Text','Page','By','Date','Status']];
-  tickets.forEach(t=>rows.push([t.id||'',t.type||'',t.text||'',t.page||'',t.created_by||'',t.created_at||'',t.status||'']));
-  const csv=rows.map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
-  const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);a.download='tickets.csv';a.click();
+  const rows = [['ID','Type','Text','Page','Status','Created By','Date']];
+  tickets.forEach(t => rows.push([t.id, t.type, `"${t.text}"`, t.page, t.status, t.created_by||'', new Date(t.created_at).toLocaleDateString('en-GB')]));
+  const csv = rows.map(r=>r.join(',')).join('\n');
+  const blob = new Blob([csv],{type:'text/csv'});
+  const a = document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='tickets.csv'; a.click();
 }
+
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+document.getElementById('modal-version').addEventListener('click',function(e){if(e.target===this)closeModal('modal-version');});
+
+function showSync(msg, success=false) {
+  const bar = document.getElementById('syncBar');
+  bar.textContent = msg;
+  bar.style.display = 'flex';
+  bar.style.background = success ? 'rgba(39,174,96,.9)' : 'rgba(26,122,110,.92)';
+  if (success) setTimeout(()=>bar.style.display='none', 2000);
+}
+
+// Load on start
+loadAll();
 </script>
 <script src="erp-nav.js"></script>
 </body>

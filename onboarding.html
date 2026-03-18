@@ -2,258 +2,1791 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Zesty ERP — Onboarding</title>
-<link rel="stylesheet" href="erp-style.css">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<title>Zesty ERP · Onboarding</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
 <style>
-.pipeline{display:flex;gap:16px;overflow-x:auto;padding-bottom:12px;margin-bottom:24px}
-.pipe-col{background:#fff;border:1px solid var(--border);border-radius:12px;min-width:220px;flex:1;overflow:hidden}
-.pipe-header{padding:12px 16px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;border-bottom:1px solid var(--border)}
-.pipe-body{padding:8px}
-.pipe-card{background:var(--cream);border:1px solid var(--border);border-radius:8px;padding:11px 13px;margin-bottom:8px;cursor:pointer;transition:all .18s}
-.pipe-card:hover{background:#f0faf8;border-color:var(--teal-light)}
-.pipe-card:last-child{margin-bottom:0}
-.pipe-card-name{font-size:13px;font-weight:600;color:var(--text)}
-.pipe-card-sub{font-size:11px;color:var(--text-muted);margin-top:3px}
-.pipe-card-date{font-size:10px;color:var(--text-muted);margin-top:5px}
-.stage-contact .pipe-header{color:#2980b9;background:#e8f4f8}
-.stage-visit .pipe-header{color:#e67e22;background:#fff3e0}
-.stage-offer .pipe-header{color:#8e44ad;background:#f0e8ff}
-.stage-agreement .pipe-header{color:#c9a84c;background:#fdf6e3}
-.stage-setup .pipe-header{color:var(--teal);background:#f0faf8}
-.stage-completed .pipe-header{color:var(--success);background:var(--success-light)}
-.stage-declined .pipe-header{color:var(--danger);background:var(--danger-light)}
+:root {
+  --teal:#1a7a6e;--teal-light:#23a090;--teal-dark:#115950;--teal-deeper:#0d3f38;
+  --gold:#c9a84c;--gold-light:#e8c97a;--gold-pale:#fdf6e3;
+  --cream:#f7f4ef;--white:#fff;--text:#1e2a28;--text-muted:#6b7e7b;
+  --border:#dde8e6;--shadow:0 2px 16px rgba(26,122,110,.10);--shadow-lg:0 8px 40px rgba(26,122,110,.18);
+  --radius:14px;--radius-sm:8px;
+  --stage-contact:#3498db;--stage-visit:#9b59b6;--stage-proposal:#e67e22;
+  --stage-awaiting:#f39c12;--stage-completed:#27ae60;--stage-declined:#e74c3c;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--text);min-height:100vh}
+
+/* HEADER */
+header{background:linear-gradient(135deg,var(--teal-deeper),var(--teal-dark) 60%,var(--teal));padding:0 28px;height:60px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 20px rgba(0,0,0,.2);position:sticky;top:0;z-index:200;}
+.logo{display:flex;align-items:center;gap:10px;text-decoration:none}
+.logo-icon{width:34px;height:34px;background:var(--gold);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px}
+.logo-text{font-family:'DM Serif Display',serif;color:#fff;font-size:18px}
+.logo-text span{color:var(--gold-light)}
+.nav-links{display:flex;gap:4px}
+.nav-btn{padding:6px 14px;border-radius:8px;font-size:12px;font-weight:500;color:rgba(255,255,255,.7);background:transparent;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;text-decoration:none;transition:all .15s}
+.nav-btn:hover,.nav-btn.active{background:rgba(255,255,255,.15);color:#fff}
+.header-right{display:flex;gap:8px;align-items:center}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:9px;font-size:13px;font-family:'DM Sans',sans-serif;font-weight:500;cursor:pointer;border:none;transition:all .18s;text-decoration:none}
+.btn-primary{background:var(--teal);color:#fff}.btn-primary:hover{background:var(--teal-light)}
+.btn-gold{background:var(--gold);color:var(--teal-dark);font-weight:600}.btn-gold:hover{background:var(--gold-light)}
+.btn-ghost{background:transparent;border:1px solid var(--border);color:var(--text-muted)}.btn-ghost:hover{background:var(--border)}
+.btn-danger{background:#e74c3c;color:#fff}.btn-danger:hover{background:#c0392b}
+.btn-sm{padding:5px 10px;font-size:12px}
+
+/* MAIN LAYOUT */
+main{max-width:1400px;margin:0 auto;padding:24px 20px 80px}
+
+/* PIPELINE VIEW */
+.pipeline-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px}
+.pipeline-title{font-family:'DM Serif Display',serif;font-size:26px;color:var(--teal-dark)}
+.pipeline-filters{display:flex;gap:8px;flex-wrap:wrap}
+.filter-chip{padding:5px 12px;border-radius:20px;font-size:12px;font-weight:500;cursor:pointer;border:1.5px solid var(--border);background:var(--white);color:var(--text-muted);transition:all .15s}
+.filter-chip.active,.filter-chip:hover{border-color:var(--teal);color:var(--teal);background:#f0faf8}
+
+/* STAGE COLUMNS */
+.pipeline-board{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;align-items:start}
+.stage-col{background:var(--white);border-radius:var(--radius);border:1px solid var(--border);overflow:hidden;box-shadow:var(--shadow)}
+.stage-header{padding:12px 14px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;display:flex;align-items:center;justify-content:space-between}
+.stage-body{padding:8px;min-height:60px;display:flex;flex-direction:column;gap:6px}
+.case-card{background:var(--cream);border-radius:9px;padding:10px 12px;cursor:pointer;border:1.5px solid transparent;transition:all .18s}
+.case-card:hover{border-color:var(--teal-light);background:#f0faf8;transform:translateY(-1px);box-shadow:var(--shadow)}
+.case-name{font-size:13px;font-weight:600;color:var(--teal-dark)}
+.case-prop{font-size:11px;color:var(--text-muted);margin-top:2px}
+.case-date{font-size:10px;color:var(--text-muted);margin-top:6px}
+.stage-badge{display:inline-block;padding:2px 7px;border-radius:5px;font-size:10px;font-weight:700;color:#fff}
+
+/* TABLE VIEW */
+.table-view{display:none}
+.data-table{width:100%;border-collapse:collapse;background:var(--white);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow)}
+.data-table th{padding:10px 14px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);border-bottom:2px solid var(--border);text-align:left;background:#f8fbfa}
+.data-table td{padding:12px 14px;font-size:13px;border-bottom:1px solid var(--border)}
+.data-table tr:last-child td{border-bottom:none}
+.data-table tr:hover td{background:#f5faf9}
+
+/* RECORD MODAL */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:500;overflow-y:auto;padding:20px}
+.modal-overlay.open{display:flex;align-items:flex-start;justify-content:center}
+.modal-box{background:var(--white);border-radius:18px;width:100%;max-width:1100px;box-shadow:var(--shadow-lg);margin:auto;display:flex;flex-direction:column;max-height:90vh}
+.modal-header{padding:20px 24px 0;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.modal-title{font-family:'DM Serif Display',serif;font-size:22px;color:var(--teal-dark)}
+.modal-close{width:32px;height:32px;border-radius:8px;border:none;background:var(--cream);cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;color:var(--text-muted)}
+.modal-close:hover{background:var(--border)}
+
+/* TABS */
+.tab-bar{display:flex;gap:2px;padding:16px 24px 0;border-bottom:2px solid var(--border);flex-shrink:0;overflow-x:auto}
+.tab-btn{padding:8px 16px;border-radius:8px 8px 0 0;font-size:13px;font-weight:500;cursor:pointer;border:none;background:transparent;color:var(--text-muted);transition:all .15s;white-space:nowrap;font-family:'DM Sans',sans-serif}
+.tab-btn.active{background:var(--teal);color:#fff}
+.tab-btn:hover:not(.active){background:var(--cream);color:var(--text)}
+.tab-content{flex:1;overflow-y:auto;padding:20px 24px}
+.tab-pane{display:none}.tab-pane.active{display:block}
+
+/* FORM STYLES */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.form-grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+.form-full{grid-column:1/-1}
+.field{display:flex;flex-direction:column;gap:4px}
+.field label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted)}
+.field input,.field select,.field textarea{padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-family:'DM Sans',sans-serif;color:var(--text);background:var(--white);transition:border-color .15s;outline:none}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--teal)}
+.field textarea{resize:vertical;min-height:70px}
+.section-hdr{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--teal);margin:18px 0 10px;padding-bottom:6px;border-bottom:1.5px solid var(--border)}
+.section-hdr:first-child{margin-top:0}
+.check-row{display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid #f0f0f0}
+.check-row:last-child{border-bottom:none}
+.check-row label{font-size:13px;flex:1}
+.check-row input[type=checkbox]{width:16px;height:16px;accent-color:var(--teal)}
+
+/* UNIT COLUMNS */
+.units-wrapper{overflow-x:auto}
+.units-table{border-collapse:collapse;width:100%;min-width:600px}
+.units-table th{padding:8px 12px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);background:#f8fbfa;border:1px solid var(--border);text-align:left}
+.units-table td{padding:6px 8px;border:1px solid var(--border);font-size:13px;vertical-align:middle}
+.units-table td:first-child{font-weight:500;color:var(--text-muted);background:#fafafa;font-size:12px;white-space:nowrap;padding:6px 12px}
+.units-table input{width:100%;border:none;outline:none;font-size:13px;font-family:'DM Sans',sans-serif;background:transparent;padding:2px 4px}
+.units-table input:focus{background:#f0faf8;border-radius:4px}
+.unit-add-btn{margin-top:10px}
+.total-row td{background:var(--gold-pale);font-weight:600;color:var(--teal-dark)}
+
+/* ITEMS TAB */
+.items-unit-tabs{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap}
+.items-unit-tab{padding:5px 12px;border-radius:20px;font-size:12px;font-weight:500;cursor:pointer;border:1.5px solid var(--border);background:var(--white);color:var(--text-muted);transition:all .15s}
+.items-unit-tab.active{border-color:var(--teal);color:var(--teal);background:#f0faf8}
+.items-section{margin-bottom:20px}
+.items-section-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--teal-dark);padding:8px 12px;background:var(--teal-deeper);color:#fff;border-radius:6px 6px 0 0;margin-bottom:0}
+.items-grid{border:1px solid var(--border);border-top:none;border-radius:0 0 8px 8px;overflow:hidden}
+.item-row{display:grid;grid-template-columns:1fr 80px 80px;align-items:center;padding:6px 12px;border-bottom:1px solid var(--border);font-size:13px;gap:8px}
+.item-row:last-child{border-bottom:none}
+.item-row:nth-child(even){background:#fafafa}
+.item-name{font-weight:500}
+.item-calc{font-size:11px;color:var(--text-muted)}
+.item-req{text-align:center;font-weight:600;color:var(--teal)}
+.item-have input{width:60px;padding:3px 6px;border:1.5px solid var(--border);border-radius:5px;font-size:13px;text-align:center;font-family:'DM Sans',sans-serif}
+.item-have input:focus{border-color:var(--teal);outline:none}
+.item-row.missing .item-name{color:#e74c3c}
+.items-header-row{display:grid;grid-template-columns:1fr 80px 80px;padding:5px 12px;background:#f0faf8;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);border-bottom:1px solid var(--border)}
+
+/* SEASON CHECK */
+.season-job-row{display:grid;grid-template-columns:1fr 120px 1fr;gap:12px;align-items:center;padding:8px 12px;border-bottom:1px solid var(--border);font-size:13px}
+.season-job-row:last-child{border-bottom:none}
+.season-job-row:nth-child(even){background:#fafafa}
+.season-job-name{font-weight:500}
+.season-status-select{padding:4px 8px;border:1.5px solid var(--border);border-radius:6px;font-size:12px;font-family:'DM Sans',sans-serif;background:var(--white);cursor:pointer;outline:none}
+.season-status-select:focus{border-color:var(--teal)}
+.season-status-select.ok{border-color:#27ae60;color:#27ae60;background:#f0fff4}
+.season-status-select.attention{border-color:#e67e22;color:#e67e22;background:#fff8f0}
+.season-comment{padding:4px 8px;border:1.5px solid var(--border);border-radius:6px;font-size:12px;font-family:'DM Sans',sans-serif;width:100%;outline:none}
+.season-comment:focus{border-color:var(--teal)}
+.season-header-row{display:grid;grid-template-columns:1fr 120px 1fr;gap:12px;padding:6px 12px;background:#f0faf8;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);border-bottom:2px solid var(--border)}
+
+/* MODAL FOOTER */
+.modal-footer{padding:16px 24px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:10px;flex-shrink:0;flex-wrap:wrap}
+.footer-left{display:flex;gap:8px}
+.footer-right{display:flex;gap:8px}
+
+/* STAGE SELECT */
+.stage-select-wrapper{display:flex;align-items:center;gap:8px}
+.stage-select-wrapper label{font-size:12px;font-weight:600;color:var(--text-muted)}
+.stage-select{padding:6px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-family:'DM Sans',sans-serif;background:var(--white);cursor:pointer;outline:none}
+.stage-select:focus{border-color:var(--teal)}
+
+/* SETTINGS MODAL */
+.settings-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:600;padding:20px}
+.settings-overlay.open{display:flex;align-items:center;justify-content:center}
+.settings-box{background:var(--white);border-radius:16px;width:100%;max-width:700px;box-shadow:var(--shadow-lg);max-height:85vh;display:flex;flex-direction:column}
+.settings-header{padding:20px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.settings-body{flex:1;overflow-y:auto;padding:20px 24px}
+.settings-section{margin-bottom:24px}
+.settings-section h3{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--teal);margin-bottom:12px}
+.tag-list{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.tag{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;background:#f0faf8;border:1px solid var(--teal-light);border-radius:20px;font-size:12px;color:var(--teal-dark)}
+.tag button{background:none;border:none;cursor:pointer;color:var(--text-muted);font-size:14px;line-height:1;padding:0}
+.tag button:hover{color:#e74c3c}
+.add-tag-row{display:flex;gap:6px}
+.add-tag-row input{flex:1;padding:6px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-family:'DM Sans',sans-serif;outline:none}
+.add-tag-row input:focus{border-color:var(--teal)}
+
+/* PRINT */
+@media print {
+  header,.modal-footer,.tab-bar,.btn,button,.nav-links,.header-right,
+  .pipeline-header,.pipeline-board,.pipeline-filters,.toast,#settingsBtn{display:none!important}
+  .modal-overlay{display:block!important;position:static!important;background:none!important;padding:0!important}
+  .modal-box{box-shadow:none!important;max-height:none!important;border-radius:0!important}
+  .tab-pane{display:block!important}
+  .tab-content{overflow:visible!important;padding:10px!important}
+  body{background:#fff!important}
+  .print-hide{display:none!important}
+  .print-show{display:block!important}
+}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;right:24px;padding:10px 18px;border-radius:10px;font-size:13px;font-weight:500;color:#fff;z-index:9999;transform:translateY(100px);transition:transform .3s;pointer-events:none}
+.toast.show{transform:translateY(0)}
+.toast.success{background:#27ae60}
+.toast.error{background:#e74c3c}
+.toast.info{background:var(--teal)}
+
+/* REPLACEMENT REPORT */
+.report-item{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;border-bottom:1px solid var(--border);font-size:13px}
+.report-item:nth-child(even){background:#fafafa}
+.report-item .ri-name{font-weight:500}
+.report-item .ri-comment{font-size:12px;color:#e67e22;margin-top:2px}
+.report-item .ri-badge{padding:2px 8px;border-radius:5px;font-size:11px;font-weight:600}
+.rb-items{background:#fef0f0;color:#e74c3c}
+.rb-job{background:#fff3e8;color:#e67e22}
+
+/* RESPONSIVE */
+@media(max-width:900px){
+  .pipeline-board{grid-template-columns:repeat(3,1fr)}
+  .form-grid{grid-template-columns:1fr}
+  .form-grid-3{grid-template-columns:1fr 1fr}
+}
+@media(max-width:600px){
+  .pipeline-board{grid-template-columns:repeat(2,1fr)}
+  .form-grid-3{grid-template-columns:1fr}
+  main{padding:12px 10px 60px}
+}
+
+/* ═══════════════════════════════════════════════════════
+   UNIFIED ERP NAV — mobile-first, fully responsive
+   ═══════════════════════════════════════════════════════ */
+html{scroll-behavior:smooth}
+.erp-header{background:var(--teal-dark,#115950);position:sticky;top:0;z-index:500;box-shadow:0 2px 20px rgba(0,0,0,.25)}
+/* Row 1 — global modules */
+.erp-nav-global{display:flex;align-items:center;padding:0 16px;height:40px;border-bottom:1px solid rgba(255,255,255,.1);gap:4px;min-width:0}
+.erp-logo{font-family:'Cormorant Garamond','DM Serif Display',serif;font-size:16px;font-weight:500;color:#fff;white-space:nowrap;margin-right:10px;flex-shrink:0;text-decoration:none}
+.erp-logo span{color:#e8c97a}
+.erp-modules{display:flex;gap:2px;flex:1;min-width:0;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.erp-modules::-webkit-scrollbar{display:none}
+.erp-mod-btn{padding:4px 8px;border-radius:5px;font-size:11px;font-weight:500;color:rgba(255,255,255,.7);text-decoration:none;white-space:nowrap;transition:all .15s;font-family:'DM Sans',sans-serif;display:inline-block;-webkit-tap-highlight-color:transparent}
+.erp-mod-btn:hover,.erp-mod-btn:focus{background:rgba(255,255,255,.12);color:#fff;outline:none}
+.erp-mod-btn.active{background:#c9a84c;color:#0a3d36;font-weight:700}
+/* Row 2 — local toolbar */
+.erp-nav-local{display:flex;align-items:center;padding:0 14px;min-height:38px;background:rgba(0,0,0,.15);gap:6px;flex-wrap:wrap;overflow-x:auto;scrollbar-width:none}
+.erp-nav-local::-webkit-scrollbar{display:none}
+.erp-local-title{font-size:12px;font-weight:600;color:rgba(255,255,255,.9);white-space:nowrap}
+.erp-local-spacer{flex:1}
+.erp-nav-local a,.erp-nav-local button{padding:4px 10px;border-radius:5px;font-size:12px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s;-webkit-tap-highlight-color:transparent;white-space:nowrap;text-decoration:none;display:inline-flex;align-items:center;gap:4px}
+.erp-nav-local a.nav-link-btn{background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.85)}
+.erp-nav-local a.nav-link-btn:hover{background:rgba(255,255,255,.1)}
+.erp-nav-local button.nav-btn-ghost{background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.85)}
+.erp-nav-local button.nav-btn-ghost:hover{background:rgba(255,255,255,.1)}
+.erp-nav-local button.nav-btn-primary,.erp-nav-local a.nav-btn-primary{background:#c9a84c;color:#0a3d36;font-weight:700;border:none}
+.erp-nav-local button.nav-btn-primary:hover,.erp-nav-local a.nav-btn-primary:hover{background:#e8c97a}
+/* Mobile hamburger */
+.erp-menu-toggle{display:none;background:transparent;border:1px solid rgba(255,255,255,.3);color:#fff;padding:4px 8px;border-radius:5px;cursor:pointer;font-size:16px;margin-left:auto;flex-shrink:0}
+/* Mobile responsive */
+@media(max-width:768px){
+  .erp-nav-global{padding:0 10px}
+  .erp-modules{gap:1px}
+  .erp-mod-btn{font-size:10px;padding:3px 6px}
+  .erp-logo{font-size:14px;margin-right:6px}
+  .erp-nav-local{padding:0 10px;gap:4px}
+  .erp-nav-local a,.erp-nav-local button{font-size:11px;padding:3px 8px}
+}
+@media(max-width:480px){
+  .erp-mod-btn span.mod-label{display:none}
+  .erp-mod-btn{padding:4px 5px;font-size:13px}
+}
+/* ── GLOBAL MOBILE RESPONSIVE ── */
+@media(max-width:768px){
+  /* Tables scroll horizontally */
+  .table-wrap,.table-container,[style*="overflow-x"]{overflow-x:auto!important;-webkit-overflow-scrolling:touch}
+  table{min-width:500px}
+  /* Modals full screen on mobile */
+  .modal-overlay,.overlay{padding:8px!important}
+  .modal,.modal-lg{width:100%!important;max-width:100%!important;max-height:95vh!important;border-radius:12px!important;margin:auto}
+  /* Form grids stack */
+  .form-grid,.form-row,.form-grid-2,.form-grid-3,.form-grid-4,.form-grid-6{grid-template-columns:1fr!important}
+  .col-span-2,.col-span-4,.form-full{grid-column:1/-1!important}
+  /* Stats bars collapse */
+  .stats-bar,.kpi-grid,.kpi-grid-6{grid-template-columns:repeat(2,1fr)!important}
+  /* Cards stack */
+  .stats-row{grid-template-columns:repeat(2,1fr)!important}
+  /* Container padding */
+  .container,main,[class*="container"]{padding-left:10px!important;padding-right:10px!important}
+  /* Hide some less important columns on mobile */
+  .hide-mobile{display:none!important}
+  /* Buttons full width in modal footer */
+  .modal-footer{flex-wrap:wrap}
+  .modal-footer .btn{flex:1;justify-content:center;min-width:100px}
+}
+@media(max-width:480px){
+  .stats-bar,.kpi-grid,.stats-row{grid-template-columns:1fr 1fr!important}
+  td,th{padding:6px 8px!important;font-size:11px!important}
+}
+
+/* ═══════════════════════════════════════════════════
+   ZESTY ERP — LEFT SIDEBAR NAVIGATION
+   ═══════════════════════════════════════════════════ */
+
+/* Reset old top header nav */
+.erp-header,.erp-nav-global,.erp-nav-local,
+.erp-modules,.erp-mod-btn,.erp-logo,
+.erp-local-title,.erp-local-spacer { all: unset; }
+.erp-header { display: none !important; }
+
+/* ── LAYOUT WRAPPER ── */
+body.erp-layout {
+  display: flex;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ── SIDEBAR ── */
+.erp-sidebar {
+  width: 220px;
+  min-width: 220px;
+  background: linear-gradient(180deg, #0a3d36 0%, #0d4a42 60%, #0f5248 100%);
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 0; left: 0; bottom: 0;
+  z-index: 600;
+  box-shadow: 3px 0 20px rgba(0,0,0,0.3);
+  transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,255,255,.1) transparent;
+}
+.erp-sidebar::-webkit-scrollbar { width: 4px; }
+.erp-sidebar::-webkit-scrollbar-track { background: transparent; }
+.erp-sidebar::-webkit-scrollbar-thumb { background: rgba(255,255,255,.1); border-radius: 2px; }
+
+/* ── SIDEBAR BRAND ── */
+.erp-brand {
+  padding: 20px 18px 16px;
+  border-bottom: 1px solid rgba(255,255,255,.08);
+  flex-shrink: 0;
+}
+.erp-brand-name {
+  font-family: 'Cormorant Garamond', 'DM Serif Display', serif;
+  font-size: 22px; font-weight: 600; color: #fff;
+  line-height: 1; letter-spacing: .3px;
+}
+.erp-brand-name span { color: #e8c97a; }
+.erp-brand-sub {
+  font-size: 10px; color: rgba(255,255,255,.35);
+  text-transform: uppercase; letter-spacing: 2px;
+  margin-top: 4px; font-weight: 400;
+}
+
+/* ── SIDEBAR NAV LINKS ── */
+.erp-nav-section {
+  padding: 10px 0 4px;
+}
+.erp-nav-section-label {
+  font-size: 9px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .12em;
+  color: rgba(255,255,255,.25);
+  padding: 0 18px; margin-bottom: 4px;
+}
+.erp-nav-link {
+  display: flex; align-items: center; gap: 9px;
+  padding: 8px 18px;
+  color: rgba(255,255,255,.6);
+  text-decoration: none;
+  font-size: 13px; font-weight: 500;
+  font-family: 'DM Sans', sans-serif;
+  transition: all .15s;
+  border-left: 3px solid transparent;
+  -webkit-tap-highlight-color: transparent;
+  cursor: pointer;
+  background: none; border-right: none;
+  border-top: none; border-bottom: none;
+  width: 100%; text-align: left;
+}
+.erp-nav-link:hover {
+  color: #fff;
+  background: rgba(255,255,255,.07);
+  border-left-color: rgba(255,255,255,.2);
+}
+.erp-nav-link.active {
+  color: #e8c97a;
+  background: rgba(201,168,76,.12);
+  border-left-color: #e8c97a;
+  font-weight: 600;
+}
+.erp-nav-link .nav-icon { font-size: 15px; flex-shrink: 0; width: 18px; text-align: center; }
+.erp-nav-link .nav-label { flex: 1; }
+.erp-nav-link .nav-badge {
+  font-size: 10px; font-weight: 700;
+  background: rgba(201,168,76,.25); color: #e8c97a;
+  padding: 1px 6px; border-radius: 8px;
+}
+.erp-nav-divider {
+  height: 1px; background: rgba(255,255,255,.06);
+  margin: 6px 14px;
+}
+
+/* ── MODULE TABS (inside sidebar, below nav links) ── */
+.erp-module-tabs {
+  margin-top: auto;
+  padding: 8px 0 12px;
+  border-top: 1px solid rgba(255,255,255,.08);
+}
+.erp-module-tabs-label {
+  font-size: 9px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .12em;
+  color: rgba(255,255,255,.25);
+  padding: 0 18px; margin-bottom: 4px;
+}
+.erp-tab-link {
+  display: flex; align-items: center; gap: 8px;
+  padding: 7px 18px;
+  color: rgba(255,255,255,.55);
+  font-size: 12px; font-weight: 500;
+  font-family: 'DM Sans', sans-serif;
+  transition: all .15s;
+  border-left: 3px solid transparent;
+  -webkit-tap-highlight-color: transparent;
+  cursor: pointer;
+  background: none; border-right: none;
+  border-top: none; border-bottom: none;
+  width: 100%; text-align: left; text-decoration: none;
+}
+.erp-tab-link:hover {
+  color: #fff; background: rgba(255,255,255,.06);
+}
+.erp-tab-link.active {
+  color: #c9a84c; font-weight: 600;
+  background: rgba(201,168,76,.1);
+  border-left-color: #c9a84c;
+}
+
+/* ── SIDEBAR FOOTER (user badge + sync) ── */
+.erp-sidebar-footer {
+  padding: 12px 18px;
+  border-top: 1px solid rgba(255,255,255,.08);
+  flex-shrink: 0;
+}
+.erp-user-badge {
+  font-size: 11px; color: rgba(255,255,255,.45);
+  display: flex; align-items: center; gap: 6px;
+}
+.erp-sync-row {
+  display: flex; align-items: center; gap: 6px;
+  margin-top: 6px;
+}
+.sync-label { font-size: 10px; color: rgba(255,255,255,.3); }
+
+/* ── MAIN CONTENT AREA ── */
+.erp-main {
+  margin-left: 220px;
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── TOP BAR (module title + actions) ── */
+.erp-topbar {
+  background: #fff;
+  border-bottom: 1px solid #d4e0de;
+  padding: 0 28px;
+  height: 52px;
+  display: flex; align-items: center; gap: 12px;
+  position: sticky; top: 0; z-index: 100;
+  box-shadow: 0 1px 8px rgba(26,122,110,.08);
+  flex-shrink: 0;
+}
+.erp-topbar-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 18px; font-weight: 600;
+  color: #115950; flex: 1;
+}
+.erp-topbar-actions { display: flex; gap: 8px; align-items: center; }
+
+/* ── HAMBURGER (mobile only) ── */
+.erp-hamburger {
+  display: none;
+  background: none; border: none;
+  color: #115950; font-size: 22px;
+  cursor: pointer; padding: 4px 8px;
+  border-radius: 6px;
+  -webkit-tap-highlight-color: transparent;
+}
+.erp-overlay {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.5);
+  z-index: 590;
+}
+
+/* ── MOBILE ── */
+@media (max-width: 900px) {
+  .erp-sidebar {
+    transform: translateX(-100%);
+  }
+  .erp-sidebar.open {
+    transform: translateX(0);
+  }
+  .erp-overlay.open { display: block; }
+  .erp-main { margin-left: 0; }
+  .erp-hamburger { display: block; }
+  .erp-topbar { padding: 0 14px; }
+}
+@media (max-width: 600px) {
+  .container, main { padding: 12px 10px 60px !important; }
+  table { min-width: 480px; }
+  .stats-bar, .kpi-grid { grid-template-columns: repeat(2,1fr) !important; }
+}
+
+
 </style>
+    <script src="https://unpkg.com/@azure/msal-browser@2.38.3/lib/msal-browser.min.js"></script>
+    <script>
+    (function(){
+      const _msalConfig={auth:{clientId:'0938023f-cbbf-45f1-a71d-b18c95745ea6',authority:'https://login.microsoftonline.com/9c30b606-6648-4777-a623-64867e43e54f',redirectUri:'https://kissamosrealestate.com/wp-content/erp/index.html'},cache:{cacheLocation:'sessionStorage',storeAuthStateInCookie:false}};
+      const _msal=new msal.PublicClientApplication(_msalConfig);
+      const _loginRequest={scopes:['openid','profile','User.Read']};
+      const _isMobile=/iPhone|iPad|iPod|Android|Mobile/i.test(navigator.userAgent);
+      async function _ensureLogin(){
+        await _msal.initialize();
+        try{const rr=await _msal.handleRedirectPromise();if(rr&&rr.account){_msal.setActiveAccount(rr.account);window._erpUserName=rr.account.name||rr.account.username;_showUserBadge(window._erpUserName);document.documentElement.style.visibility='visible';return;}}catch(e){}
+        const accounts=_msal.getAllAccounts();
+        if(accounts.length>0){_msal.setActiveAccount(accounts[0]);window._erpUserName=accounts[0].name||accounts[0].username;_showUserBadge(window._erpUserName);document.documentElement.style.visibility='visible';return;}
+        if(_isMobile){try{const r=await _msal.loginPopup(_loginRequest);if(r&&r.account){window._erpUserName=r.account.name||r.account.username;_showUserBadge(window._erpUserName);}document.documentElement.style.visibility='visible';}catch(e){if(e.errorCode!=='user_cancelled'){sessionStorage.setItem('msal_return_url',window.location.href);await _msal.loginRedirect(_loginRequest);}else{document.documentElement.style.visibility='visible';}}}
+        else{sessionStorage.setItem('msal_return_url',window.location.href);await _msal.loginRedirect(_loginRequest);}
+      }
+      function _showUserBadge(name){window._erpUserName=name;const zu=document.getElementById('zsUser');if(zu){zu.innerHTML='<span>&#128100; '+name+'</span><button onclick="window._azureLogout&&window._azureLogout()" style="background:transparent;border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.5);font-size:10px;padding:2px 7px;border-radius:4px;cursor:pointer;font-family:DM Sans,sans-serif;margin-left:4px">Sign out</button>';}}
+      window._azureLogout=function(){sessionStorage.removeItem('msal_return_url');const a=_msal.getAllAccounts();if(a.length>0){_msal.logoutRedirect({account:a[0]});}};
+      document.documentElement.style.visibility='hidden';
+      _ensureLogin().catch(function(){document.documentElement.style.visibility='visible';});
+    })();
+    </script>
+    <!-- Azure MSAL Authentication -->
+    
+    
 </head>
-<body>
-<div class="container">
-  <div class="page-title-bar">
-    <div><h1>Owner Onboarding</h1><p>Track new property owners through the onboarding pipeline</p></div>
-    <div class="page-actions">
-      <div class="sync-status"><span class="sync-dot" id="syncDot"></span><span>Connected</span></div>
-      <select id="pipelineView" onchange="toggleView()" style="padding:7px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;font-family:'DM Sans',sans-serif;background:var(--cream)">
-        <option value="pipeline">Pipeline View</option>
-        <option value="table">Table View</option>
-      </select>
-      <button class="btn btn-primary" onclick="openAdd()">+ Add Lead</button>
+<body class="erp-layout">
+
+<div class="erp-overlay" id="erpOverlay"></div>
+<aside class="erp-sidebar" id="erpSidebar">
+  <div class="erp-brand">
+    <div class="erp-brand-name">Zesty <span>ERP</span></div>
+    <div class="erp-brand-sub">Kissamos · Operations</div>
+  </div>
+  <nav class="erp-nav-section">
+    <div class="erp-nav-section-label">Modules</div>
+      <a href="index.html" class="erp-nav-link"><span class="nav-icon">🏠</span><span class="nav-label">Home</span></a>
+      <a href="owners-crm.html" class="erp-nav-link"><span class="nav-icon">👤</span><span class="nav-label">Owners</span></a>
+      <a href="properties-db.html" class="erp-nav-link"><span class="nav-icon">🏠</span><span class="nav-label">Properties</span></a>
+      <a href="guests-crm.html" class="erp-nav-link"><span class="nav-icon">✈️</span><span class="nav-label">Guests</span></a>
+      <a href="cleaning-system.html" class="erp-nav-link"><span class="nav-icon">🧹</span><span class="nav-label">Cleaning</span></a>
+      <a href="contacts-crm.html" class="erp-nav-link"><span class="nav-icon">📋</span><span class="nav-label">Contacts</span></a>
+      <a href="employees.html" class="erp-nav-link"><span class="nav-icon">👥</span><span class="nav-label">Staff</span></a>
+      <a href="leave.html" class="erp-nav-link"><span class="nav-icon">🏖️</span><span class="nav-label">Leave</span></a>
+      <a href="tasks.html" class="erp-nav-link"><span class="nav-icon">✅</span><span class="nav-label">Tasks</span></a>
+      <a href="jobs.html" class="erp-nav-link"><span class="nav-icon">🔧</span><span class="nav-label">Job Orders</span></a>
+      <a href="laundry.html" class="erp-nav-link"><span class="nav-icon">👔</span><span class="nav-label">Laundry ERP</span></a>
+      <a href="onboarding.html" class="erp-nav-link active"><span class="nav-icon">📋</span><span class="nav-label">Onboarding</span></a>
+      <a href="settings.html" class="erp-nav-link"><span class="nav-icon">⚙️</span><span class="nav-label">Settings</span></a>
+  </nav>
+  
+  <div class="erp-sidebar-footer">
+    <div class="erp-user-badge" id="sidebarUser"></div>
+    <div class="erp-sync-row">
+      <span class="sync-dot" id="syncDot" title="Saved" style="display:inline-block"></span>
+      <span class="sync-label">Connected</span>
+    </div>
+  </div>
+</aside>
+
+<div class="erp-main">
+<div class="erp-topbar">
+    <button class="erp-hamburger" id="erpHamburger">☰</button>
+    <div class="erp-topbar-title">📋 Onboarding Pipeline</div>
+    <div class="erp-topbar-actions"><button class="btn btn-outline btn-sm" onclick="openSettings&&openSettings()">⚙ Settings</button><button class="btn btn-primary btn-sm" onclick="newCase&&newCase()">+ New Onboarding</button></div>
+  </div>
+
+
+<main>
+  <div class="pipeline-header">
+    <div>
+      <div class="pipeline-title">Onboarding Pipeline</div>
+      <div style="font-size:12px;color:var(--text-muted);margin-top:2px" id="caseCount">Loading...</div>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      <div class="pipeline-filters" id="stageFilters">
+        <div class="filter-chip active" data-stage="all" onclick="filterStage(this)">All</div>
+        <div class="filter-chip" data-stage="contact" onclick="filterStage(this)">First Contact</div>
+        <div class="filter-chip" data-stage="visit" onclick="filterStage(this)">Site Visit</div>
+        <div class="filter-chip" data-stage="proposal" onclick="filterStage(this)">Proposal Sent</div>
+        <div class="filter-chip" data-stage="awaiting" onclick="filterStage(this)">Awaiting Signature</div>
+        <div class="filter-chip" data-stage="completed" onclick="filterStage(this)">Completed</div>
+        <div class="filter-chip" data-stage="declined" onclick="filterStage(this)">Declined</div>
+      </div>
+      <button class="btn btn-ghost btn-sm" onclick="toggleView()" id="viewToggle">📋 Table View</button>
     </div>
   </div>
 
-  <div class="stats-bar">
-    <div class="stat-card"><div class="stat-label">Active Leads</div><div class="stat-value gold" id="st-active">—</div></div>
-    <div class="stat-card"><div class="stat-label">Agreements</div><div class="stat-value success" id="st-agreement">—</div></div>
-    <div class="stat-card"><div class="stat-label">Setup</div><div class="stat-value" style="color:var(--teal)" id="st-setup">—</div></div>
-    <div class="stat-card"><div class="stat-label">Completed</div><div class="stat-value" id="st-completed">—</div></div>
-    <div class="stat-card"><div class="stat-label">Declined</div><div class="stat-value danger" id="st-declined">—</div></div>
-  </div>
-
-  <!-- PIPELINE VIEW -->
-  <div id="pipelineDiv">
-    <div class="pipeline" id="pipelineBoard"></div>
+  <!-- BOARD VIEW -->
+  <div id="boardView">
+    <div class="pipeline-board" id="pipelineBoard"></div>
   </div>
 
   <!-- TABLE VIEW -->
-  <div id="tableDiv" style="display:none">
-    <div class="filter-bar">
-      <input type="search" id="q" placeholder="Search name, property, contact…" oninput="render()">
-      <select id="fStage" onchange="render()">
-        <option value="">All stages</option>
-        <option value="contact">Initial Contact</option>
-        <option value="visit">Property Visit</option>
-        <option value="offer">Offer Sent</option>
-        <option value="agreement">Agreement</option>
-        <option value="setup">Setup / Onboarding</option>
-        <option value="completed">Completed</option>
-        <option value="declined">Declined</option>
-      </select>
-    </div>
-    <div class="table-wrap">
-      <table>
-        <thead><tr>
-          <th>Owner / Lead</th>
-          <th>Property</th>
-          <th>Stage</th>
-          <th>Contact Date</th>
-          <th>Last Updated</th>
-          <th>Notes</th>
-          <th style="width:90px"></th>
-        </tr></thead>
-        <tbody id="tBody"></tbody>
-      </table>
-    </div>
+  <div class="table-view" id="tableView">
+    <table class="data-table">
+      <thead><tr>
+        <th>Owner</th><th>Property</th><th>Stage</th><th>Created</th><th>Last Updated</th><th>Actions</th>
+      </tr></thead>
+      <tbody id="tableBody"></tbody>
+    </table>
   </div>
-</div>
+</main>
 
-<!-- FORM MODAL -->
-<div class="modal-overlay" id="formModal">
-  <div class="modal" style="max-width:620px">
+<!-- RECORD MODAL -->
+<div class="modal-overlay" id="recordModal">
+  <div class="modal-box">
     <div class="modal-header">
-      <h2 id="formTitle">Add Lead</h2>
-      <button class="modal-close" onclick="closeModal('formModal')">✕</button>
-    </div>
-    <div class="modal-body">
-      <input type="hidden" id="f_id">
-      <div class="form-grid">
-        <div class="form-group form-span-2"><label>Owner / Lead Name *</label><input id="f_name" placeholder="Full name"></div>
-        <div class="form-group"><label>Phone</label><input id="f_phone" type="tel"></div>
-        <div class="form-group"><label>Email</label><input id="f_email" type="email"></div>
-        <div class="form-group form-span-2"><label>Property Address / Description</label><input id="f_property" placeholder="Address or brief description"></div>
-        <div class="form-group"><label>Stage</label>
-          <select id="f_stage">
-            <option value="contact">Initial Contact</option>
-            <option value="visit">Property Visit</option>
-            <option value="offer">Offer Sent</option>
-            <option value="agreement">Agreement</option>
-            <option value="setup">Setup / Onboarding</option>
+      <div class="modal-title" id="modalTitle">New Onboarding</div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <div class="stage-select-wrapper">
+          <label>Stage:</label>
+          <select class="stage-select" id="stageSelect" onchange="updateStageColor()">
+            <option value="contact">First Contact</option>
+            <option value="visit">Site Visit</option>
+            <option value="proposal">Proposal Sent</option>
+            <option value="awaiting">Awaiting Signature</option>
             <option value="completed">Completed</option>
             <option value="declined">Declined</option>
           </select>
         </div>
-        <div class="form-group"><label>Contact Date</label><input type="date" id="f_contactDate"></div>
-        <div class="form-group form-span-2"><label>Next Action</label><input id="f_nextAction" placeholder="What needs to happen next?"></div>
-        <div class="form-group form-span-2"><label>Notes</label><textarea id="f_notes" rows="3"></textarea></div>
+        <button class="modal-close" onclick="closeRecord()">✕</button>
       </div>
     </div>
+
+    <div class="tab-bar">
+      <button class="tab-btn active" onclick="showTab('owner')">👤 Owner Details</button>
+      <button class="tab-btn" onclick="showTab('property')">🏠 Property Units</button>
+      <button class="tab-btn" onclick="showTab('items')">📦 Items</button>
+      <button class="tab-btn" onclick="showTab('season')">🌿 Season Check</button>
+      <button class="tab-btn" onclick="showTab('report')">📋 Action Report</button>
+    </div>
+
+    <div class="tab-content">
+
+      <!-- OWNER TAB -->
+      <div class="tab-pane active" id="tab-owner">
+        <div class="section-hdr">Cooperation Details / Στοιχεία Συνεργασίας</div>
+        <div class="form-grid">
+          <div class="field"><label>Owner Name / Ονομα Ιδιοκτήτη</label><input id="o_name" placeholder="Full name"></div>
+          <div class="field"><label>Phone 1 / Τηλέφωνο α)</label><input id="o_phone1" placeholder="+30..."></div>
+          <div class="field"><label>Phone 2 / Τηλέφωνο β)</label><input id="o_phone2" placeholder="+30..."></div>
+          <div class="field"><label>Email</label><input id="o_email" type="email" placeholder="email@..."></div>
+          <div class="field form-full"><label>Property Address / Διεύθυνση Ακινήτου</label><input id="o_address" placeholder="Full address"></div>
+          <div class="field"><label>Google Coordinates</label><input id="o_coords" placeholder="lat, lng"></div>
+          <div class="field"><label>Google Maps Link</label><input id="o_mapsLink" placeholder="https://maps.google.com/..."></div>
+        </div>
+
+        <div class="section-hdr">Cooperation Terms / Όροι Συνεργασίας</div>
+        <div class="form-grid">
+          <div class="field"><label>Cancellation Policy / Πολιτική Ακύρωσης</label><input id="o_cancelPolicy" placeholder="e.g. Moderate"></div>
+          <div class="field"><label>Booking Type / Τύπος Κράτησης</label>
+            <select id="o_bookingType"><option value="">Select...</option><option>Instant Booking</option><option>Upon Request</option></select>
+          </div>
+          <div class="field"><label>Other Agencies / Άλλα Γραφεία</label><input id="o_otherAgencies" placeholder="Competitor agencies"></div>
+          <div class="field"><label>Exclusivity / Αποκλειστικότητα</label>
+            <select id="o_exclusivity"><option value="">Select...</option><option>Exclusive</option><option>Non-exclusive</option></select>
+          </div>
+          <div class="field"><label>Commission Rate / Ποσοστό Χρέωσης</label><input id="o_commission" placeholder="e.g. 20%"></div>
+          <div class="field"><label>Invoicing / Τιμολόγιο</label>
+            <select id="o_invoice"><option value="">Select...</option><option>Invoice (+24%)</option><option>Receipt</option></select>
+          </div>
+        </div>
+
+        <div class="section-hdr">Channels / Κανάλια Διαχείρισης</div>
+        <div style="display:flex;gap:20px;flex-wrap:wrap;margin-bottom:14px">
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px"><input type="checkbox" id="ch_airbnb"> Airbnb</label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px"><input type="checkbox" id="ch_booking"> Booking.com</label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px"><input type="checkbox" id="ch_vrbo"> VRBO</label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px"><input type="checkbox" id="ch_tripadvisor"> Tripadvisor</label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px"><input type="checkbox" id="ch_website"> Own Website</label>
+        </div>
+
+        <div class="section-hdr">Tax Details / Φορολογικά Στοιχεία</div>
+        <div class="form-grid-3">
+          <div class="field"><label>AFM / ΑΦΜ</label><input id="o_afm" placeholder="Tax number"></div>
+          <div class="field"><label>AMA / ESL</label><input id="o_ama" placeholder="AMA/ESL number"></div>
+          <div class="field"><label>EOT</label><input id="o_eot" placeholder="EOT license"></div>
+          <div class="field"><label>Full Legal Name / Ονοματεπώνυμο</label><input id="o_legalName" placeholder="As on ID"></div>
+          <div class="field"><label>Business Type / Τύπος Επιχείρησης</label><input id="o_bizType" placeholder="e.g. Individual, ΙΚΕ..."></div>
+          <div class="field"><label>Notify Business / Δηλ. Επιχείρησης</label>
+            <select id="o_notifyBiz"><option value="">Select...</option><option>Yes</option><option>No</option></select>
+          </div>
+        </div>
+
+        <div class="section-hdr">Banking / Τραπεζικά Στοιχεία</div>
+        <div class="form-grid">
+          <div class="field"><label>IBAN</label><input id="o_iban" placeholder="GR..."></div>
+          <div class="field"><label>Bank / Τράπεζα</label><input id="o_bank" placeholder="Bank name"></div>
+          <div class="field"><label>Account Holder / Ον/μο Δικαιούχου</label><input id="o_bankName" placeholder="Name on account"></div>
+          <div class="field"><label>BIC / SWIFT</label><input id="o_bic" placeholder="BIC code"></div>
+          <div class="field form-full"><label>Bank Address / Διεύθυνση Τράπεζας</label><input id="o_bankAddress" placeholder="Bank branch address"></div>
+        </div>
+
+        <div class="section-hdr">Payment Methods / Τρόποι Πληρωμής</div>
+        <div style="display:flex;gap:20px;flex-wrap:wrap;margin-bottom:14px">
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px"><input type="checkbox" id="pm_stripe"> Stripe</label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px"><input type="checkbox" id="pm_transfer"> Bank Transfer</label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px"><input type="checkbox" id="pm_paypal"> PayPal</label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px"><input type="checkbox" id="pm_card"> Credit Card by Link</label>
+        </div>
+
+        <div class="section-hdr">Cooperation Model / Τρόπος Συνεργασίας</div>
+        <div style="display:flex;gap:20px;flex-wrap:wrap;margin-bottom:14px">
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px"><input type="radio" name="coopModel" value="electronic" id="cm_electronic"> Electronic Management</label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px"><input type="radio" name="coopModel" value="full" id="cm_full"> Full Management</label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px"><input type="radio" name="coopModel" value="sublease" id="cm_sublease"> Sublease / Υπομίσθωση</label>
+        </div>
+
+        <div class="section-hdr">Additional Services / Άλλες Υπηρεσίες</div>
+        <div style="border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:14px">
+          <div style="display:grid;grid-template-columns:1fr 80px 120px;padding:6px 12px;background:#f8fbfa;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);border-bottom:1px solid var(--border)">
+            <span>Service</span><span>Yes/No</span><span>Cost</span>
+          </div>
+          <div id="servicesRows"></div>
+        </div>
+
+        <div class="section-hdr">Season Dates / Ημερομηνίες Σεζόν</div>
+        <div class="form-grid">
+          <div class="field"><label>Season Start / Έναρξη Σεζόν</label><input type="date" id="o_seasonStart"></div>
+          <div class="field"><label>Season End / Λήξη Σεζόν</label><input type="date" id="o_seasonEnd"></div>
+          <div class="field form-full"><label>Closed Dates / Κλειστές Ημερομηνίες</label><textarea id="o_closedDates" placeholder="e.g. 25/12 - 01/01, personal use..."></textarea></div>
+        </div>
+
+        <div class="section-hdr" style="margin-top:16px">Notes / Σημειώσεις</div>
+        <div class="field"><textarea id="o_notes" placeholder="Any additional notes about this owner or cooperation..." style="min-height:80px"></textarea></div>
+      </div>
+
+      <!-- PROPERTY TAB -->
+      <div class="tab-pane" id="tab-property">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+          <div style="font-size:13px;color:var(--text-muted)">Add one column per unit. Fields marked with * affect Items calculations.</div>
+          <button class="btn btn-primary btn-sm" onclick="addUnit()">+ Add Unit</button>
+        </div>
+        <div class="units-wrapper">
+          <table class="units-table" id="unitsTable">
+            <thead><tr id="unitsHeader"></tr></thead>
+            <tbody id="unitsBody"></tbody>
+          </table>
+        </div>
+        <div style="margin-top:10px;font-size:12px;color:var(--text-muted)">
+          💡 Click any cell to edit. Use the duplicate button to copy Unit 1 data to a new unit.
+        </div>
+      </div>
+
+      <!-- ITEMS TAB -->
+      <div class="tab-pane" id="tab-items">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px">
+          <div class="items-unit-tabs" id="itemsUnitTabs"></div>
+          <div style="display:flex;gap:6px">
+            <button class="btn btn-ghost btn-sm" onclick="printItems('el')">🖨 Print Greek</button>
+            <button class="btn btn-ghost btn-sm" onclick="printItems('en')">🖨 Print English</button>
+          </div>
+        </div>
+        <div id="itemsContent"></div>
+      </div>
+
+      <!-- SEASON CHECK TAB -->
+      <div class="tab-pane" id="tab-season">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px">
+          <div>
+            <div style="font-size:13px;font-weight:600;color:var(--teal-dark)">Season Check</div>
+            <div style="font-size:12px;color:var(--text-muted)">Mark each item OK or Needs Attention. Add comments where needed.</div>
+          </div>
+          <div style="display:flex;gap:6px">
+            <div class="field" style="margin:0"><input type="date" id="seasonCheckDate" style="padding:6px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-family:'DM Sans',sans-serif;outline:none"></div>
+            <button class="btn btn-ghost btn-sm" onclick="printSeasonCheck()">🖨 Print Checklist</button>
+          </div>
+        </div>
+        <div style="border:1px solid var(--border);border-radius:8px;overflow:hidden">
+          <div class="season-header-row">
+            <span>Job / Εργασία</span><span>Status / Κατάσταση</span><span>Comment / Σχόλιο</span>
+          </div>
+          <div id="seasonCheckRows"></div>
+        </div>
+      </div>
+
+      <!-- REPORT TAB -->
+      <div class="tab-pane" id="tab-report">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px">
+          <div>
+            <div style="font-size:14px;font-weight:600;color:var(--teal-dark)">Action Report</div>
+            <div style="font-size:12px;color:var(--text-muted)">Auto-generated from missing items and season check issues.</div>
+          </div>
+          <button class="btn btn-ghost btn-sm" onclick="window.print()">🖨 Print Report</button>
+        </div>
+        <div id="reportContent"></div>
+      </div>
+
+    </div><!-- end tab-content -->
+
     <div class="modal-footer">
-      <button class="btn btn-danger btn-sm" id="fDeleteBtn" onclick="deleteCurrent()" style="display:none;margin-right:auto">🗑</button>
-      <button class="btn btn-outline" onclick="closeModal('formModal')">Cancel</button>
-      <button class="btn btn-primary" onclick="save()">Save Lead</button>
+      <div class="footer-left">
+        <button class="btn btn-danger btn-sm" id="deleteBtn" onclick="deleteCase()" style="display:none">🗑 Delete</button>
+        <button class="btn btn-ghost btn-sm" onclick="closeRecord()">Cancel</button>
+      </div>
+      <div class="footer-right">
+        <button class="btn btn-ghost btn-sm" id="completeBtn" onclick="completeOnboarding()" style="display:none">✅ Complete → Push to ERP</button>
+        <button class="btn btn-primary" onclick="saveRecord()">💾 Save</button>
+      </div>
     </div>
   </div>
 </div>
 
-<script src="erp-base.js"></script>
+<!-- SETTINGS MODAL -->
+<div class="settings-overlay" id="settingsModal">
+  <div class="settings-box">
+    <div class="settings-header">
+      <div style="font-size:16px;font-weight:700;color:var(--teal-dark)">⚙ Onboarding Settings</div>
+      <button class="modal-close" onclick="closeSettings()">✕</button>
+    </div>
+    <div class="settings-body">
+      <div class="settings-section">
+        <h3>📦 Custom Items</h3>
+        <div class="tag-list" id="customItemsList"></div>
+        <div class="add-tag-row">
+          <input id="newItemName" placeholder="Item name (Greek)">
+          <input id="newItemNameEn" placeholder="Item name (English)" style="max-width:160px">
+          <select id="newItemFormula" style="padding:6px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-family:'DM Sans',sans-serif;outline:none">
+            <option value="1">Fixed: 1</option>
+            <option value="2">Fixed: 2</option>
+            <option value="guests">× Guests</option>
+            <option value="guests*2">× Guests × 2</option>
+            <option value="guests/2">Guests ÷ 2</option>
+            <option value="guests/4">Guests ÷ 4</option>
+            <option value="bedrooms">× Bedrooms</option>
+            <option value="bathrooms">× Bathrooms</option>
+            <option value="fixed">Fixed (tick)</option>
+          </select>
+          <button class="btn btn-primary btn-sm" onclick="addCustomItem()">Add</button>
+        </div>
+      </div>
+      <div class="settings-section">
+        <h3>🌿 Custom Season Check Jobs</h3>
+        <div class="tag-list" id="customSeasonList"></div>
+        <div class="add-tag-row">
+          <input id="newJobName" placeholder="Job description (Greek)">
+          <input id="newJobNameEn" placeholder="Job description (English)" style="max-width:200px">
+          <button class="btn btn-primary btn-sm" onclick="addCustomJob()">Add</button>
+        </div>
+      </div>
+    </div>
+    <div style="padding:14px 24px;border-top:1px solid var(--border);display:flex;justify-content:flex-end">
+      <button class="btn btn-primary" onclick="saveSettings()">Save Settings</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+</div><!-- /erp-main -->
+</body>
+</html>
 <script>
-let onboardings = [];
-const STAGES = [
-  { key:'contact',   label:'Initial Contact' },
-  { key:'visit',     label:'Property Visit' },
-  { key:'offer',     label:'Offer Sent' },
-  { key:'agreement', label:'Agreement' },
-  { key:'setup',     label:'Setup' },
-  { key:'completed', label:'Completed' },
-  { key:'declined',  label:'Declined' },
+// ── SUPABASE CONFIG ──────────────────────────────────────────
+const SUPABASE_URL='https://whuytfjwdjjepayeiohj.supabase.co';
+const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndodXl0Zmp3ZGpqZXBheWVpb2hqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIyODQxMzQsImV4cCI6MjA4Nzg2MDEzNH0.pTDAqw_Cnzc9D3tJU-tU7Ch5qpapKmteiqI_ooSCufY';
+const DB={
+  _h(){return{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json','Prefer':'return=representation,resolution=merge-duplicates'}},
+  _hG(){return{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY}},
+  _hD(){return{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json'}},
+  async _fetch(method,table,body,query){
+    try{
+      const url=SUPABASE_URL+'/rest/v1/'+table+(query||'');
+      const h=method==='GET'?this._hG():method==='DELETE'?this._hD():this._h();
+      const opts={method,headers:h};if(body)opts.body=JSON.stringify(body);
+      const res=await fetch(url,opts);
+      if(!res.ok){let e='HTTP '+res.status;try{const j=await res.json();e=j.message||e}catch(x){}return{ok:false,err:e};}
+      if(res.status===204||method==='DELETE')return{ok:true,data:[]};
+      return{ok:true,data:await res.json()};
+    }catch(e){return{ok:false,err:e.message};}
+  },
+  async loadAll(){
+    const r=await this._fetch('GET','onboardings',null,'?select=id,data,updated_at&order=created_at.desc&limit=10000');
+    if(!r.ok)return{ok:false,rows:[]};
+    return{ok:true,rows:(r.data||[]).map(row=>({id:row.id,...(row.data||{})}))};
+  },
+  async upsert(record){
+    const{id,...rest}=record;
+    const rid=id||('onb_'+Date.now()+'_'+Math.random().toString(36).slice(2,6));
+    const row={id:rid,data:rest,updated_at:new Date().toISOString(),created_at:rest.createdAt||new Date().toISOString()};
+    const r=await this._fetch('POST','onboardings',row,'?on_conflict=id');
+    return{ok:r.ok,id:rid,err:r.err};
+  },
+  async remove(id){
+    return this._fetch('DELETE','onboardings',null,'?id=eq.'+encodeURIComponent(id));
+  },
+  async upsertOwner(record){
+    const{id,...rest}=record;
+    const rid=id||('owner_'+Date.now());
+    const row={id:rid,data:rest,updated_at:new Date().toISOString()};
+    const r=await this._fetch('POST','owners',row,'?on_conflict=id');
+    return{ok:r.ok,id:rid};
+  },
+  async upsertProperty(record){
+    const{id,...rest}=record;
+    const rid=id||('prop_'+Date.now());
+    const row={id:rid,data:rest,updated_at:new Date().toISOString()};
+    const r=await this._fetch('POST','properties',row,'?on_conflict=id');
+    return{ok:r.ok,id:rid};
+  }
+};
+
+// ── DATA ──────────────────────────────────────────────────────
+let cases=[];
+let currentCase=null;
+let currentView='board';
+let filterStageVal='all';
+
+const STAGES={
+  contact:{label:'First Contact',color:'#3498db'},
+  visit:{label:'Site Visit',color:'#9b59b6'},
+  proposal:{label:'Proposal Sent',color:'#e67e22'},
+  awaiting:{label:'Awaiting Signature',color:'#f39c12'},
+  completed:{label:'Completed',color:'#27ae60'},
+  declined:{label:'Declined',color:'#e74c3c'}
+};
+
+const SERVICES=[
+  {key:'checkin',el:'Check-in',gr:'Check-in'},
+  {key:'checkout',el:'Check-out',gr:'Check-out'},
+  {key:'cleaning',el:'Cleaning / Καθαριότητα',gr:'Καθαριότητα'},
+  {key:'laundry',el:'Laundry / Καθαριστήριο',gr:'Καθαριστήριο'},
+  {key:'mgmt',el:'Bills Management',gr:'Management (λογαριασμοί)'},
+  {key:'invoicing',el:'Invoice Issuing / Έκδοση Τιμολογίων',gr:'Έκδοση Τιμολογίων'},
+  {key:'gmb',el:'Google My Business',gr:'Google MyBusiness'},
+  {key:'website',el:'Website Creation / Δημιουργία Ιστοσελίδας',gr:'Δημιουργία Ιστοσελίδας'},
+  {key:'webmgmt',el:'Website Management',gr:'Διαχείρηση Ιστοσελίδας'},
 ];
 
-async function init() {
-  const res = await SyncStore.load('zesty_onboardings', 'onboardings');
-  onboardings = res.data;
-  renderStats(); renderPipeline(); renderTable();
-}
-init();
+const ITEMS_KITCHEN=[
+  {name:'ΠΟΤΗΡΙΑ ΝΕΡΟΥ',nameEn:'Water Glasses',formula:'guests*2'},
+  {name:'ΠΟΤΗΡΙΑ ΚΡΑΣΙΟΥ',nameEn:'Wine Glasses',formula:'guests*2'},
+  {name:'ΠΟΤΗΡΙΑ ΚΡΑΣΙΟΥ με ποδι',nameEn:'Stemmed Wine Glasses',formula:'guests*2'},
+  {name:'ΚΟΥΠΕΣ ΚΑΦΕ (ΜΕΓΑΛΕΣ)',nameEn:'Coffee Mugs (Large)',formula:'guests*2'},
+  {name:'ΦΛΙΤΖΑΝΙΑ ΜΕ ΠΙΑΤΑΚΙΑ',nameEn:'Cups with Saucers',formula:'guests'},
+  {name:'ΠΛΑΣΤΙΚΑ ΠΟΤΗΡΙΑ ΠΑΙΔΙΩΝ',nameEn:"Children's Plastic Cups",formula:'guests'},
+  {name:'ΠΙΑΤΕΛΛΑ',nameEn:'Serving Platter',formula:'guests/3'},
+  {name:'ΜΠΟΛ ΓΙΑ ΣΑΛΑΤΑ',nameEn:'Salad Bowl',formula:'guests/3'},
+  {name:'ΜΠΟΛ ΔΗΜΗΤΡΙΑΚΩΝ',nameEn:'Cereal Bowl',formula:'guests'},
+  {name:'ΜΠΟΛ ΣΟΥΠΑΣ',nameEn:'Soup Bowl',formula:'guests*1.6'},
+  {name:'ΜΠΟΛ ΓΙΑ ΦΡΟΥΤΑ',nameEn:'Fruit Bowl',formula:'guests*1.6'},
+  {name:'ΜΕΓΑΛΑ ΠΙΑΤΑ',nameEn:'Large Plates',formula:'guests*1.6'},
+  {name:'ΜΙΚΡΑ ΠΙΑΤΑ',nameEn:'Small Plates',formula:'guests*1.6'},
+  {name:'ΣΟΥΡΩΤΗΡΙ',nameEn:'Colander',formula:'guests/4'},
+  {name:'ΠΛΑΣΤΙΚΑ ΜΠΟΛ ΜΕ ΚΑΠΑΚΙΑ',nameEn:'Plastic Bowls with Lids',formula:'2'},
+  {name:'ΤΡΙΦΤΗΣ ΤΥΡΙΩΝ',nameEn:'Cheese Grater',formula:'1'},
+  {name:'ΣΤΙΦΤΗΣ ΛΕΜΟΝΙΩΝ',nameEn:'Lemon Squeezer',formula:'1'},
+  {name:'ΤΣΑΓΙΕΡΑ',nameEn:'Teapot',formula:'1'},
+  {name:'ΣΑΝΙΔΑ ΓΙΑ ΨΩΜΙ',nameEn:'Bread Board',formula:'1'},
+  {name:'ΔΙΣΚΟΣ',nameEn:'Tray',formula:'1'},
+  {name:'ΜΑΧΑΙΡΙΑ',nameEn:'Knives',formula:'guests*2'},
+  {name:'ΜΑΧΑΙΡΙΑ ΒΟΥΤΥΡΟΥ',nameEn:'Butter Knives',formula:'guests*2'},
+  {name:'ΠΙΡΟΥΝΙΑ',nameEn:'Forks',formula:'guests*2'},
+  {name:'ΚΟΥΤΑΛΙΑ',nameEn:'Spoons',formula:'guests*2'},
+  {name:'ΚΟΥΤΑΛΑΚΙΑ',nameEn:'Teaspoons',formula:'guests*2'},
+  {name:'ΜΙΚΡΑ ΠΙΡΟΥΝΙΑ',nameEn:'Small Forks',formula:'guests*2'},
+  {name:'ΑΝΟΙΧΤΗΡΙ ΜΠΥΡΑΣ',nameEn:'Beer Opener',formula:'1'},
+  {name:'ΑΝΟΙΧΤΗΡΙ ΚΡΑΣΙΟΥ',nameEn:'Wine Opener',formula:'1'},
+  {name:'ΑΝΟΙΧΤΗΡΙ ΚΟΝΣΕΡΒΩΝ',nameEn:'Can Opener',formula:'1'},
+  {name:'ΣΠΑΤΟΥΛΑ ΠΛΑΣΤΙΚΗ',nameEn:'Plastic Spatula',formula:'1'},
+  {name:'ΞΥΛΙΝΗ ΚΟΥΤΑΛΑ',nameEn:'Wooden Spoon',formula:'1'},
+  {name:'ΚΟΥΤΑΛΑ ΜΕΓΑΛΗ',nameEn:'Large Ladle',formula:'guests/4'},
+  {name:'ΚΟΥΤΑΛΙ ΜΕ ΤΡΥΠΕΣ',nameEn:'Slotted Spoon',formula:'guests/4'},
+  {name:'ΕΡΓΑΛΕΙΟ ΠΑΤΑΤΑΣ',nameEn:'Potato Peeler',formula:'guests/4'},
+  {name:'ΣΚΟΡΔΟΣΤΙΦΤΗΣ',nameEn:'Garlic Press',formula:'guests/4'},
+  {name:'ΚΟΦΤΗΣ ΠΙΤΣΑΣ',nameEn:'Pizza Cutter',formula:'guests/4'},
+  {name:'ΚΟΥΤΑΛΙ ΠΑΓΩΤΟΥ',nameEn:'Ice Cream Scoop',formula:'guests/4'},
+  {name:'ΜΑΧΑΙΡΙ ΨΩΜΙΟΥ',nameEn:'Bread Knife',formula:'guests/4'},
+  {name:'ΣΤΙΦΤΗΣ ΤΣΑΓΙΟΥ',nameEn:'Tea Strainer',formula:'guests/4'},
+  {name:'ΑΛΑΤΟ-ΠΙΠΕΡΟ ΣΕΤ',nameEn:'Salt & Pepper Set',formula:'guests/4'},
+  {name:'ΜΕΓΑΛΗ ΚΑΤΣΑΡΟΛΑ',nameEn:'Large Pot',formula:'guests/4'},
+  {name:'ΜΕΤΡΙΑ ΚΑΤΣΑΡΟΛΑ',nameEn:'Medium Pot',formula:'guests/4'},
+  {name:'ΜΙΚΡΗ ΚΑΤΣΑΡΟΛΑ',nameEn:'Small Pot',formula:'guests/4'},
+  {name:'ΜΙΚΡΟ ΤΗΓΑΝΙ',nameEn:'Small Pan',formula:'guests/4'},
+  {name:'ΜΕΣΑΙΟ ΤΗΓΑΝΙ',nameEn:'Medium Pan',formula:'guests/4'},
+  {name:'ΜΕΓΑΛΟ ΤΗΓΑΝΙ',nameEn:'Large Pan',formula:'guests/4'},
+  {name:'ΜΕΓΑΛΟ ΤΑΨΙ ΦΟΥΡΝΟΥ',nameEn:'Large Baking Tray',formula:'guests/4'},
+  {name:'ΜΙΚΡΟ ΤΑΨΙ (ΠΥΡΕΞ)',nameEn:'Small Pyrex Dish',formula:'guests/4'},
+  {name:'ΓΑΝΤΙΑ ΦΟΥΡΝΟΥ',nameEn:'Oven Gloves',formula:'guests/4'},
+  {name:'ΜΕΓΑΛΟ ΨΑΛΙΔΙ',nameEn:'Large Scissors',formula:'guests/4'},
+  {name:'ΠΛΑΣΤΙΚΑ ΜΠΟΛ ΝΕΡΟΧΥΤΗ',nameEn:'Plastic Sink Bowls',formula:'guests/8'},
+  {name:'ΠΙΑΤΟΘΗΚΗ',nameEn:'Dish Drying Rack',formula:'1'},
+];
+const ITEMS_APPLIANCES=[
+  {name:'Φούρνος μικροκυμάτων',nameEn:'Microwave',formula:'fixed'},
+  {name:'Πλυντήριο Πιάτων',nameEn:'Dishwasher',formula:'fixed'},
+  {name:'Πλυντήριο Ρούχων',nameEn:'Washing Machine',formula:'fixed'},
+  {name:'DVD Player',nameEn:'DVD Player',formula:'fixed'},
+  {name:'CD/Ράδιο μικρο',nameEn:'Small CD/Radio',formula:'fixed'},
+  {name:'Δορυφορικό (BBC-CNN-SKY)',nameEn:'Satellite TV (BBC-CNN-SKY)',formula:'fixed'},
+  {name:'Βραστήρας 1.5ltr',nameEn:'1.5L Kettle',formula:'fixed'},
+  {name:'Φρυγανιέρα',nameEn:'Toaster',formula:'fixed'},
+  {name:'Σίδερο & Σιδερώστρα',nameEn:'Iron & Ironing Board',formula:'fixed'},
+  {name:'Πιστολάκι μαλλιών',nameEn:'Hair Dryer',formula:'fixed'},
+  {name:'Καφετιέρα φίλτρου',nameEn:'Filter Coffee Machine',formula:'fixed'},
+  {name:'Internet / WiFi',nameEn:'Internet / WiFi',formula:'fixed'},
+  {name:'Χρηματοκιβώτιο',nameEn:'Safe Box',formula:'fixed'},
+  {name:'Ξαπλώστρες',nameEn:'Sun Loungers',formula:'guests'},
+  {name:'Ομπρέλες',nameEn:'Umbrellas',formula:'fixed'},
+];
+const ITEMS_GENERAL=[
+  {name:'ΚΕΡΙΑ/ΣΠΙΡΤΑ/ΑΝΑΠΤΗΡΑ',nameEn:'Candles/Matches/Lighter',formula:'2'},
+  {name:'ΦΩΤΑ ΑΣΦΑΛΕΙΑΣ σκαλές',nameEn:'Safety Lights (stairs/exits)',formula:'fixed'},
+  {name:'ΒΑΖΟ',nameEn:'Vase',formula:'1'},
+  {name:'ΤΑΣΑΚΙ',nameEn:'Ashtray',formula:'guests/4'},
+  {name:'ΚΑΛΑΘΙ ΓΙΑ ΑΠΛΥΤΑ',nameEn:'Laundry Basket',formula:'1'},
+  {name:'ΛΕΚΑΝΗ ΓΙΑ ΡΟΥΧΑ',nameEn:'Clothes Basin',formula:'1'},
+  {name:'ΚΑΛΑΘΙ ΣΚΟΥΠΙΔΙΩΝ ΚΟΥΖΙΝΑΣ',nameEn:'Kitchen Bin',formula:'1'},
+  {name:'ΚΑΛΑΘΑΚΙ ΤΟΥΑΛΕΤΑΣ',nameEn:'Bathroom Bin',formula:'bathrooms'},
+  {name:'ΤΑΜΠΕΛΑ ΜΗΝ ΡΙΧΝΕΤΕ ΧΑΡΤΙ',nameEn:'No Paper in Toilet Sign',formula:'bathrooms'},
+  {name:'ΒΟΥΡΤΣΑ ΤΟΥΑΛΕΤΤΑΣ',nameEn:'Toilet Brush',formula:'bathrooms'},
+  {name:'ΣΦΟΥΓΓΑΡΙΣΤΡΑ',nameEn:'Mop',formula:'1'},
+  {name:'ΚΟΥΒΑΣ',nameEn:'Bucket',formula:'1'},
+  {name:'ΦΑΡΑΣΙ/ΣΚΟΥΠΑ',nameEn:'Dustpan & Brush',formula:'1'},
+  {name:'ΠΕΤΣΕΤΕΣ ΚΟΥΖΙΝΑΣ',nameEn:'Kitchen Towels',formula:'guests/2'},
+  {name:'ΜΑΝΤΑΛΑΚΙΑ',nameEn:'Clothes Pegs (enough)',formula:'fixed'},
+  {name:'ΑΠΛΩΣΤΡΑ',nameEn:'Clothes Airer',formula:'1'},
+  {name:'ΚΡΕΜΑΣΤΡΕΣ (×20 ανά δωμάτιο)',nameEn:'Hangers (×20 per room)',formula:'bedrooms*20'},
+  {name:'ΚΑΛΥΜΑΤΑ ΣΤΡΩΜΑΤΟΣ',nameEn:'Mattress Protectors',formula:'bedrooms'},
+  {name:'ΜΑΞΙΛΑΡΙΑ ΑΝΑ ΑΤΟΜΟ ΜΕ ΚΑΛΥΜΑΤΑ',nameEn:'Pillows per Person with Cases',formula:'guests*2'},
+  {name:'ΚΟΥΒΕΡΤΕΣ ΑΝΑ ΚΡΕΒΑΤΙ',nameEn:'Blankets per Bed',formula:'bedrooms*2'},
+  {name:'ΚΟΥΤΙ ΠΡΩΤΩΝ ΒΟΗΘΕΙΩΝ',nameEn:'First Aid Kit',formula:'1'},
+  {name:'ΠΥΡΟΣΒΕΣΤΗΡΑΣ',nameEn:'Fire Extinguisher',formula:'fixed'},
+  {name:'ΣΥΝΑΓΕΡΜΟΣ ΚΑΠΝΟΥ & ΚΟΥΒΕΡΤΑ ΠΥΡΟΣ',nameEn:'Smoke Alarm & Fire Blanket',formula:'fixed'},
+  {name:'ΤΑΜΠΕΛΕΣ ΕΞΟΔΩΝ (ΠΡΑΣΙΝΕΣ)',nameEn:'Exit Signs (Green)',formula:'fixed'},
+  {name:'ΚΑΝΕΛΑ ΜΠΑΛΚΟΝΙΩΝ >1M',nameEn:'Balcony Rails Min 1M Height',formula:'fixed'},
+];
 
-function renderStats() {
-  const stages = onboardings.map(o => normalizeStage(o.stage));
-  const active = stages.filter(s=>!['completed','declined'].includes(s)).length;
-  document.getElementById('st-active').textContent = active;
-  document.getElementById('st-agreement').textContent = stages.filter(s=>s==='agreement').length;
-  document.getElementById('st-setup').textContent = stages.filter(s=>s==='setup').length;
-  document.getElementById('st-completed').textContent = stages.filter(s=>s==='completed').length;
-  document.getElementById('st-declined').textContent = stages.filter(s=>s==='declined').length;
+const SEASON_CHECKS=[
+  {job:'Όλα τα φώτα να λειτουργούν',jobEn:'All lights working'},
+  {job:'Αυτόματα φώτα εξω - σωστή ώρα',jobEn:'Outdoor auto lights - correct time'},
+  {job:'Κλειδαριές/Κλειδιά',jobEn:'Locks/Keys check'},
+  {job:'Έξτρα λάμπες',jobEn:'Spare bulbs available'},
+  {job:'Χωρίς διαρροές κουζίνα & μπάνιο',jobEn:'No leaks - kitchen & bathroom'},
+  {job:'Βρύσες δεν στάζουν',jobEn:'Taps not dripping'},
+  {job:'Καθίσματα/Καπάκια σταθερά',jobEn:'Toilet seats/lids secure'},
+  {job:'Στήριγμα ντουζ στον τοίχο',jobEn:'Shower holder secured to wall'},
+  {job:'Κεφάλι ντουζ καθαρό & λειτουργεί',jobEn:'Shower head clean & working'},
+  {job:'Κουρτίνες ντους χωρίς στίγματα',jobEn:'Shower curtains clean, no stains'},
+  {job:'Κουρτίνες κρέμονται σωστά',jobEn:'Curtains hanging properly'},
+  {job:'Καρέκλες δεν τρίζουν',jobEn:'Chairs not creaking'},
+  {job:'Κουβέρτες & παπλώματα καθαρά',jobEn:'Blankets & duvets clean & good condition'},
+  {job:'Μαξιλάρια με καλύμματα',jobEn:'Pillows with covers, not flattened'},
+  {job:'Στρώματα με καλύμματα',jobEn:'Mattresses with protectors'},
+  {job:'Κλιματιστικά καθαρά & σε σέρβις',jobEn:'A/C units cleaned & serviced'},
+  {job:'Σύστημα ζεστού νερού λειτουργεί',jobEn:'Hot water system working'},
+  {job:'Αρκετές κρεμάστρες & απλώστρα',jobEn:'Enough hangers & airer in good condition'},
+  {job:'Σεντόνια/πετσέτες σε καλή κατάσταση',jobEn:'Sheets/towels in good condition'},
+  {job:'Πετσετάκια κουζίνας αντικατάσταση',jobEn:'Kitchen towels replaced if needed'},
+  {job:'Ηλεκτρικές συσκευές δουλεύουν',jobEn:'All electrical appliances working'},
+  {job:'Κεφαλές σκούπας & σφουγγαρίστρας',jobEn:'Mop heads & cleaning tools OK'},
+  {job:'Εξωτερικά έπιπλα καθαρά & καλά',jobEn:'Outdoor furniture clean & good condition'},
+  {job:'Ξύλινα παράθυρα/εξώφυλλα βαμμένα',jobEn:'Wooden windows/shutters freshly painted'},
+];
+
+// ── SETTINGS ─────────────────────────────────────────────────
+let settings={customItems:[],customJobs:[]};
+function loadSettings(){try{settings=JSON.parse(localStorage.getItem('zesty_onb_settings')||'{"customItems":[],"customJobs":[]}');}catch{settings={customItems:[],customJobs:[]};}}
+function saveSettings(){localStorage.setItem('zesty_onb_settings',JSON.stringify(settings));renderSettingsLists();showToast('Settings saved','success');closeSettings();}
+function getAllItems(){return[...ITEMS_KITCHEN,...ITEMS_APPLIANCES,...ITEMS_GENERAL,...(settings.customItems||[])];}
+function getAllJobs(){return[...SEASON_CHECKS,...(settings.customJobs||[])];}
+
+// ── INIT ─────────────────────────────────────────────────────
+async function init(){
+  loadSettings();
+  renderServicesRows();
+  document.getElementById('seasonCheckDate').value=new Date().toISOString().slice(0,10);
+  const r=await DB.loadAll();
+  if(r.ok){
+    cases=r.rows;
+    showDbStatus(true);
+  } else {
+    cases=JSON.parse(localStorage.getItem('zesty_onboardings')||'[]');
+    showDbStatus(false);
+    console.warn('Supabase load failed:',r.err||'unknown error');
+  }
+  renderBoard();
+  renderTable();
+  updateCount();
+  setInterval(async()=>{const r2=await DB.loadAll();if(r2.ok){cases=r2.rows;renderBoard();renderTable();updateCount();}},30000);
 }
 
-// Normalize stage from old data formats to new keys
-function normalizeStage(stage) {
-  if (!stage) return 'contact';
-  const s = stage.toLowerCase();
-  if (s === 'contact' || s === 'initial' || s === 'initial contact') return 'contact';
-  if (s === 'visit' || s === 'property visit') return 'visit';
-  if (s === 'offer' || s === 'offer sent') return 'offer';
-  if (s === 'agreement' || s === 'signed' || s === 'active') return 'agreement';
-  if (s === 'setup' || s === 'onboarding' || s === 'in progress') return 'setup';
-  if (s === 'completed' || s === 'complete' || s === 'done') return 'completed';
-  if (s === 'declined' || s === 'rejected' || s === 'lost') return 'declined';
-  return 'contact'; // default unknown stages to contact column
+// ── PIPELINE BOARD ───────────────────────────────────────────
+function updateCount(){
+  const active=cases.filter(c=>c.stage!=='declined').length;
+  const comp=cases.filter(c=>c.stage==='completed').length;
+  document.getElementById('caseCount').textContent=`${active} active · ${comp} completed · ${cases.length} total`;
 }
 
-function renderPipeline() {
-  const board = document.getElementById('pipelineBoard');
-  // Normalize all stages first
-  const normalized = onboardings.map(o => ({ ...o, _stage: normalizeStage(o.stage) }));
-  board.innerHTML = STAGES.map(s => {
-    const cards = normalized.filter(o => o._stage === s.key);
-    return `<div class="pipe-col stage-${s.key}">
-      <div class="pipe-header">${s.label} <span style="margin-left:6px;opacity:.6">${cards.length}</span></div>
-      <div class="pipe-body">
-        ${cards.length ? cards.map(o => `<div class="pipe-card" onclick="editOnboarding('${o.id}')">
-          <div class="pipe-card-name">${o.name||'—'}</div>
-          ${o.property?`<div class="pipe-card-sub">${o.property.slice(0,40)}</div>`:''}
-          ${o.nextAction?`<div class="pipe-card-sub" style="color:var(--teal)">→ ${o.nextAction.slice(0,40)}</div>`:''}
-          <div class="pipe-card-date">${fmtDate(o.contactDate)||'—'}</div>
-        </div>`).join('') : '<div style="padding:16px;text-align:center;font-size:12px;color:var(--text-muted)">Empty</div>'}
+function filterStage(el){
+  filterStageVal=el.dataset.stage;
+  document.querySelectorAll('.filter-chip').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');
+  renderBoard();renderTable();
+}
+
+function renderBoard(){
+  const board=document.getElementById('pipelineBoard');
+  board.innerHTML='';
+  Object.entries(STAGES).forEach(([key,stage])=>{
+    const stageCases=cases.filter(c=>c.stage===key&&(filterStageVal==='all'||filterStageVal===key));
+    const col=document.createElement('div');col.className='stage-col';
+    col.innerHTML=`
+      <div class="stage-header" style="color:${stage.color};border-bottom:3px solid ${stage.color}">
+        <span>${stage.label}</span>
+        <span style="background:${stage.color}20;color:${stage.color};padding:2px 7px;border-radius:10px;font-size:10px">${stageCases.length}</span>
       </div>
+      <div class="stage-body">
+        ${stageCases.length?stageCases.map(c=>`
+          <div class="case-card" onclick="openCase('${c.id}')">
+            <div class="case-name">${c.ownerData?.o_name||'Unnamed Owner'}</div>
+            <div class="case-prop">${c.units&&c.units.length?c.units.map(u=>u.name||'Unit').join(', '):'No properties yet'}</div>
+            <div class="case-date">${c.createdAt?new Date(c.createdAt).toLocaleDateString('el-GR'):'—'}</div>
+          </div>`).join(''):'<div style="font-size:12px;color:var(--text-muted);text-align:center;padding:12px">No cases</div>'}
+      </div>`;
+    board.appendChild(col);
+  });
+}
+
+function renderTable(){
+  const tbody=document.getElementById('tableBody');
+  const filtered=filterStageVal==='all'?cases:cases.filter(c=>c.stage===filterStageVal);
+  tbody.innerHTML=filtered.map(c=>{
+    const stage=STAGES[c.stage]||STAGES.contact;
+    return`<tr>
+      <td style="font-weight:600">${c.ownerData?.o_name||'—'}</td>
+      <td>${c.units&&c.units.length?c.units.map(u=>u.name||'Unit').join(', '):'—'}</td>
+      <td><span class="stage-badge" style="background:${stage.color}">${stage.label}</span></td>
+      <td>${c.createdAt?new Date(c.createdAt).toLocaleDateString('el-GR'):'—'}</td>
+      <td>${c.updatedAt?new Date(c.updatedAt).toLocaleDateString('el-GR'):'—'}</td>
+      <td><button class="btn btn-primary btn-sm" onclick="openCase('${c.id}')">Open</button></td>
+    </tr>`;
+  }).join('');
+}
+
+function toggleView(){
+  currentView=currentView==='board'?'table':'board';
+  document.getElementById('boardView').style.display=currentView==='board'?'block':'none';
+  document.getElementById('tableView').style.display=currentView==='table'?'block':'none';
+  document.getElementById('viewToggle').textContent=currentView==='board'?'📋 Table View':'📌 Board View';
+}
+
+// ── RECORD OPEN/CLOSE ─────────────────────────────────────────
+function newCase(){
+  currentCase={id:null,stage:'contact',ownerData:{},units:[],items:{},seasonChecks:{},createdAt:new Date().toISOString()};
+  populateForm();
+  document.getElementById('deleteBtn').style.display='none';
+  document.getElementById('completeBtn').style.display='none';
+  document.getElementById('modalTitle').textContent='New Onboarding';
+  showTab('owner');
+  document.getElementById('recordModal').classList.add('open');
+}
+
+function openCase(id){
+  currentCase=cases.find(c=>c.id===id);
+  if(!currentCase)return;
+  populateForm();
+  document.getElementById('deleteBtn').style.display='inline-flex';
+  document.getElementById('completeBtn').style.display=currentCase.stage!=='completed'?'inline-flex':'none';
+  document.getElementById('modalTitle').textContent=currentCase.ownerData?.o_name||'Onboarding Record';
+  showTab('owner');
+  document.getElementById('recordModal').classList.add('open');
+}
+
+function closeRecord(){document.getElementById('recordModal').classList.remove('open');}
+
+// ── FORM POPULATE ────────────────────────────────────────────
+function populateForm(){
+  const d=currentCase.ownerData||{};
+  // Set stage
+  document.getElementById('stageSelect').value=currentCase.stage||'contact';
+  updateStageColor();
+  // Owner fields
+  ['o_name','o_phone1','o_phone2','o_email','o_address','o_coords','o_mapsLink',
+   'o_cancelPolicy','o_otherAgencies','o_commission','o_afm','o_ama','o_eot',
+   'o_legalName','o_bizType','o_iban','o_bank','o_bankName','o_bic','o_bankAddress',
+   'o_seasonStart','o_seasonEnd','o_closedDates','o_notes'].forEach(k=>{
+    const el=document.getElementById(k);if(el)el.value=d[k]||'';
+  });
+  ['o_bookingType','o_exclusivity','o_invoice','o_notifyBiz'].forEach(k=>{
+    const el=document.getElementById(k);if(el)el.value=d[k]||'';
+  });
+  ['ch_airbnb','ch_booking','ch_vrbo','ch_tripadvisor','ch_website',
+   'pm_stripe','pm_transfer','pm_paypal','pm_card'].forEach(k=>{
+    const el=document.getElementById(k);if(el)el.checked=!!(d[k]);
+  });
+  if(d.coopModel){const r=document.querySelector(`input[name="coopModel"][value="${d.coopModel}"]`);if(r)r.checked=true;}
+  // Services
+  SERVICES.forEach(s=>{
+    const yn=document.getElementById('svc_yn_'+s.key);
+    const cost=document.getElementById('svc_cost_'+s.key);
+    if(yn)yn.value=d['svc_yn_'+s.key]||'';
+    if(cost)cost.value=d['svc_cost_'+s.key]||'';
+  });
+  // Units
+  renderUnitsTable();
+  // Items
+  renderItemsTab();
+  // Season
+  renderSeasonCheck();
+  // Report
+  renderReport();
+}
+
+function collectForm(){
+  const d={};
+  ['o_name','o_phone1','o_phone2','o_email','o_address','o_coords','o_mapsLink',
+   'o_cancelPolicy','o_otherAgencies','o_commission','o_afm','o_ama','o_eot',
+   'o_legalName','o_bizType','o_iban','o_bank','o_bankName','o_bic','o_bankAddress',
+   'o_seasonStart','o_seasonEnd','o_closedDates','o_notes'].forEach(k=>{
+    const el=document.getElementById(k);if(el)d[k]=el.value;
+  });
+  ['o_bookingType','o_exclusivity','o_invoice','o_notifyBiz'].forEach(k=>{
+    const el=document.getElementById(k);if(el)d[k]=el.value;
+  });
+  ['ch_airbnb','ch_booking','ch_vrbo','ch_tripadvisor','ch_website',
+   'pm_stripe','pm_transfer','pm_paypal','pm_card'].forEach(k=>{
+    const el=document.getElementById(k);if(el)d[k]=el.checked;
+  });
+  const cr=document.querySelector('input[name="coopModel"]:checked');
+  if(cr)d.coopModel=cr.value;
+  SERVICES.forEach(s=>{
+    const yn=document.getElementById('svc_yn_'+s.key);
+    const cost=document.getElementById('svc_cost_'+s.key);
+    if(yn)d['svc_yn_'+s.key]=yn.value;
+    if(cost)d['svc_cost_'+s.key]=cost.value;
+  });
+  return d;
+}
+
+function updateStageColor(){
+  const stage=document.getElementById('stageSelect').value;
+  const color=STAGES[stage]?.color||'var(--teal)';
+  document.getElementById('stageSelect').style.borderColor=color;
+  document.getElementById('stageSelect').style.color=color;
+}
+
+function renderServicesRows(){
+  const container=document.getElementById('servicesRows');
+  container.innerHTML=SERVICES.map(s=>`
+    <div style="display:grid;grid-template-columns:1fr 80px 120px;align-items:center;padding:5px 12px;border-bottom:1px solid var(--border);font-size:13px">
+      <span>${s.el}</span>
+      <select id="svc_yn_${s.key}" style="padding:3px 6px;border:1px solid var(--border);border-radius:5px;font-size:12px;font-family:'DM Sans',sans-serif">
+        <option value="">—</option><option>Yes</option><option>No</option>
+      </select>
+      <input id="svc_cost_${s.key}" placeholder="€0" style="padding:3px 8px;border:1px solid var(--border);border-radius:5px;font-size:12px;font-family:'DM Sans',sans-serif;width:100px">
+    </div>`).join('');
+}
+
+// ── UNITS TABLE ──────────────────────────────────────────────
+const UNIT_FIELDS=[
+  {key:'name',label:'Unit Name *',gr:'Όνομα Μονάδας'},
+  {key:'address',label:'Address',gr:'Διεύθυνση'},
+  {key:'sqm',label:'SQM (m²)',gr:'Τ.Μ.'},
+  {key:'guests',label:'Max Guests *',gr:'Μέγ. Επισκέπτες'},
+  {key:'bedrooms',label:'Bedrooms *',gr:'Υπνοδωμάτια'},
+  {key:'bedroomSizes',label:'Bedroom Sizes',gr:'Μεγέθη Κρεβατιών'},
+  {key:'bathrooms',label:'Bathrooms *',gr:'Μπάνια'},
+  {key:'pool',label:'Pool (m²)',gr:'Πισίνα (τ.μ.)'},
+  {key:'heatedPool',label:'Heated Pool',gr:'Θερμ. Πισίνα'},
+  {key:'poolCost',label:'Pool Cost',gr:'Κόστος Πισίνας'},
+  {key:'cancelPolicy',label:'Cancel Policy',gr:'Ακυρώσεις'},
+  {key:'checkin',label:'Check-in time',gr:'Ώρα Check-in'},
+  {key:'checkout',label:'Check-out time',gr:'Ώρα Check-out'},
+  {key:'pets',label:'Pets',gr:'Κατοικίδια'},
+  {key:'ac',label:'A/C (where)',gr:'A/C (πού)'},
+  {key:'washing',label:'Washing Machine',gr:'Πλυντήριο'},
+  {key:'dryer',label:'Dryer',gr:'Στεγνωτήριο'},
+  {key:'crib',label:'Crib/Cot',gr:'Κούνια/Παρκοκρέβατο'},
+  {key:'highchair',label:'Highchair',gr:'Καρεκλάκι'},
+  {key:'internet',label:'Internet type',gr:'Σύνδεση Internet'},
+  {key:'icalLink',label:'iCal Link',gr:'iCal Link'},
+  {key:'cleanFreq',label:'Cleaning frequency',gr:'Συχνότητα Καθαρισμού'},
+  {key:'linenFreq',label:'Linen change freq.',gr:'Αλλαγή Λευκών'},
+  {key:'detergents',label:'Detergents (Y/N)',gr:'Καθαριστικά'},
+  {key:'bathrobes',label:'Bathrobes (Y/N)',gr:'Μπουρνούζια'},
+  {key:'slippers',label:'Slippers (Y/N)',gr:'Παντόφλες'},
+  {key:'soap',label:'Hand Soap',gr:'Σαπούνι'},
+  {key:'shampoo',label:'Shampoo/Shower Gel',gr:'Σαμπουάν/Αφρόλουτρο'},
+  {key:'conditioner',label:'Conditioner',gr:'Μαλακτικό'},
+  {key:'bodyCream',label:'Body Cream',gr:'Κρέμα σώματος'},
+  {key:'dishTabs',label:'Dishwasher Tablets',gr:'Ταμπλέτες πλυντηρίου'},
+  {key:'dishSoap',label:'Dish Soap',gr:'Απορυπαντικό πιάτων'},
+  {key:'frenchCoffee',label:'French Coffee',gr:'Γαλλικό'},
+  {key:'espresso',label:'Espresso',gr:'Espresso'},
+  {key:'capsules',label:'Capsules',gr:'Κάψουλες'},
+  {key:'water',label:'Bottled Water',gr:'Εμφιαλωμένο νερό'},
+  {key:'oliveoil',label:'Olive Oil',gr:'Ελαιόλαδο'},
+  {key:'salt',label:'Salt',gr:'Αλάτι'},
+  {key:'pepper',label:'Pepper',gr:'Πιπέρι'},
+  {key:'tea',label:'Tea bags',gr:'Φακελάκια τσαγιού'},
+  {key:'sugar',label:'Sugar',gr:'Ζάχαρη'},
+  {key:'liquidSoap',label:'Liquid Dish Soap',gr:'Υγρό πιάτων'},
+  {key:'sponges',label:'Sponges',gr:'Σφουγγάρια πιάτων'},
+  {key:'toilet',label:'Toilet Paper',gr:'Χαρτί υγείας'},
+  {key:'toiletBags',label:'Toilet bags',gr:'Σακουλάκια τουαλέτας'},
+  {key:'binBags',label:'Bin bags',gr:'Σακούλες σκουπιδιών'},
+];
+
+function renderUnitsTable(){
+  const units=currentCase.units||[];
+  const header=document.getElementById('unitsHeader');
+  const body=document.getElementById('unitsBody');
+  // Header
+  header.innerHTML='<th style="min-width:160px">Field</th>'+
+    units.map((u,i)=>`<th style="min-width:140px">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:4px">
+        <span>Unit ${i+1}</span>
+        <div style="display:flex;gap:2px">
+          ${i>0?'':''}
+          <button onclick="duplicateUnit(${i})" title="Duplicate" style="background:var(--teal);color:#fff;border:none;border-radius:4px;padding:2px 6px;font-size:10px;cursor:pointer">⧉</button>
+          ${units.length>1?`<button onclick="removeUnit(${i})" title="Remove" style="background:#e74c3c;color:#fff;border:none;border-radius:4px;padding:2px 6px;font-size:10px;cursor:pointer">✕</button>`:''}
+        </div>
+      </div>
+    </th>`).join('')+
+    '<th><button onclick="addUnit()" class="btn btn-primary btn-sm" style="font-size:11px">+ Add Unit</button></th>';
+  // Rows
+  body.innerHTML=UNIT_FIELDS.map(f=>`
+    <tr>
+      <td>${f.label}<br><span style="font-size:10px;color:var(--text-muted)">${f.gr}</span></td>
+      ${units.map((u,i)=>`<td><input value="${u[f.key]||''}" onchange="updateUnit(${i},'${f.key}',this.value)" placeholder="—"></td>`).join('')}
+      <td style="background:transparent;border:none"></td>
+    </tr>`).join('');
+}
+
+function addUnit(){
+  if(!currentCase.units)currentCase.units=[];
+  currentCase.units.push({});
+  renderUnitsTable();
+  renderItemsTab();
+}
+function removeUnit(i){
+  currentCase.units.splice(i,1);
+  renderUnitsTable();renderItemsTab();
+}
+function duplicateUnit(i){
+  const copy=JSON.parse(JSON.stringify(currentCase.units[i]||{}));
+  currentCase.units.splice(i+1,0,copy);
+  renderUnitsTable();renderItemsTab();
+}
+function updateUnit(i,key,val){
+  if(!currentCase.units[i])currentCase.units[i]={};
+  currentCase.units[i][key]=val;
+  // Recalc items if guest/bed/bath changed
+  if(['guests','bedrooms','bathrooms'].includes(key))renderItemsTab();
+}
+
+// ── ITEMS TAB ────────────────────────────────────────────────
+let currentItemsUnit='total';
+
+function calcQty(formula,guests,bedrooms,bathrooms){
+  if(formula==='fixed'||formula==='Αρκετά'||formula==='Εξαρτάται')return'✓';
+  const g=parseInt(guests)||0,b=parseInt(bedrooms)||0,ba=parseInt(bathrooms)||0;
+  const val=eval(formula.replace(/guests/g,g).replace(/bedrooms/g,b).replace(/bathrooms/g,ba));
+  return Math.ceil(val)||0;
+}
+
+function renderItemsTab(){
+  const units=currentCase.units||[];
+  const tabs=document.getElementById('itemsUnitTabs');
+  // Build unit tabs
+  const _iAct=(v)=>currentItemsUnit===v?'active':'';
+  tabs.innerHTML=`<div class="items-unit-tab ${_iAct('total')}" onclick="switchItemsUnit('total')">📊 Total</div>`+
+    units.map((u,i)=>`<div class="items-unit-tab ${_iAct(i)}" onclick="switchItemsUnit(${i})">Unit ${i+1}: ${u.name||'Unnamed'}</div>`).join('');
+
+  const content=document.getElementById('itemsContent');
+  if(!units.length){content.innerHTML='<div style="text-align:center;padding:40px;color:var(--text-muted)">Add property units first in the Properties tab.</div>';return;}
+
+  // Get display units
+  let displayUnits=currentItemsUnit==='total'?units:[units[currentItemsUnit]].filter(Boolean);
+
+  const allItems=[
+    {section:'🍽 Kitchen / Κουζίνα',items:ITEMS_KITCHEN},
+    {section:'⚡ Appliances / Ηλεκτρικές Συσκευές',items:ITEMS_APPLIANCES},
+    {section:'🏠 General / Γενικά',items:ITEMS_GENERAL},
+    {section:'⚙ Custom / Πρόσθετα',items:settings.customItems||[]},
+  ];
+
+  content.innerHTML=allItems.filter(s=>s.items.length).map(section=>`
+    <div class="items-section">
+      <div class="items-section-title">${section.section}</div>
+      <div class="items-grid">
+        <div class="items-header-row">
+          <span>Item</span>
+          <span style="text-align:center">${currentItemsUnit==='total'?'Required':'Required'}</span>
+          <span style="text-align:center">Have</span>
+        </div>
+        ${section.items.map((item,idx)=>{
+          // Calculate required
+          let required;
+          if(currentItemsUnit==='total'){
+            // Sum across all units
+            const vals=units.map(u=>calcQty(item.formula,u.guests,u.bedrooms,u.bathrooms));
+            if(vals.every(v=>v==='✓'))required='✓';
+            else required=vals.reduce((s,v)=>s+(v==='✓'?0:parseInt(v)||0),0);
+          } else {
+            const u=units[currentItemsUnit]||{};
+            required=calcQty(item.formula,u.guests,u.bedrooms,u.bathrooms);
+          }
+          const unitKey=currentItemsUnit==='total'?'total':currentItemsUnit;
+          const haveKey=`s${allItems.indexOf(section)}_u${unitKey}_i${idx}`;
+          const have=(currentCase.items&&currentCase.items[haveKey])||'';
+          const isMissing=have!==''&&required!=='✓'&&parseInt(have)<required;
+          return`<div class="item-row ${isMissing?'missing':''}">
+            <div><div class="item-name">${item.name}</div><div class="item-calc" style="font-size:10px;color:var(--text-muted)">${item.nameEn}</div></div>
+            <div class="item-req" style="text-align:center">${required}</div>
+            <div class="item-have" style="text-align:center">
+              ${required==='✓'?
+                `<select onchange="saveItemValue('${haveKey}',this.value)" style="padding:3px 6px;border:1.5px solid var(--border);border-radius:5px;font-size:12px;font-family:'DM Sans',sans-serif">
+                  <option value="">—</option>
+                  <option value="yes" ${have==='yes'?'selected':''}>✓ Yes</option>
+                  <option value="no" ${have==='no'?'selected':''}>✗ No</option>
+                </select>`:
+                `<input type="number" min="0" value="${have}" onchange="saveItemValue('${haveKey}',this.value)" style="width:60px;padding:3px 6px;border:1.5px solid ${isMissing?'#e74c3c':'var(--border)'};border-radius:5px;font-size:13px;text-align:center;font-family:'DM Sans',sans-serif">`
+              }
+            </div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`).join('');
+}
+
+function switchItemsUnit(unit){
+  currentItemsUnit=unit;
+  // Refresh tab active states
+  document.querySelectorAll('.items-unit-tab').forEach((t,i)=>{
+    const isTotal=t.textContent.includes('Total');
+    t.classList.toggle('active',(isTotal&&unit==='total')||(!isTotal&&unit===i-1));
+  });
+  renderItemsTab();
+}
+
+function saveItemValue(key,val){
+  if(!currentCase.items)currentCase.items={};
+  currentCase.items[key]=val;
+  // Re-render to update missing highlights
+  renderItemsTab();
+}
+
+// ── SEASON CHECK ─────────────────────────────────────────────
+function renderSeasonCheck(){
+  const container=document.getElementById('seasonCheckRows');
+  const allJobs=getAllJobs();
+  container.innerHTML=allJobs.map((j,i)=>{
+    const sc=(currentCase.seasonChecks||{})[i]||{};
+    return`<div class="season-job-row">
+      <div class="season-job-name">${j.job}<br><span style="font-size:11px;color:var(--text-muted)">${j.jobEn}</span></div>
+      <select class="season-status-select ${sc.status||''}" onchange="updateSeasonCheck(${i},'status',this.value);this.className='season-status-select '+this.value">
+        <option value="">— Not checked</option>
+        <option value="ok" ${sc.status==='ok'?'selected':''}>✓ OK</option>
+        <option value="attention" ${sc.status==='attention'?'selected':''}>⚠ Needs Attention</option>
+      </select>
+      <input class="season-comment" value="${sc.comment||''}" placeholder="Comment..." onchange="updateSeasonCheck(${i},'comment',this.value)">
     </div>`;
   }).join('');
 }
 
-function renderTable() {
-  const q = (document.getElementById('q')?.value||'').toLowerCase();
-  const fStage = document.getElementById('fStage')?.value||'';
-  let list = onboardings.filter(o => {
-    if (fStage && normalizeStage(o.stage)!==fStage) return false;
-    if (q && !((o.name||'')+(o.property||'')+(o.phone||'')).toLowerCase().includes(q)) return false;
-    return true;
-  }).sort((a,b)=>((a.updatedAt||a.contactDate||'')<(b.updatedAt||b.contactDate||'')?1:-1));
-
-  const STAGE_LABEL = Object.fromEntries(STAGES.map(s=>[s.key,s.label]));
-  document.getElementById('tBody').innerHTML = !list.length
-    ? `<tr class="empty-row"><td colspan="7"><div class="empty-icon">📋</div><p>No leads</p></td></tr>`
-    : list.map(o=>`<tr>
-        <td><strong>${o.name||'—'}</strong>${o.phone?`<br><small style="color:var(--text-muted)">${o.phone}</small>`:''}</td>
-        <td style="font-size:12px">${o.property||'—'}</td>
-        <td><span class="badge b-progress">${STAGE_LABEL[o.stage]||o.stage||'—'}</span></td>
-        <td style="font-size:12px">${fmtDate(o.contactDate)}</td>
-        <td style="font-size:11px;color:var(--text-muted)">${fmtDate(o.updatedAt)}</td>
-        <td style="font-size:12px;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${o.notes||'—'}</td>
-        <td><div class="table-actions">
-          <button class="btn btn-teal btn-xs" onclick="editOnboarding('${o.id}')">✏️</button>
-          <button class="btn btn-danger btn-xs" onclick="confirmDel('${o.id}')">🗑</button>
-        </div></td>
-      </tr>`).join('');
+function updateSeasonCheck(i,key,val){
+  if(!currentCase.seasonChecks)currentCase.seasonChecks={};
+  if(!currentCase.seasonChecks[i])currentCase.seasonChecks[i]={};
+  currentCase.seasonChecks[i][key]=val;
+  renderReport();
 }
 
-function toggleView() {
-  const v = document.getElementById('pipelineView').value;
-  document.getElementById('pipelineDiv').style.display = v==='pipeline'?'':'none';
-  document.getElementById('tableDiv').style.display = v==='table'?'':'none';
-}
+// ── ACTION REPORT ─────────────────────────────────────────────
+function renderReport(){
+  const content=document.getElementById('reportContent');
+  const issues=[];
+  const _allSecs=[
+    {key:0,items:ITEMS_KITCHEN},{key:1,items:ITEMS_APPLIANCES},
+    {key:2,items:ITEMS_GENERAL},{key:3,items:settings.customItems||[]}
+  ];
+  const units=currentCase.units||[];
 
-function openAdd() { document.getElementById('formTitle').textContent='Add Lead'; document.getElementById('fDeleteBtn').style.display='none'; clearForm(); openModal('formModal'); }
-function editOnboarding(id) {
-  const o=onboardings.find(x=>x.id===id); if(!o)return;
-  document.getElementById('formTitle').textContent='Edit Lead'; document.getElementById('fDeleteBtn').style.display='';
-  ['id','name','phone','email','property','stage','contactDate','nextAction','notes'].forEach(f=>{const el=document.getElementById('f_'+f);if(el)el.value=o[f]||'';});
-  openModal('formModal');
-}
-function clearForm() {
-  ['id','name','phone','email','property','contactDate','nextAction','notes'].forEach(f=>{const el=document.getElementById('f_'+f);if(el)el.value='';});
-  document.getElementById('f_stage').value='contact';
-  document.getElementById('f_contactDate').value=new Date().toISOString().slice(0,10);
-}
+  // Missing items
+  if(units.length){
+    _allSecs.forEach(sec=>{
+      sec.items.forEach((item,idx)=>{
+        units.forEach((u,ui)=>{
+          const required=calcQty(item.formula,u.guests,u.bedrooms,u.bathrooms);
+          if(required==='✓')return;
+          const haveKey=`s${sec.key}_u${ui}_i${idx}`;
+          const have=(currentCase.items&&currentCase.items[haveKey])||'';
+          if(have!==''&&parseInt(have)<required){
+            issues.push({type:'items',name:item.name,nameEn:item.nameEn,unit:`Unit ${ui+1}: ${u.name||''}`,required,have:parseInt(have),missing:required-parseInt(have)});
+          }
+        });
+      });
+    });
+  }
 
-async function save() {
-  const name=document.getElementById('f_name').value.trim();
-  if(!name){showToast('Name required','error');return;}
-  const id=document.getElementById('f_id').value||genId('onb');
-  const record={id,updatedAt:new Date().toISOString()};
-  ['name','phone','email','property','stage','contactDate','nextAction','notes'].forEach(f=>{record[f]=document.getElementById('f_'+f)?.value||'';});
-  const existing=onboardings.find(o=>o.id===id);
-  if(existing)Object.assign(existing,record);else onboardings.push(record);
-  closeModal('formModal'); renderStats(); renderPipeline(); renderTable();
-  await SyncStore.saveOne('zesty_onboardings','onboardings',record,onboardings);
-  showToast('✓ Saved','success');
-}
-
-function deleteCurrent() { const id=document.getElementById('f_id').value; if(!id)return; closeModal('formModal'); confirmDel(id); }
-function confirmDel(id) {
-  const o=onboardings.find(x=>x.id===id); if(!o)return;
-  showConfirm('🗑️','Delete Lead?',`Delete "${o.name}"?`,'btn-danger','Delete',async()=>{
-    onboardings=onboardings.filter(x=>x.id!==id); await SyncStore.deleteOne('zesty_onboardings','onboardings',id,onboardings);
-    renderStats(); renderPipeline(); renderTable(); showToast('Deleted','error');
+  // Season check issues
+  const allJobs=getAllJobs();
+  Object.entries(currentCase.seasonChecks||{}).forEach(([i,sc])=>{
+    if(sc.status==='attention'){
+      const job=allJobs[parseInt(i)];
+      if(job)issues.push({type:'season',name:job.job,nameEn:job.jobEn,comment:sc.comment||''});
+    }
   });
+
+  if(!issues.length){
+    content.innerHTML=`<div style="text-align:center;padding:40px;color:#27ae60;font-size:14px">✅ No issues found. All items accounted for and season check passed.</div>`;
+    return;
+  }
+
+  const itemIssues=issues.filter(i=>i.type==='items');
+  const seasonIssues=issues.filter(i=>i.type==='season');
+
+  content.innerHTML=`
+    ${itemIssues.length?`
+    <div style="font-size:13px;font-weight:700;color:var(--teal-dark);margin-bottom:8px">📦 Missing Items (${itemIssues.length})</div>
+    <div style="border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:20px">
+      ${itemIssues.map(i=>`<div class="report-item">
+        <div><div class="ri-name">${i.name} <span style="font-size:11px;color:var(--text-muted)">(${i.nameEn})</span></div>
+        <div style="font-size:11px;color:var(--text-muted)">${i.unit}</div></div>
+        <span class="ri-badge rb-items">Need ${i.missing} more (have ${i.have}, need ${i.required})</span>
+      </div>`).join('')}
+    </div>`:''}
+    ${seasonIssues.length?`
+    <div style="font-size:13px;font-weight:700;color:var(--teal-dark);margin-bottom:8px">🌿 Season Check Issues (${seasonIssues.length})</div>
+    <div style="border:1px solid var(--border);border-radius:8px;overflow:hidden">
+      ${seasonIssues.map(i=>`<div class="report-item">
+        <div><div class="ri-name">${i.name}</div>
+        <div style="font-size:11px;color:var(--text-muted)">${i.nameEn}</div>
+        ${i.comment?`<div class="ri-comment">💬 ${i.comment}</div>`:''}
+        </div>
+        <span class="ri-badge rb-job">Action needed</span>
+      </div>`).join('')}
+    </div>`:''}
+  `;
 }
+
+// ── SAVE / DELETE ─────────────────────────────────────────────
+async function saveRecord(){
+  const ownerData=collectForm();
+  currentCase.ownerData=ownerData;
+  currentCase.stage=document.getElementById('stageSelect').value;
+  currentCase.updatedAt=new Date().toISOString();
+  if(!currentCase.createdAt)currentCase.createdAt=new Date().toISOString();
+
+  const r=await DB.upsert(currentCase);
+  if(r.ok){
+    currentCase.id=r.id;
+    const existing=cases.findIndex(c=>c.id===r.id);
+    if(existing>=0)cases[existing]=currentCase;
+    else cases.unshift(currentCase);
+    localStorage.setItem('zesty_onboardings',JSON.stringify(cases));
+    renderBoard();renderTable();updateCount();
+    document.getElementById('modalTitle').textContent=ownerData.o_name||'Onboarding Record';
+    document.getElementById('deleteBtn').style.display='inline-flex';
+    document.getElementById('completeBtn').style.display=currentCase.stage!=='completed'?'inline-flex':'none';
+    showToast('Saved successfully','success');
+  } else {
+    showToast('Save failed: '+r.err,'error');
+  }
+}
+
+async function deleteCase(){
+  if(!confirm('Delete this onboarding record? This cannot be undone.'))return;
+  if(currentCase.id){
+    await DB.remove(currentCase.id);
+    cases=cases.filter(c=>c.id!==currentCase.id);
+    localStorage.setItem('zesty_onboardings',JSON.stringify(cases));
+    renderBoard();renderTable();updateCount();
+  }
+  closeRecord();
+  showToast('Deleted','error');
+}
+
+async function completeOnboarding(){
+  if(!confirm('Mark as Completed and push owner + property records to the ERP?'))return;
+  const d=currentCase.ownerData||{};
+  const units=currentCase.units||[];
+
+  // Push owner
+  const ownerRecord={
+    repFirst:d.o_name?.split(' ')[0]||'',
+    repLast:d.o_name?.split(' ').slice(1).join(' ')||'',
+    phone1:d.o_phone1||'',phone2:d.o_phone2||'',
+    email1:d.o_email||'',
+    taxNumber:d.o_afm||'',taxOffice:'',
+    idPassport:'',birthdate:'',
+    iban:d.o_iban||'',bank:d.o_bank||'',
+    commission:d.o_commission||'',
+    coopStart:new Date().toISOString().slice(0,10),
+    archived:false,
+    properties:units.map(u=>({id:'',name:u.name||''})),
+    onboardingId:currentCase.id
+  };
+  const or=await DB.upsertOwner(ownerRecord);
+
+  // Push each unit as property
+  for(const u of units){
+    const prop={
+      shortName:u.name||'Property',
+      propertyName:u.name||'',
+      location:u.address||d.o_address||'',
+      owner:or.id||'',
+      ownerName:d.o_name||'',
+      bedrooms:parseInt(u.bedrooms)||null,
+      bathrooms:parseInt(u.bathrooms)||null,
+      sqm:parseInt(u.sqm)||null,
+      capacity:parseInt(u.guests)||null,
+      pool:u.pool?'Ναι':'Όχι',
+      checkin:u.checkin||'',
+      status:'Active',archived:false,
+      onboardingId:currentCase.id
+    };
+    await DB.upsertProperty(prop);
+  }
+
+  currentCase.stage='completed';
+  currentCase.completedAt=new Date().toISOString();
+  await saveRecord();
+  showToast('✅ Pushed to ERP — Owner & Properties created!','success');
+}
+
+// ── TABS ─────────────────────────────────────────────────────
+function showTab(name){
+  document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  event.target.classList.add('active');
+  if(name==='report')renderReport();
+  if(name==='items')renderItemsTab();
+  if(name==='season')renderSeasonCheck();
+}
+
+// ── PRINT ─────────────────────────────────────────────────────
+function printItems(lang){
+  const units=currentCase.units||[];
+  const d=currentCase.ownerData||{};
+  const allItems=[
+    {section:lang==='el'?'Κουζίνα':'Kitchen',items:ITEMS_KITCHEN},
+    {section:lang==='el'?'Ηλεκτρικές Συσκευές':'Appliances',items:ITEMS_APPLIANCES},
+    {section:lang==='el'?'Γενικά':'General',items:ITEMS_GENERAL},
+  ];
+  let html=`<html><head><meta charset="UTF-8"><title>Items List</title>
+  <style>body{font-family:'DM Sans',sans-serif;font-size:12px;color:#1e2a28;margin:20px}
+  h1{font-size:18px;margin-bottom:4px}h2{font-size:13px;margin:12px 0 4px;background:#1a7a6e;color:#fff;padding:4px 8px;border-radius:4px}
+  table{width:100%;border-collapse:collapse;margin-bottom:8px}th,td{border:1px solid #dde8e6;padding:5px 8px;text-align:left;font-size:11px}
+  th{background:#f7f4ef;font-weight:700}tr:nth-child(even){background:#fafafa}
+  .title{font-weight:700}@media print{@page{margin:15mm}}</style></head><body>`;
+  html+=`<h1>${lang==='el'?'Λίστα Αντικειμένων':'Items Checklist'} — ${d.o_name||''}</h1>`;
+  html+=`<p style="color:#6b7e7b;font-size:11px">${lang==='el'?'Ημερομηνία':'Date'}: ${new Date().toLocaleDateString(lang==='el'?'el-GR':'en-GB')}</p>`;
+
+  allItems.forEach(s=>{
+    html+=`<h2>${s.section}</h2><table><tr><th>${lang==='el'?'Προϊόν':'Item'}</th>`;
+    // Total col
+    html+=`<th>${lang==='el'?'Απαιτούμενα (Σύνολο)':'Required (Total)'}</th>`;
+    units.forEach((u,i)=>html+=`<th>Unit ${i+1}: ${u.name||''}</th>`);
+    html+=`</tr>`;
+    s.items.forEach(item=>{
+      const totVals=units.map(u=>calcQty(item.formula,u.guests,u.bedrooms,u.bathrooms));
+      const total=totVals.every(v=>v==='✓')?'✓':totVals.reduce((s,v)=>s+(v==='✓'?0:parseInt(v)||0),0);
+      html+=`<tr><td class="title">${lang==='el'?item.name:item.nameEn}</td><td style="font-weight:700;text-align:center">${total}</td>`;
+      units.forEach(u=>html+=`<td style="text-align:center">${calcQty(item.formula,u.guests,u.bedrooms,u.bathrooms)}</td>`);
+      html+=`</tr>`;
+    });
+    html+=`</table>`;
+  });
+  html+=`</body></html>`;
+  const w=window.open('','_blank');w.document.write(html);w.document.close();w.print();
+}
+
+function printSeasonCheck(){
+  const d=currentCase.ownerData||{};
+  const allJobs=getAllJobs();
+  const date=document.getElementById('seasonCheckDate').value;
+  let html=`<html><head><meta charset="UTF-8"><title>Season Check</title>
+  <style>body{font-family:'DM Sans',sans-serif;font-size:12px;margin:20px}
+  h1{font-size:18px;margin-bottom:4px}
+  table{width:100%;border-collapse:collapse}th,td{border:1px solid #dde8e6;padding:6px 10px;font-size:11px}
+  th{background:#1a7a6e;color:#fff;text-align:left}tr:nth-child(even){background:#f7f4ef}
+  @media print{@page{margin:15mm}}</style></head><body>`;
+  html+=`<h1>Season Check — ${d.o_name||''}</h1><p style="color:#6b7e7b;font-size:11px">Date: ${date}</p>`;
+  html+=`<table><tr><th>Job / Εργασία</th><th style="width:120px">Status</th><th>Comment</th></tr>`;
+  allJobs.forEach((j,i)=>{
+    const sc=(currentCase.seasonChecks||{})[i]||{};
+    const status=sc.status==='ok'?'✓ OK':sc.status==='attention'?'⚠ Attention':'—';
+    html+=`<tr><td>${j.job}<br><span style="color:#6b7e7b">${j.jobEn}</span></td><td>${status}</td><td>${sc.comment||''}</td></tr>`;
+  });
+  html+=`</table></body></html>`;
+  const w=window.open('','_blank');w.document.write(html);w.document.close();w.print();
+}
+
+// ── SETTINGS ──────────────────────────────────────────────────
+function openSettings(){
+  renderSettingsLists();
+  document.getElementById('settingsModal').classList.add('open');
+}
+function closeSettings(){document.getElementById('settingsModal').classList.remove('open');}
+
+function renderSettingsLists(){
+  const ci=document.getElementById('customItemsList');
+  ci.innerHTML=(settings.customItems||[]).map((item,i)=>`
+    <div class="tag">${item.name} (${item.nameEn})
+      <button onclick="removeCustomItem(${i})">×</button>
+    </div>`).join('');
+  const cs=document.getElementById('customSeasonList');
+  cs.innerHTML=(settings.customJobs||[]).map((j,i)=>`
+    <div class="tag">${j.job}
+      <button onclick="removeCustomJob(${i})">×</button>
+    </div>`).join('');
+}
+
+function addCustomItem(){
+  const name=document.getElementById('newItemName').value.trim();
+  const nameEn=document.getElementById('newItemNameEn').value.trim();
+  const formula=document.getElementById('newItemFormula').value;
+  if(!name)return;
+  if(!settings.customItems)settings.customItems=[];
+  settings.customItems.push({name,nameEn:nameEn||name,formula});
+  document.getElementById('newItemName').value='';
+  document.getElementById('newItemNameEn').value='';
+  renderSettingsLists();
+}
+function removeCustomItem(i){settings.customItems.splice(i,1);renderSettingsLists();}
+
+function addCustomJob(){
+  const job=document.getElementById('newJobName').value.trim();
+  const jobEn=document.getElementById('newJobNameEn').value.trim();
+  if(!job)return;
+  if(!settings.customJobs)settings.customJobs=[];
+  settings.customJobs.push({job,jobEn:jobEn||job});
+  document.getElementById('newJobName').value='';
+  document.getElementById('newJobNameEn').value='';
+  renderSettingsLists();
+}
+function removeCustomJob(i){settings.customJobs.splice(i,1);renderSettingsLists();}
+
+// ── TOAST ─────────────────────────────────────────────────────
+function showToast(msg,type='info'){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.className='toast '+type+' show';
+  clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),3000);
+}
+
+// ── DB STATUS ─────────────────────────────────────────────────
+function showDbStatus(online){
+  const old=document.getElementById('db-status-bar');if(old)old.remove();
+  if(online)return;
+  const b=document.createElement('div');b.id='db-status-bar';
+  b.style.cssText='position:fixed;bottom:0;left:0;right:0;background:#c0392b;color:#fff;text-align:center;padding:8px;font-size:12px;z-index:9998;cursor:pointer;';
+  b.textContent='⚠ Database offline — working in local mode. Click to retry.';
+  b.onclick=()=>location.reload();
+  document.body.appendChild(b);
+}
+
+
+// ── SIDEBAR NAVIGATION ──────────────────────────────────
+function _initSidebar() {
+  const sidebar = document.getElementById('erpSidebar');
+  const overlay = document.getElementById('erpOverlay');
+  const hamburger = document.getElementById('erpHamburger');
+  if (!sidebar) return;
+  // Hamburger toggle
+  if (hamburger) {
+    hamburger.addEventListener('click', () => {
+      sidebar.classList.toggle('open');
+      overlay.classList.toggle('open');
+    });
+  }
+  // Close on overlay click
+  if (overlay) {
+    overlay.addEventListener('click', () => {
+      sidebar.classList.remove('open');
+      overlay.classList.remove('open');
+    });
+  }
+  // Inject Azure user badge into sidebar footer
+  const origBadge = document.getElementById('_azure_badge');
+  const footerUser = document.getElementById('sidebarUser');
+  if (origBadge && footerUser) {
+    footerUser.innerHTML = origBadge.innerHTML;
+    origBadge.remove();
+  }
+  // Watch for badge to appear
+  const obs = new MutationObserver(() => {
+    const b = document.getElementById('_azure_badge');
+    const fu = document.getElementById('sidebarUser');
+    if (b && fu) {
+      fu.innerHTML = b.innerHTML;
+      b.remove();
+      obs.disconnect();
+    }
+  });
+  obs.observe(document.body, {childList:true, subtree:true});
+}
+document.addEventListener('DOMContentLoaded', _initSidebar);
+
+
+init().catch(console.error);
 </script>
 <script src="erp-nav.js"></script>
-</body>
-</html>
