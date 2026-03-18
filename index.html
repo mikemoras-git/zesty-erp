@@ -2,318 +2,368 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Zesty ERP — Operations Hub</title>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400&display=swap" rel="stylesheet">
+<title>Zesty ERP — Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,400&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400&display=swap" rel="stylesheet">
 <style>
+/* ── TOKENS ── */
 :root {
-  --teal:#1a7a6e;--teal-light:#23a090;--teal-dark:#115950;--teal-deep:#0a3d36;
-  --gold:#c9a84c;--gold-light:#e8c97a;--gold-dim:#a07a2a;
-  --cream:#f8f5f0;--cream-dark:#ede9e2;--white:#fff;
-  --text:#1e2a28;--text-muted:#6b7e7b;--border:#d4e0de;
-  --danger:#c0392b;--success:#27ae60;--warning:#e67e22;
-  --shadow:0 2px 16px rgba(26,122,110,.1);--radius:14px;
+  --teal:#1a7a6e; --teal-light:#23a090; --teal-dark:#115950; --teal-deep:#0a3330;
+  --gold:#c9a84c; --gold-light:#e8c97a; --gold-dim:#a07a2a;
+  --cream:#f7f4ef; --cream-dark:#ede9e2; --white:#fff;
+  --text:#1e2a28; --text-muted:#6b7e7b; --border:#d4e0de;
+  --danger:#c0392b; --success:#27ae60; --warning:#e67e22;
+  --shadow:0 2px 16px rgba(26,122,110,.09);
+  --radius:14px;
 }
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'DM Sans',sans-serif;background:var(--teal-deep);color:var(--white);min-height:100vh;overflow-x:hidden}
 
-/* Background */
-.bg-canvas{position:fixed;inset:0;z-index:0;overflow:hidden}
-.bg-canvas::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 10% 0%,rgba(26,122,110,.45) 0%,transparent 60%),radial-gradient(ellipse 60% 50% at 90% 100%,rgba(201,168,76,.15) 0%,transparent 55%)}
-.bg-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);background-size:60px 60px}
-.bg-orb{position:absolute;border-radius:50%;filter:blur(80px);opacity:.15;animation:drift 18s ease-in-out infinite}
-.bg-orb-1{width:500px;height:500px;background:var(--teal);top:-100px;left:-100px}
-.bg-orb-2{width:350px;height:350px;background:var(--gold);bottom:-50px;right:100px;animation-delay:-6s}
-@keyframes drift{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(30px,-20px) scale(1.05)}66%{transform:translate(-20px,30px) scale(.95)}}
+/* ── CANVAS ── */
+body {
+  font-family:'DM Sans',sans-serif;
+  background: var(--teal-deep);
+  color:#fff;
+  min-height:100vh;
+  overflow-x:hidden;
+}
+.bg-canvas{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.bg-canvas::before{
+  content:'';position:absolute;inset:0;
+  background:
+    radial-gradient(ellipse 80% 60% at 5% 0%, rgba(26,122,110,.5) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 50% at 95% 100%, rgba(201,168,76,.12) 0%, transparent 55%);
+}
+.bg-grid{
+  position:absolute;inset:0;
+  background-image:
+    linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px);
+  background-size:56px 56px;
+}
+.bg-orb{position:absolute;border-radius:50%;filter:blur(90px);opacity:.12;animation:orb-drift 20s ease-in-out infinite}
+.bg-orb-1{width:520px;height:520px;background:var(--teal);top:-120px;left:-60px}
+.bg-orb-2{width:360px;height:360px;background:var(--gold);bottom:-80px;right:60px;animation-delay:-8s}
+@keyframes orb-drift{0%,100%{transform:translate(0,0)}40%{transform:translate(25px,-18px)}70%{transform:translate(-16px,22px)}}
 
-/* Layout */
-.layout{position:relative;z-index:1;padding:0 32px 60px;max-width:1200px;margin:0 auto}
+/* ── LAYOUT ── */
+.layout{position:relative;z-index:1;padding:32px 36px 80px;max-width:1300px;margin:0 auto}
 
-/* Header */
-.page-header{padding:28px 0 24px;border-bottom:1px solid rgba(255,255,255,.08);margin-bottom:32px;display:flex;align-items:flex-start;justify-content:space-between}
-.brand-name{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:300;color:#fff}
+/* ── PAGE HEADER ── */
+.page-hdr{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:34px;padding-bottom:24px;border-bottom:1px solid rgba(255,255,255,.07)}
+.brand-name{font-family:'Cormorant Garamond',serif;font-size:30px;font-weight:300;color:#fff;letter-spacing:.2px}
 .brand-name strong{font-weight:600;color:var(--gold-light)}
-.brand-tagline{font-size:11px;text-transform:uppercase;letter-spacing:3px;color:rgba(255,255,255,.35);margin-top:4px}
-.header-right{display:flex;align-items:flex-end;flex-direction:column;gap:6px}
-.live-clock{font-family:'DM Mono',monospace;font-size:20px;color:var(--gold-light)}
-.live-date{font-size:12px;color:rgba(255,255,255,.4)}
+.brand-tagline{font-size:10px;text-transform:uppercase;letter-spacing:3.5px;color:rgba(255,255,255,.3);margin-top:5px}
+.clock-block{text-align:right}
+.live-clock{font-family:'DM Mono',monospace;font-size:22px;color:var(--gold-light);letter-spacing:1px}
+.live-date{font-size:11px;color:rgba(255,255,255,.35);margin-top:4px}
 
-/* Section label */
-.section-lbl{font-size:10px;text-transform:uppercase;letter-spacing:3px;color:rgba(255,255,255,.3);margin-bottom:14px;font-weight:500}
+/* ── SECTION LABEL ── */
+.sec-lbl{font-size:9px;text-transform:uppercase;letter-spacing:3.5px;color:rgba(255,255,255,.25);margin-bottom:12px;font-weight:600;font-family:'DM Mono',monospace}
 
-/* KPI STRIP */
+/* ── KPI STRIP ── */
 .kpi-strip{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:32px}
-.kpi{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.09);border-radius:12px;padding:16px 18px;backdrop-filter:blur(10px);transition:all .2s;cursor:default}
-.kpi:hover{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.18)}
-.kpi-val{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:500;color:#fff;line-height:1}
+.kpi{
+  background:rgba(255,255,255,.05);
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:12px;padding:18px 20px;
+  backdrop-filter:blur(12px);
+  transition:all .2s;cursor:default;
+}
+.kpi:hover{background:rgba(255,255,255,.09);border-color:rgba(255,255,255,.15)}
+.kpi-val{font-family:'Cormorant Garamond',serif;font-size:30px;font-weight:500;color:#fff;line-height:1}
 .kpi-val.gold{color:var(--gold-light)}
-.kpi-val.danger{color:#ff7b7b}
-.kpi-val.success{color:#5dde9a}
-.kpi-lbl{font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:rgba(255,255,255,.35);margin-top:5px}
+.kpi-val.danger{color:#ff8080}
+.kpi-val.success{color:#5de8a0}
+.kpi-lbl{font-size:9.5px;text-transform:uppercase;letter-spacing:1.5px;color:rgba(255,255,255,.32);margin-top:6px;font-weight:500}
 
-/* GRID */
-.dashboard-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px}
-.dashboard-grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;margin-bottom:20px}
-.card{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.09);border-radius:var(--radius);padding:22px 24px;backdrop-filter:blur(10px)}
-.card-title{font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:500;color:#fff;margin-bottom:4px;display:flex;align-items:center;gap:8px}
-.card-sub{font-size:11px;color:rgba(255,255,255,.4);margin-bottom:16px}
+/* ── CARDS ── */
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;margin-bottom:20px}
+.card{
+  background:rgba(255,255,255,.055);
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:var(--radius);
+  padding:22px 24px;
+  backdrop-filter:blur(12px);
+}
+.card-title{font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:500;color:#fff;margin-bottom:3px}
+.card-sub{font-size:11px;color:rgba(255,255,255,.35);margin-bottom:18px}
 
-/* Activity strip */
-.activity-strip{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:14px 20px;margin-bottom:28px;display:flex;align-items:center;gap:16px;overflow:hidden}
-.activity-dot{width:6px;height:6px;border-radius:50%;background:var(--teal-light);flex-shrink:0}
-.activity-item{display:flex;align-items:center;gap:8px;font-size:12px;color:rgba(255,255,255,.5);white-space:nowrap}
-.activity-item strong{color:rgba(255,255,255,.8)}
+/* ── QUICK LINKS ── */
+.quick-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:32px}
+.ql{
+  background:rgba(255,255,255,.05);
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:12px;padding:16px 18px;
+  text-decoration:none;color:#fff;
+  display:flex;align-items:center;gap:13px;
+  transition:all .18s;
+}
+.ql:hover{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.17);transform:translateY(-2px)}
+.ql-icon{
+  font-size:19px;width:40px;height:40px;
+  background:rgba(255,255,255,.07);
+  border-radius:9px;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;
+}
+.ql-label{font-size:12.5px;font-weight:500}
+.ql-count{font-size:11px;color:rgba(255,255,255,.38);margin-top:2px}
 
-/* BAR CHART */
-.bar-chart{display:flex;flex-direction:column;gap:8px}
+/* ── BAR CHART ── */
+.bar-chart{display:flex;flex-direction:column;gap:9px}
 .bar-row{display:flex;align-items:center;gap:10px}
-.bar-label{font-size:11px;color:rgba(255,255,255,.5);width:100px;flex-shrink:0;text-overflow:ellipsis;overflow:hidden;white-space:nowrap}
-.bar-track{flex:1;height:8px;background:rgba(255,255,255,.08);border-radius:4px;overflow:hidden}
-.bar-fill{height:100%;border-radius:4px;transition:width .8s cubic-bezier(.4,0,.2,1)}
-.bar-val{font-size:11px;color:rgba(255,255,255,.5);width:50px;text-align:right;flex-shrink:0}
+.bar-label{font-size:11px;color:rgba(255,255,255,.45);width:90px;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bar-track{flex:1;height:7px;background:rgba(255,255,255,.07);border-radius:4px;overflow:hidden}
+.bar-fill{height:100%;border-radius:4px;transition:width .9s cubic-bezier(.4,0,.2,1)}
+.bar-val{font-size:11px;color:rgba(255,255,255,.4);width:28px;text-align:right;flex-shrink:0}
 
-/* DONUT CHART */
+/* ── DONUT ── */
 .donut-wrap{display:flex;align-items:center;gap:20px}
-.donut-svg{flex-shrink:0}
-.donut-legend{display:flex;flex-direction:column;gap:8px}
-.legend-item{display:flex;align-items:center;gap:8px;font-size:12px;color:rgba(255,255,255,.6)}
-.legend-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.donut-legend{display:flex;flex-direction:column;gap:9px}
+.leg-item{display:flex;align-items:center;gap:7px;font-size:12px;color:rgba(255,255,255,.55)}
+.leg-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
 
-/* JOB STATUS TABLE */
-.mini-table{width:100%;border-collapse:collapse}
-.mini-table th{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,.3);font-weight:600;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.08);text-align:left}
-.mini-table td{font-size:12px;color:rgba(255,255,255,.65);padding:8px 0;border-bottom:1px solid rgba(255,255,255,.05)}
-.mini-table td:last-child{text-align:right}
-.status-dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:6px}
+/* ── MINI TABLE ── */
+.mini-tbl{width:100%;border-collapse:collapse}
+.mini-tbl th{font-size:9.5px;text-transform:uppercase;letter-spacing:.07em;color:rgba(255,255,255,.28);font-weight:600;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.07);text-align:left}
+.mini-tbl td{font-size:12px;color:rgba(255,255,255,.6);padding:9px 0;border-bottom:1px solid rgba(255,255,255,.04)}
+.mini-tbl td:last-child{text-align:right}
+.s-dot{display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:6px;vertical-align:middle}
 
-/* QUICK LINKS */
-.quick-links{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:32px}
-.quick-link{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:16px;text-decoration:none;color:#fff;display:flex;align-items:center;gap:12px;transition:all .2s}
-.quick-link:hover{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.18);transform:translateY(-2px)}
-.ql-icon{font-size:22px;width:40px;height:40px;background:rgba(255,255,255,.08);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.ql-label{font-size:12px;font-weight:500}
-.ql-count{font-size:11px;color:rgba(255,255,255,.4);margin-top:2px}
+/* ── TICKETS ── */
+.ticket-item{display:flex;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.05)}
+.ticket-item:last-child{border:none}
+.ti-body{flex:1}
+.ti-text{font-size:12px;color:rgba(255,255,255,.7);line-height:1.4}
+.ti-page{font-size:10px;color:rgba(255,255,255,.3);margin-top:2px}
+.ti-badge{font-size:9px;font-weight:700;padding:2px 7px;border-radius:6px;flex-shrink:0;margin-top:1px}
+.ti-open{background:rgba(192,57,43,.35);color:#ffaaaa}
+.ti-wip{background:rgba(230,126,34,.3);color:#ffd0aa}
 
-/* TICKETS WIDGET */
-.ticket-mini{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.06)}
-.ticket-mini:last-child{border:none}
-.tm-icon{font-size:14px;flex-shrink:0;margin-top:1px}
-.tm-text{font-size:12px;color:rgba(255,255,255,.7);flex:1;line-height:1.3}
-.tm-page{font-size:10px;color:rgba(255,255,255,.35);margin-top:2px}
-.badge-mini{font-size:9px;font-weight:700;padding:1px 6px;border-radius:6px;flex-shrink:0}
-.bm-open{background:rgba(192,57,43,.3);color:#ff9999}
-.bm-wip{background:rgba(230,126,34,.3);color:#ffd099}
+/* ── ACTIVITY ── */
+.activity-strip{
+  background:rgba(255,255,255,.035);
+  border:1px solid rgba(255,255,255,.06);
+  border-radius:10px;padding:12px 20px;
+  margin-bottom:28px;
+  display:flex;align-items:center;gap:14px;overflow:hidden;flex-wrap:wrap;
+}
+.act-item{display:flex;align-items:center;gap:7px;font-size:12px;color:rgba(255,255,255,.45)}
+.act-item strong{color:rgba(255,255,255,.8)}
+.act-dot{width:5px;height:5px;border-radius:50%;background:var(--teal-light);flex-shrink:0}
 
-@media(max-width:900px){.kpi-strip{grid-template-columns:repeat(3,1fr)}.dashboard-grid,.dashboard-grid-3{grid-template-columns:1fr}.quick-links{grid-template-columns:repeat(2,1fr)}.layout{padding:0 16px 60px}}
-@media(max-width:500px){.kpi-strip{grid-template-columns:repeat(2,1fr)}.quick-links{grid-template-columns:1fr}}
+/* ── RESPONSIVE ── */
+@media(max-width:1100px){.kpi-strip{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:900px){.grid-2,.grid-3{grid-template-columns:1fr}.quick-grid{grid-template-columns:repeat(2,1fr)}.layout{padding:24px 18px 80px}}
+@media(max-width:500px){.kpi-strip{grid-template-columns:repeat(2,1fr)}.quick-grid{grid-template-columns:1fr}}
 </style>
 
+<!-- Azure MSAL -->
+<script src="https://alcdn.msauth.net/browser/2.38.0/js/msal-browser.min.js"></script>
 <script>
 (function(){
-  const _msalConfig = {
-    auth: {
-      clientId: '0938023f-cbbf-45f1-a71d-b18c95745ea6',
-      authority: 'https://login.microsoftonline.com/9c30b606-6648-4777-a623-64867e43e54f',
-      redirectUri: window.location.href.split('#')[0].split('?')[0]
-    },
-    cache: { cacheLocation: 'sessionStorage', storeAuthStateInCookie: false }
-  };
-  const _msal = new msal.PublicClientApplication(_msalConfig);
-
-  (async function() {
-    await _msal.initialize();
-    try {
-      // Handle the redirect result - this consumes the #code from the URL
-      const result = await _msal.handleRedirectPromise();
-      if (result && result.account) {
-        // Store the account - other pages will pick it up from sessionStorage
-        _msal.setActiveAccount(result.account);
-        // Check if we should go back to another page
-        const returnUrl = sessionStorage.getItem('msal_return_url');
-        if (returnUrl && !returnUrl.includes('index.html')) {
-          sessionStorage.removeItem('msal_return_url');
-          window.location.href = returnUrl;
-          return;
-        }
-      }
-    } catch(e) { console.warn('MSAL redirect handler:', e); }
-
-    // Check if logged in
-    const accounts = _msal.getAllAccounts();
-    if (accounts.length === 0) {
-      // Not logged in - show login button or redirect
-      const loginBtn = document.getElementById('loginBtn');
-      if (loginBtn) loginBtn.style.display = 'flex';
-    } else {
-      // Show username in sidebar
-      window._erpUserName = accounts[0].name || accounts[0].username;
-    }
-    window._azureLogout = function() {
-      sessionStorage.removeItem('msal_return_url');
-      _msal.logoutRedirect({ account: _msal.getAllAccounts()[0] });
-    };
-  })();
-})();
-</script>
-<script src="https://unpkg.com/@azure/msal-browser@2.38.3/lib/msal-browser.min.js"></script>
-<script>
-(function(){
-  const _msalConfig = {
-    auth: {
-      clientId: '0938023f-cbbf-45f1-a71d-b18c95745ea6',
-      authority: 'https://login.microsoftonline.com/9c30b606-6648-4777-a623-64867e43e54f',
-      redirectUri: 'https://kissamosrealestate.com/wp-content/erp/index.html'
-    },
-    cache: { cacheLocation: 'sessionStorage', storeAuthStateInCookie: false }
-  };
-  const _msal = new msal.PublicClientApplication(_msalConfig);
-  (async function() {
-    await _msal.initialize();
-    try {
-      const result = await _msal.handleRedirectPromise();
-      if (result && result.account) {
-        _msal.setActiveAccount(result.account);
-        window._erpUserName = result.account.name || result.account.username;
-        // Forward to the page user originally wanted
-        const returnUrl = sessionStorage.getItem('msal_return_url');
-        if (returnUrl && !returnUrl.includes('index.html')) {
-          sessionStorage.removeItem('msal_return_url');
-          window.location.replace(returnUrl);
-          return;
-        }
-      }
-    } catch(e) { console.warn('MSAL:', e); }
-    const accounts = _msal.getAllAccounts();
-    if (accounts.length > 0) {
-      window._erpUserName = accounts[0].name || accounts[0].username;
-    }
-    window._azureLogout = function() {
-      sessionStorage.removeItem('msal_return_url');
-      const accts = _msal.getAllAccounts();
-      if (accts.length > 0) _msal.logoutRedirect({ account: accts[0] });
-    };
+  const cfg={auth:{clientId:'0938023f-cbbf-45f1-a71d-b18c95745ea6',authority:'https://login.microsoftonline.com/9c30b606-6648-4777-a623-64867e43e54f',redirectUri:window.location.href.split('#')[0].split('?')[0]},cache:{cacheLocation:'sessionStorage',storeAuthStateInCookie:false}};
+  const app=new msal.PublicClientApplication(cfg);
+  (async()=>{
+    await app.initialize();
+    try{ const r=await app.handleRedirectPromise(); if(r&&r.account) window._erpUserName=r.account.name||r.account.username; }catch(e){}
+    const accs=app.getAllAccounts();
+    if(!accs.length){ await app.loginRedirect({scopes:['User.Read']}); return; }
+    const acc=accs[0];
+    window._erpUserName=acc.name||acc.username;
+    window._azureLogout=()=>app.logoutRedirect({account:acc});
+    const badge=document.createElement('div');
+    badge.id='_azure_badge';
+    badge.innerHTML='<span>👤 '+acc.name+'</span>';
+    document.body.appendChild(badge);
   })();
 })();
 </script>
 </head>
 <body>
-<div class="bg-canvas"><div class="bg-grid"></div><div class="bg-orb bg-orb-1"></div><div class="bg-orb bg-orb-2"></div></div>
+
+<div class="bg-canvas">
+  <div class="bg-grid"></div>
+  <div class="bg-orb bg-orb-1"></div>
+  <div class="bg-orb bg-orb-2"></div>
+</div>
 
 <div class="layout">
-  <!-- HEADER -->
-  <div class="page-header">
+
+  <!-- PAGE HEADER -->
+  <div class="page-hdr">
     <div>
-      <div class="brand-name">Zesty <strong>Rentals</strong></div>
-      <div class="brand-tagline">Operations Hub &nbsp;·&nbsp; Kissamos, Crete</div>
+      <div class="brand-name">Zesty <strong>Operations</strong></div>
+      <div class="brand-tagline">Property Management Platform</div>
     </div>
-    <div class="header-right">
-      <div class="live-clock" id="clock">00:00:00</div>
-      <div class="live-date" id="dateLine">—</div>
+    <div class="clock-block">
+      <div class="live-clock" id="clock">--:--:--</div>
+      <div class="live-date" id="date"></div>
     </div>
   </div>
 
   <!-- KPI STRIP -->
-  <div class="section-lbl">Live Portfolio</div>
+  <div class="sec-lbl">At a glance</div>
   <div class="kpi-strip">
-    <div class="kpi"><div class="kpi-val gold" id="kpi-props">—</div><div class="kpi-lbl">Properties</div></div>
-    <div class="kpi"><div class="kpi-val" id="kpi-owners">—</div><div class="kpi-lbl">Owners</div></div>
-    <div class="kpi"><div class="kpi-val gold" id="kpi-guests">—</div><div class="kpi-lbl">Guests</div></div>
-    <div class="kpi"><div class="kpi-val danger" id="kpi-open-jobs">—</div><div class="kpi-lbl">Open Jobs</div></div>
-    <div class="kpi"><div class="kpi-val success" id="kpi-staff">—</div><div class="kpi-lbl">Active Staff</div></div>
-    <div class="kpi"><div class="kpi-val" id="kpi-tasks">—</div><div class="kpi-lbl">Open Tasks</div></div>
+    <div class="kpi"><div class="kpi-val" id="k-props">—</div><div class="kpi-lbl">Active Properties</div></div>
+    <div class="kpi"><div class="kpi-val gold" id="k-owners">—</div><div class="kpi-lbl">Owners</div></div>
+    <div class="kpi"><div class="kpi-val" id="k-guests">—</div><div class="kpi-lbl">Total Guests</div></div>
+    <div class="kpi"><div class="kpi-val danger" id="k-jobs">—</div><div class="kpi-lbl">Open Jobs</div></div>
+    <div class="kpi"><div class="kpi-val success" id="k-staff">—</div><div class="kpi-lbl">Active Staff</div></div>
+    <div class="kpi"><div class="kpi-val" id="k-tasks">—</div><div class="kpi-lbl">Open Tasks</div></div>
   </div>
 
   <!-- ACTIVITY STRIP -->
-  <div class="activity-strip">
-    <span style="font-size:10px;text-transform:uppercase;letter-spacing:2px;color:var(--gold-light);white-space:nowrap;font-weight:500;flex-shrink:0">Live Data</span>
-    <div style="width:1px;height:20px;background:rgba(255,255,255,.1);flex-shrink:0"></div>
-    <div id="activity-items" style="display:flex;gap:24px;overflow:hidden;flex-wrap:nowrap"></div>
+  <div class="activity-strip" id="activity-strip">
+    <div class="act-item"><div class="act-dot"></div><span>Loading data…</span></div>
   </div>
 
   <!-- QUICK LINKS -->
-  <div class="section-lbl">Quick Access</div>
-  <div class="quick-links">
-    <a href="owners-crm.html" class="quick-link"><div class="ql-icon">👤</div><div><div class="ql-label">Owners</div><div class="ql-count" id="ql-owners">—</div></div></a>
-    <a href="properties-db.html" class="quick-link"><div class="ql-icon">🏠</div><div><div class="ql-label">Properties</div><div class="ql-count" id="ql-props">—</div></div></a>
-    <a href="cleaning-system.html" class="quick-link"><div class="ql-icon">🧹</div><div><div class="ql-label">Cleaning</div><div class="ql-count" id="ql-cleaning">—</div></div></a>
-    <a href="jobs.html" class="quick-link"><div class="ql-icon">🔧</div><div><div class="ql-label">Job Orders</div><div class="ql-count" id="ql-jobs">—</div></div></a>
-    <a href="laundry.html" class="quick-link"><div class="ql-icon">👔</div><div><div class="ql-label">Laundry ERP</div><div class="ql-count" id="ql-laundry">—</div></div></a>
-    <a href="onboarding.html" class="quick-link"><div class="ql-icon">📋</div><div><div class="ql-label">Onboarding</div><div class="ql-count" id="ql-onboarding">—</div></div></a>
-    <a href="tasks.html" class="quick-link"><div class="ql-icon">✅</div><div><div class="ql-label">Tasks</div><div class="ql-count" id="ql-tasks">—</div></div></a>
-    <a href="tickets.html" class="quick-link"><div class="ql-icon">🎫</div><div><div class="ql-label">Tickets</div><div class="ql-count" id="ql-tickets">—</div></div></a>
+  <div class="sec-lbl">Modules</div>
+  <div class="quick-grid">
+    <a href="owners-crm.html" class="ql">
+      <div class="ql-icon">👤</div>
+      <div><div class="ql-label">Owners</div><div class="ql-count" id="ql-owners">—</div></div>
+    </a>
+    <a href="properties-db.html" class="ql">
+      <div class="ql-icon">🏠</div>
+      <div><div class="ql-label">Properties</div><div class="ql-count" id="ql-props">—</div></div>
+    </a>
+    <a href="guests-crm.html" class="ql">
+      <div class="ql-icon">✈️</div>
+      <div><div class="ql-label">Guests</div><div class="ql-count" id="ql-guests">—</div></div>
+    </a>
+    <a href="cleaning-system.html" class="ql">
+      <div class="ql-icon">🧹</div>
+      <div><div class="ql-label">Cleaning</div><div class="ql-count" id="ql-cleaning">—</div></div>
+    </a>
+    <a href="jobs.html" class="ql">
+      <div class="ql-icon">🔧</div>
+      <div><div class="ql-label">Job Orders</div><div class="ql-count" id="ql-jobs">—</div></div>
+    </a>
+    <a href="tasks.html" class="ql">
+      <div class="ql-icon">✅</div>
+      <div><div class="ql-label">Tasks</div><div class="ql-count" id="ql-tasks">—</div></div>
+    </a>
+    <a href="employees.html" class="ql">
+      <div class="ql-icon">👥</div>
+      <div><div class="ql-label">Staff</div><div class="ql-count" id="ql-staff">—</div></div>
+    </a>
+    <a href="laundry.html" class="ql">
+      <div class="ql-icon">👔</div>
+      <div><div class="ql-label">Laundry</div><div class="ql-count" id="ql-laundry">—</div></div>
+    </a>
+    <a href="onboarding.html" class="ql">
+      <div class="ql-icon">📋</div>
+      <div><div class="ql-label">Onboarding</div><div class="ql-count" id="ql-onboarding">—</div></div>
+    </a>
+    <a href="contacts-crm.html" class="ql">
+      <div class="ql-icon">📇</div>
+      <div><div class="ql-label">Contacts</div><div class="ql-count" id="ql-contacts">—</div></div>
+    </a>
+    <a href="tickets.html" class="ql">
+      <div class="ql-icon">🎫</div>
+      <div><div class="ql-label">Tickets</div><div class="ql-count" id="ql-tickets">—</div></div>
+    </a>
+    <a href="settings.html" class="ql">
+      <div class="ql-icon">⚙️</div>
+      <div><div class="ql-label">Settings</div><div class="ql-count">Configuration</div></div>
+    </a>
   </div>
 
   <!-- CHARTS ROW -->
-  <div class="section-lbl">Analytics</div>
-  <div class="dashboard-grid-3" style="margin-bottom:20px">
-
-    <!-- Job Orders Status -->
+  <div class="grid-3">
+    <!-- Jobs donut -->
     <div class="card">
-      <div class="card-title">🔧 Job Orders</div>
-      <div class="card-sub">By status</div>
-      <div class="donut-wrap" id="jobs-donut">
-        <svg class="donut-svg" width="80" height="80" viewBox="0 0 80 80">
-          <circle cx="40" cy="40" r="30" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="12"/>
-          <circle id="donut-open" cx="40" cy="40" r="30" fill="none" stroke="#e74c3c" stroke-width="12" stroke-dasharray="0 189" stroke-linecap="round" transform="rotate(-90 40 40)" style="transition:stroke-dasharray .8s"/>
-          <circle id="donut-progress" cx="40" cy="40" r="30" fill="none" stroke="#e67e22" stroke-width="12" stroke-dasharray="0 189" stroke-linecap="round" transform="rotate(-90 40 40)" style="transition:stroke-dasharray .8s;opacity:.8"/>
-          <circle id="donut-done" cx="40" cy="40" r="30" fill="none" stroke="#27ae60" stroke-width="12" stroke-dasharray="0 189" stroke-linecap="round" transform="rotate(-90 40 40)" style="transition:stroke-dasharray .8s;opacity:.7"/>
+      <div class="card-title">Job Orders</div>
+      <div class="card-sub">Status breakdown</div>
+      <div class="donut-wrap">
+        <svg class="donut-svg" viewBox="0 0 80 80" width="90" height="90">
+          <circle cx="40" cy="40" r="30" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="10"/>
+          <circle id="d-open" cx="40" cy="40" r="30" fill="none" stroke="#e74c3c" stroke-width="10"
+            stroke-dasharray="0 188.5" stroke-dashoffset="0"
+            transform="rotate(-90 40 40)" style="transition:stroke-dasharray .9s"/>
+          <circle id="d-prog" cx="40" cy="40" r="30" fill="none" stroke="#e67e22" stroke-width="10"
+            stroke-dasharray="0 188.5" stroke-dashoffset="0"
+            transform="rotate(-90 40 40)" style="transition:all .9s"/>
+          <circle id="d-done" cx="40" cy="40" r="30" fill="none" stroke="#27ae60" stroke-width="10"
+            stroke-dasharray="0 188.5" stroke-dashoffset="0"
+            transform="rotate(-90 40 40)" style="transition:all .9s"/>
         </svg>
         <div class="donut-legend" id="jobs-legend"></div>
       </div>
     </div>
 
-    <!-- Staff Overview -->
+    <!-- Staff by dept -->
     <div class="card">
-      <div class="card-title">👥 Staff</div>
+      <div class="card-title">Staff</div>
       <div class="card-sub">By department</div>
-      <div class="bar-chart" id="staff-bars"></div>
+      <div class="bar-chart" id="staff-bars">
+        <div style="color:rgba(255,255,255,.25);font-size:12px">No staff data</div>
+      </div>
     </div>
 
     <!-- Tasks -->
     <div class="card">
-      <div class="card-title">✅ Tasks</div>
-      <div class="card-sub">Status breakdown</div>
-      <div class="bar-chart" id="tasks-bars"></div>
+      <div class="card-title">Tasks</div>
+      <div class="card-sub">By status</div>
+      <div class="bar-chart" id="tasks-bars">
+        <div style="color:rgba(255,255,255,.25);font-size:12px">No tasks data</div>
+      </div>
     </div>
-
   </div>
 
-  <div class="dashboard-grid">
-
-    <!-- Properties -->
+  <!-- BOTTOM ROW -->
+  <div class="grid-2">
+    <!-- Properties by type -->
     <div class="card">
-      <div class="card-title">🏠 Properties</div>
-      <div class="card-sub">By type & status</div>
-      <div class="bar-chart" id="props-bars"></div>
+      <div class="card-title">Properties</div>
+      <div class="card-sub">By type</div>
+      <div class="bar-chart" id="props-bars">
+        <div style="color:rgba(255,255,255,.25);font-size:12px">No properties data</div>
+      </div>
     </div>
 
-    <!-- Open Tickets -->
+    <!-- Open tickets -->
     <div class="card">
-      <div class="card-title">🎫 Open Tickets</div>
-      <div class="card-sub">Recent issues & ideas</div>
-      <div id="tickets-list-home"></div>
+      <div class="card-title">Open Tickets</div>
+      <div class="card-sub">Bugs & improvements</div>
+      <div id="tickets-list"></div>
     </div>
-
   </div>
 
-</div>
+</div><!-- /layout -->
 
 <script>
-// ── CLOCK ──────────────────────────────────────────────
-function updateClock() {
-  const now = new Date();
-  document.getElementById('clock').textContent = now.toLocaleTimeString('el-GR',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
-  document.getElementById('dateLine').textContent = now.toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+/* ── CLOCK ── */
+function tick(){
+  const now=new Date();
+  document.getElementById('clock').textContent=now.toLocaleTimeString('en-GB');
+  document.getElementById('date').textContent=now.toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
 }
-updateClock(); setInterval(updateClock,1000);
+tick(); setInterval(tick,1000);
 
-// ── DATA LOADER ────────────────────────────────────────
-function safe(key, def) {
-  try { return JSON.parse(localStorage.getItem(key)||'null')||def; } catch{return def;}
+/* ── SUPABASE ── */
+const SB='https://whuytfjwdjjepayeiohj.supabase.co';
+const SK='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndodXl0Zmp3ZGpqZXBheWVpb2hqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIyODQxMzQsImV4cCI6MjA4Nzg2MDEzNH0.pTDAqw_Cnzc9D3tJU-tU7Ch5qpapKmteiqI_ooSCufY';
+
+async function sbGet(table,select='*',filter=''){
+  const url=`${SB}/rest/v1/${table}?select=${select}${filter}&limit=5000`;
+  const r=await fetch(url,{headers:{'apikey':SK,'Authorization':'Bearer '+SK}});
+  if(!r.ok) return [];
+  return r.json();
 }
 
-function renderBar(label, val, max, color) {
-  const pct = max > 0 ? Math.round((val/max)*100) : 0;
+/* ── LOCAL CACHE FALLBACK ── */
+function safe(key,def){try{return JSON.parse(localStorage.getItem(key)||'null')||def;}catch{return def;}}
+
+/* ── RENDER HELPERS ── */
+const CHART_COLORS=['#c9a84c','#27ae60','#1a7a6e','#8e44ad','#e67e22','#3498db'];
+
+function bar(label,val,max,color){
+  const pct=max>0?Math.round((val/max)*100):0;
   return `<div class="bar-row">
     <span class="bar-label" title="${label}">${label}</span>
     <div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:${color}"></div></div>
@@ -321,114 +371,137 @@ function renderBar(label, val, max, color) {
   </div>`;
 }
 
-function loadStats() {
-  const props      = safe('zesty_properties',[]);
-  const owners     = safe('zesty_owners',[]);
-  const guests     = safe('zesty_guests',[]);
-  const jobs       = safe('zesty_jobs',[]);
-  const staff      = safe('zesty_staff',[]);
-  const employees  = safe('zesty_employees',[]);
-  const tasks      = safe('zesty_tasks',[]);
-  const onboardings= safe('zesty_onboardings',[]);
-  const tickets    = safe('zesty_tickets',[]);
+/* ── LOAD DATA ── */
+async function loadAll(){
+  let props=[],owners=[],guests=[],jobs=[],staff=[],employees=[],tasks=[],tickets=[];
 
-  const activeProps  = props.filter(p=>!p.archived&&p.status==='Active').length || props.length;
-  const activeOwners = owners.filter(o=>!o.archived&&o.status!=='Inactive').length || owners.length;
-  const openJobs     = jobs.filter(j=>j.status==='Open'||j.status==='In Progress').length;
-  const activeStaff  = (staff.filter(s=>s.status!=='Inactive').length || 0) + (employees.filter(e=>e.status==='Active').length || 0);
-  const openTasks    = tasks.filter(t=>t.status==='Open'||t.status==='In Progress').length;
+  try{
+    [props,owners,guests,jobs,staff,employees,tasks,tickets]=await Promise.all([
+      sbGet('properties'),
+      sbGet('owners'),
+      sbGet('guests'),
+      sbGet('jobs'),
+      sbGet('staff'),
+      sbGet('employees'),
+      sbGet('tasks'),
+      sbGet('tickets')
+    ]);
+  } catch(e) {
+    /* Fallback to localStorage */
+    props=safe('zesty_properties',[]);
+    owners=safe('zesty_owners',[]);
+    guests=safe('zesty_guests',[]);
+    jobs=safe('zesty_jobs',[]);
+    staff=safe('zesty_staff',[]);
+    employees=safe('zesty_employees',[]);
+    tasks=safe('zesty_tasks',[]);
+    tickets=safe('zesty_tickets',[]);
+  }
 
-  // KPIs
-  document.getElementById('kpi-props').textContent     = activeProps||'—';
-  document.getElementById('kpi-owners').textContent    = activeOwners||'—';
-  document.getElementById('kpi-guests').textContent    = guests.length||'—';
-  document.getElementById('kpi-open-jobs').textContent = openJobs||'—';
-  document.getElementById('kpi-staff').textContent     = activeStaff||'—';
-  document.getElementById('kpi-tasks').textContent     = openTasks||'—';
+  const activeProps=props.filter(p=>!p.archived&&(p.status||'Active')==='Active').length||props.filter(p=>!p.archived).length;
+  const activeOwners=owners.filter(o=>!o.archived&&o.status!=='Inactive').length||owners.filter(o=>!o.archived).length;
+  const openJobs=jobs.filter(j=>j.status==='Open'||j.status==='In Progress').length;
+  const allStaff=[...staff,...employees];
+  const activeStaff=allStaff.filter(s=>(s.status||'Active')==='Active').length||allStaff.length;
+  const openTasks=tasks.filter(t=>t.status==='Open'||t.status==='In Progress').length;
+  const openOnb=(safe('zesty_onboardings',[])).filter(o=>o.stage&&o.stage!=='completed'&&o.stage!=='declined').length;
 
-  // Quick links
-  document.getElementById('ql-owners').textContent   = activeOwners ? activeOwners+' active' : '—';
-  document.getElementById('ql-props').textContent    = activeProps  ? activeProps+' active' : '—';
-  document.getElementById('ql-cleaning').textContent = staff.length  ? staff.length+' cleaners' : '—';
-  document.getElementById('ql-jobs').textContent     = openJobs     ? openJobs+' open' : jobs.length ? jobs.length+' total' : '—';
-  document.getElementById('ql-tasks').textContent    = openTasks    ? openTasks+' open' : '—';
-  document.getElementById('ql-onboarding').textContent = onboardings.filter(o=>o.stage&&o.stage!=='completed'&&o.stage!=='declined').length || onboardings.length || '—';
-  const openTickets = tickets.filter(t=>t.status!=='fixed').length;
-  document.getElementById('ql-tickets').textContent  = openTickets ? openTickets+' open' : '—';
-  document.getElementById('ql-laundry').textContent  = '—';
+  /* KPIs */
+  document.getElementById('k-props').textContent=activeProps||'—';
+  document.getElementById('k-owners').textContent=activeOwners||'—';
+  document.getElementById('k-guests').textContent=guests.length||'—';
+  document.getElementById('k-jobs').textContent=openJobs||'—';
+  document.getElementById('k-staff').textContent=activeStaff||'—';
+  document.getElementById('k-tasks').textContent=openTasks||'—';
 
-  // Activity strip
-  const acts = [];
-  if (activeProps)  acts.push(`<div class="activity-item"><span class="activity-dot"></span><strong>${activeProps}</strong>&nbsp;active properties</div>`);
-  if (activeOwners) acts.push(`<div class="activity-item"><span class="activity-dot" style="background:var(--gold-light)"></span><strong>${activeOwners}</strong>&nbsp;owners</div>`);
-  if (guests.length) acts.push(`<div class="activity-item"><span class="activity-dot" style="background:#c9a84c"></span><strong>${guests.length.toLocaleString()}</strong>&nbsp;guests</div>`);
-  if (openJobs)     acts.push(`<div class="activity-item"><span class="activity-dot" style="background:#e74c3c"></span><strong>${openJobs}</strong>&nbsp;open jobs</div>`);
-  if (activeStaff)  acts.push(`<div class="activity-item"><span class="activity-dot" style="background:#8e44ad"></span><strong>${activeStaff}</strong>&nbsp;staff active</div>`);
-  if (openTasks)    acts.push(`<div class="activity-item"><span class="activity-dot" style="background:#27ae60"></span><strong>${openTasks}</strong>&nbsp;open tasks</div>`);
-  document.getElementById('activity-items').innerHTML = acts.join('') || '<div class="activity-item">Open any module to load data</div>';
+  /* Quick links */
+  document.getElementById('ql-owners').textContent=activeOwners?activeOwners+' active':'—';
+  document.getElementById('ql-props').textContent=activeProps?activeProps+' active':'—';
+  document.getElementById('ql-guests').textContent=guests.length?guests.length+' records':'—';
+  document.getElementById('ql-cleaning').textContent=staff.length?staff.length+' cleaners':'—';
+  document.getElementById('ql-jobs').textContent=openJobs?openJobs+' open':jobs.length?jobs.length+' total':'—';
+  document.getElementById('ql-tasks').textContent=openTasks?openTasks+' open':'—';
+  document.getElementById('ql-staff').textContent=activeStaff?activeStaff+' active':'—';
+  document.getElementById('ql-laundry').textContent='—';
+  document.getElementById('ql-onboarding').textContent=openOnb?openOnb+' pending':'—';
+  document.getElementById('ql-contacts').textContent='—';
+  const openTickets=tickets.filter(t=>t.status!=='fixed').length;
+  document.getElementById('ql-tickets').textContent=openTickets?openTickets+' open':'—';
 
-  // Jobs donut chart
-  const jOpen = jobs.filter(j=>j.status==='Open').length;
-  const jProg = jobs.filter(j=>j.status==='In Progress').length;
-  const jDone = jobs.filter(j=>j.status==='Completed'||j.status==='Paid').length;
-  const jTotal = jobs.length || 1;
-  const circ = 188.5;
-  // Calculate offsets for stacked donut
-  const openDash = (jOpen/jTotal)*circ;
-  const progDash = (jProg/jTotal)*circ;
-  const doneDash = (jDone/jTotal)*circ;
-  document.getElementById('donut-open').style.strokeDasharray = `${openDash} ${circ}`;
-  document.getElementById('donut-progress').style.strokeDasharray = `${progDash} ${circ}`;
-  document.getElementById('donut-progress').style.transform = `rotate(${-90+(jOpen/jTotal)*360}deg) translate(0) rotate(0)`;
-  document.getElementById('donut-done').style.strokeDasharray = `${doneDash} ${circ}`;
-  document.getElementById('jobs-legend').innerHTML = [
-    ['#e74c3c','Open',jOpen],
-    ['#e67e22','In Progress',jProg],
-    ['#27ae60','Done/Paid',jDone],
-  ].map(([c,l,v])=>`<div class="legend-item"><span class="legend-dot" style="background:${c}"></span>${l}: <strong>${v}</strong></div>`).join('');
+  /* Activity strip */
+  const acts=[];
+  if(activeProps) acts.push(`<div class="act-item"><div class="act-dot"></div><strong>${activeProps}</strong>&nbsp;properties</div>`);
+  if(activeOwners) acts.push(`<div class="act-item"><div class="act-dot" style="background:var(--gold-light)"></div><strong>${activeOwners}</strong>&nbsp;owners</div>`);
+  if(guests.length) acts.push(`<div class="act-item"><div class="act-dot" style="background:#c9a84c"></div><strong>${guests.length.toLocaleString()}</strong>&nbsp;guests</div>`);
+  if(openJobs) acts.push(`<div class="act-item"><div class="act-dot" style="background:#e74c3c"></div><strong>${openJobs}</strong>&nbsp;open jobs</div>`);
+  if(activeStaff) acts.push(`<div class="act-item"><div class="act-dot" style="background:#8e44ad"></div><strong>${activeStaff}</strong>&nbsp;staff</div>`);
+  if(openTasks) acts.push(`<div class="act-item"><div class="act-dot" style="background:#27ae60"></div><strong>${openTasks}</strong>&nbsp;tasks open</div>`);
+  document.getElementById('activity-strip').innerHTML=acts.join('')||'<div class="act-item">Open any module to load data</div>';
 
-  // Staff bars by department
-  const depts = {};
-  [...staff,...employees].forEach(s=>{
-    const d = s.department||s.zone||'Other';
-    depts[d]=(depts[d]||0)+1;
-  });
-  const maxD = Math.max(...Object.values(depts),1);
-  const COLORS=['#c9a84c','#27ae60','#1a7a6e','#8e44ad','#e67e22','#3498db'];
-  document.getElementById('staff-bars').innerHTML = Object.entries(depts).sort(([,a],[,b])=>b-a).slice(0,6).map(([k,v],i)=>renderBar(k,v,maxD,COLORS[i%COLORS.length])).join('') || '<div style="color:rgba(255,255,255,.3);font-size:12px">No staff data loaded</div>';
+  /* Jobs donut */
+  const circ=188.5;
+  const jOpen=jobs.filter(j=>j.status==='Open').length;
+  const jProg=jobs.filter(j=>j.status==='In Progress').length;
+  const jDone=jobs.filter(j=>j.status==='Completed'||j.status==='Paid').length;
+  const jTot=Math.max(jobs.length,1);
+  const openDash=(jOpen/jTot)*circ;
+  const progDash=(jProg/jTot)*circ;
+  const doneDash=(jDone/jTot)*circ;
+  const dOpen=document.getElementById('d-open');
+  const dProg=document.getElementById('d-prog');
+  const dDone=document.getElementById('d-done');
+  setTimeout(()=>{
+    dOpen.style.strokeDasharray=`${openDash} ${circ}`;
+    dProg.style.strokeDasharray=`${progDash} ${circ}`;
+    dProg.style.strokeDashoffset=-openDash;
+    dDone.style.strokeDasharray=`${doneDash} ${circ}`;
+    dDone.style.strokeDashoffset=-(openDash+progDash);
+  },100);
+  document.getElementById('jobs-legend').innerHTML=
+    [['#e74c3c','Open',jOpen],['#e67e22','In Progress',jProg],['#27ae60','Done/Paid',jDone]]
+    .map(([c,l,v])=>`<div class="leg-item"><span class="leg-dot" style="background:${c}"></span>${l}: <strong>${v}</strong></div>`).join('');
 
-  // Tasks bars
-  const taskOpen = tasks.filter(t=>t.status==='Open').length;
-  const taskProg = tasks.filter(t=>t.status==='In Progress').length;
-  const taskDone = tasks.filter(t=>t.status==='Done'||t.status==='Completed').length;
-  const maxT = Math.max(taskOpen,taskProg,taskDone,1);
-  document.getElementById('tasks-bars').innerHTML = [
-    ['Open',taskOpen,'#e74c3c'],
-    ['In Progress',taskProg,'#e67e22'],
-    ['Done',taskDone,'#27ae60'],
-  ].map(([l,v,c])=>renderBar(l,v,maxT,c)).join('') || '<div style="color:rgba(255,255,255,.3);font-size:12px">No tasks data loaded</div>';
+  /* Staff by dept */
+  const depts={};
+  allStaff.forEach(s=>{const d=s.department||s.zone||'Other';depts[d]=(depts[d]||0)+1;});
+  const maxD=Math.max(...Object.values(depts),1);
+  document.getElementById('staff-bars').innerHTML=Object.entries(depts).sort(([,a],[,b])=>b-a).slice(0,6)
+    .map(([k,v],i)=>bar(k,v,maxD,CHART_COLORS[i%CHART_COLORS.length])).join('')||'<div style="color:rgba(255,255,255,.25);font-size:12px">No staff data loaded</div>';
 
-  // Properties bars by type
-  const ptypes = {};
-  props.forEach(p=>{ const t=p.type||'Other'; ptypes[t]=(ptypes[t]||0)+1; });
-  const maxP = Math.max(...Object.values(ptypes),1);
-  document.getElementById('props-bars').innerHTML = Object.entries(ptypes).sort(([,a],[,b])=>b-a).slice(0,6).map(([k,v],i)=>renderBar(k,v,maxP,COLORS[i%COLORS.length])).join('') || '<div style="color:rgba(255,255,255,.3);font-size:12px">No properties data loaded</div>';
+  /* Tasks by status */
+  const tOpen=tasks.filter(t=>t.status==='Open').length;
+  const tProg=tasks.filter(t=>t.status==='In Progress').length;
+  const tDone=tasks.filter(t=>t.status==='Done'||t.status==='Completed').length;
+  const maxT=Math.max(tOpen,tProg,tDone,1);
+  document.getElementById('tasks-bars').innerHTML=[['Open',tOpen,'#e74c3c'],['In Progress',tProg,'#e67e22'],['Done',tDone,'#27ae60']]
+    .map(([l,v,c])=>bar(l,v,maxT,c)).join('')||'<div style="color:rgba(255,255,255,.25);font-size:12px">No tasks data</div>';
 
-  // Open tickets
-  const openT = tickets.filter(t=>t.status!=='fixed').slice(0,5);
-  const TICONS = {bug:'🐛',improvement:'⚡',idea:'💡'};
-  document.getElementById('tickets-list-home').innerHTML = openT.length ?
-    openT.map(t=>`<div class="ticket-mini">
-      <span class="tm-icon">${TICONS[t.type]||'📋'}</span>
-      <div><div class="tm-text">${t.text.slice(0,70)}${t.text.length>70?'...':''}</div><div class="tm-page">📍 ${t.page}</div></div>
-      <span class="badge-mini bm-${t.status==='wip'?'wip':'open'}">${t.status==='wip'?'WIP':'NEW'}</span>
-    </div>`).join('') :
-    '<div style="color:rgba(255,255,255,.3);font-size:12px;padding:20px 0;text-align:center">No open tickets 🎉</div>';
+  /* Props by type */
+  const ptypes={};
+  props.forEach(p=>{const t=p.type||'Other';ptypes[t]=(ptypes[t]||0)+1;});
+  const maxP=Math.max(...Object.values(ptypes),1);
+  document.getElementById('props-bars').innerHTML=Object.entries(ptypes).sort(([,a],[,b])=>b-a).slice(0,6)
+    .map(([k,v],i)=>bar(k,v,maxP,CHART_COLORS[i%CHART_COLORS.length])).join('')||'<div style="color:rgba(255,255,255,.25);font-size:12px">No properties data</div>';
+
+  /* Open tickets */
+  const openT=tickets.filter(t=>t.status!=='fixed').slice(0,5);
+  const TICONS={bug:'🐛',improvement:'⚡',idea:'💡'};
+  document.getElementById('tickets-list').innerHTML=openT.length?
+    openT.map(t=>`<div class="ticket-item">
+      <span>${TICONS[t.type]||'📋'}</span>
+      <div class="ti-body">
+        <div class="ti-text">${(t.text||'').slice(0,72)}${(t.text||'').length>72?'…':''}</div>
+        <div class="ti-page">📍 ${t.page}</div>
+      </div>
+      <span class="ti-badge ${t.status==='wip'?'ti-wip':'ti-open'}">${t.status==='wip'?'WIP':'NEW'}</span>
+    </div>`).join(''):
+    '<div style="color:rgba(255,255,255,.25);font-size:12px;padding:20px 0;text-align:center">No open tickets 🎉</div>';
 }
 
-loadStats();
-setInterval(loadStats,30000);
+loadAll();
+setInterval(loadAll,60000);
 </script>
+
 <script src="erp-nav.js"></script>
 </body>
 </html>

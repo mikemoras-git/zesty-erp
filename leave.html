@@ -2,1384 +2,222 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Zesty ERP - Leave Management</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Zesty ERP — Leave</title>
+<link rel="stylesheet" href="erp-style.css">
 <style>
-:root{--teal:#1a7a6e;--teal-light:#23a090;--teal-dark:#115950;--gold:#c9a84c;--gold-light:#e8c97a;--cream:#f8f5f0;--white:#fff;--text:#1e2a28;--text-muted:#6b7e7b;--border:#d4e0de;--danger:#c0392b;--success:#27ae60;--archive:#8e6b23;--warning:#e67e22;--shadow:0 2px 16px rgba(26,122,110,.10);--shadow-lg:0 8px 40px rgba(26,122,110,.15)}
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--text);min-height:100vh}
-header{background:linear-gradient(135deg,var(--teal-dark),var(--teal));padding:14px 28px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 12px rgba(0,0,0,.15);position:sticky;top:0;z-index:100;flex-wrap:wrap;gap:10px}
-.logo{font-family:'DM Serif Display',serif;color:#fff;font-size:20px}
-.logo span{color:var(--gold-light)}
-.header-right{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:8px;font-size:13px;font-family:'DM Sans',sans-serif;font-weight:500;cursor:pointer;border:none;transition:all .18s}
-.btn-outline{background:transparent;border:1px solid rgba(255,255,255,.3);color:var(--gold-light)}
-.btn-outline:hover{background:rgba(255,255,255,.1)}
-.btn-active{background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.5);color:#fff}
-.btn-primary{background:var(--gold);color:var(--teal-dark);font-weight:600}
-.btn-primary:hover{background:var(--gold-light)}
-.btn-danger{background:var(--danger);color:#fff}
-.btn-danger:hover{background:#a93226}
-.btn-ghost{background:transparent;border:1px solid var(--border);color:var(--text-muted)}
-.btn-ghost:hover{background:var(--border);color:var(--text)}
-.btn-save{background:var(--teal);color:#fff}
-.btn-save:hover{background:var(--teal-light)}
-.btn-sm{padding:5px 10px;font-size:12px}
-main{max-width:1300px;margin:0 auto;padding:28px 24px 100px}
-/* SUB NAV */
-.sub-nav{display:flex;gap:4px;background:var(--white);border-radius:12px;padding:6px;border:1px solid var(--border);margin-bottom:24px;flex-wrap:wrap}
-.sub-tab{padding:8px 18px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;color:var(--text-muted);transition:all .18s}
-.sub-tab:hover{color:var(--teal)}
-.sub-tab.active{background:var(--teal);color:#fff}
-/* VIEWS */
-.view{display:none}
-.view.active{display:block}
-/* FILTER CARD */
-.filter-card{background:var(--white);border-radius:12px;border:1px solid var(--border);padding:20px 24px;margin-bottom:20px;box-shadow:var(--shadow)}
-.filter-card h3{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);margin-bottom:14px}
-.filter-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:14px}
-.filter-grid2{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:14px}
-.fg{display:flex;flex-direction:column;gap:5px}
-.fg label{font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em}
-.fg input,.fg select{padding:8px 12px;border:1px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;background:var(--cream);outline:none}
-.fg input:focus,.fg select:focus{border-color:var(--teal-light)}
-.filter-actions{display:flex;justify-content:flex-end;gap:10px;padding-top:12px;border-top:1px solid var(--border)}
-/* TABLE */
-.table-wrap{background:var(--white);border-radius:12px;border:1px solid var(--border);box-shadow:var(--shadow);overflow:hidden}
-table{width:100%;border-collapse:collapse}
-thead{background:var(--cream)}
-th{padding:10px 14px;text-align:left;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text-muted);border-bottom:1px solid var(--border);white-space:nowrap}
-td{padding:11px 14px;border-bottom:1px solid var(--border);font-size:13px;vertical-align:middle}
-tr:last-child td{border-bottom:none}
-tr.leave-row:hover{background:#f0faf8}
-.badge{display:inline-block;padding:2px 9px;border-radius:12px;font-size:11px;font-weight:600}
-.b-annual{background:#e8f8f0;color:var(--success)}
-.b-sick{background:#fdf0ef;color:var(--danger)}
-.b-hourly{background:#fff3e0;color:var(--warning)}
-.empty-row td{text-align:center;padding:50px;color:var(--text-muted)}
-/* APPLY FORM */
-.apply-card{background:var(--white);border-radius:12px;border:1px solid var(--border);padding:28px;max-width:700px;box-shadow:var(--shadow)}
-.apply-card h2{font-family:'DM Serif Display',serif;font-size:22px;color:var(--teal-dark);margin-bottom:6px}
-.apply-card p{color:var(--text-muted);font-size:13px;margin-bottom:24px}
-.leave-type-tabs{display:flex;gap:10px;margin-bottom:24px;flex-wrap:wrap}
-.ltype-btn{padding:12px 20px;border-radius:10px;border:2px solid var(--border);background:var(--cream);cursor:pointer;text-align:center;transition:all .18s;min-width:130px}
-.ltype-btn:hover{border-color:var(--teal-light)}
-.ltype-btn.active{border-color:var(--teal);background:#f0faf8}
-.ltype-btn .ltype-name{font-weight:600;font-size:13px;color:var(--text)}
-.ltype-btn .ltype-bal{font-size:11px;color:var(--text-muted);margin-top:3px}
-.ltype-btn.active .ltype-name{color:var(--teal)}
-.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-.form-grid.three{grid-template-columns:1fr 1fr 1fr}
-.full{grid-column:1/-1}
-.form-footer{display:flex;justify-content:flex-end;gap:10px;padding-top:20px;border-top:1px solid var(--border);margin-top:20px}
-/* CALENDAR */
-.cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
-.cal-header h2{font-family:'DM Serif Display',serif;font-size:20px;color:var(--teal-dark)}
-.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
-.cal-day-name{text-align:center;font-size:11px;font-weight:700;text-transform:uppercase;color:var(--text-muted);padding:8px 0}
-.cal-day{min-height:80px;background:var(--white);border:1px solid var(--border);border-radius:6px;padding:6px;position:relative}
-.cal-day.today{border-color:var(--teal);background:#f0faf8}
-.cal-day.other-month{background:var(--cream);opacity:.5}
-.cal-date{font-size:12px;font-weight:600;color:var(--text-muted);margin-bottom:4px}
-.cal-day.today .cal-date{color:var(--teal)}
-.cal-event{font-size:10px;padding:2px 5px;border-radius:3px;margin-bottom:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:default}
-.cal-event.annual{background:#e8f8f0;color:var(--success)}
-.cal-event.sick{background:#fdf0ef;color:var(--danger)}
-.cal-event.hourly{background:#fff3e0;color:var(--warning)}
-/* BALANCE TABLE */
-.bal-table{background:var(--white);border-radius:12px;border:1px solid var(--border);box-shadow:var(--shadow);overflow:hidden}
-.bal-table table{width:100%;border-collapse:collapse}
-.bal-table th{padding:10px 16px;text-align:left;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text-muted);border-bottom:1px solid var(--border);background:var(--cream)}
-.bal-table td{padding:12px 16px;border-bottom:1px solid var(--border);font-size:13px}
-.bal-table tr:last-child td{border-bottom:none}
-.bal-bar{height:5px;background:var(--border);border-radius:3px;overflow:hidden;margin-top:4px}
-.bal-fill{height:100%;border-radius:3px}
-.bal-fill.annual{background:var(--success)}
-.bal-fill.sick{background:var(--danger)}
-.bal-fill.hourly{background:var(--warning)}
-.avatar-sm{width:30px;height:30px;border-radius:50%;color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0}
-.emp-cell{display:flex;align-items:center;gap:8px}
-/* MODAL */
-.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1000;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto}
-.modal-overlay.open{display:flex}
-.modal{background:var(--white);border-radius:16px;width:100%;max-width:500px;margin:auto;box-shadow:var(--shadow-lg)}
-.modal-header{padding:20px 24px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
-.modal-header h2{font-family:'DM Serif Display',serif;font-size:20px;color:var(--teal-dark)}
-.modal-close{background:none;border:none;font-size:20px;cursor:pointer;color:var(--text-muted);padding:4px 8px;border-radius:6px}
-.modal-body{padding:24px}
-.modal-footer{padding:16px 24px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:10px}
-.toast{position:fixed;bottom:80px;right:20px;background:var(--teal-dark);color:#fff;padding:10px 18px;border-radius:10px;font-size:13px;z-index:2000;transform:translateY(60px);opacity:0;transition:all .3s}
-.toast.show{transform:translateY(0);opacity:1}
-.toast.err{background:var(--danger)}
-#loadingOverlay{position:fixed;inset:0;background:var(--cream);display:flex;align-items:center;justify-content:center;z-index:9000;font-size:14px;color:var(--text-muted)}
-@media(max-width:900px){.filter-grid{grid-template-columns:1fr 1fr}.filter-grid2{grid-template-columns:1fr 1fr}.form-grid{grid-template-columns:1fr}.form-grid.three{grid-template-columns:1fr 1fr}.cal-day{min-height:55px}}
-@media(max-width:600px){.cal-grid{gap:1px}.cal-day{min-height:45px;padding:3px}.cal-event{display:none}}
-/* ═══════════════════════════════════════════════════════
-   UNIFIED ERP NAV — mobile-first, fully responsive
-   ═══════════════════════════════════════════════════════ */
-html{scroll-behavior:smooth}
-.erp-header{background:var(--teal-dark,#115950);position:sticky;top:0;z-index:500;box-shadow:0 2px 20px rgba(0,0,0,.25)}
-/* Row 1 — global modules */
-.erp-nav-global{display:flex;align-items:center;padding:0 16px;height:40px;border-bottom:1px solid rgba(255,255,255,.1);gap:4px;min-width:0}
-.erp-logo{font-family:'Cormorant Garamond','DM Serif Display',serif;font-size:16px;font-weight:500;color:#fff;white-space:nowrap;margin-right:10px;flex-shrink:0;text-decoration:none}
-.erp-logo span{color:#e8c97a}
-.erp-modules{display:flex;gap:2px;flex:1;min-width:0;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
-.erp-modules::-webkit-scrollbar{display:none}
-.erp-mod-btn{padding:4px 8px;border-radius:5px;font-size:11px;font-weight:500;color:rgba(255,255,255,.7);text-decoration:none;white-space:nowrap;transition:all .15s;font-family:'DM Sans',sans-serif;display:inline-block;-webkit-tap-highlight-color:transparent}
-.erp-mod-btn:hover,.erp-mod-btn:focus{background:rgba(255,255,255,.12);color:#fff;outline:none}
-.erp-mod-btn.active{background:#c9a84c;color:#0a3d36;font-weight:700}
-/* Row 2 — local toolbar */
-.erp-nav-local{display:flex;align-items:center;padding:0 14px;min-height:38px;background:rgba(0,0,0,.15);gap:6px;flex-wrap:wrap;overflow-x:auto;scrollbar-width:none}
-.erp-nav-local::-webkit-scrollbar{display:none}
-.erp-local-title{font-size:12px;font-weight:600;color:rgba(255,255,255,.9);white-space:nowrap}
-.erp-local-spacer{flex:1}
-.erp-nav-local a,.erp-nav-local button{padding:4px 10px;border-radius:5px;font-size:12px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s;-webkit-tap-highlight-color:transparent;white-space:nowrap;text-decoration:none;display:inline-flex;align-items:center;gap:4px}
-.erp-nav-local a.nav-link-btn{background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.85)}
-.erp-nav-local a.nav-link-btn:hover{background:rgba(255,255,255,.1)}
-.erp-nav-local button.nav-btn-ghost{background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.85)}
-.erp-nav-local button.nav-btn-ghost:hover{background:rgba(255,255,255,.1)}
-.erp-nav-local button.nav-btn-primary,.erp-nav-local a.nav-btn-primary{background:#c9a84c;color:#0a3d36;font-weight:700;border:none}
-.erp-nav-local button.nav-btn-primary:hover,.erp-nav-local a.nav-btn-primary:hover{background:#e8c97a}
-/* Mobile hamburger */
-.erp-menu-toggle{display:none;background:transparent;border:1px solid rgba(255,255,255,.3);color:#fff;padding:4px 8px;border-radius:5px;cursor:pointer;font-size:16px;margin-left:auto;flex-shrink:0}
-/* Mobile responsive */
-@media(max-width:768px){
-  .erp-nav-global{padding:0 10px}
-  .erp-modules{gap:1px}
-  .erp-mod-btn{font-size:10px;padding:3px 6px}
-  .erp-logo{font-size:14px;margin-right:6px}
-  .erp-nav-local{padding:0 10px;gap:4px}
-  .erp-nav-local a,.erp-nav-local button{font-size:11px;padding:3px 8px}
-}
-@media(max-width:480px){
-  .erp-mod-btn span.mod-label{display:none}
-  .erp-mod-btn{padding:4px 5px;font-size:13px}
-}
-/* ── GLOBAL MOBILE RESPONSIVE ── */
-@media(max-width:768px){
-  /* Tables scroll horizontally */
-  .table-wrap,.table-container,[style*="overflow-x"]{overflow-x:auto!important;-webkit-overflow-scrolling:touch}
-  table{min-width:500px}
-  /* Modals full screen on mobile */
-  .modal-overlay,.overlay{padding:8px!important}
-  .modal,.modal-lg{width:100%!important;max-width:100%!important;max-height:95vh!important;border-radius:12px!important;margin:auto}
-  /* Form grids stack */
-  .form-grid,.form-row,.form-grid-2,.form-grid-3,.form-grid-4,.form-grid-6{grid-template-columns:1fr!important}
-  .col-span-2,.col-span-4,.form-full{grid-column:1/-1!important}
-  /* Stats bars collapse */
-  .stats-bar,.kpi-grid,.kpi-grid-6{grid-template-columns:repeat(2,1fr)!important}
-  /* Cards stack */
-  .stats-row{grid-template-columns:repeat(2,1fr)!important}
-  /* Container padding */
-  .container,main,[class*="container"]{padding-left:10px!important;padding-right:10px!important}
-  /* Hide some less important columns on mobile */
-  .hide-mobile{display:none!important}
-  /* Buttons full width in modal footer */
-  .modal-footer{flex-wrap:wrap}
-  .modal-footer .btn{flex:1;justify-content:center;min-width:100px}
-}
-@media(max-width:480px){
-  .stats-bar,.kpi-grid,.stats-row{grid-template-columns:1fr 1fr!important}
-  td,th{padding:6px 8px!important;font-size:11px!important}
-}
-
-/* ═══════════════════════════════════════════════════
-   ZESTY ERP — LEFT SIDEBAR NAVIGATION
-   ═══════════════════════════════════════════════════ */
-
-/* Reset old top header nav */
-.erp-header,.erp-nav-global,.erp-nav-local,
-.erp-modules,.erp-mod-btn,.erp-logo,
-.erp-local-title,.erp-local-spacer { all: unset; }
-.erp-header { display: none !important; }
-
-/* ── LAYOUT WRAPPER ── */
-body.erp-layout {
-  display: flex;
-  min-height: 100vh;
-  overflow-x: hidden;
-}
-
-/* ── SIDEBAR ── */
-.erp-sidebar {
-  width: 220px;
-  min-width: 220px;
-  background: linear-gradient(180deg, #0a3d36 0%, #0d4a42 60%, #0f5248 100%);
-  display: flex;
-  flex-direction: column;
-  position: fixed;
-  top: 0; left: 0; bottom: 0;
-  z-index: 600;
-  box-shadow: 3px 0 20px rgba(0,0,0,0.3);
-  transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
-  overflow-y: auto;
-  scrollbar-width: thin;
-  scrollbar-color: rgba(255,255,255,.1) transparent;
-}
-.erp-sidebar::-webkit-scrollbar { width: 4px; }
-.erp-sidebar::-webkit-scrollbar-track { background: transparent; }
-.erp-sidebar::-webkit-scrollbar-thumb { background: rgba(255,255,255,.1); border-radius: 2px; }
-
-/* ── SIDEBAR BRAND ── */
-.erp-brand {
-  padding: 20px 18px 16px;
-  border-bottom: 1px solid rgba(255,255,255,.08);
-  flex-shrink: 0;
-}
-.erp-brand-name {
-  font-family: 'Cormorant Garamond', 'DM Serif Display', serif;
-  font-size: 22px; font-weight: 600; color: #fff;
-  line-height: 1; letter-spacing: .3px;
-}
-.erp-brand-name span { color: #e8c97a; }
-.erp-brand-sub {
-  font-size: 10px; color: rgba(255,255,255,.35);
-  text-transform: uppercase; letter-spacing: 2px;
-  margin-top: 4px; font-weight: 400;
-}
-
-/* ── SIDEBAR NAV LINKS ── */
-.erp-nav-section {
-  padding: 10px 0 4px;
-}
-.erp-nav-section-label {
-  font-size: 9px; font-weight: 700;
-  text-transform: uppercase; letter-spacing: .12em;
-  color: rgba(255,255,255,.25);
-  padding: 0 18px; margin-bottom: 4px;
-}
-.erp-nav-link {
-  display: flex; align-items: center; gap: 9px;
-  padding: 8px 18px;
-  color: rgba(255,255,255,.6);
-  text-decoration: none;
-  font-size: 13px; font-weight: 500;
-  font-family: 'DM Sans', sans-serif;
-  transition: all .15s;
-  border-left: 3px solid transparent;
-  -webkit-tap-highlight-color: transparent;
-  cursor: pointer;
-  background: none; border-right: none;
-  border-top: none; border-bottom: none;
-  width: 100%; text-align: left;
-}
-.erp-nav-link:hover {
-  color: #fff;
-  background: rgba(255,255,255,.07);
-  border-left-color: rgba(255,255,255,.2);
-}
-.erp-nav-link.active {
-  color: #e8c97a;
-  background: rgba(201,168,76,.12);
-  border-left-color: #e8c97a;
-  font-weight: 600;
-}
-.erp-nav-link .nav-icon { font-size: 15px; flex-shrink: 0; width: 18px; text-align: center; }
-.erp-nav-link .nav-label { flex: 1; }
-.erp-nav-link .nav-badge {
-  font-size: 10px; font-weight: 700;
-  background: rgba(201,168,76,.25); color: #e8c97a;
-  padding: 1px 6px; border-radius: 8px;
-}
-.erp-nav-divider {
-  height: 1px; background: rgba(255,255,255,.06);
-  margin: 6px 14px;
-}
-
-/* ── MODULE TABS (inside sidebar, below nav links) ── */
-.erp-module-tabs {
-  margin-top: auto;
-  padding: 8px 0 12px;
-  border-top: 1px solid rgba(255,255,255,.08);
-}
-.erp-module-tabs-label {
-  font-size: 9px; font-weight: 700;
-  text-transform: uppercase; letter-spacing: .12em;
-  color: rgba(255,255,255,.25);
-  padding: 0 18px; margin-bottom: 4px;
-}
-.erp-tab-link {
-  display: flex; align-items: center; gap: 8px;
-  padding: 7px 18px;
-  color: rgba(255,255,255,.55);
-  font-size: 12px; font-weight: 500;
-  font-family: 'DM Sans', sans-serif;
-  transition: all .15s;
-  border-left: 3px solid transparent;
-  -webkit-tap-highlight-color: transparent;
-  cursor: pointer;
-  background: none; border-right: none;
-  border-top: none; border-bottom: none;
-  width: 100%; text-align: left; text-decoration: none;
-}
-.erp-tab-link:hover {
-  color: #fff; background: rgba(255,255,255,.06);
-}
-.erp-tab-link.active {
-  color: #c9a84c; font-weight: 600;
-  background: rgba(201,168,76,.1);
-  border-left-color: #c9a84c;
-}
-
-/* ── SIDEBAR FOOTER (user badge + sync) ── */
-.erp-sidebar-footer {
-  padding: 12px 18px;
-  border-top: 1px solid rgba(255,255,255,.08);
-  flex-shrink: 0;
-}
-.erp-user-badge {
-  font-size: 11px; color: rgba(255,255,255,.45);
-  display: flex; align-items: center; gap: 6px;
-}
-.erp-sync-row {
-  display: flex; align-items: center; gap: 6px;
-  margin-top: 6px;
-}
-.sync-label { font-size: 10px; color: rgba(255,255,255,.3); }
-
-/* ── MAIN CONTENT AREA ── */
-.erp-main {
-  margin-left: 220px;
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-}
-
-/* ── TOP BAR (module title + actions) ── */
-.erp-topbar {
-  background: #fff;
-  border-bottom: 1px solid #d4e0de;
-  padding: 0 28px;
-  height: 52px;
-  display: flex; align-items: center; gap: 12px;
-  position: sticky; top: 0; z-index: 100;
-  box-shadow: 0 1px 8px rgba(26,122,110,.08);
-  flex-shrink: 0;
-}
-.erp-topbar-title {
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 18px; font-weight: 600;
-  color: #115950; flex: 1;
-}
-.erp-topbar-actions { display: flex; gap: 8px; align-items: center; }
-
-/* ── HAMBURGER (mobile only) ── */
-.erp-hamburger {
-  display: none;
-  background: none; border: none;
-  color: #115950; font-size: 22px;
-  cursor: pointer; padding: 4px 8px;
-  border-radius: 6px;
-  -webkit-tap-highlight-color: transparent;
-}
-.erp-overlay {
-  display: none;
-  position: fixed; inset: 0;
-  background: rgba(0,0,0,.5);
-  z-index: 590;
-}
-
-/* ── MOBILE ── */
-@media (max-width: 900px) {
-  .erp-sidebar {
-    transform: translateX(-100%);
-  }
-  .erp-sidebar.open {
-    transform: translateX(0);
-  }
-  .erp-overlay.open { display: block; }
-  .erp-main { margin-left: 0; }
-  .erp-hamburger { display: block; }
-  .erp-topbar { padding: 0 14px; }
-}
-@media (max-width: 600px) {
-  .container, main { padding: 12px 10px 60px !important; }
-  table { min-width: 480px; }
-  .stats-bar, .kpi-grid { grid-template-columns: repeat(2,1fr) !important; }
-}
-
-
+.leave-card{background:#fff;border-radius:12px;border:1px solid var(--border);padding:16px 20px;margin-bottom:12px;display:flex;align-items:flex-start;gap:16px}
+.leave-avatar{width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;color:#fff;flex-shrink:0}
+.leave-days{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:600;color:var(--teal-dark);line-height:1}
+.leave-type-badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700}
+.lt-annual{background:#e8f4f8;color:var(--info)}
+.lt-sick{background:#fdf0ef;color:var(--danger)}
+.lt-unpaid{background:#fff8e0;color:var(--archive)}
+.lt-other{background:#f0e8ff;color:#8e44ad}
 </style>
-    <script src="https://unpkg.com/@azure/msal-browser@2.38.3/lib/msal-browser.min.js"></script>
-    <script>
-    (function(){
-      const _msalConfig={
-        auth:{
-          clientId:'0938023f-cbbf-45f1-a71d-b18c95745ea6',
-          authority:'https://login.microsoftonline.com/9c30b606-6648-4777-a623-64867e43e54f',
-          redirectUri:'https://kissamosrealestate.com/wp-content/erp/index.html'
-        },
-        cache:{cacheLocation:'sessionStorage',storeAuthStateInCookie:false}
-      };
-      const _msal=new msal.PublicClientApplication(_msalConfig);
-      const _loginRequest={scopes:['openid','profile','User.Read']};
-
-      
-      // ── MSAL AUTH ──────────────────────────────────────────
-      const _isMobile = /iPhone|iPad|iPod|Android|Mobile/i.test(navigator.userAgent);
-
-      async function _ensureLogin() {
-        await _msal.initialize();
-        // Handle any redirect result first
-        try {
-          const redirectResult = await _msal.handleRedirectPromise();
-          if (redirectResult && redirectResult.account) {
-            _msal.setActiveAccount(redirectResult.account);
-            _showUserBadge(redirectResult.account.name || redirectResult.account.username);
-            document.documentElement.style.visibility = 'visible';
-            return;
-          }
-        } catch(e) { console.warn('Redirect promise:', e); }
-
-        // Check for existing session
-        const accounts = _msal.getAllAccounts();
-        if (accounts.length > 0) {
-          _msal.setActiveAccount(accounts[0]);
-          _showUserBadge(accounts[0].name || accounts[0].username);
-          document.documentElement.style.visibility = 'visible';
-          return;
-        }
-
-        // No session - login
-        if (_isMobile) {
-          // Mobile: try popup first, fallback to redirect
-          try {
-            const result = await _msal.loginPopup(_loginRequest);
-            if (result && result.account) {
-              _msal.setActiveAccount(result.account);
-              _showUserBadge(result.account.name || result.account.username);
-            }
-            document.documentElement.style.visibility = 'visible';
-          } catch(e) {
-            if (e.errorCode !== 'user_cancelled') {
-              sessionStorage.setItem('msal_return_url', window.location.href);
-              await _msal.loginRedirect(_loginRequest);
-            } else {
-              document.documentElement.style.visibility = 'visible';
-            }
-          }
-        } else {
-          // Desktop: store current page, redirect to login, come back
-          sessionStorage.setItem('msal_return_url', window.location.href);
-          await _msal.loginRedirect(_loginRequest);
-        }
-      }
-
-
-      function _showUserBadge(name) {
-        // Store name globally for sidebar to pick up
-        window._erpUserName = name;
-        // Try to update sidebar user display
-        const zsUser = document.getElementById('zsUser');
-        if (zsUser) {
-          zsUser.innerHTML = '<span>👤 ' + name + '</span>' +
-            '<button onclick="window._azureLogout()" style="background:transparent;border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.5);font-size:10px;padding:2px 7px;border-radius:4px;cursor:pointer;font-family:DM Sans,sans-serif;margin-left:4px">Sign out</button>';
-        }
-        // Also try old header-right for backwards compat
-        const hdr = document.querySelector('.header-right');
-        if (hdr && !document.getElementById('_azure_badge')) {
-          const badge = document.createElement('div');
-          badge.id = '_azure_badge';
-          badge.style.cssText = 'display:flex;align-items:center;gap:8px';
-          badge.innerHTML = '<span style="font-size:12px;color:rgba(255,255,255,.75);font-family:DM Sans,sans-serif">👤 ' + name + '</span>' +
-            '<button onclick="window._azureLogout()" style="padding:4px 10px;border-radius:7px;border:1px solid rgba(255,255,255,.3);background:transparent;color:rgba(255,255,255,.7);font-size:11px;cursor:pointer;font-family:DM Sans,sans-serif">Sign out</button>';
-          hdr.appendChild(badge);
-        }
-      }
-
-      window._azureLogout=function(){
-        const accounts=_msal.getAllAccounts();
-        if(accounts.length>0){_msal.logoutRedirect({account:accounts[0]});}
-      };
-
-      document.addEventListener('DOMContentLoaded',function(){
-        const accounts=_msal.getAllAccounts();
-        if(accounts.length===0){document.body.style.visibility='hidden';}
-        else{document.body.style.visibility='visible';}
-      });
-
-      _ensureLogin().then(()=>{
-        document.body.style.visibility='visible';
-      });
-    })();
-    </script>
-    <!-- Azure MSAL Authentication -->
-    
-    <script>
-    (function(){
-      const _msalConfig={
-        auth:{
-          clientId:'0938023f-cbbf-45f1-a71d-b18c95745ea6',
-          authority:'https://login.microsoftonline.com/9c30b606-6648-4777-a623-64867e43e54f',
-          redirectUri:'https://kissamosrealestate.com/wp-content/erp/index.html'
-        },
-        cache:{cacheLocation:'sessionStorage',storeAuthStateInCookie:false}
-      };
-      const _msal=new msal.PublicClientApplication(_msalConfig);
-      const _loginRequest={scopes:['openid','profile','User.Read']};
-      function _showUserBadge(name) {
-        // Store name globally for sidebar to pick up
-        window._erpUserName = name;
-        // Try to update sidebar user display
-        const zsUser = document.getElementById('zsUser');
-        if (zsUser) {
-          zsUser.innerHTML = '<span>👤 ' + name + '</span>' +
-            '<button onclick="window._azureLogout()" style="background:transparent;border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.5);font-size:10px;padding:2px 7px;border-radius:4px;cursor:pointer;font-family:DM Sans,sans-serif;margin-left:4px">Sign out</button>';
-        }
-        // Also try old header-right for backwards compat
-        const hdr = document.querySelector('.header-right');
-        if (hdr && !document.getElementById('_azure_badge')) {
-          const badge = document.createElement('div');
-          badge.id = '_azure_badge';
-          badge.style.cssText = 'display:flex;align-items:center;gap:8px';
-          badge.innerHTML = '<span style="font-size:12px;color:rgba(255,255,255,.75);font-family:DM Sans,sans-serif">👤 ' + name + '</span>' +
-            '<button onclick="window._azureLogout()" style="padding:4px 10px;border-radius:7px;border:1px solid rgba(255,255,255,.3);background:transparent;color:rgba(255,255,255,.7);font-size:11px;cursor:pointer;font-family:DM Sans,sans-serif">Sign out</button>';
-          hdr.appendChild(badge);
-        }
-      }
-
-      window._azureLogout=function(){
-        const accounts=_msal.getAllAccounts();
-        if(accounts.length>0){_msal.logoutRedirect({account:accounts[0]});}
-      };
-
-      document.documentElement.style.visibility='hidden';
-
-      _ensureLogin().catch(function(){
-        _msal.loginRedirect(_loginRequest);
-      });
-    })();
-    </script>
 </head>
-<body class="erp-layout">
-<div id="loadingOverlay">Loading leave module...</div>
-<div class="erp-overlay" id="erpOverlay"></div>
-<aside class="erp-sidebar" id="erpSidebar">
-  <div class="erp-brand">
-    <div class="erp-brand-name">Zesty <span>ERP</span></div>
-    <div class="erp-brand-sub">Kissamos · Operations</div>
-  </div>
-  <nav class="erp-nav-section">
-    <div class="erp-nav-section-label">Modules</div>
-      <a href="index.html" class="erp-nav-link"><span class="nav-icon">🏠</span><span class="nav-label">Home</span></a>
-      <a href="owners-crm.html" class="erp-nav-link"><span class="nav-icon">👤</span><span class="nav-label">Owners</span></a>
-      <a href="properties-db.html" class="erp-nav-link"><span class="nav-icon">🏠</span><span class="nav-label">Properties</span></a>
-      <a href="guests-crm.html" class="erp-nav-link"><span class="nav-icon">✈️</span><span class="nav-label">Guests</span></a>
-      <a href="cleaning-system.html" class="erp-nav-link"><span class="nav-icon">🧹</span><span class="nav-label">Cleaning</span></a>
-      <a href="contacts-crm.html" class="erp-nav-link"><span class="nav-icon">📋</span><span class="nav-label">Contacts</span></a>
-      <a href="employees.html" class="erp-nav-link"><span class="nav-icon">👥</span><span class="nav-label">Staff</span></a>
-      <a href="leave.html" class="erp-nav-link active"><span class="nav-icon">🏖️</span><span class="nav-label">Leave</span></a>
-      <a href="tasks.html" class="erp-nav-link"><span class="nav-icon">✅</span><span class="nav-label">Tasks</span></a>
-      <a href="jobs.html" class="erp-nav-link"><span class="nav-icon">🔧</span><span class="nav-label">Job Orders</span></a>
-      <a href="laundry.html" class="erp-nav-link"><span class="nav-icon">👔</span><span class="nav-label">Laundry ERP</span></a>
-      <a href="onboarding.html" class="erp-nav-link"><span class="nav-icon">📋</span><span class="nav-label">Onboarding</span></a>
-      <a href="settings.html" class="erp-nav-link"><span class="nav-icon">⚙️</span><span class="nav-label">Settings</span></a>
-  </nav>
-  
-  <div class="erp-sidebar-footer">
-    <div class="erp-user-badge" id="sidebarUser"></div>
-    <div class="erp-sync-row">
-      <span class="sync-dot" id="syncDot" title="Saved" style="display:inline-block"></span>
-      <span class="sync-label">Connected</span>
-    </div>
-  </div>
-</aside>
-
-<div class="erp-main">
-<div class="erp-topbar">
-    <button class="erp-hamburger" id="erpHamburger">☰</button>
-    <div class="erp-topbar-title">🏖️ Leave Management</div>
-    <div class="erp-topbar-actions"><button class="btn btn-primary btn-sm" onclick="openAddLeave&&openAddLeave()">+ Add Leave</button></div>
-  </div>
-
-<main>
-  <div class="sub-nav">
-    <div class="sub-tab active" onclick="switchView('list')">Leave List</div>
-    <div class="sub-tab" onclick="switchView('apply')">Apply Leave</div>
-    <div class="sub-tab" onclick="switchView('calendar')">Calendar</div>
-    <div class="sub-tab" onclick="switchView('balances')">Balances</div>
-  </div>
-
-  <!-- ── LIST VIEW ── -->
-  <div class="view active" id="view-list">
-    <div class="filter-card">
-      <h3>Search &amp; Filter</h3>
-      <div class="filter-grid">
-        <div class="fg"><label>From</label><input type="date" id="lf_from"></div>
-        <div class="fg"><label>To</label><input type="date" id="lf_to"></div>
-        <div class="fg"><label>Employee</label><select id="lf_emp"><option value="">All Employees</option></select></div>
-        <div class="fg"><label>Leave Type</label>
-          <select id="lf_type">
-            <option value="">All Types</option>
-            <option value="annual">Annual Leave</option>
-            <option value="sick">Sick Leave</option>
-            <option value="hourly">Hourly Time Off</option>
-          </select>
-        </div>
-      </div>
-      <div class="filter-actions">
-        <button class="btn btn-ghost" onclick="resetFilters()">Reset</button>
-        <button class="btn btn-save" onclick="renderList()">Search</button>
-      </div>
-    </div>
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>Employee</th>
-            <th>Leave Type</th>
-            <th>From</th>
-            <th>To / Time</th>
-            <th>Duration</th>
-            <th>Notes</th>
-            <th>Applied On</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody id="leaveTableBody"></tbody>
-      </table>
+<body>
+<div class="container">
+  <div class="page-title-bar">
+    <div><h1>Leave Management</h1><p>Staff leave requests, approvals and balances</p></div>
+    <div class="page-actions">
+      <div class="sync-status"><span class="sync-dot" id="syncDot"></span><span>Connected</span></div>
+      <button class="btn btn-primary" onclick="openAdd()">+ New Request</button>
     </div>
   </div>
 
-  <!-- ── APPLY VIEW ── -->
-  <div class="view" id="view-apply">
-    <div class="apply-card">
-      <h2>Apply Leave</h2>
-      <p>Select a leave type and fill in the details. Past leaves cannot be modified once saved.</p>
-      <div class="leave-type-tabs">
-        <div class="ltype-btn active" onclick="selectType('annual')" id="ltype-annual">
-          <div class="ltype-name">Annual Leave</div>
-          <div class="ltype-bal" id="bal-annual">— days</div>
-        </div>
-        <div class="ltype-btn" onclick="selectType('sick')" id="ltype-sick">
-          <div class="ltype-name">Sick Leave</div>
-          <div class="ltype-bal" id="bal-sick">— days</div>
-        </div>
-        <div class="ltype-btn" onclick="selectType('hourly')" id="ltype-hourly">
-          <div class="ltype-name">Hourly Time Off</div>
-          <div class="ltype-bal" id="bal-hourly">— hours</div>
-        </div>
-      </div>
-      <div class="form-grid">
-        <div class="fg"><label>Employee *</label><select id="a_emp"><option value="">Select employee</option></select></div>
-        <div class="fg"><label>From Date *</label><input type="date" id="a_from"></div>
-      </div>
-      <!-- Full day fields (annual/sick) -->
-      <div id="fullday-fields" style="margin-top:16px">
-        <div class="form-grid">
-          <div class="fg"><label>To Date *</label><input type="date" id="a_to"></div>
-          <div class="fg"><label>Duration (auto-calculated)</label><input id="a_days" readonly placeholder="Days" style="background:var(--cream)"></div>
-        </div>
-      </div>
-      <!-- Hourly fields -->
-      <div id="hourly-fields" style="display:none;margin-top:16px">
-        <div class="form-grid three">
-          <div class="fg"><label>From Time *</label><input type="time" id="a_fromtime" value="09:00"></div>
-          <div class="fg"><label>To Time *</label><input type="time" id="a_totime" value="17:00"></div>
-          <div class="fg"><label>Duration (auto-calculated)</label><input id="a_hours" readonly placeholder="Hours" style="background:var(--cream)"></div>
-        </div>
-      </div>
-      <div style="margin-top:16px">
-        <div class="fg full"><label>Notes</label><input id="a_notes" placeholder="Optional notes..."></div>
-      </div>
-      <div class="form-footer">
-        <button class="btn btn-ghost" onclick="clearApplyForm()">Clear</button>
-        <button class="btn btn-primary" onclick="applyLeave()">Apply Leave</button>
-      </div>
-    </div>
+  <div class="stats-bar">
+    <div class="stat-card"><div class="stat-label">Pending</div><div class="stat-value" style="color:var(--warning)" id="st-pending">—</div></div>
+    <div class="stat-card"><div class="stat-label">Approved</div><div class="stat-value success" id="st-approved">—</div></div>
+    <div class="stat-card"><div class="stat-label">Declined</div><div class="stat-value danger" id="st-declined">—</div></div>
+    <div class="stat-card"><div class="stat-label">Total Days (approved)</div><div class="stat-value gold" id="st-days">—</div></div>
   </div>
 
-  <!-- ── CALENDAR VIEW ── -->
-  <div class="view" id="view-calendar">
-    <div style="background:var(--white);border-radius:12px;border:1px solid var(--border);padding:20px 24px;box-shadow:var(--shadow)">
-      <div class="cal-header">
-        <button class="btn btn-ghost" onclick="changeMonth(-1)">&#8249;</button>
-        <h2 id="calTitle">Month Year</h2>
-        <button class="btn btn-ghost" onclick="changeMonth(1)">&#8250;</button>
-      </div>
-      <div class="cal-grid" id="calGrid"></div>
-      <div style="display:flex;gap:16px;margin-top:16px;font-size:12px;flex-wrap:wrap">
-        <span><span class="badge b-annual" style="margin-right:4px">&#9679;</span>Annual Leave</span>
-        <span><span class="badge b-sick" style="margin-right:4px">&#9679;</span>Sick Leave</span>
-        <span><span class="badge b-hourly" style="margin-right:4px">&#9679;</span>Hourly Time Off</span>
-      </div>
-    </div>
+  <div class="filter-bar">
+    <input type="search" id="q" placeholder="Search employee, type…" oninput="render()">
+    <select id="fStatus" onchange="render()">
+      <option value="">All statuses</option>
+      <option value="Pending">Pending</option>
+      <option value="Approved">Approved</option>
+      <option value="Declined">Declined</option>
+    </select>
+    <select id="fType" onchange="render()">
+      <option value="">All types</option>
+      <option value="Annual">Annual</option>
+      <option value="Sick">Sick</option>
+      <option value="Unpaid">Unpaid</option>
+      <option value="Other">Other</option>
+    </select>
+    <div class="filter-spacer"></div>
   </div>
 
-  <!-- ── BALANCES VIEW ── -->
-  <div class="view" id="view-balances">
-    <div class="bal-table">
-      <table>
-        <thead>
-          <tr>
-            <th>Employee</th>
-            <th>Role</th>
-            <th>Annual Leave</th>
-            <th>Sick Leave</th>
-            <th>Hourly Time Off</th>
-          </tr>
-        </thead>
-        <tbody id="balTableBody"></tbody>
-      </table>
-    </div>
+  <div class="table-wrap">
+    <div class="table-header"><h3 id="tableCount">Leave Requests</h3></div>
+    <table>
+      <thead><tr>
+        <th onclick="sortBy('employeeName')">Employee</th>
+        <th onclick="sortBy('leaveType')">Type</th>
+        <th onclick="sortBy('startDate')">From</th>
+        <th onclick="sortBy('endDate')">To</th>
+        <th>Days</th>
+        <th>Reason</th>
+        <th onclick="sortBy('status')">Status</th>
+        <th style="width:120px"></th>
+      </tr></thead>
+      <tbody id="tBody"><tr class="empty-row"><td colspan="8"><div class="empty-icon">🏖️</div><p>No leave requests yet</p></td></tr></tbody>
+    </table>
   </div>
-</main>
+</div>
 
-<!-- EDIT MODAL -->
-<div id="editModal" class="modal-overlay">
-  <div class="modal">
+<!-- FORM MODAL -->
+<div class="modal-overlay" id="formModal">
+  <div class="modal" style="max-width:580px">
     <div class="modal-header">
-      <h2>Edit Leave</h2>
-      <button class="modal-close" onclick="closeModal()">&#10005;</button>
+      <h2 id="formTitle">New Leave Request</h2>
+      <button class="modal-close" onclick="closeModal('formModal')">✕</button>
     </div>
     <div class="modal-body">
-      <div style="display:flex;flex-direction:column;gap:14px">
-        <div class="fg"><label>Employee</label><input id="em_emp" readonly style="background:var(--cream)"></div>
-        <div class="fg"><label>Leave Type</label><input id="em_type" readonly style="background:var(--cream)"></div>
-        <div class="fg"><label>From Date</label><input type="date" id="em_from"></div>
-        <div id="em_tofield" class="fg"><label>To Date</label><input type="date" id="em_to"></div>
-        <div id="em_timefields" style="display:none;gap:14px">
-          <div class="fg"><label>From Time</label><input type="time" id="em_fromtime"></div>
-          <div class="fg"><label>To Time</label><input type="time" id="em_totime"></div>
+      <input type="hidden" id="f_id">
+      <div class="form-grid">
+        <div class="form-group form-span-2"><label>Employee Name *</label><input id="f_employeeName" placeholder="Full name"></div>
+        <div class="form-group"><label>Leave Type</label>
+          <select id="f_leaveType">
+            <option value="Annual">Annual Leave</option>
+            <option value="Sick">Sick Leave</option>
+            <option value="Unpaid">Unpaid Leave</option>
+            <option value="Other">Other</option>
+          </select>
         </div>
-        <div class="fg"><label>Notes</label><input id="em_notes" placeholder="Notes..."></div>
-        <div id="em_warning" style="display:none;padding:10px 14px;background:#fff8e0;border-radius:8px;font-size:12px;color:var(--archive)">
-          &#9888; Past leave &mdash; enter admin password to edit.
-          <div style="display:flex;gap:8px;margin-top:8px">
-            <input type="password" id="em_password" placeholder="Admin password" style="flex:1;padding:6px 10px;border:1px solid var(--border);border-radius:6px;font-size:12px">
-            <button onclick="unlockPastLeave()" style="padding:6px 12px;background:var(--teal);color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:12px">Unlock</button>
-          </div>
+        <div class="form-group"><label>Status</label>
+          <select id="f_status">
+            <option value="Pending">Pending</option>
+            <option value="Approved">Approved</option>
+            <option value="Declined">Declined</option>
+          </select>
         </div>
+        <div class="form-group"><label>Start Date *</label><input type="date" id="f_startDate" oninput="calcDays()"></div>
+        <div class="form-group"><label>End Date *</label><input type="date" id="f_endDate" oninput="calcDays()"></div>
+        <div class="form-group"><label>Working Days</label><input type="number" id="f_days" min="0.5" step="0.5" placeholder="Auto-calculated"></div>
+        <div class="form-group form-span-2"><label>Reason / Notes</label><textarea id="f_reason" rows="3"></textarea></div>
       </div>
     </div>
     <div class="modal-footer">
-      <button class="btn btn-danger" onclick="deleteLeave()" id="em_deleteBtn">Delete</button>
-      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
-      <button class="btn btn-save" onclick="saveEdit()" id="em_saveBtn">Save Changes</button>
+      <button class="btn btn-danger btn-sm" id="fDeleteBtn" onclick="deleteCurrent()" style="display:none;margin-right:auto">🗑</button>
+      <button class="btn btn-outline" onclick="closeModal('formModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="save()">Save</button>
     </div>
   </div>
 </div>
 
-<div id="toast" class="toast"></div>
+<script src="erp-base.js"></script>
 <script>
-const SUPABASE_URL='https://whuytfjwdjjepayeiohj.supabase.co';
-const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndodXl0Zmp3ZGpqZXBheWVpb2hqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIyODQxMzQsImV4cCI6MjA4Nzg2MDEzNH0.pTDAqw_Cnzc9D3tJU-tU7Ch5qpapKmteiqI_ooSCufY';
-const DB={
-  _h(){return{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json','Prefer':'return=representation,resolution=merge-duplicates'}},
-  _hG(){return{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY}},
-  _hD(){return{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json'}},
-  _ok(){return!!(SUPABASE_URL&&SUPABASE_KEY&&SUPABASE_URL.includes('supabase.co'))},
-  async _fetch(method,table,body,query,ms){
-    if(!this._ok())return{ok:false,data:null,err:'Not configured'};
-    const ctrl=new AbortController(),t=setTimeout(()=>ctrl.abort(),ms||15000);
-    try{
-      const url=SUPABASE_URL+'/rest/v1/'+table+(query||'');
-      const headers=method==='GET'?this._hG():method==='DELETE'?this._hD():this._h();
-      const opts={method,headers,signal:ctrl.signal};
-      if(body)opts.body=JSON.stringify(body);
-      const res=await fetch(url,opts);clearTimeout(t);
-      if(!res.ok){
-        let e='HTTP '+res.status;
-        try{const j=await res.json();e=j.message||j.hint||j.error||e}catch(x){}
-        return{ok:false,data:null,err:e};
-      }
-      if(res.status===204||method==='DELETE')return{ok:true,data:[]};
-      const ct=res.headers.get('content-type')||'';
-      if(!ct.includes('json'))return{ok:true,data:[]};
-      try{return{ok:true,data:await res.json()}}catch(x){return{ok:true,data:[]}}
-    }catch(e){clearTimeout(t);return{ok:false,data:null,err:e.name==='AbortError'?'Timeout':e.message}}
-  },
-  async loadAll(table){
-    const r=await this._fetch('GET',table,null,'?select=id,data,updated_at&order=created_at.asc&limit=100000');
-    if(!r.ok)return{ok:false,rows:null,err:r.err};
-    const rows=(r.data||[]).map(row=>({id:row.id,...(row.data||{})}));
-    return{ok:true,rows};
-  },
-  async upsertOne(table,record){
-    const{id,...rest}=record;
-    const rid=id||('rec_'+Date.now()+'_'+Math.random().toString(36).slice(2,6));
-    const row={id:rid,data:rest,updated_at:new Date().toISOString()};
-    const r=await this._fetch('POST',table,row,'?on_conflict=id');
-    return{ok:r.ok,id:rid,err:r.err};
-  },
-  async upsertMany(table,records){
-    if(!records.length)return{ok:true};
-    const rows=records.map(({id,...rest})=>({id:id||('rec_'+Date.now()+'_'+Math.random().toString(36).slice(2,6)),data:rest,updated_at:new Date().toISOString()}));
-    const size=200;
-    for(let i=0;i<rows.length;i+=size){
-      const r=await this._fetch('POST',table,rows.slice(i,i+size),'?on_conflict=id');
-      if(!r.ok)return{ok:false,err:r.err};
-    }
-    return{ok:true};
-  },
-  async deleteOne(table,id){
-    const r=await this._fetch('DELETE',table,null,'?id=eq.'+encodeURIComponent(id));
-    return{ok:r.ok,err:r.err};
-  },
-  isConfigured(){return this._ok()}
-};
-const SyncStore={
-  _pendingDeletes:{},
-  async load(lsKey,table){
-    const cached=this._getLocal(lsKey);
-    const result=await DB.loadAll(table);
-    if(result.ok&&result.rows!==null){
-      const pending=this._pendingDeletes[table]||new Set();
-      const rows=result.rows.filter(r=>!pending.has(r.id));
-      localStorage.setItem(lsKey,JSON.stringify(rows));
-      return{data:rows,fromCache:false,online:true};
-    }
-    return{data:cached,fromCache:true,online:false};
-  },
-  async saveOne(lsKey,table,record,all){
-    localStorage.setItem(lsKey,JSON.stringify(all));
-    const r=await DB.upsertOne(table,record);
-    if(!r.ok)showSyncErr(r.err);
-    return r;
-  },
-  async saveAll(lsKey,table,records){
-    localStorage.setItem(lsKey,JSON.stringify(records));
-    const r=await DB.upsertMany(table,records);
-    if(!r.ok)showSyncErr(r.err);
-    return r.ok;
-  },
-  async deleteOne(lsKey,table,id,all){
-    if(!this._pendingDeletes[table])this._pendingDeletes[table]=new Set();
-    this._pendingDeletes[table].add(id);
-    localStorage.setItem(lsKey,JSON.stringify(all));
-    const r=await DB.deleteOne(table,id);
-    if(!r.ok){
-      this._pendingDeletes[table].delete(id);
-      showSyncErr('Delete failed: '+r.err);
-      return{ok:false,err:r.err};
-    }
-    setTimeout(()=>{if(this._pendingDeletes[table])this._pendingDeletes[table].delete(id)},120000);
-    return{ok:true};
-  },
-  _getLocal(key){try{return JSON.parse(localStorage.getItem(key)||'[]')||[]}catch{return[]}}
-};
-function startPoll(table,lsKey,ms,onData){
-  let lastHash='';
-  const poll=async()=>{
-    const result=await DB.loadAll(table);
-    if(!result.ok||!result.rows)return;
-    const pending=SyncStore._pendingDeletes[table]||new Set();
-    const rows=result.rows.filter(r=>!pending.has(r.id));
-    const hash=rows.length+'|'+rows.map(r=>r.id).join(',');
-    if(hash!==lastHash){lastHash=hash;localStorage.setItem(lsKey,JSON.stringify(rows));onData(rows)}
-  };
-  setInterval(poll,ms);
-  return poll;
-}
-function showDbStatus(online){
-  const old=document.getElementById('db-status-bar');if(old)old.remove();
-  if(online)return;
-  const b=document.createElement('div');b.id='db-status-bar';
-  b.style.cssText='position:fixed;bottom:0;left:0;right:0;background:#c0392b;color:#fff;text-align:center;padding:8px;font-size:12px;z-index:9998;cursor:pointer;';
-  b.textContent='⚠ Database offline — working in local mode. Click to retry.';
-  b.onclick=()=>{location.reload()};
-  document.body.appendChild(b);
-}
-function showSyncErr(err){
-  let b=document.getElementById('sync-err-bar');
-  if(!b){b=document.createElement('div');b.id='sync-err-bar';b.style.cssText='position:fixed;bottom:40px;right:16px;background:#c0392b;color:#fff;border-radius:8px;padding:8px 14px;font-size:12px;z-index:9999;max-width:320px;';document.body.appendChild(b)}
-  b.textContent='Save error: '+err;b.style.display='block';
-  clearTimeout(b._t);b._t=setTimeout(()=>b.style.display='none',6000);
-}
-
-
-
-
-let employees = [];
 let leaves = [];
-let settings = {};
-let activeType = 'annual';
-let calYear, calMonth;
-let editingLeaveId = null;
+let sort = { field: 'startDate', dir: -1 };
 
-const COLORS = ['#1a7a6e','#2980b9','#8e44ad','#c0392b','#d35400','#16a085','#27ae60','#c9a84c'];
-function avatarColor(s){let h=0;for(const c of s)h=(h*31+c.charCodeAt(0))&0xffffffff;return COLORS[Math.abs(h)%COLORS.length]}
-function initials(e){return((e.firstName||'')[0]||'')+((e.lastName||'')[0]||'')}
-function empName(e){return((e.firstName||'')+' '+(e.lastName||'')).trim()||'Unnamed'}
+async function init() {
+  const res = await SyncStore.load('zesty_leave', 'leave');
+  leaves = res.data;
+  render();
+}
+init();
 
-const now = new Date();
-calYear = now.getFullYear();
-calMonth = now.getMonth();
+function calcDays() {
+  const s = document.getElementById('f_startDate').value;
+  const e = document.getElementById('f_endDate').value;
+  if (s && e) {
+    const days = Math.max(0, Math.round((new Date(e) - new Date(s)) / 86400000) + 1);
+    // rough weekdays
+    let wd = 0, d = new Date(s);
+    while (d <= new Date(e)) { if (d.getDay() !== 0 && d.getDay() !== 6) wd++; d.setDate(d.getDate()+1); }
+    document.getElementById('f_days').value = wd;
+  }
+}
 
-async function init(){
-  // Set default date filters
-  const y = now.getFullYear();
-  document.getElementById('lf_from').value = y+'-01-01';
-  document.getElementById('lf_to').value = y+'-12-31';
-  document.getElementById('a_from').value = now.toISOString().slice(0,10);
-  document.getElementById('a_to').value = now.toISOString().slice(0,10);
+function statusBadge(s) {
+  if (s==='Approved') return '<span class="badge b-active">Approved</span>';
+  if (s==='Declined') return '<span class="badge b-inactive">Declined</span>';
+  return '<span class="badge b-pending">Pending</span>';
+}
 
-  // Load all three data sources in parallel
-  const [eResult, lResult, sResult] = await Promise.all([
-    SyncStore.load('zesty_employees','employees'),
-    SyncStore.load('zesty_leaves','leaves'),
-    SyncStore.load('zesty_settings','settings')
-  ]);
+const LT_BADGE = { Annual:'lt-annual', Sick:'lt-sick', Unpaid:'lt-unpaid', Other:'lt-other' };
 
-  showDbStatus(eResult.online);
-
-  employees = eResult.data.filter(e=>e.status!=='inactive');
-  leaves = lResult.data;
-  settings = sResult.data[0]||{};
-
-  populateEmpDropdowns();
-  updateLeaveTypeBals('');
-  renderList();
-  renderCalendar();
-  renderBalances();
-
-  const ol = document.getElementById('loadingOverlay');
-  if(ol){ol.style.opacity='0';ol.style.transition='opacity 0.3s';setTimeout(()=>ol.remove(),300)}
-
-  // Poll all three tables every 30s
-  startPoll('employees','zesty_employees',30000,(rows)=>{
-    employees=rows.filter(e=>e.status!=='inactive');
-    populateEmpDropdowns();
-    renderList();renderBalances();
+function render() {
+  const q = (document.getElementById('q').value||'').toLowerCase();
+  const fStatus = document.getElementById('fStatus').value;
+  const fType = document.getElementById('fType').value;
+  let list = leaves.filter(l => {
+    if (fStatus && l.status !== fStatus) return false;
+    if (fType && l.leaveType !== fType) return false;
+    if (q && !((l.employeeName||'')+(l.leaveType||'')).toLowerCase().includes(q)) return false;
+    return true;
   });
-  startPoll('leaves','zesty_leaves',30000,(rows)=>{
-    leaves=rows;
-    renderList();renderCalendar();renderBalances();
-    if(document.getElementById('a_emp').value) updateLeaveTypeBals(document.getElementById('a_emp').value);
+  list.sort((a,b)=>((a[sort.field]||'')<(b[sort.field]||'')?-sort.dir:sort.dir));
+
+  document.getElementById('st-pending').textContent = leaves.filter(l=>l.status==='Pending').length;
+  document.getElementById('st-approved').textContent = leaves.filter(l=>l.status==='Approved').length;
+  document.getElementById('st-declined').textContent = leaves.filter(l=>l.status==='Declined').length;
+  document.getElementById('st-days').textContent = leaves.filter(l=>l.status==='Approved').reduce((s,l)=>s+(parseFloat(l.days)||0),0);
+  document.getElementById('tableCount').textContent = `${list.length} Requests`;
+
+  document.getElementById('tBody').innerHTML = !list.length
+    ? `<tr class="empty-row"><td colspan="8"><div class="empty-icon">🏖️</div><p>No leave requests</p></td></tr>`
+    : list.map(l => `<tr>
+        <td><strong>${l.employeeName||'—'}</strong></td>
+        <td><span class="badge leave-type-badge ${LT_BADGE[l.leaveType]||'lt-other'}">${l.leaveType||'—'}</span></td>
+        <td style="font-size:12px">${fmtDate(l.startDate)}</td>
+        <td style="font-size:12px">${fmtDate(l.endDate)}</td>
+        <td style="text-align:center;font-weight:600">${l.days||'—'}</td>
+        <td style="font-size:12px;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${l.reason||'—'}</td>
+        <td>${statusBadge(l.status)}</td>
+        <td>
+          <div class="table-actions">
+            ${l.status==='Pending'?`<button class="btn btn-success btn-xs" onclick="approve('${l.id}')">✓</button><button class="btn btn-danger btn-xs" onclick="decline('${l.id}')">✕</button>`:''}
+            <button class="btn btn-teal btn-xs" onclick="editLeave('${l.id}')">✏️</button>
+            <button class="btn btn-danger btn-xs" onclick="confirmDel('${l.id}')">🗑</button>
+          </div>
+        </td>
+      </tr>`).join('');
+}
+
+function sortBy(f) { if(sort.field===f)sort.dir*=-1;else{sort.field=f;sort.dir=1;} render(); }
+
+function openAdd() { document.getElementById('formTitle').textContent='New Request'; document.getElementById('fDeleteBtn').style.display='none'; clearForm(); openModal('formModal'); }
+function editLeave(id) {
+  const l=leaves.find(x=>x.id===id); if(!l)return;
+  document.getElementById('formTitle').textContent='Edit Request'; document.getElementById('fDeleteBtn').style.display='';
+  ['id','employeeName','leaveType','status','startDate','endDate','days','reason'].forEach(f=>{const el=document.getElementById('f_'+f);if(el)el.value=l[f]||'';});
+  openModal('formModal');
+}
+function clearForm() {
+  ['id','employeeName','startDate','endDate','days','reason'].forEach(f=>{const el=document.getElementById('f_'+f);if(el)el.value='';});
+  document.getElementById('f_leaveType').value='Annual'; document.getElementById('f_status').value='Pending';
+}
+
+async function save() {
+  const name=document.getElementById('f_employeeName').value.trim();
+  if(!name){showToast('Employee name required','error');return;}
+  const id=document.getElementById('f_id').value||genId('leave');
+  const record={id};
+  ['employeeName','leaveType','status','startDate','endDate','days','reason'].forEach(f=>{record[f]=document.getElementById('f_'+f)?.value||'';});
+  const existing=leaves.find(l=>l.id===id);
+  if(existing)Object.assign(existing,record);else leaves.push(record);
+  closeModal('formModal'); render();
+  await SyncStore.saveOne('zesty_leave','leave',record,leaves);
+  showToast('✓ Saved','success');
+}
+
+async function approve(id) { const l=leaves.find(x=>x.id===id); if(!l)return; l.status='Approved'; render(); await SyncStore.saveOne('zesty_leave','leave',l,leaves); showToast('✓ Approved','success'); }
+async function decline(id) { const l=leaves.find(x=>x.id===id); if(!l)return; l.status='Declined'; render(); await SyncStore.saveOne('zesty_leave','leave',l,leaves); showToast('Declined','error'); }
+
+function deleteCurrent() { const id=document.getElementById('f_id').value; if(!id)return; closeModal('formModal'); confirmDel(id); }
+function confirmDel(id) {
+  const l=leaves.find(x=>x.id===id); if(!l)return;
+  showConfirm('🗑️','Delete?',`Delete this leave request?`,'btn-danger','Delete',async()=>{
+    leaves=leaves.filter(x=>x.id!==id); await SyncStore.deleteOne('zesty_leave','leave',id,leaves); render(); showToast('Deleted','error');
   });
-  startPoll('settings','zesty_settings',30000,(rows)=>{
-    settings=rows[0]||{};
-    renderBalances();
-    updateLeaveTypeBals(document.getElementById('a_emp').value);
-  });
-
-  // Auto-calc days/hours on date/time change
-  document.getElementById('a_from').addEventListener('change', calcDuration);
-  document.getElementById('a_to').addEventListener('change', calcDuration);
-  document.getElementById('a_fromtime').addEventListener('change', calcDuration);
-  document.getElementById('a_totime').addEventListener('change', calcDuration);
-  document.getElementById('a_emp').addEventListener('change', ()=>updateLeaveTypeBals(document.getElementById('a_emp').value));
 }
-
-function getEntitlements(){
-  return settings.leaveEntitlements||{annual:20,sick:10,hourly:64};
-}
-
-function calcUsedForEmp(empId){
-  const used={annual:0,sick:0,hourly:0};
-  leaves.filter(l=>l.employeeId===empId).forEach(l=>{
-    if(l.leaveType==='annual') used.annual+=parseFloat(l.days)||0;
-    else if(l.leaveType==='sick') used.sick+=parseFloat(l.days)||0;
-    else if(l.leaveType==='hourly') used.hourly+=parseFloat(l.hours)||0;
-  });
-  return used;
-}
-
-function updateLeaveTypeBals(empId){
-  const ent = getEntitlements();
-  if(!empId){
-    document.getElementById('bal-annual').textContent = ent.annual+' days entitlement';
-    document.getElementById('bal-sick').textContent = ent.sick+' days entitlement';
-    document.getElementById('bal-hourly').textContent = ent.hourly+'h entitlement';
-    return;
-  }
-  const used = calcUsedForEmp(empId);
-  document.getElementById('bal-annual').textContent = (ent.annual-used.annual).toFixed(1)+' days remaining';
-  document.getElementById('bal-sick').textContent = (ent.sick-used.sick).toFixed(1)+' days remaining';
-  document.getElementById('bal-hourly').textContent = (ent.hourly-used.hourly).toFixed(1)+'h remaining';
-}
-
-function populateEmpDropdowns(){
-  const opts = '<option value="">All Employees</option>' + employees.map(e=>'<option value="'+e.id+'">'+empName(e)+'</option>').join('');
-  document.getElementById('lf_emp').innerHTML = opts;
-  const applyOpts = '<option value="">Select employee</option>' + employees.map(e=>'<option value="'+e.id+'">'+empName(e)+'</option>').join('');
-  document.getElementById('a_emp').innerHTML = applyOpts;
-}
-
-// ── LIST VIEW ──
-function filteredLeaves(){
-  const from = document.getElementById('lf_from').value;
-  const to = document.getElementById('lf_to').value;
-  const empId = document.getElementById('lf_emp').value;
-  const type = document.getElementById('lf_type').value;
-  return leaves.filter(l=>{
-    const d = l.fromDate||'';
-    return (!from||d>=from) && (!to||d<=to) && (!empId||l.employeeId===empId) && (!type||l.leaveType===type);
-  }).sort((a,b)=>b.fromDate<a.fromDate?-1:1);
-}
-
-function renderList(){
-  const list = filteredLeaves();
-  const tbody = document.getElementById('leaveTableBody');
-  if(!list.length){
-    tbody.innerHTML='<tr class="empty-row"><td colspan="8">No leave records found.</td></tr>';
-    return;
-  }
-  const TYPE_LABELS = {annual:'Annual Leave',sick:'Sick Leave',hourly:'Hourly Time Off'};
-  const TYPE_BADGE = {annual:'b-annual',sick:'b-sick',hourly:'b-hourly'};
-  tbody.innerHTML = list.map(l=>{
-    const emp = employees.find(e=>e.id===l.employeeId);
-    const eName = emp?empName(emp):(l.employeeName||'Unknown');
-    const tLabel = TYPE_LABELS[l.leaveType]||l.leaveType;
-    const tBadge = TYPE_BADGE[l.leaveType]||'';
-    const toCell = l.leaveType==='hourly'
-      ? (l.fromTime||'?')+' - '+(l.toTime||'?')
-      : (l.toDate||l.fromDate);
-    const durCell = l.leaveType==='hourly'
-      ? (l.hours||'?')+'h'
-      : (l.days||'?')+' day(s)';
-    const isPast = l.fromDate < now.toISOString().slice(0,10);
-    return '<tr class="leave-row">'
-      +'<td>'+eName+'</td>'
-      +'<td><span class="badge '+tBadge+'">'+tLabel+'</span></td>'
-      +'<td>'+l.fromDate+'</td>'
-      +'<td>'+toCell+'</td>'
-      +'<td>'+durCell+'</td>'
-      +'<td style="color:var(--text-muted);font-size:12px">'+(l.notes||'—')+'</td>'
-      +'<td style="color:var(--text-muted);font-size:12px">'+(l.appliedOn||'—')+'</td>'
-      +'<td><button class="btn btn-ghost btn-sm" onclick="openEdit(\''+l.id+'\')" '+(isPast?'title="Past leave - view only"':'')+'>'+( isPast?'View':'Edit')+'</button></td>'
-      +'</tr>';
-  }).join('');
-}
-
-function resetFilters(){
-  const y = now.getFullYear();
-  document.getElementById('lf_from').value = y+'-01-01';
-  document.getElementById('lf_to').value = y+'-12-31';
-  document.getElementById('lf_emp').value = '';
-  document.getElementById('lf_type').value = '';
-  renderList();
-}
-
-// ── APPLY LEAVE ──
-function selectType(t){
-  activeType = t;
-  document.querySelectorAll('.ltype-btn').forEach(b=>b.classList.remove('active'));
-  document.getElementById('ltype-'+t).classList.add('active');
-  document.getElementById('fullday-fields').style.display = t==='hourly'?'none':'block';
-  document.getElementById('hourly-fields').style.display = t==='hourly'?'block':'none';
-  calcDuration();
-}
-
-function calcDuration(){
-  if(activeType==='hourly'){
-    const ft = document.getElementById('a_fromtime').value;
-    const tt = document.getElementById('a_totime').value;
-    if(ft&&tt){
-      const [fh,fm]=ft.split(':').map(Number);
-      const [th,tm]=tt.split(':').map(Number);
-      const mins=(th*60+tm)-(fh*60+fm);
-      document.getElementById('a_hours').value = mins>0?(mins/60).toFixed(2)+'h':'—';
-    }
-  } else {
-    const fd=document.getElementById('a_from').value;
-    const td=document.getElementById('a_to').value;
-    if(fd&&td){
-      const days=Math.round((new Date(td)-new Date(fd))/86400000)+1;
-      document.getElementById('a_days').value = days>0?days+' day(s)':'—';
-    }
-  }
-}
-
-async function applyLeave(){
-  const empId = document.getElementById('a_emp').value;
-  const fromDate = document.getElementById('a_from').value;
-  const notes = document.getElementById('a_notes').value.trim();
-  if(!empId){showToast('Select an employee.','err');return}
-  if(!fromDate){showToast('Select a from date.','err');return}
-
-  const id = 'lv_'+Date.now()+'_'+Math.random().toString(36).slice(2,6);
-  const emp = employees.find(e=>e.id===empId);
-  const record = {
-    id, employeeId:empId,
-    employeeName: emp?empName(emp):'',
-    leaveType: activeType,
-    fromDate,
-    appliedOn: now.toISOString().slice(0,10),
-    notes
-  };
-
-  if(activeType==='hourly'){
-    const ft=document.getElementById('a_fromtime').value;
-    const tt=document.getElementById('a_totime').value;
-    if(!ft||!tt){showToast('Enter from and to times.','err');return}
-    const [fh,fm]=ft.split(':').map(Number);
-    const [th,tm]=tt.split(':').map(Number);
-    const mins=(th*60+tm)-(fh*60+fm);
-    if(mins<=0){showToast('To time must be after from time.','err');return}
-    record.fromTime=ft; record.toTime=tt;
-    record.hours=(mins/60).toFixed(2);
-    record.toDate=fromDate;
-  } else {
-    const toDate=document.getElementById('a_to').value;
-    if(!toDate){showToast('Select a to date.','err');return}
-    if(toDate<fromDate){showToast('To date must be after from date.','err');return}
-    record.toDate=toDate;
-    record.days=Math.round((new Date(toDate)-new Date(fromDate))/86400000)+1;
-  }
-
-  // Check balance
-  const ent = getEntitlements();
-  const used = calcUsedForEmp(empId);
-  if(activeType==='annual' && (used.annual+(record.days||0))>ent.annual){
-    if(!confirm('This exceeds the annual leave entitlement. Continue?')) return;
-  }
-  if(activeType==='sick' && (used.sick+(record.days||0))>ent.sick){
-    if(!confirm('This exceeds the sick leave entitlement. Continue?')) return;
-  }
-  if(activeType==='hourly' && (used.hourly+parseFloat(record.hours||0))>ent.hourly){
-    if(!confirm('This exceeds the hourly time off entitlement. Continue?')) return;
-  }
-
-  leaves.push(record);
-  const allResult = await SyncStore.load('zesty_leaves','leaves');
-  const all = allResult.data;
-  all.push(record);
-
-  const result = await SyncStore.saveOne('zesty_leaves','leaves',record,all);
-  if(result.ok!==false){
-    showToast('Leave applied successfully');
-    clearApplyForm();
-    renderList();renderCalendar();renderBalances();
-    updateLeaveTypeBals(empId);
-    switchView('list');
-  } else {
-    showToast('Save failed','err');
-    leaves.pop();
-  }
-}
-
-function clearApplyForm(){
-  document.getElementById('a_emp').value='';
-  document.getElementById('a_from').value=now.toISOString().slice(0,10);
-  document.getElementById('a_to').value=now.toISOString().slice(0,10);
-  document.getElementById('a_fromtime').value='09:00';
-  document.getElementById('a_totime').value='17:00';
-  document.getElementById('a_notes').value='';
-  document.getElementById('a_days').value='';
-  document.getElementById('a_hours').value='';
-  updateLeaveTypeBals('');
-}
-
-// ── EDIT MODAL ──
-function openEdit(id){
-  const l = leaves.find(x=>x.id===id);
-  if(!l) return;
-  editingLeaveId = id;
-  const emp = employees.find(e=>e.id===l.employeeId);
-  const isPast = l.fromDate < now.toISOString().slice(0,10);
-  const TYPE_LABELS = {annual:'Annual Leave',sick:'Sick Leave',hourly:'Hourly Time Off'};
-  document.getElementById('em_emp').value = emp?empName(emp):(l.employeeName||'Unknown');
-  document.getElementById('em_type').value = TYPE_LABELS[l.leaveType]||l.leaveType;
-  document.getElementById('em_from').value = l.fromDate||'';
-  document.getElementById('em_notes').value = l.notes||'';
-  const isHourly = l.leaveType==='hourly';
-  document.getElementById('em_tofield').style.display = isHourly?'none':'flex';
-  document.getElementById('em_timefields').style.display = isHourly?'flex':'none';
-  if(!isHourly) document.getElementById('em_to').value = l.toDate||'';
-  if(isHourly){
-    document.getElementById('em_fromtime').value = l.fromTime||'';
-    document.getElementById('em_totime').value = l.toTime||'';
-  }
-  document.getElementById('em_warning').style.display = isPast?'block':'none';
-  const locked = isPast;
-  document.getElementById('em_saveBtn').disabled = locked;
-  document.getElementById('em_deleteBtn').disabled = locked;
-  document.getElementById('em_from').disabled = locked;
-  document.getElementById('em_to').disabled = locked;
-  document.getElementById('em_fromtime').disabled = locked;
-  document.getElementById('em_totime').disabled = locked;
-  document.getElementById('em_notes').disabled = locked;
-  if(isPast) { const pw=document.getElementById('em_password'); if(pw) pw.value=''; }
-  document.getElementById('editModal').classList.add('open');
-}
-
-function closeModal(){ document.getElementById('editModal').classList.remove('open'); editingLeaveId=null; }
-
-async function saveEdit(){
-  if(!editingLeaveId) return;
-  const idx = leaves.findIndex(l=>l.id===editingLeaveId);
-  if(idx===-1) return;
-  const l = leaves[idx];
-
-  l.fromDate = document.getElementById('em_from').value;
-  l.notes = document.getElementById('em_notes').value;
-  if(l.leaveType!=='hourly'){
-    l.toDate = document.getElementById('em_to').value;
-    l.days = Math.round((new Date(l.toDate)-new Date(l.fromDate))/86400000)+1;
-  } else {
-    l.fromTime = document.getElementById('em_fromtime').value;
-    l.toTime = document.getElementById('em_totime').value;
-    const [fh,fm]=l.fromTime.split(':').map(Number);
-    const [th,tm]=l.toTime.split(':').map(Number);
-    const mins=(th*60+tm)-(fh*60+fm);
-    l.hours=(mins/60).toFixed(2);
-  }
-
-  const allResult = await SyncStore.load('zesty_leaves','leaves');
-  const all = allResult.data;
-  const ai = all.findIndex(x=>x.id===editingLeaveId);
-  if(ai!==-1) all[ai]=l;
-  const result = await SyncStore.saveOne('zesty_leaves','leaves',l,all);
-  if(result.ok!==false){ showToast('Leave updated'); closeModal(); renderList(); renderCalendar(); renderBalances(); }
-  else showToast('Save failed','err');
-}
-
-async function deleteLeave(){
-  if(!editingLeaveId) return;
-  const l = leaves.find(x=>x.id===editingLeaveId);
-  if(!l) return;
-  if(!confirm('Delete this leave record?')) return;
-
-  leaves = leaves.filter(x=>x.id!==editingLeaveId);
-  const dr = await SyncStore.deleteOne('zesty_leaves','leaves',editingLeaveId,leaves);
-  if(dr.ok){ showToast('Leave deleted'); closeModal(); renderList(); renderCalendar(); renderBalances(); }
-  else showToast('Delete failed','err');
-}
-
-// ── CALENDAR ──
-const MONTH_NAMES=['January','February','March','April','May','June','July','August','September','October','November','December'];
-
-function changeMonth(dir){ calMonth+=dir; if(calMonth>11){calMonth=0;calYear++} if(calMonth<0){calMonth=11;calYear--} renderCalendar(); }
-
-function renderCalendar(){
-  document.getElementById('calTitle').textContent = MONTH_NAMES[calMonth]+' '+calYear;
-  const grid = document.getElementById('calGrid');
-
-  // Day name headers
-  const dayNames = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
-  let html = dayNames.map(d=>'<div class="cal-day-name">'+d+'</div>').join('');
-
-  const first = new Date(calYear,calMonth,1);
-  const last = new Date(calYear,calMonth+1,0);
-  // Monday=0 offset
-  let startDow = first.getDay()-1; if(startDow<0) startDow=6;
-
-  // Fill empty cells before
-  for(let i=0;i<startDow;i++) html+='<div class="cal-day other-month"></div>';
-
-  const todayStr = now.toISOString().slice(0,10);
-  for(let d=1;d<=last.getDate();d++){
-    const dateStr = calYear+'-'+String(calMonth+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
-    const isToday = dateStr===todayStr;
-    // Find leaves on this date
-    const dayLeaves = leaves.filter(l=>{
-      if(l.leaveType==='hourly') return l.fromDate===dateStr;
-      return l.fromDate<=dateStr && (l.toDate||l.fromDate)>=dateStr;
-    });
-    const events = dayLeaves.map(l=>{
-      const emp=employees.find(e=>e.id===l.employeeId);
-      const n=emp?(emp.firstName||''):'?';
-      return '<div class="cal-event '+l.leaveType+'">'+n+'</div>';
-    }).join('');
-    html+='<div class="cal-day'+(isToday?' today':'')+'"><div class="cal-date">'+d+'</div>'+events+'</div>';
-  }
-  grid.innerHTML = html;
-}
-
-// ── BALANCES ──
-function renderBalances(){
-  const ent = getEntitlements();
-  const tbody = document.getElementById('balTableBody');
-  const allEmps = [...employees].sort((a,b)=>empName(a).localeCompare(empName(b)));
-  if(!allEmps.length){tbody.innerHTML='<tr><td colspan="5" style="text-align:center;padding:40px;color:var(--text-muted)">No active employees.</td></tr>';return}
-
-  tbody.innerHTML = allEmps.map(e=>{
-    const used=calcUsedForEmp(e.id);
-    const aRem=(ent.annual-used.annual).toFixed(1);
-    const sRem=(ent.sick-used.sick).toFixed(1);
-    const hRem=(ent.hourly-used.hourly).toFixed(1);
-    const aPct=Math.max(0,Math.min(100,(1-used.annual/ent.annual)*100));
-    const sPct=Math.max(0,Math.min(100,(1-used.sick/ent.sick)*100));
-    const hPct=Math.max(0,Math.min(100,(1-used.hourly/ent.hourly)*100));
-    const col=avatarColor(empName(e));
-    return '<tr>'
-      +'<td><div class="emp-cell"><div class="avatar-sm" style="background:'+col+'">'+initials(e)+'</div><a href="employee-profile.html?id='+e.id+'&tab=leaves" style="color:var(--teal);text-decoration:none">'+empName(e)+'</a></div></td>'
-      +'<td style="color:var(--text-muted);font-size:12px">'+(e.role||'—')+'</td>'
-      +'<td><div style="font-weight:600">'+aRem+' / '+ent.annual+' days</div><div class="bal-bar"><div class="bal-fill annual" style="width:'+aPct+'%"></div></div></td>'
-      +'<td><div style="font-weight:600">'+sRem+' / '+ent.sick+' days</div><div class="bal-bar"><div class="bal-fill sick" style="width:'+sPct+'%"></div></div></td>'
-      +'<td><div style="font-weight:600">'+hRem+' / '+ent.hourly+'h</div><div class="bal-bar"><div class="bal-fill hourly" style="width:'+hPct+'%"></div></div></td>'
-      +'</tr>';
-  }).join('');
-}
-
-// ── NAV ──
-function switchView(name){
-  document.querySelectorAll('.sub-tab').forEach((t,i)=>{
-    const views=['list','apply','calendar','balances'];
-    t.classList.toggle('active',views[i]===name);
-  });
-  document.querySelectorAll('.view').forEach(v=>{
-    v.classList.toggle('active',v.id==='view-'+name);
-  });
-  if(name==='calendar') renderCalendar();
-}
-
-
-function unlockPastLeave(){
-  const pw = document.getElementById('em_password').value;
-  if(pw !== 'Zesty2024!'){alert('Incorrect password.');return;}
-  ['em_saveBtn','em_deleteBtn','em_from','em_to','em_fromtime','em_totime','em_notes'].forEach(id=>{
-    const el=document.getElementById(id);
-    if(el) el.disabled=false;
-  });
-  document.getElementById('em_warning').style.display='none';
-}
-function showToast(msg,type){
-  const t=document.getElementById('toast');t.textContent=msg;t.className='toast show'+(type==='err'?' err':'');
-  clearTimeout(t._t);t._t=setTimeout(()=>t.className='toast',3000);
-}
-
-document.getElementById('editModal').addEventListener('click',function(e){if(e.target===this)closeModal()});
-
-// ── SIDEBAR NAVIGATION ──────────────────────────────────
-function _initSidebar() {
-  const sidebar = document.getElementById('erpSidebar');
-  const overlay = document.getElementById('erpOverlay');
-  const hamburger = document.getElementById('erpHamburger');
-  if (!sidebar) return;
-  // Hamburger toggle
-  if (hamburger) {
-    hamburger.addEventListener('click', () => {
-      sidebar.classList.toggle('open');
-      overlay.classList.toggle('open');
-    });
-  }
-  // Close on overlay click
-  if (overlay) {
-    overlay.addEventListener('click', () => {
-      sidebar.classList.remove('open');
-      overlay.classList.remove('open');
-    });
-  }
-  // Inject Azure user badge into sidebar footer
-  const origBadge = document.getElementById('_azure_badge');
-  const footerUser = document.getElementById('sidebarUser');
-  if (origBadge && footerUser) {
-    footerUser.innerHTML = origBadge.innerHTML;
-    origBadge.remove();
-  }
-  // Watch for badge to appear
-  const obs = new MutationObserver(() => {
-    const b = document.getElementById('_azure_badge');
-    const fu = document.getElementById('sidebarUser');
-    if (b && fu) {
-      fu.innerHTML = b.innerHTML;
-      b.remove();
-      obs.disconnect();
-    }
-  });
-  obs.observe(document.body, {childList:true, subtree:true});
-}
-document.addEventListener('DOMContentLoaded', _initSidebar);
-
-
-document.addEventListener('DOMContentLoaded', init);
-
 </script>
 <script src="erp-nav.js"></script>
-</div><!-- /erp-main -->
 </body>
 </html>

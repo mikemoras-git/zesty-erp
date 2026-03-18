@@ -2,1043 +2,224 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Zesty ERP - Settings</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Zesty ERP — Settings</title>
+<link rel="stylesheet" href="erp-style.css">
 <style>
-:root{--teal:#1a7a6e;--teal-light:#23a090;--teal-dark:#115950;--gold:#c9a84c;--gold-light:#e8c97a;--cream:#f8f5f0;--white:#fff;--text:#1e2a28;--text-muted:#6b7e7b;--border:#d4e0de;--danger:#c0392b;--success:#27ae60;--archive:#8e6b23;--shadow:0 2px 16px rgba(26,122,110,.10);--shadow-lg:0 8px 40px rgba(26,122,110,.15)}
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--text);min-height:100vh}
-header{background:linear-gradient(135deg,var(--teal-dark),var(--teal));padding:14px 28px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 12px rgba(0,0,0,.15);position:sticky;top:0;z-index:100;flex-wrap:wrap;gap:10px}
-.logo{font-family:'DM Serif Display',serif;color:#fff;font-size:20px}
-.logo span{color:var(--gold-light)}
-.header-right{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:8px;font-size:13px;font-family:'DM Sans',sans-serif;font-weight:500;cursor:pointer;border:none;transition:all .18s}
-.btn-outline{background:transparent;border:1px solid rgba(255,255,255,.3);color:var(--gold-light)}
-.btn-outline:hover{background:rgba(255,255,255,.1)}
-.btn-active{background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.5);color:#fff}
-.btn-primary{background:var(--gold);color:var(--teal-dark);font-weight:600}
-.btn-primary:hover{background:var(--gold-light)}
-.btn-danger{background:var(--danger);color:#fff}
-.btn-ghost{background:transparent;border:1px solid var(--border);color:var(--text-muted)}
-.btn-ghost:hover{background:var(--border);color:var(--text)}
-.btn-save{background:var(--teal);color:#fff}
-.btn-save:hover{background:var(--teal-light)}
-.btn-sm{padding:5px 10px;font-size:12px}
-main{max-width:1000px;margin:0 auto;padding:28px 24px 100px}
-.page-header{margin-bottom:28px}
-.page-header h1{font-family:'DM Serif Display',serif;font-size:26px;color:var(--teal-dark)}
-.page-header p{color:var(--text-muted);font-size:13px;margin-top:4px}
-.settings-section{background:var(--white);border-radius:14px;border:1px solid var(--border);box-shadow:var(--shadow);margin-bottom:24px;overflow:hidden}
-.section-header{padding:18px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--cream)}
-.section-header h2{font-size:15px;font-weight:600;color:var(--teal-dark)}
-.section-header p{font-size:12px;color:var(--text-muted);margin-top:2px}
-.section-body{padding:24px}
-/* LEAVE ENTITLEMENTS */
-.entitlement-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
-.ent-card{background:var(--cream);border-radius:10px;border:1px solid var(--border);padding:18px}
-.ent-card h3{font-size:13px;font-weight:600;margin-bottom:12px;color:var(--text)}
-.ent-field{display:flex;flex-direction:column;gap:6px}
-.ent-field label{font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em}
-.ent-field input{padding:9px 12px;border:1px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:14px;background:var(--white);outline:none;transition:border-color .18s;width:100%}
-.ent-field input:focus{border-color:var(--teal-light)}
-.ent-unit{font-size:11px;color:var(--text-muted);margin-top:4px}
-/* TAG LIST (departments / roles) */
-.tag-list{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px;min-height:36px}
-.tag{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:20px;background:var(--cream);border:1px solid var(--border);font-size:13px}
-.tag.dept{background:#f0e8ff;border-color:#d4b8ff;color:#6a3ab2}
-.tag.role{background:#e8f4f8;border-color:#b8d8e8;color:#1a5a7a}
-.tag-del{background:none;border:none;cursor:pointer;color:var(--text-muted);font-size:14px;padding:0 2px;line-height:1}
-.tag-del:hover{color:var(--danger)}
-.add-tag-row{display:flex;gap:8px;align-items:center}
-.add-tag-row input{flex:1;padding:8px 12px;border:1px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;background:var(--cream);outline:none}
-.add-tag-row input:focus{border-color:var(--teal-light)}
-.section-footer{padding:16px 24px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:10px;background:var(--cream)}
-.toast{position:fixed;bottom:80px;right:20px;background:var(--teal-dark);color:#fff;padding:10px 18px;border-radius:10px;font-size:13px;z-index:2000;transform:translateY(60px);opacity:0;transition:all .3s}
-.toast.show{transform:translateY(0);opacity:1}
-.toast.err{background:var(--danger)}
-#loadingOverlay{position:fixed;inset:0;background:var(--cream);display:flex;align-items:center;justify-content:center;z-index:9000;font-size:14px;color:var(--text-muted)}
-@media(max-width:700px){.entitlement-grid{grid-template-columns:1fr}}
-/* ── UNIFIED ERP NAVIGATION ── */
-.erp-header{background:linear-gradient(135deg,var(--teal-dark),var(--teal));position:sticky;top:0;z-index:200;box-shadow:0 2px 20px rgba(0,0,0,.2)}
-.erp-nav-global{display:flex;align-items:center;padding:0 24px;height:44px;border-bottom:1px solid rgba(255,255,255,.1)}
-.erp-logo{font-family:'DM Serif Display',serif;font-size:17px;color:#fff;white-space:nowrap;margin-right:14px}
-.erp-logo span{color:var(--gold-light)}
-.erp-modules{display:flex;gap:2px;flex:1;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}
-.erp-modules::-webkit-scrollbar{display:none}
-.erp-mod-btn{padding:4px 9px;border-radius:5px;font-size:11px;font-weight:500;color:rgba(255,255,255,.7);text-decoration:none;white-space:nowrap;transition:all .15s;font-family:'DM Sans',sans-serif}
-.erp-mod-btn:hover{background:rgba(255,255,255,.12);color:#fff}
-.erp-mod-btn.active{background:var(--gold);color:var(--teal-dark);font-weight:700}
-.erp-nav-local{display:flex;align-items:center;padding:0 20px;height:40px;background:rgba(0,0,0,.12);gap:8px}
-.erp-local-title{font-size:13px;font-weight:600;color:rgba(255,255,255,.9)}
-.erp-local-spacer{flex:1}
-
-
-/* ── GLOBAL MOBILE RESPONSIVE ── */
-@media(max-width:768px){
-  .table-wrap,[style*="overflow-x"]{overflow-x:auto!important;-webkit-overflow-scrolling:touch}
-  table{min-width:500px}
-  .modal-overlay,.overlay{padding:8px!important}
-  .modal,.modal-lg{width:100%!important;max-width:100%!important;max-height:95vh!important;border-radius:12px!important;margin:auto}
-  .form-grid,.form-row,.form-grid-2,.form-grid-3,.form-grid-4,.form-grid-6{grid-template-columns:1fr!important}
-  .col-span-2,.col-span-4,.form-full{grid-column:1/-1!important}
-  .stats-bar,.kpi-grid,.kpi-grid-6,.stats-row{grid-template-columns:repeat(2,1fr)!important}
-  .container,main{padding-left:10px!important;padding-right:10px!important}
-  .modal-footer{flex-wrap:wrap}
-  .modal-footer .btn{min-width:100px}
-}
-@media(max-width:480px){
-  .stats-bar,.kpi-grid,.stats-row{grid-template-columns:1fr 1fr!important}
-  td,th{padding:6px 8px!important;font-size:11px!important}
-}
-
-/* ═══════════════════════════════════════════════════
-   ZESTY ERP — LEFT SIDEBAR NAVIGATION
-   ═══════════════════════════════════════════════════ */
-
-/* Reset old top header nav */
-.erp-header,.erp-nav-global,.erp-nav-local,
-.erp-modules,.erp-mod-btn,.erp-logo,
-.erp-local-title,.erp-local-spacer { all: unset; }
-.erp-header { display: none !important; }
-
-/* ── LAYOUT WRAPPER ── */
-body.erp-layout {
-  display: flex;
-  min-height: 100vh;
-  overflow-x: hidden;
-}
-
-/* ── SIDEBAR ── */
-.erp-sidebar {
-  width: 220px;
-  min-width: 220px;
-  background: linear-gradient(180deg, #0a3d36 0%, #0d4a42 60%, #0f5248 100%);
-  display: flex;
-  flex-direction: column;
-  position: fixed;
-  top: 0; left: 0; bottom: 0;
-  z-index: 600;
-  box-shadow: 3px 0 20px rgba(0,0,0,0.3);
-  transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
-  overflow-y: auto;
-  scrollbar-width: thin;
-  scrollbar-color: rgba(255,255,255,.1) transparent;
-}
-.erp-sidebar::-webkit-scrollbar { width: 4px; }
-.erp-sidebar::-webkit-scrollbar-track { background: transparent; }
-.erp-sidebar::-webkit-scrollbar-thumb { background: rgba(255,255,255,.1); border-radius: 2px; }
-
-/* ── SIDEBAR BRAND ── */
-.erp-brand {
-  padding: 20px 18px 16px;
-  border-bottom: 1px solid rgba(255,255,255,.08);
-  flex-shrink: 0;
-}
-.erp-brand-name {
-  font-family: 'Cormorant Garamond', 'DM Serif Display', serif;
-  font-size: 22px; font-weight: 600; color: #fff;
-  line-height: 1; letter-spacing: .3px;
-}
-.erp-brand-name span { color: #e8c97a; }
-.erp-brand-sub {
-  font-size: 10px; color: rgba(255,255,255,.35);
-  text-transform: uppercase; letter-spacing: 2px;
-  margin-top: 4px; font-weight: 400;
-}
-
-/* ── SIDEBAR NAV LINKS ── */
-.erp-nav-section {
-  padding: 10px 0 4px;
-}
-.erp-nav-section-label {
-  font-size: 9px; font-weight: 700;
-  text-transform: uppercase; letter-spacing: .12em;
-  color: rgba(255,255,255,.25);
-  padding: 0 18px; margin-bottom: 4px;
-}
-.erp-nav-link {
-  display: flex; align-items: center; gap: 9px;
-  padding: 8px 18px;
-  color: rgba(255,255,255,.6);
-  text-decoration: none;
-  font-size: 13px; font-weight: 500;
-  font-family: 'DM Sans', sans-serif;
-  transition: all .15s;
-  border-left: 3px solid transparent;
-  -webkit-tap-highlight-color: transparent;
-  cursor: pointer;
-  background: none; border-right: none;
-  border-top: none; border-bottom: none;
-  width: 100%; text-align: left;
-}
-.erp-nav-link:hover {
-  color: #fff;
-  background: rgba(255,255,255,.07);
-  border-left-color: rgba(255,255,255,.2);
-}
-.erp-nav-link.active {
-  color: #e8c97a;
-  background: rgba(201,168,76,.12);
-  border-left-color: #e8c97a;
-  font-weight: 600;
-}
-.erp-nav-link .nav-icon { font-size: 15px; flex-shrink: 0; width: 18px; text-align: center; }
-.erp-nav-link .nav-label { flex: 1; }
-.erp-nav-link .nav-badge {
-  font-size: 10px; font-weight: 700;
-  background: rgba(201,168,76,.25); color: #e8c97a;
-  padding: 1px 6px; border-radius: 8px;
-}
-.erp-nav-divider {
-  height: 1px; background: rgba(255,255,255,.06);
-  margin: 6px 14px;
-}
-
-/* ── MODULE TABS (inside sidebar, below nav links) ── */
-.erp-module-tabs {
-  margin-top: auto;
-  padding: 8px 0 12px;
-  border-top: 1px solid rgba(255,255,255,.08);
-}
-.erp-module-tabs-label {
-  font-size: 9px; font-weight: 700;
-  text-transform: uppercase; letter-spacing: .12em;
-  color: rgba(255,255,255,.25);
-  padding: 0 18px; margin-bottom: 4px;
-}
-.erp-tab-link {
-  display: flex; align-items: center; gap: 8px;
-  padding: 7px 18px;
-  color: rgba(255,255,255,.55);
-  font-size: 12px; font-weight: 500;
-  font-family: 'DM Sans', sans-serif;
-  transition: all .15s;
-  border-left: 3px solid transparent;
-  -webkit-tap-highlight-color: transparent;
-  cursor: pointer;
-  background: none; border-right: none;
-  border-top: none; border-bottom: none;
-  width: 100%; text-align: left; text-decoration: none;
-}
-.erp-tab-link:hover {
-  color: #fff; background: rgba(255,255,255,.06);
-}
-.erp-tab-link.active {
-  color: #c9a84c; font-weight: 600;
-  background: rgba(201,168,76,.1);
-  border-left-color: #c9a84c;
-}
-
-/* ── SIDEBAR FOOTER (user badge + sync) ── */
-.erp-sidebar-footer {
-  padding: 12px 18px;
-  border-top: 1px solid rgba(255,255,255,.08);
-  flex-shrink: 0;
-}
-.erp-user-badge {
-  font-size: 11px; color: rgba(255,255,255,.45);
-  display: flex; align-items: center; gap: 6px;
-}
-.erp-sync-row {
-  display: flex; align-items: center; gap: 6px;
-  margin-top: 6px;
-}
-.sync-label { font-size: 10px; color: rgba(255,255,255,.3); }
-
-/* ── MAIN CONTENT AREA ── */
-.erp-main {
-  margin-left: 220px;
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-}
-
-/* ── TOP BAR (module title + actions) ── */
-.erp-topbar {
-  background: #fff;
-  border-bottom: 1px solid #d4e0de;
-  padding: 0 28px;
-  height: 52px;
-  display: flex; align-items: center; gap: 12px;
-  position: sticky; top: 0; z-index: 100;
-  box-shadow: 0 1px 8px rgba(26,122,110,.08);
-  flex-shrink: 0;
-}
-.erp-topbar-title {
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 18px; font-weight: 600;
-  color: #115950; flex: 1;
-}
-.erp-topbar-actions { display: flex; gap: 8px; align-items: center; }
-
-/* ── HAMBURGER (mobile only) ── */
-.erp-hamburger {
-  display: none;
-  background: none; border: none;
-  color: #115950; font-size: 22px;
-  cursor: pointer; padding: 4px 8px;
-  border-radius: 6px;
-  -webkit-tap-highlight-color: transparent;
-}
-.erp-overlay {
-  display: none;
-  position: fixed; inset: 0;
-  background: rgba(0,0,0,.5);
-  z-index: 590;
-}
-
-/* ── MOBILE ── */
-@media (max-width: 900px) {
-  .erp-sidebar {
-    transform: translateX(-100%);
-  }
-  .erp-sidebar.open {
-    transform: translateX(0);
-  }
-  .erp-overlay.open { display: block; }
-  .erp-main { margin-left: 0; }
-  .erp-hamburger { display: block; }
-  .erp-topbar { padding: 0 14px; }
-}
-@media (max-width: 600px) {
-  .container, main { padding: 12px 10px 60px !important; }
-  table { min-width: 480px; }
-  .stats-bar, .kpi-grid { grid-template-columns: repeat(2,1fr) !important; }
-}
-
-
+.settings-section{background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:24px 28px;margin-bottom:20px}
+.settings-section h2{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:500;color:var(--teal-dark);margin-bottom:4px}
+.settings-section p{font-size:12px;color:var(--text-muted);margin-bottom:20px}
+.setting-row{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border);gap:24px}
+.setting-row:last-child{border:none}
+.setting-label{font-size:13px;font-weight:500;color:var(--text)}
+.setting-desc{font-size:11px;color:var(--text-muted);margin-top:2px}
+.setting-control{flex-shrink:0}
+.setting-control input,.setting-control select{padding:7px 12px;border:1px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;background:var(--cream);outline:none;min-width:220px}
+.setting-control input:focus,.setting-control select:focus{border-color:var(--teal-light)}
+.toggle{position:relative;width:44px;height:24px;display:inline-block}
+.toggle input{opacity:0;width:0;height:0}
+.toggle-slider{position:absolute;cursor:pointer;inset:0;background:var(--border);border-radius:24px;transition:.3s}
+.toggle-slider::before{content:'';position:absolute;width:18px;height:18px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.3s}
+.toggle input:checked+.toggle-slider{background:var(--teal)}
+.toggle input:checked+.toggle-slider::before{transform:translateX(20px)}
+.db-info{font-family:'DM Mono',monospace;font-size:12px;background:var(--cream);padding:10px 14px;border-radius:8px;border:1px solid var(--border);margin-top:6px;word-break:break-all;color:var(--text-muted)}
+.db-info strong{color:var(--teal-dark)}
 </style>
-    <script src="https://unpkg.com/@azure/msal-browser@2.38.3/lib/msal-browser.min.js"></script>
-    <script>
-    (function(){
-      const _msalConfig={
-        auth:{
-          clientId:'0938023f-cbbf-45f1-a71d-b18c95745ea6',
-          authority:'https://login.microsoftonline.com/9c30b606-6648-4777-a623-64867e43e54f',
-          redirectUri:'https://kissamosrealestate.com/wp-content/erp/index.html'
-        },
-        cache:{cacheLocation:'sessionStorage',storeAuthStateInCookie:false}
-      };
-      const _msal=new msal.PublicClientApplication(_msalConfig);
-      const _loginRequest={scopes:['openid','profile','User.Read']};
-
-      
-      // ── MSAL AUTH ──────────────────────────────────────────
-      const _isMobile = /iPhone|iPad|iPod|Android|Mobile/i.test(navigator.userAgent);
-
-      async function _ensureLogin() {
-        await _msal.initialize();
-        // Handle any redirect result first
-        try {
-          const redirectResult = await _msal.handleRedirectPromise();
-          if (redirectResult && redirectResult.account) {
-            _msal.setActiveAccount(redirectResult.account);
-            _showUserBadge(redirectResult.account.name || redirectResult.account.username);
-            document.documentElement.style.visibility = 'visible';
-            return;
-          }
-        } catch(e) { console.warn('Redirect promise:', e); }
-
-        // Check for existing session
-        const accounts = _msal.getAllAccounts();
-        if (accounts.length > 0) {
-          _msal.setActiveAccount(accounts[0]);
-          _showUserBadge(accounts[0].name || accounts[0].username);
-          document.documentElement.style.visibility = 'visible';
-          return;
-        }
-
-        // No session - login
-        if (_isMobile) {
-          // Mobile: try popup first, fallback to redirect
-          try {
-            const result = await _msal.loginPopup(_loginRequest);
-            if (result && result.account) {
-              _msal.setActiveAccount(result.account);
-              _showUserBadge(result.account.name || result.account.username);
-            }
-            document.documentElement.style.visibility = 'visible';
-          } catch(e) {
-            if (e.errorCode !== 'user_cancelled') {
-              sessionStorage.setItem('msal_return_url', window.location.href);
-              await _msal.loginRedirect(_loginRequest);
-            } else {
-              document.documentElement.style.visibility = 'visible';
-            }
-          }
-        } else {
-          // Desktop: store current page, redirect to login, come back
-          sessionStorage.setItem('msal_return_url', window.location.href);
-          await _msal.loginRedirect(_loginRequest);
-        }
-      }
-
-
-      function _showUserBadge(name) {
-        // Store name globally for sidebar to pick up
-        window._erpUserName = name;
-        // Try to update sidebar user display
-        const zsUser = document.getElementById('zsUser');
-        if (zsUser) {
-          zsUser.innerHTML = '<span>👤 ' + name + '</span>' +
-            '<button onclick="window._azureLogout()" style="background:transparent;border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.5);font-size:10px;padding:2px 7px;border-radius:4px;cursor:pointer;font-family:DM Sans,sans-serif;margin-left:4px">Sign out</button>';
-        }
-        // Also try old header-right for backwards compat
-        const hdr = document.querySelector('.header-right');
-        if (hdr && !document.getElementById('_azure_badge')) {
-          const badge = document.createElement('div');
-          badge.id = '_azure_badge';
-          badge.style.cssText = 'display:flex;align-items:center;gap:8px';
-          badge.innerHTML = '<span style="font-size:12px;color:rgba(255,255,255,.75);font-family:DM Sans,sans-serif">👤 ' + name + '</span>' +
-            '<button onclick="window._azureLogout()" style="padding:4px 10px;border-radius:7px;border:1px solid rgba(255,255,255,.3);background:transparent;color:rgba(255,255,255,.7);font-size:11px;cursor:pointer;font-family:DM Sans,sans-serif">Sign out</button>';
-          hdr.appendChild(badge);
-        }
-      }
-
-      window._azureLogout=function(){
-        const accounts=_msal.getAllAccounts();
-        if(accounts.length>0){_msal.logoutRedirect({account:accounts[0]});}
-      };
-
-      document.addEventListener('DOMContentLoaded',function(){
-        const accounts=_msal.getAllAccounts();
-        if(accounts.length===0){document.body.style.visibility='hidden';}
-        else{document.body.style.visibility='visible';}
-      });
-
-      _ensureLogin().then(()=>{
-        document.body.style.visibility='visible';
-      });
-    })();
-    </script>
-    <!-- Azure MSAL Authentication -->
-    
-    <script>
-    (function(){
-      const _msalConfig={
-        auth:{
-          clientId:'0938023f-cbbf-45f1-a71d-b18c95745ea6',
-          authority:'https://login.microsoftonline.com/9c30b606-6648-4777-a623-64867e43e54f',
-          redirectUri:'https://kissamosrealestate.com/wp-content/erp/index.html'
-        },
-        cache:{cacheLocation:'sessionStorage',storeAuthStateInCookie:false}
-      };
-      const _msal=new msal.PublicClientApplication(_msalConfig);
-      const _loginRequest={scopes:['openid','profile','User.Read']};
-      function _showUserBadge(name) {
-        // Store name globally for sidebar to pick up
-        window._erpUserName = name;
-        // Try to update sidebar user display
-        const zsUser = document.getElementById('zsUser');
-        if (zsUser) {
-          zsUser.innerHTML = '<span>👤 ' + name + '</span>' +
-            '<button onclick="window._azureLogout()" style="background:transparent;border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.5);font-size:10px;padding:2px 7px;border-radius:4px;cursor:pointer;font-family:DM Sans,sans-serif;margin-left:4px">Sign out</button>';
-        }
-        // Also try old header-right for backwards compat
-        const hdr = document.querySelector('.header-right');
-        if (hdr && !document.getElementById('_azure_badge')) {
-          const badge = document.createElement('div');
-          badge.id = '_azure_badge';
-          badge.style.cssText = 'display:flex;align-items:center;gap:8px';
-          badge.innerHTML = '<span style="font-size:12px;color:rgba(255,255,255,.75);font-family:DM Sans,sans-serif">👤 ' + name + '</span>' +
-            '<button onclick="window._azureLogout()" style="padding:4px 10px;border-radius:7px;border:1px solid rgba(255,255,255,.3);background:transparent;color:rgba(255,255,255,.7);font-size:11px;cursor:pointer;font-family:DM Sans,sans-serif">Sign out</button>';
-          hdr.appendChild(badge);
-        }
-      }
-
-      window._azureLogout=function(){
-        const accounts=_msal.getAllAccounts();
-        if(accounts.length>0){_msal.logoutRedirect({account:accounts[0]});}
-      };
-
-      document.documentElement.style.visibility='hidden';
-
-      _ensureLogin().catch(function(){
-        _msal.loginRedirect(_loginRequest);
-      });
-    })();
-    </script>
 </head>
-<body class="erp-layout">
-<div id="loadingOverlay">Loading settings...</div>
-<div class="erp-overlay" id="erpOverlay"></div>
-<aside class="erp-sidebar" id="erpSidebar">
-  <div class="erp-brand">
-    <div class="erp-brand-name">Zesty <span>ERP</span></div>
-    <div class="erp-brand-sub">Kissamos · Operations</div>
-  </div>
-  <nav class="erp-nav-section">
-    <div class="erp-nav-section-label">Modules</div>
-      <a href="index.html" class="erp-nav-link"><span class="nav-icon">🏠</span><span class="nav-label">Home</span></a>
-      <a href="owners-crm.html" class="erp-nav-link"><span class="nav-icon">👤</span><span class="nav-label">Owners</span></a>
-      <a href="properties-db.html" class="erp-nav-link"><span class="nav-icon">🏠</span><span class="nav-label">Properties</span></a>
-      <a href="guests-crm.html" class="erp-nav-link"><span class="nav-icon">✈️</span><span class="nav-label">Guests</span></a>
-      <a href="cleaning-system.html" class="erp-nav-link"><span class="nav-icon">🧹</span><span class="nav-label">Cleaning</span></a>
-      <a href="contacts-crm.html" class="erp-nav-link"><span class="nav-icon">📋</span><span class="nav-label">Contacts</span></a>
-      <a href="employees.html" class="erp-nav-link"><span class="nav-icon">👥</span><span class="nav-label">Staff</span></a>
-      <a href="leave.html" class="erp-nav-link"><span class="nav-icon">🏖️</span><span class="nav-label">Leave</span></a>
-      <a href="tasks.html" class="erp-nav-link"><span class="nav-icon">✅</span><span class="nav-label">Tasks</span></a>
-      <a href="jobs.html" class="erp-nav-link"><span class="nav-icon">🔧</span><span class="nav-label">Job Orders</span></a>
-      <a href="laundry.html" class="erp-nav-link"><span class="nav-icon">👔</span><span class="nav-label">Laundry ERP</span></a>
-      <a href="onboarding.html" class="erp-nav-link"><span class="nav-icon">📋</span><span class="nav-label">Onboarding</span></a>
-      <a href="settings.html" class="erp-nav-link active"><span class="nav-icon">⚙️</span><span class="nav-label">Settings</span></a>
-  </nav>
-  
-  <div class="erp-sidebar-footer">
-    <div class="erp-user-badge" id="sidebarUser"></div>
-    <div class="erp-sync-row">
-      <span class="sync-dot" id="syncDot" title="Saved" style="display:inline-block"></span>
-      <span class="sync-label">Connected</span>
+<body>
+<div class="container" style="max-width:800px">
+  <div class="page-title-bar">
+    <div><h1>Settings</h1><p>ERP configuration, database info and preferences</p></div>
+    <div class="page-actions">
+      <button class="btn btn-primary" onclick="saveSettings()">Save Settings</button>
     </div>
   </div>
-</aside>
 
-<div class="erp-main">
-<div class="erp-topbar">
-    <button class="erp-hamburger" id="erpHamburger">☰</button>
-    <div class="erp-topbar-title">⚙️ Settings</div>
-    <div class="erp-topbar-actions"><button class="btn btn-primary btn-sm" onclick="backupERP&&backupERP()">💾 Backup ERP</button></div>
-  </div>
-
-<main>
-  <div class="page-header">
-    <h1>Settings</h1>
-    <p>Configure leave entitlements, departments, roles and other global settings</p>
-  </div>
-
-  <!-- LEAVE ENTITLEMENTS -->
+  <!-- DATABASE -->
   <div class="settings-section">
-    <div class="section-header">
-      <div>
-        <h2>Leave Entitlements</h2>
-        <p>Default annual entitlement per employee. Applied to all employees unless individually overridden.</p>
-      </div>
+    <h2>Database</h2>
+    <p>Supabase connection info. These settings are read-only and fixed to your project.</p>
+    <div class="db-info">
+      <div><strong>Project:</strong> whuytfjwdjjepayeiohj.supabase.co</div>
+      <div style="margin-top:6px"><strong>Status:</strong> <span id="dbStatus">Checking…</span></div>
+      <div style="margin-top:6px"><strong>Tables:</strong> owners · properties · guests · jobs · employees · staff · tasks · cleaning · contacts · leave · onboardings · tickets</div>
     </div>
-    <div class="section-body">
-      <div class="entitlement-grid">
-        <div class="ent-card">
-          <h3>&#127958; Annual Leave</h3>
-          <div class="ent-field">
-            <label>Days per year</label>
-            <input type="number" id="ent_annual" min="0" step="1" placeholder="20">
-            <div class="ent-unit">Working days</div>
-          </div>
-        </div>
-        <div class="ent-card">
-          <h3>&#129657; Sick Leave</h3>
-          <div class="ent-field">
-            <label>Days per year</label>
-            <input type="number" id="ent_sick" min="0" step="1" placeholder="10">
-            <div class="ent-unit">Working days</div>
-          </div>
-        </div>
-        <div class="ent-card">
-          <h3>&#9201; Hourly Time Off</h3>
-          <div class="ent-field">
-            <label>Hours per year</label>
-            <input type="number" id="ent_hourly" min="0" step="1" placeholder="64">
-            <div class="ent-unit">Hours (e.g. 64h = 8 working days)</div>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="section-footer">
-      <button class="btn btn-save" onclick="saveEntitlements()">Save Entitlements</button>
-    </div>
+    <button class="btn btn-teal btn-sm" style="margin-top:14px" onclick="testConnection()">🔌 Test Connection</button>
   </div>
 
-  <!-- DEPARTMENTS -->
+  <!-- GENERAL -->
   <div class="settings-section">
-    <div class="section-header">
-      <div>
-        <h2>Departments</h2>
-        <p>Manage the departments available when creating or editing employees.</p>
+    <h2>General</h2>
+    <p>Company information used across the ERP.</p>
+    <div class="setting-row">
+      <div><div class="setting-label">Company Name</div><div class="setting-desc">Used in reports and print views</div></div>
+      <div class="setting-control"><input id="s_company" placeholder="Zesty Rentals"></div>
+    </div>
+    <div class="setting-row">
+      <div><div class="setting-label">Default Currency</div></div>
+      <div class="setting-control">
+        <select id="s_currency">
+          <option value="EUR">EUR (€)</option>
+          <option value="USD">USD ($)</option>
+          <option value="GBP">GBP (£)</option>
+        </select>
       </div>
     </div>
-    <div class="section-body">
-      <div class="tag-list" id="deptList"></div>
-      <div class="add-tag-row">
-        <input id="newDept" placeholder="Add new department..." onkeydown="if(event.key==='Enter')addDept()">
-        <button class="btn btn-primary" onclick="addDept()">+ Add</button>
+    <div class="setting-row">
+      <div><div class="setting-label">Date Format</div></div>
+      <div class="setting-control">
+        <select id="s_dateFormat">
+          <option value="el-GR">DD/MM/YYYY (Greek)</option>
+          <option value="en-GB">DD/MM/YYYY (UK)</option>
+          <option value="en-US">MM/DD/YYYY (US)</option>
+        </select>
       </div>
     </div>
-    <div class="section-footer">
-      <button class="btn btn-save" onclick="saveDepts()">Save Departments</button>
+    <div class="setting-row">
+      <div><div class="setting-label">Default Management Fee (%)</div><div class="setting-desc">Pre-filled when adding new owners</div></div>
+      <div class="setting-control"><input id="s_managementFee" type="number" min="0" max="100" step="0.1" placeholder="18"></div>
     </div>
   </div>
 
-  <!-- ROLES -->
+  <!-- JOBS -->
   <div class="settings-section">
-    <div class="section-header">
-      <div>
-        <h2>Job Roles</h2>
-        <p>Manage the job role presets available when creating employees. Roles can also be typed freely.</p>
-      </div>
+    <h2>Job Orders</h2>
+    <p>Default values for the Job Orders module.</p>
+    <div class="setting-row">
+      <div><div class="setting-label">Default Job ID Prefix</div><div class="setting-desc">e.g. "JOB-" → JOB-0001</div></div>
+      <div class="setting-control"><input id="s_jobPrefix" placeholder="JOB-"></div>
     </div>
-    <div class="section-body">
-      <div class="tag-list" id="roleList"></div>
-      <div class="add-tag-row">
-        <input id="newRole" placeholder="Add new role..." onkeydown="if(event.key==='Enter')addRole()">
-        <button class="btn btn-primary" onclick="addRole()">+ Add</button>
-      </div>
-    </div>
-    <div class="section-footer">
-      <button class="btn btn-save" onclick="saveRoles()">Save Roles</button>
+    <div class="setting-row">
+      <div><div class="setting-label">Default Zesty Fee (€)</div></div>
+      <div class="setting-control"><input id="s_defaultZestyFee" type="number" step="0.01" min="0" placeholder="0.00"></div>
     </div>
   </div>
 
-
-  <!-- TASK ASSIGNEES -->
+  <!-- NOTIFICATIONS -->
   <div class="settings-section">
-    <div class="section-header">
-      <div>
-        <h2>Task Assignees</h2>
-        <p>Additional assignees beyond your employee list. Employees are added automatically from Staff CRM.</p>
+    <h2>Display Preferences</h2>
+    <p>UI preferences stored locally in your browser.</p>
+    <div class="setting-row">
+      <div><div class="setting-label">Items per page</div><div class="setting-desc">Rows shown in table views</div></div>
+      <div class="setting-control">
+        <select id="s_pageSize">
+          <option value="15">15</option>
+          <option value="20">20</option>
+          <option value="25">25</option>
+          <option value="50">50</option>
+        </select>
       </div>
     </div>
-    <div class="section-body">
-      <div class="tag-list" id="assigneeList"></div>
-      <div class="add-tag-row">
-        <input id="newAssignee" placeholder="Add external assignee..." onkeydown="if(event.key==='Enter')addAssignee()">
-        <button class="btn btn-primary" onclick="addAssignee()">+ Add</button>
+    <div class="setting-row">
+      <div><div class="setting-label">Auto-refresh interval</div><div class="setting-desc">How often to poll Supabase for changes</div></div>
+      <div class="setting-control">
+        <select id="s_pollInterval">
+          <option value="15000">15 seconds</option>
+          <option value="30000">30 seconds</option>
+          <option value="60000">1 minute</option>
+          <option value="300000">5 minutes</option>
+        </select>
       </div>
-    </div>
-    <div class="section-footer">
-      <button class="btn btn-save" onclick="saveAssignees()">Save Assignees</button>
     </div>
   </div>
 
-  <!-- TASK LOCATIONS -->
+  <!-- DATA MANAGEMENT -->
   <div class="settings-section">
-    <div class="section-header">
-      <div>
-        <h2>Task Locations</h2>
-        <p>Additional locations for tasks beyond your properties list. Properties are added automatically.</p>
-      </div>
+    <h2>Data Management</h2>
+    <p>Clear cached data. Supabase data is never deleted here — only your local browser cache.</p>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:4px">
+      <button class="btn btn-outline btn-sm" onclick="clearCache('zesty_owners')">Clear Owners Cache</button>
+      <button class="btn btn-outline btn-sm" onclick="clearCache('zesty_properties')">Clear Properties Cache</button>
+      <button class="btn btn-outline btn-sm" onclick="clearCache('zesty_jobs')">Clear Jobs Cache</button>
+      <button class="btn btn-outline btn-sm" onclick="clearCache('zesty_guests')">Clear Guests Cache</button>
+      <button class="btn btn-danger btn-sm" onclick="clearAllCache()">Clear All Caches</button>
     </div>
-    <div class="section-body">
-      <div class="tag-list" id="taskLocList"></div>
-      <div class="add-tag-row">
-        <input id="newTaskLoc" placeholder="Add location..." onkeydown="if(event.key==='Enter')addTaskLoc()">
-        <button class="btn btn-primary" onclick="addTaskLoc()">+ Add</button>
-      </div>
-    </div>
-    <div class="section-footer">
-      <button class="btn btn-save" onclick="saveTaskLocs()">Save Locations</button>
-    </div>
+    <div id="cacheMsg" style="margin-top:10px;font-size:12px;color:var(--success);display:none"></div>
   </div>
 
-    <!-- BACKUP SECTION -->
-    <div class="settings-section">
-      <div class="section-header">
-        <div>
-          <h2>💾 ERP Backup</h2>
-          <p>Download a full JSON backup of all your ERP data</p>
-        </div>
-      </div>
-      <div class="section-body">
-        <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px">
-          This will download a complete backup of all modules: owners, properties, guests, contacts, staff, employees, jobs, tasks, leaves, and settings.
-          Store this file safely — you can use it to restore your data if needed.
-        </p>
-        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
-          <button class="btn btn-save" onclick="backupERP()">💾 Download Full Backup</button>
-          <span id="backupStatus" style="font-size:12px;color:var(--text-muted)"></span>
-        </div>
-        <div id="backupHistory" style="margin-top:16px;font-size:12px;color:var(--text-muted)"></div>
-      </div>
+  <!-- ABOUT -->
+  <div class="settings-section">
+    <h2>About</h2>
+    <p style="margin-bottom:8px">Zesty ERP v4.0 — Rebuilt from scratch with clean architecture.</p>
+    <div style="font-size:12px;color:var(--text-muted);line-height:1.7">
+      <div>🗂 All data stored in Supabase project <strong>whuytfjwdjjepayeiohj</strong></div>
+      <div>🔄 LocalStorage used as offline cache fallback</div>
+      <div>🔐 Azure AD authentication (MSAL)</div>
+      <div>📦 Shared: erp-nav.js · erp-base.js · erp-style.css</div>
     </div>
+  </div>
+</div>
 
-</main>
-<div id="toast" class="toast"></div>
+<script src="erp-base.js"></script>
 <script>
-const SUPABASE_URL='https://whuytfjwdjjepayeiohj.supabase.co';
-const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndodXl0Zmp3ZGpqZXBheWVpb2hqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIyODQxMzQsImV4cCI6MjA4Nzg2MDEzNH0.pTDAqw_Cnzc9D3tJU-tU7Ch5qpapKmteiqI_ooSCufY';
-const DB={
-  _h(){return{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json','Prefer':'return=representation,resolution=merge-duplicates'}},
-  _hG(){return{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY}},
-  _hD(){return{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json'}},
-  _ok(){return!!(SUPABASE_URL&&SUPABASE_KEY&&SUPABASE_URL.includes('supabase.co'))},
-  async _fetch(method,table,body,query,ms){
-    if(!this._ok())return{ok:false,data:null,err:'Not configured'};
-    const ctrl=new AbortController(),t=setTimeout(()=>ctrl.abort(),ms||15000);
-    try{
-      const url=SUPABASE_URL+'/rest/v1/'+table+(query||'');
-      const headers=method==='GET'?this._hG():method==='DELETE'?this._hD():this._h();
-      const opts={method,headers,signal:ctrl.signal};
-      if(body)opts.body=JSON.stringify(body);
-      const res=await fetch(url,opts);clearTimeout(t);
-      if(!res.ok){
-        let e='HTTP '+res.status;
-        try{const j=await res.json();e=j.message||j.hint||j.error||e}catch(x){}
-        return{ok:false,data:null,err:e};
-      }
-      if(res.status===204||method==='DELETE')return{ok:true,data:[]};
-      const ct=res.headers.get('content-type')||'';
-      if(!ct.includes('json'))return{ok:true,data:[]};
-      try{return{ok:true,data:await res.json()}}catch(x){return{ok:true,data:[]}}
-    }catch(e){clearTimeout(t);return{ok:false,data:null,err:e.name==='AbortError'?'Timeout':e.message}}
-  },
-  async loadAll(table){
-    const r=await this._fetch('GET',table,null,'?select=id,data,updated_at&order=created_at.asc&limit=100000');
-    if(!r.ok)return{ok:false,rows:null,err:r.err};
-    const rows=(r.data||[]).map(row=>({id:row.id,...(row.data||{})}));
-    return{ok:true,rows};
-  },
-  async upsertOne(table,record){
-    const{id,...rest}=record;
-    const rid=id||('rec_'+Date.now()+'_'+Math.random().toString(36).slice(2,6));
-    const row={id:rid,data:rest,updated_at:new Date().toISOString()};
-    const r=await this._fetch('POST',table,row,'?on_conflict=id');
-    return{ok:r.ok,id:rid,err:r.err};
-  },
-  async upsertMany(table,records){
-    if(!records.length)return{ok:true};
-    const rows=records.map(({id,...rest})=>({id:id||('rec_'+Date.now()+'_'+Math.random().toString(36).slice(2,6)),data:rest,updated_at:new Date().toISOString()}));
-    const size=200;
-    for(let i=0;i<rows.length;i+=size){
-      const r=await this._fetch('POST',table,rows.slice(i,i+size),'?on_conflict=id');
-      if(!r.ok)return{ok:false,err:r.err};
-    }
-    return{ok:true};
-  },
-  async deleteOne(table,id){
-    const r=await this._fetch('DELETE',table,null,'?id=eq.'+encodeURIComponent(id));
-    return{ok:r.ok,err:r.err};
-  },
-  isConfigured(){return this._ok()}
-};
-const SyncStore={
-  _pendingDeletes:{},
-  async load(lsKey,table){
-    const cached=this._getLocal(lsKey);
-    const result=await DB.loadAll(table);
-    if(result.ok&&result.rows!==null){
-      const pending=this._pendingDeletes[table]||new Set();
-      const rows=result.rows.filter(r=>!pending.has(r.id));
-      localStorage.setItem(lsKey,JSON.stringify(rows));
-      return{data:rows,fromCache:false,online:true};
-    }
-    return{data:cached,fromCache:true,online:false};
-  },
-  async saveOne(lsKey,table,record,all){
-    localStorage.setItem(lsKey,JSON.stringify(all));
-    const r=await DB.upsertOne(table,record);
-    if(!r.ok)showSyncErr(r.err);
-    return r;
-  },
-  async saveAll(lsKey,table,records){
-    localStorage.setItem(lsKey,JSON.stringify(records));
-    const r=await DB.upsertMany(table,records);
-    if(!r.ok)showSyncErr(r.err);
-    return r.ok;
-  },
-  async deleteOne(lsKey,table,id,all){
-    if(!this._pendingDeletes[table])this._pendingDeletes[table]=new Set();
-    this._pendingDeletes[table].add(id);
-    localStorage.setItem(lsKey,JSON.stringify(all));
-    const r=await DB.deleteOne(table,id);
-    if(!r.ok){
-      this._pendingDeletes[table].delete(id);
-      showSyncErr('Delete failed: '+r.err);
-      return{ok:false,err:r.err};
-    }
-    setTimeout(()=>{if(this._pendingDeletes[table])this._pendingDeletes[table].delete(id)},120000);
-    return{ok:true};
-  },
-  _getLocal(key){try{return JSON.parse(localStorage.getItem(key)||'[]')||[]}catch{return[]}}
-};
-function startPoll(table,lsKey,ms,onData){
-  let lastHash='';
-  const poll=async()=>{
-    const result=await DB.loadAll(table);
-    if(!result.ok||!result.rows)return;
-    const pending=SyncStore._pendingDeletes[table]||new Set();
-    const rows=result.rows.filter(r=>!pending.has(r.id));
-    const hash=rows.length+'|'+rows.map(r=>r.id).join(',');
-    if(hash!==lastHash){lastHash=hash;localStorage.setItem(lsKey,JSON.stringify(rows));onData(rows)}
+// Load settings
+const SETTINGS_KEY = 'zesty_settings';
+function loadSettings() {
+  try {
+    const s = JSON.parse(localStorage.getItem(SETTINGS_KEY)||'{}');
+    document.getElementById('s_company').value = s.company||'Zesty Rentals';
+    document.getElementById('s_currency').value = s.currency||'EUR';
+    document.getElementById('s_dateFormat').value = s.dateFormat||'el-GR';
+    document.getElementById('s_managementFee').value = s.managementFee||'18';
+    document.getElementById('s_jobPrefix').value = s.jobPrefix||'JOB-';
+    document.getElementById('s_defaultZestyFee').value = s.defaultZestyFee||'';
+    document.getElementById('s_pageSize').value = s.pageSize||'20';
+    document.getElementById('s_pollInterval').value = s.pollInterval||'30000';
+  } catch {}
+}
+loadSettings();
+
+function saveSettings() {
+  const s = {
+    company: document.getElementById('s_company').value,
+    currency: document.getElementById('s_currency').value,
+    dateFormat: document.getElementById('s_dateFormat').value,
+    managementFee: document.getElementById('s_managementFee').value,
+    jobPrefix: document.getElementById('s_jobPrefix').value,
+    defaultZestyFee: document.getElementById('s_defaultZestyFee').value,
+    pageSize: document.getElementById('s_pageSize').value,
+    pollInterval: document.getElementById('s_pollInterval').value
   };
-  setInterval(poll,ms);
-  return poll;
-}
-function showDbStatus(online){
-  const old=document.getElementById('db-status-bar');if(old)old.remove();
-  if(online)return;
-  const b=document.createElement('div');b.id='db-status-bar';
-  b.style.cssText='position:fixed;bottom:0;left:0;right:0;background:#c0392b;color:#fff;text-align:center;padding:8px;font-size:12px;z-index:9998;cursor:pointer;';
-  b.textContent='⚠ Database offline — working in local mode. Click to retry.';
-  b.onclick=()=>{location.reload()};
-  document.body.appendChild(b);
-}
-function showSyncErr(err){
-  let b=document.getElementById('sync-err-bar');
-  if(!b){b=document.createElement('div');b.id='sync-err-bar';b.style.cssText='position:fixed;bottom:40px;right:16px;background:#c0392b;color:#fff;border-radius:8px;padding:8px 14px;font-size:12px;z-index:9999;max-width:320px;';document.body.appendChild(b)}
-  b.textContent='Save error: '+err;b.style.display='block';
-  clearTimeout(b._t);b._t=setTimeout(()=>b.style.display='none',6000);
+  localStorage.setItem(SETTINGS_KEY, JSON.stringify(s));
+  showToast('✓ Settings saved', 'success');
 }
 
-
-
-
-let settingsId = null;
-let departments = [];
-let roles = [];
-
-const DEFAULT_DEPTS = ['Management','Operations','Cleaning','Maintenance','Guest Relations','Finance','Marketing','Other'];
-const DEFAULT_ROLES = ['Property Manager','Operations Manager','Cleaning Staff','Maintenance Technician','Guest Relations Officer','Accountant','Marketing Executive','Office Manager','Other'];
-const DEFAULT_ENTITLEMENTS = {annual:20,sick:10,hourly:64};
-
-async function init(){
-  const result = await SyncStore.load('zesty_settings','settings');
-  showDbStatus(result.online);
-
-  let s = result.data[0]||null;
-  if(s){
-    settingsId = s.id;
-    departments = s.departments||DEFAULT_DEPTS;
-    roles = s.roles||DEFAULT_ROLES;
-    taskAssignees = s.taskAssignees||[];
-    taskLocations = s.taskLocations||[];
-    const ent = s.leaveEntitlements||DEFAULT_ENTITLEMENTS;
-    document.getElementById('ent_annual').value = ent.annual||20;
-    document.getElementById('ent_sick').value = ent.sick||10;
-    document.getElementById('ent_hourly').value = ent.hourly||64;
-  } else {
-    // First time — create default settings
-    settingsId = 'settings_main';
-    departments = [...DEFAULT_DEPTS];
-    roles = [...DEFAULT_ROLES];
-    document.getElementById('ent_annual').value = DEFAULT_ENTITLEMENTS.annual;
-    document.getElementById('ent_sick').value = DEFAULT_ENTITLEMENTS.sick;
-    document.getElementById('ent_hourly').value = DEFAULT_ENTITLEMENTS.hourly;
-    await saveAll();
-  }
-
-  renderDepts();
-  renderRoles();
-  renderAssignees();
-  renderTaskLocs();
-
-  const ol = document.getElementById('loadingOverlay');
-  if(ol){ol.style.opacity='0';ol.style.transition='opacity 0.3s';setTimeout(()=>ol.remove(),300)}
-  const lastBackup = localStorage.getItem('zesty_last_backup');
-  const histEl = document.getElementById('backupHistory');
-  if (histEl && lastBackup) histEl.textContent = 'Last backup: ' + lastBackup;
-
-  startPoll('settings','zesty_settings',30000,(rows)=>{
-    const s=rows[0];if(!s)return;
-    settingsId=s.id;
-    departments=s.departments||DEFAULT_DEPTS;
-    roles=s.roles||DEFAULT_ROLES;
-    taskAssignees=s.taskAssignees||[];
-    taskLocations=s.taskLocations||[];
-    renderDepts();renderRoles();renderAssignees();renderTaskLocs();
-    const ent=s.leaveEntitlements||DEFAULT_ENTITLEMENTS;
-    document.getElementById('ent_annual').value=ent.annual||20;
-    document.getElementById('ent_sick').value=ent.sick||10;
-    document.getElementById('ent_hourly').value=ent.hourly||64;
-  });
-}
-
-function renderDepts(){
-  document.getElementById('deptList').innerHTML = departments.map((d,i)=>
-    '<span class="tag dept">'+d+'<button class="tag-del" onclick="removeDept('+i+')" title="Remove">&#10005;</button></span>'
-  ).join('');
-}
-
-function renderRoles(){
-  document.getElementById('roleList').innerHTML = roles.map((r,i)=>
-    '<span class="tag role">'+r+'<button class="tag-del" onclick="removeRole('+i+')" title="Remove">&#10005;</button></span>'
-  ).join('');
-}
-
-function addDept(){
-  const inp=document.getElementById('newDept');
-  const val=inp.value.trim();
-  if(!val){showToast('Enter a department name.','err');return}
-  if(departments.includes(val)){showToast('Already exists.','err');return}
-  departments.push(val);inp.value='';renderDepts();
-}
-
-function removeDept(i){ departments.splice(i,1); renderDepts(); }
-
-function addRole(){
-  const inp=document.getElementById('newRole');
-  const val=inp.value.trim();
-  if(!val){showToast('Enter a role name.','err');return}
-  if(roles.includes(val)){showToast('Already exists.','err');return}
-  roles.push(val);inp.value='';renderRoles();
-}
-
-function removeRole(i){ roles.splice(i,1); renderRoles(); }
-
-async function buildSettingsObj(){
-  return {
-    id: settingsId||'settings_main',
-    departments,
-    roles,
-    taskAssignees,
-    taskLocations,
-    leaveEntitlements:{
-      annual: parseInt(document.getElementById('ent_annual').value)||20,
-      sick: parseInt(document.getElementById('ent_sick').value)||10,
-      hourly: parseInt(document.getElementById('ent_hourly').value)||64
-    }
-  };
-}
-
-async function saveAll(){
-  const obj = await buildSettingsObj();
-  const all = [obj];
-  const result = await SyncStore.saveOne('zesty_settings','settings',obj,all);
-  return result.ok!==false;
-}
-
-async function saveEntitlements(){
-  const ok = await saveAll();
-  if(ok) showToast('Entitlements saved'); else showToast('Save failed','err');
-}
-
-async function saveDepts(){
-  const ok = await saveAll();
-  if(ok) showToast('Departments saved'); else showToast('Save failed','err');
-}
-
-async function saveRoles(){
-  const ok = await saveAll();
-  if(ok) showToast('Roles saved'); else showToast('Save failed','err');
-}
-
-function showToast(msg,type){
-  const t=document.getElementById('toast');t.textContent=msg;t.className='toast show'+(type==='err'?' err':'');
-  clearTimeout(t._t);t._t=setTimeout(()=>t.className='toast',3000);
-}
-
-
-let taskAssignees = [];
-let taskLocations = [];
-
-function renderAssignees(){
-  document.getElementById('assigneeList').innerHTML = taskAssignees.map((a,i)=>
-    '<span class="tag role">'+a+'<button class="tag-del" onclick="removeAssignee('+i+')" title="Remove">&#10005;</button></span>'
-  ).join('') || '<span style="color:var(--text-muted);font-size:13px">No manual assignees — employees are added automatically.</span>';
-}
-function renderTaskLocs(){
-  document.getElementById('taskLocList').innerHTML = taskLocations.map((l,i)=>
-    '<span class="tag dept">'+l+'<button class="tag-del" onclick="removeTaskLoc('+i+')" title="Remove">&#10005;</button></span>'
-  ).join('') || '<span style="color:var(--text-muted);font-size:13px">No manual locations — properties are added automatically.</span>';
-}
-function addAssignee(){
-  const inp=document.getElementById('newAssignee');
-  const val=inp.value.trim();
-  if(!val||taskAssignees.includes(val)){showToast(val?'Already exists.':'Enter a name.','err');return}
-  taskAssignees.push(val);inp.value='';renderAssignees();
-}
-function removeAssignee(i){taskAssignees.splice(i,1);renderAssignees();}
-function addTaskLoc(){
-  const inp=document.getElementById('newTaskLoc');
-  const val=inp.value.trim();
-  if(!val||taskLocations.includes(val)){showToast(val?'Already exists.':'Enter a location.','err');return}
-  taskLocations.push(val);inp.value='';renderTaskLocs();
-}
-function removeTaskLoc(i){taskLocations.splice(i,1);renderTaskLocs();}
-async function saveAssignees(){const ok=await saveAll();if(ok)showToast('Assignees saved');else showToast('Save failed','err');}
-async function saveTaskLocs(){const ok=await saveAll();if(ok)showToast('Locations saved');else showToast('Save failed','err');}
-
-// ── ERP BACKUP ──────────────────────────────────────────────────────────
-async function backupERP() {
-  const statusEl = document.getElementById('backupStatus');
-  statusEl.textContent = 'Collecting data...';
-  const SUPABASE_URL_B = 'https://whuytfjwdjjepayeiohj.supabase.co';
-  const SUPABASE_KEY_B = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndodXl0Zmp3ZGpqZXBheWVpb2hqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIyODQxMzQsImV4cCI6MjA4Nzg2MDEzNH0.pTDAqw_Cnzc9D3tJU-tU7Ch5qpapKmteiqI_ooSCufY';
-  const tables = ['owners','properties','guests','contacts','staff','employees','jobs','tasks','leaves','settings','onboardings'];
-  const backup = { exportedAt: new Date().toISOString(), version: '1.0', tables: {} };
-  for (const t of tables) {
-    try {
-      const res = await fetch(`${SUPABASE_URL_B}/rest/v1/${t}?select=*&limit=100000`, {
-        headers: { 'apikey': SUPABASE_KEY_B, 'Authorization': `Bearer ${SUPABASE_KEY_B}` }
-      });
-      if (res.ok) {
-        const data = await res.json();
-        backup.tables[t] = data;
-        statusEl.textContent = `Collected ${t}...`;
-      } else {
-        backup.tables[t] = { error: 'HTTP ' + res.status };
+async function testConnection() {
+  const el = document.getElementById('dbStatus');
+  el.textContent = 'Testing…';
+  el.style.color = '';
+  try {
+    const r = await fetch('https://whuytfjwdjjepayeiohj.supabase.co/rest/v1/owners?select=id&limit=1', {
+      headers: {
+        'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndodXl0Zmp3ZGpqZXBheWVpb2hqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIyODQxMzQsImV4cCI6MjA4Nzg2MDEzNH0.pTDAqw_Cnzc9D3tJU-tU7Ch5qpapKmteiqI_ooSCufY',
+        'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndodXl0Zmp3ZGpqZXBheWVpb2hqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIyODQxMzQsImV4cCI6MjA4Nzg2MDEzNH0.pTDAqw_Cnzc9D3tJU-tU7Ch5qpapKmteiqI_ooSCufY'
       }
-    } catch(e) {
-      backup.tables[t] = { error: e.message };
-    }
+    });
+    if (r.ok) { el.textContent = '✓ Connected'; el.style.color = 'var(--success)'; }
+    else { el.textContent = '✗ Error ' + r.status; el.style.color = 'var(--danger)'; }
+  } catch(e) {
+    el.textContent = '✗ Offline'; el.style.color = 'var(--danger)';
   }
-  // Also backup localStorage keys
-  backup.localStorage = {};
-  ['zesty_jobs','zesty_tasks','zesty_leaves','zesty_owners','zesty_properties',
-   'zesty_guests','zesty_contacts','zesty_staff','zesty_employees','zesty_settings',
-   'zesty_onboardings'].forEach(k => {
-    const v = localStorage.getItem(k);
-    if (v) backup.localStorage[k] = JSON.parse(v);
-  });
-  const blob = new Blob([JSON.stringify(backup, null, 2)], {type: 'application/json'});
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = `zesty_erp_backup_${new Date().toISOString().slice(0,10)}.json`;
-  a.click();
-  const ts = new Date().toLocaleString('el-GR');
-  statusEl.textContent = '✓ Backup downloaded at ' + ts;
-  // Save last backup time
-  localStorage.setItem('zesty_last_backup', ts);
-  const histEl = document.getElementById('backupHistory');
-  if (histEl) histEl.textContent = 'Last backup: ' + ts;
 }
 
-
-// ── SIDEBAR NAVIGATION ──────────────────────────────────
-function _initSidebar() {
-  const sidebar = document.getElementById('erpSidebar');
-  const overlay = document.getElementById('erpOverlay');
-  const hamburger = document.getElementById('erpHamburger');
-  if (!sidebar) return;
-  // Hamburger toggle
-  if (hamburger) {
-    hamburger.addEventListener('click', () => {
-      sidebar.classList.toggle('open');
-      overlay.classList.toggle('open');
-    });
-  }
-  // Close on overlay click
-  if (overlay) {
-    overlay.addEventListener('click', () => {
-      sidebar.classList.remove('open');
-      overlay.classList.remove('open');
-    });
-  }
-  // Inject Azure user badge into sidebar footer
-  const origBadge = document.getElementById('_azure_badge');
-  const footerUser = document.getElementById('sidebarUser');
-  if (origBadge && footerUser) {
-    footerUser.innerHTML = origBadge.innerHTML;
-    origBadge.remove();
-  }
-  // Watch for badge to appear
-  const obs = new MutationObserver(() => {
-    const b = document.getElementById('_azure_badge');
-    const fu = document.getElementById('sidebarUser');
-    if (b && fu) {
-      fu.innerHTML = b.innerHTML;
-      b.remove();
-      obs.disconnect();
-    }
-  });
-  obs.observe(document.body, {childList:true, subtree:true});
+function clearCache(key) {
+  localStorage.removeItem(key);
+  const el = document.getElementById('cacheMsg');
+  el.textContent = `✓ Cleared: ${key}`; el.style.display='';
+  setTimeout(()=>el.style.display='none',3000);
 }
-document.addEventListener('DOMContentLoaded', _initSidebar);
 
+function clearAllCache() {
+  const KEYS = ['zesty_owners','zesty_properties','zesty_guests','zesty_jobs','zesty_employees','zesty_staff','zesty_tasks','zesty_cleaning','zesty_contacts','zesty_leave','zesty_onboardings','zesty_tickets'];
+  KEYS.forEach(k=>localStorage.removeItem(k));
+  const el = document.getElementById('cacheMsg');
+  el.textContent = '✓ All caches cleared. Data will reload from Supabase next visit.'; el.style.display='';
+  setTimeout(()=>el.style.display='none',4000);
+}
 
-document.addEventListener('DOMContentLoaded', init);
-
+testConnection();
 </script>
 <script src="erp-nav.js"></script>
-</div><!-- /erp-main -->
 </body>
 </html>
