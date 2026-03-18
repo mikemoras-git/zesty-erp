@@ -375,28 +375,30 @@ function bar(label,val,max,color){
 async function loadAll(){
   let props=[],owners=[],guests=[],jobs=[],staff=[],employees=[],tasks=[],tickets=[];
 
-  try{
-    [props,owners,guests,jobs,staff,employees,tasks,tickets]=await Promise.all([
-      sbGet('properties'),
-      sbGet('owners'),
-      sbGet('guests'),
-      sbGet('jobs'),
-      sbGet('staff'),
-      sbGet('employees'),
-      sbGet('tasks'),
-      sbGet('tickets')
-    ]);
-  } catch(e) {
-    /* Fallback to localStorage */
-    props=safe('zesty_properties',[]);
-    owners=safe('zesty_owners',[]);
-    guests=safe('zesty_guests',[]);
-    jobs=safe('zesty_jobs',[]);
-    staff=safe('zesty_staff',[]);
-    employees=safe('zesty_employees',[]);
-    tasks=safe('zesty_tasks',[]);
-    tickets=safe('zesty_tickets',[]);
-  }
+  // Fetch each table independently — one failure won't kill everything
+  const tryGet = async (table, lsKey, def=[]) => {
+    try { const r = await sbGet(table); return r.length >= 0 ? r : safe(lsKey, def); }
+    catch { return safe(lsKey, def); }
+  };
+  // tickets table has flat schema (not {id,data} wrapper) — fetch directly
+  const tryGetFlat = async (table, lsKey) => {
+    try {
+      const url = `${SB}/rest/v1/${table}?select=*&limit=5000`;
+      const r = await fetch(url, {headers:{'apikey':SK,'Authorization':'Bearer '+SK}});
+      if (!r.ok) return safe(lsKey, []);
+      return await r.json();
+    } catch { return safe(lsKey, []); }
+  };
+  [props,owners,guests,jobs,staff,employees,tasks,tickets] = await Promise.all([
+    tryGet('properties','zesty_properties'),
+    tryGet('owners','zesty_owners'),
+    tryGet('guests','zesty_guests'),
+    tryGet('jobs','zesty_jobs'),
+    tryGet('staff','zesty_staff'),
+    tryGet('employees','zesty_employees'),
+    tryGet('tasks','zesty_tasks'),
+    tryGetFlat('tickets','zesty_tickets'),
+  ]);
 
   const activeProps=props.filter(p=>!p.archived&&(p.status||'Active')==='Active').length||props.filter(p=>!p.archived).length;
   const activeOwners=owners.filter(o=>!o.archived&&o.status!=='Inactive').length||owners.filter(o=>!o.archived).length;

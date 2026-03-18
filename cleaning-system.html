@@ -1330,16 +1330,41 @@ function dismissAutoImport() {
 async function runAutoImport() {
   const banner = document.getElementById('autoImportBanner');
   if (banner) banner.style.display = 'none';
-  if (!importPreviewData || !importPreviewData.length) {
-    showToast('No booking data loaded yet — please upload CSV on the Home page first', 'error');
+
+  // If we have pre-parsed data, use it directly
+  if (importPreviewData && importPreviewData.length) {
+    showPage('import');
+    await new Promise(r => setTimeout(r, 150));
+    const rawCSV = JSON.parse(localStorage.getItem('zesty_raw_lodgify_csv') || 'null');
+    showImportResults(rawCSV ? rawCSV.filename : 'Lodgify Import', importPreviewData);
+    showToast(`📋 ${importPreviewData.filter(r=>r.Status==='Booked'||r.Status==='Open').length} bookings ready — review and confirm`, 'success');
     return;
   }
-  // Go to import tab and show the preview — user clicks Confirm to generate jobs
-  showPage('import');
-  await new Promise(r => setTimeout(r, 150));
+
+  // Otherwise check if there is a raw CSV saved in localStorage
   const rawCSV = JSON.parse(localStorage.getItem('zesty_raw_lodgify_csv') || 'null');
-  showImportResults(rawCSV ? rawCSV.filename : 'Lodgify Import', importPreviewData);
-  showToast(`📋 ${importPreviewData.filter(r=>r.Status==='Booked'||r.Status==='Open').length} bookings ready — review and confirm`, 'success');
+  if (rawCSV && rawCSV.text) {
+    const lines = rawCSV.text.split('\n').filter(l => l.trim());
+    const headers = parseCSVLine(lines[0]);
+    const rows = lines.slice(1).map(l => {
+      const vals = parseCSVLine(l);
+      const obj = {};
+      headers.forEach((h, i) => obj[h.trim()] = (vals[i]||'').trim());
+      return obj;
+    }).filter(r => r.Id && r.DateArrival && r.DateDeparture);
+    if (rows.length) {
+      importPreviewData = rows;
+      showPage('import');
+      await new Promise(r => setTimeout(r, 150));
+      showImportResults(rawCSV.filename || 'Lodgify Import', rows);
+      showToast(`📋 ${rows.filter(r=>r.Status==='Booked'||r.Status==='Open').length} bookings ready — review and confirm`, 'success');
+      return;
+    }
+  }
+
+  // No data anywhere — go to import tab so user can upload
+  showPage('import');
+  showToast('Upload your Lodgify CSV file below to generate cleaning jobs', 'info');
 }
 
 
