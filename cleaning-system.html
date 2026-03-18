@@ -2,406 +2,2410 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Zesty ERP — Cleaning</title>
-<link rel="stylesheet" href="erp-style.css">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Zesty Rentals — Cleaning System</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
-.cleaner-chip{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;background:var(--cream);border:1px solid var(--border);border-radius:20px;font-size:12px;margin:2px;cursor:pointer;transition:all .15s}
-.cleaner-chip:hover,.cleaner-chip.selected{background:var(--teal);color:#fff;border-color:var(--teal)}
-.shift-indicator{width:10px;height:10px;border-radius:50%;display:inline-block;margin-right:4px}
-.shift-morning{background:#f39c12}
-.shift-afternoon{background:#3498db}
-.shift-full{background:#27ae60}
-.cleaning-card{background:#fff;border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:10px;transition:all .18s}
-.cleaning-card:hover{box-shadow:var(--shadow);border-color:var(--teal-light)}
-.cleaning-card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
-.cleaning-card-prop{font-weight:600;font-size:14px}
-.cleaning-card-date{font-size:12px;color:var(--text-muted)}
-.cleaning-card-body{display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:12px}
-.cc-field label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);display:block;margin-bottom:2px}
+:root {
+  --teal: #1a7a6e; --teal-light: #23a090; --teal-dark: #115950;
+  --gold: #c9a84c; --gold-light: #e8c97a;
+  --cream: #f8f5f0; --white: #ffffff;
+  --text: #1e2a28; --text-muted: #6b7e7b; --border: #d4e0de;
+  --danger: #c0392b; --danger-light: #fdf0ef;
+  --success: #27ae60; --archive: #8e6b23;
+  --shadow: 0 2px 16px rgba(26,122,110,0.10);
+  --shadow-lg: 0 8px 40px rgba(26,122,110,0.15);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'DM Sans', sans-serif; background: var(--cream); color: var(--text); min-height: 100vh; }
+
+header { background: var(--teal-dark); padding: 0 28px; display: flex; align-items: center; justify-content: space-between; height: 64px; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 20px rgba(0,0,0,0.2); }
+.logo { font-family: 'Cormorant Garamond', serif; font-size: 21px; font-weight: 500; color: white; }
+.logo span { color: var(--gold-light); }
+
+/* TABS */
+.tabs { display: flex; gap: 4px; background: rgba(255,255,255,0.1); border-radius: 8px; padding: 4px; }
+.tab { padding: 7px 18px; border-radius: 6px; border: none; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500; cursor: pointer; color: rgba(255,255,255,0.7); background: transparent; transition: all 0.2s; }
+.tab.active { background: white; color: var(--teal-dark); }
+.tab:hover:not(.active) { color: white; background: rgba(255,255,255,0.15); }
+
+.btn { padding: 8px 18px; border-radius: 6px; border: none; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 6px; }
+.btn-primary { background: var(--gold); color: var(--teal-dark); }
+.btn-primary:hover { background: var(--gold-light); }
+.btn-teal { background: var(--teal); color: white; }
+.btn-teal:hover { background: var(--teal-light); }
+.btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text-muted); }
+.btn-outline:hover { border-color: var(--teal); color: var(--teal); }
+.btn-danger { background: var(--danger-light); color: var(--danger); border: 1px solid #f5c6c2; }
+.btn-danger:hover { background: var(--danger); color: white; }
+.btn-print { background: #2c3e50; color: white; }
+.btn-print:hover { background: #1a252f; }
+.btn-sm { padding: 5px 12px; font-size: 12px; }
+
+.container { max-width: 1500px; margin: 0 auto; padding: 28px 24px; }
+.page { display: none; }
+.page.active { display: block; }
+
+/* STATS */
+.stats-bar { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; margin-bottom: 24px; }
+.stat-card { background: white; border-radius: 12px; padding: 18px 20px; box-shadow: var(--shadow); border-left: 4px solid var(--teal); }
+.stat-card:nth-child(2) { border-color: var(--gold); }
+.stat-card:nth-child(3) { border-color: #e67e22; }
+.stat-card:nth-child(4) { border-color: var(--teal-light); }
+.stat-card:nth-child(5) { border-color: #8e44ad; }
+.stat-label { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); margin-bottom: 4px; }
+.stat-value { font-family: 'Cormorant Garamond', serif; font-size: 30px; font-weight: 600; color: var(--teal-dark); }
+
+/* TOOLBAR */
+.toolbar { background: white; border-radius: 12px; padding: 14px 18px; display: flex; align-items: center; gap: 10px; margin-bottom: 18px; box-shadow: var(--shadow); flex-wrap: wrap; }
+.search-wrap { position: relative; flex: 1; min-width: 180px; }
+.search-wrap input { width: 100%; padding: 8px 14px 8px 36px; border: 1px solid var(--border); border-radius: 8px; font-family: 'DM Sans', sans-serif; font-size: 13px; outline: none; background: var(--cream); }
+.search-wrap input:focus { border-color: var(--teal); background: white; }
+.search-icon { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 13px; }
+select, input[type="month"], input[type="date"] { padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px; font-family: 'DM Sans', sans-serif; font-size: 13px; outline: none; background: var(--cream); color: var(--text); cursor: pointer; }
+select:focus, input[type="month"]:focus { border-color: var(--teal); }
+
+/* TABLE */
+.table-wrap { background: white; border-radius: 12px; box-shadow: var(--shadow); overflow: hidden; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+thead { background: var(--teal-dark); color: white; }
+th { padding: 12px 14px; text-align: left; font-weight: 500; font-size: 11px; text-transform: uppercase; letter-spacing: 0.8px; white-space: nowrap; cursor: pointer; user-select: none; }
+th:hover { background: var(--teal); }
+td { padding: 11px 14px; border-bottom: 1px solid #f0f4f3; vertical-align: middle; }
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: #f5faf9; }
+
+.badge { display: inline-block; padding: 3px 9px; border-radius: 20px; font-size: 11px; font-weight: 500; }
+.badge-active { background: #e8f8f0; color: var(--success); }
+.badge-inactive { background: #fdf0ef; color: var(--danger); }
+
+/* ZONE TAGS */
+.zone-tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 500; margin: 1px; }
+.zone-Kissamos { background: #e8f3fc; color: #2471a3; }
+.zone-Kaliviani { background: #fdf6e3; color: #8e6b23; }
+.zone-Falasarna { background: #e8f8f0; color: #1e8449; }
+.zone-Agia-Marina { background: #f5eef8; color: #7d3c98; }
+.zone-Chania { background: #fdebd0; color: #a04000; }
+
+/* CLEANER AVATAR */
+.cleaner-avatar { width: 34px; height: 34px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-weight: 600; font-size: 13px; color: white; flex-shrink: 0; }
+
+/* CALENDAR */
+.calendar-wrap { background: white; border-radius: 12px; box-shadow: var(--shadow); overflow: hidden; }
+.cal-header { background: var(--teal-dark); color: white; padding: 16px 20px; display: flex; align-items: center; justify-content: space-between; }
+.cal-header h3 { font-family: 'Cormorant Garamond', serif; font-size: 20px; font-weight: 500; }
+.cal-nav { display: flex; gap: 8px; align-items: center; }
+.cal-nav button { background: rgba(255,255,255,0.15); border: none; color: white; width: 32px; height: 32px; border-radius: 6px; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; }
+.cal-nav button:hover { background: rgba(255,255,255,0.3); }
+.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); }
+.cal-day-header { padding: 10px; text-align: center; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); background: var(--cream); border-bottom: 1px solid var(--border); }
+.cal-day { min-height: 90px; padding: 6px; border-right: 1px solid #f0f4f3; border-bottom: 1px solid #f0f4f3; vertical-align: top; }
+.cal-day:nth-child(7n) { border-right: none; }
+.cal-day.other-month { background: #fafafa; }
+.cal-day.today { background: #f0faf8; }
+.cal-date { font-size: 12px; font-weight: 600; color: var(--text-muted); margin-bottom: 4px; }
+.cal-date.is-today { background: var(--teal); color: white; width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; }
+.cal-job { padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 500; margin-bottom: 2px; cursor: pointer; line-height: 1.4; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cal-job:hover { opacity: 0.8; }
+
+/* IMPORT PANEL */
+.import-panel { background: white; border-radius: 12px; padding: 28px; box-shadow: var(--shadow); margin-bottom: 20px; }
+.import-panel h3 { font-family: 'Cormorant Garamond', serif; font-size: 20px; color: var(--teal-dark); margin-bottom: 6px; }
+.import-panel p { font-size: 13px; color: var(--text-muted); margin-bottom: 18px; }
+.drop-zone { border: 2px dashed var(--border); border-radius: 12px; padding: 40px; text-align: center; cursor: pointer; transition: all 0.2s; background: var(--cream); }
+.drop-zone:hover, .drop-zone.dragover { border-color: var(--teal); background: #f0faf8; }
+.drop-zone-icon { font-size: 40px; margin-bottom: 10px; }
+.drop-zone p { color: var(--text-muted); font-size: 13px; margin: 0; }
+.drop-zone strong { color: var(--teal); }
+
+/* IMPORT RESULTS */
+.import-results { margin-top: 20px; display: none; }
+.import-summary { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; }
+.import-stat { background: var(--cream); border-radius: 8px; padding: 14px; text-align: center; }
+.import-stat .num { font-family: 'Cormorant Garamond', serif; font-size: 28px; font-weight: 600; color: var(--teal-dark); }
+.import-stat .lbl { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+
+/* SCHEDULE PRINT */
+.print-schedule { display: none; }
+@media print {
+  header, .tabs, .toolbar, .btn, .no-print { display: none !important; }
+  .print-schedule { display: block !important; }
+  .print-page { page-break-after: always; padding: 20px; }
+  .print-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid #333; padding-bottom: 10px; }
+  .print-job-row { display: flex; gap: 16px; padding: 8px 0; border-bottom: 1px solid #eee; font-size: 13px; }
+}
+
+/* MODAL */
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 200; display: flex; align-items: center; justify-content: center; padding: 20px; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
+.modal-overlay.open { opacity: 1; pointer-events: all; }
+.modal { background: white; border-radius: 16px; width: 100%; max-width: 820px; max-height: 90vh; overflow-y: auto; box-shadow: var(--shadow-lg); transform: translateY(20px); transition: transform 0.3s; }
+.modal-overlay.open .modal { transform: translateY(0); }
+.modal-header { padding: 22px 26px 18px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; background: white; z-index: 10; border-radius: 16px 16px 0 0; }
+.modal-title { font-family: 'Cormorant Garamond', serif; font-size: 21px; font-weight: 600; color: var(--teal-dark); }
+.modal-close { width: 30px; height: 30px; border: none; background: var(--cream); border-radius: 50%; cursor: pointer; font-size: 16px; color: var(--text-muted); display: flex; align-items: center; justify-content: center; }
+.modal-close:hover { background: var(--border); }
+.modal-body { padding: 22px 26px; }
+.modal-footer { padding: 14px 26px 22px; display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid var(--border); position: sticky; bottom: 0; background: white; }
+
+.section-title { font-family: 'Cormorant Garamond', serif; font-size: 14px; font-weight: 600; color: var(--teal); text-transform: uppercase; letter-spacing: 1px; margin: 18px 0 12px; padding-bottom: 5px; border-bottom: 1px solid var(--border); }
+.section-title:first-child { margin-top: 0; }
+.form-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.form-grid-2 { grid-template-columns: repeat(2, 1fr); }
+.form-grid-4 { grid-template-columns: repeat(4, 1fr); }
+.col-span-2 { grid-column: span 2; }
+.col-span-3 { grid-column: span 3; }
+.col-span-4 { grid-column: span 4; }
+.form-group { display: flex; flex-direction: column; gap: 4px; }
+.form-group label { font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.6px; color: var(--text-muted); }
+.form-group input, .form-group select, .form-group textarea { padding: 8px 11px; border: 1px solid var(--border); border-radius: 8px; font-family: 'DM Sans', sans-serif; font-size: 13px; outline: none; transition: border-color 0.2s; background: var(--cream); color: var(--text); width: 100%; }
+.form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--teal); background: white; }
+
+/* ZONES CHECKBOXES */
+.zones-grid { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px; }
+.zone-check { display: flex; align-items: center; gap: 6px; padding: 6px 12px; border: 1px solid var(--border); border-radius: 6px; cursor: pointer; font-size: 13px; background: var(--cream); transition: all 0.2s; user-select: none; }
+.zone-check.selected { border-color: var(--teal); background: #e0f5f1; color: var(--teal-dark); font-weight: 500; }
+
+/* CONFIRM */
+.confirm-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 300; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
+.confirm-overlay.open { opacity: 1; pointer-events: all; }
+.confirm-box { background: white; border-radius: 12px; padding: 26px; max-width: 360px; width: 90%; box-shadow: var(--shadow-lg); text-align: center; }
+.confirm-icon { font-size: 38px; margin-bottom: 10px; }
+.confirm-title { font-size: 16px; font-weight: 600; margin-bottom: 6px; }
+.confirm-msg { font-size: 13px; color: var(--text-muted); margin-bottom: 18px; }
+.confirm-btns { display: flex; gap: 10px; justify-content: center; }
+
+.toast { position: fixed; bottom: 24px; right: 24px; background: var(--teal-dark); color: white; padding: 12px 18px; border-radius: 8px; font-size: 13px; font-weight: 500; z-index: 400; transform: translateY(60px); opacity: 0; transition: all 0.3s; }
+.toast.show { transform: translateY(0); opacity: 1; }
+.toast.success { background: var(--success); }
+.toast.error { background: var(--danger); }
+
+.empty-state { text-align: center; padding: 50px; color: var(--text-muted); }
+.empty-icon { font-size: 44px; margin-bottom: 10px; }
+
+/* JOB DETAIL POPUP */
+.job-popup { background: white; border-radius: 10px; padding: 16px; box-shadow: var(--shadow-lg); min-width: 260px; }
+.job-popup h4 { font-size: 14px; font-weight: 600; color: var(--teal-dark); margin-bottom: 8px; }
+.job-popup-row { display: flex; gap: 8px; font-size: 12px; color: var(--text-muted); margin-bottom: 4px; align-items: center; }
+.job-popup-row strong { color: var(--text); }
+
+/* ═══════════════════════════════════════════════════════
+   UNIFIED ERP NAV — mobile-first, fully responsive
+   ═══════════════════════════════════════════════════════ */
+html{scroll-behavior:smooth}
+.erp-header{background:var(--teal-dark,#115950);position:sticky;top:0;z-index:500;box-shadow:0 2px 20px rgba(0,0,0,.25)}
+/* Row 1 — global modules */
+.erp-nav-global{display:flex;align-items:center;padding:0 16px;height:40px;border-bottom:1px solid rgba(255,255,255,.1);gap:4px;min-width:0}
+.erp-logo{font-family:'Cormorant Garamond','DM Serif Display',serif;font-size:16px;font-weight:500;color:#fff;white-space:nowrap;margin-right:10px;flex-shrink:0;text-decoration:none}
+.erp-logo span{color:#e8c97a}
+.erp-modules{display:flex;gap:2px;flex:1;min-width:0;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.erp-modules::-webkit-scrollbar{display:none}
+.erp-mod-btn{padding:4px 8px;border-radius:5px;font-size:11px;font-weight:500;color:rgba(255,255,255,.7);text-decoration:none;white-space:nowrap;transition:all .15s;font-family:'DM Sans',sans-serif;display:inline-block;-webkit-tap-highlight-color:transparent}
+.erp-mod-btn:hover,.erp-mod-btn:focus{background:rgba(255,255,255,.12);color:#fff;outline:none}
+.erp-mod-btn.active{background:#c9a84c;color:#0a3d36;font-weight:700}
+/* Row 2 — local toolbar */
+.erp-nav-local{display:flex;align-items:center;padding:0 14px;min-height:38px;background:rgba(0,0,0,.15);gap:6px;flex-wrap:wrap;overflow-x:auto;scrollbar-width:none}
+.erp-nav-local::-webkit-scrollbar{display:none}
+.erp-local-title{font-size:12px;font-weight:600;color:rgba(255,255,255,.9);white-space:nowrap}
+.erp-local-spacer{flex:1}
+.erp-nav-local a,.erp-nav-local button{padding:4px 10px;border-radius:5px;font-size:12px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s;-webkit-tap-highlight-color:transparent;white-space:nowrap;text-decoration:none;display:inline-flex;align-items:center;gap:4px}
+.erp-nav-local a.nav-link-btn{background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.85)}
+.erp-nav-local a.nav-link-btn:hover{background:rgba(255,255,255,.1)}
+.erp-nav-local button.nav-btn-ghost{background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.85)}
+.erp-nav-local button.nav-btn-ghost:hover{background:rgba(255,255,255,.1)}
+.erp-nav-local button.nav-btn-primary,.erp-nav-local a.nav-btn-primary{background:#c9a84c;color:#0a3d36;font-weight:700;border:none}
+.erp-nav-local button.nav-btn-primary:hover,.erp-nav-local a.nav-btn-primary:hover{background:#e8c97a}
+/* Mobile hamburger */
+.erp-menu-toggle{display:none;background:transparent;border:1px solid rgba(255,255,255,.3);color:#fff;padding:4px 8px;border-radius:5px;cursor:pointer;font-size:16px;margin-left:auto;flex-shrink:0}
+/* Mobile responsive */
+@media(max-width:768px){
+  .erp-nav-global{padding:0 10px}
+  .erp-modules{gap:1px}
+  .erp-mod-btn{font-size:10px;padding:3px 6px}
+  .erp-logo{font-size:14px;margin-right:6px}
+  .erp-nav-local{padding:0 10px;gap:4px}
+  .erp-nav-local a,.erp-nav-local button{font-size:11px;padding:3px 8px}
+}
+@media(max-width:480px){
+  .erp-mod-btn span.mod-label{display:none}
+  .erp-mod-btn{padding:4px 5px;font-size:13px}
+}
+/* ── GLOBAL MOBILE RESPONSIVE ── */
+@media(max-width:768px){
+  /* Tables scroll horizontally */
+  .table-wrap,.table-container,[style*="overflow-x"]{overflow-x:auto!important;-webkit-overflow-scrolling:touch}
+  table{min-width:500px}
+  /* Modals full screen on mobile */
+  .modal-overlay,.overlay{padding:8px!important}
+  .modal,.modal-lg{width:100%!important;max-width:100%!important;max-height:95vh!important;border-radius:12px!important;margin:auto}
+  /* Form grids stack */
+  .form-grid,.form-row,.form-grid-2,.form-grid-3,.form-grid-4,.form-grid-6{grid-template-columns:1fr!important}
+  .col-span-2,.col-span-4,.form-full{grid-column:1/-1!important}
+  /* Stats bars collapse */
+  .stats-bar,.kpi-grid,.kpi-grid-6{grid-template-columns:repeat(2,1fr)!important}
+  /* Cards stack */
+  .stats-row{grid-template-columns:repeat(2,1fr)!important}
+  /* Container padding */
+  .container,main,[class*="container"]{padding-left:10px!important;padding-right:10px!important}
+  /* Hide some less important columns on mobile */
+  .hide-mobile{display:none!important}
+  /* Buttons full width in modal footer */
+  .modal-footer{flex-wrap:wrap}
+  .modal-footer .btn{flex:1;justify-content:center;min-width:100px}
+}
+@media(max-width:480px){
+  .stats-bar,.kpi-grid,.stats-row{grid-template-columns:1fr 1fr!important}
+  td,th{padding:6px 8px!important;font-size:11px!important}
+}
+
+/* ═══════════════════════════════════════════════════
+   ZESTY ERP — LEFT SIDEBAR NAVIGATION
+   ═══════════════════════════════════════════════════ */
+
+/* Reset old top header nav */
+.erp-header,.erp-nav-global,.erp-nav-local,
+.erp-modules,.erp-mod-btn,.erp-logo,
+.erp-local-title,.erp-local-spacer { all: unset; }
+.erp-header { display: none !important; }
+
+/* ── LAYOUT WRAPPER ── */
+body.erp-layout {
+  display: flex;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ── SIDEBAR ── */
+.erp-sidebar {
+  width: 220px;
+  min-width: 220px;
+  background: linear-gradient(180deg, #0a3d36 0%, #0d4a42 60%, #0f5248 100%);
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 0; left: 0; bottom: 0;
+  z-index: 600;
+  box-shadow: 3px 0 20px rgba(0,0,0,0.3);
+  transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,255,255,.1) transparent;
+}
+.erp-sidebar::-webkit-scrollbar { width: 4px; }
+.erp-sidebar::-webkit-scrollbar-track { background: transparent; }
+.erp-sidebar::-webkit-scrollbar-thumb { background: rgba(255,255,255,.1); border-radius: 2px; }
+
+/* ── SIDEBAR BRAND ── */
+.erp-brand {
+  padding: 20px 18px 16px;
+  border-bottom: 1px solid rgba(255,255,255,.08);
+  flex-shrink: 0;
+}
+.erp-brand-name {
+  font-family: 'Cormorant Garamond', 'DM Serif Display', serif;
+  font-size: 22px; font-weight: 600; color: #fff;
+  line-height: 1; letter-spacing: .3px;
+}
+.erp-brand-name span { color: #e8c97a; }
+.erp-brand-sub {
+  font-size: 10px; color: rgba(255,255,255,.35);
+  text-transform: uppercase; letter-spacing: 2px;
+  margin-top: 4px; font-weight: 400;
+}
+
+/* ── SIDEBAR NAV LINKS ── */
+.erp-nav-section {
+  padding: 10px 0 4px;
+}
+.erp-nav-section-label {
+  font-size: 9px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .12em;
+  color: rgba(255,255,255,.25);
+  padding: 0 18px; margin-bottom: 4px;
+}
+.erp-nav-link {
+  display: flex; align-items: center; gap: 9px;
+  padding: 8px 18px;
+  color: rgba(255,255,255,.6);
+  text-decoration: none;
+  font-size: 13px; font-weight: 500;
+  font-family: 'DM Sans', sans-serif;
+  transition: all .15s;
+  border-left: 3px solid transparent;
+  -webkit-tap-highlight-color: transparent;
+  cursor: pointer;
+  background: none; border-right: none;
+  border-top: none; border-bottom: none;
+  width: 100%; text-align: left;
+}
+.erp-nav-link:hover {
+  color: #fff;
+  background: rgba(255,255,255,.07);
+  border-left-color: rgba(255,255,255,.2);
+}
+.erp-nav-link.active {
+  color: #e8c97a;
+  background: rgba(201,168,76,.12);
+  border-left-color: #e8c97a;
+  font-weight: 600;
+}
+.erp-nav-link .nav-icon { font-size: 15px; flex-shrink: 0; width: 18px; text-align: center; }
+.erp-nav-link .nav-label { flex: 1; }
+.erp-nav-link .nav-badge {
+  font-size: 10px; font-weight: 700;
+  background: rgba(201,168,76,.25); color: #e8c97a;
+  padding: 1px 6px; border-radius: 8px;
+}
+.erp-nav-divider {
+  height: 1px; background: rgba(255,255,255,.06);
+  margin: 6px 14px;
+}
+
+/* ── MODULE TABS (inside sidebar, below nav links) ── */
+.erp-module-tabs {
+  margin-top: auto;
+  padding: 8px 0 12px;
+  border-top: 1px solid rgba(255,255,255,.08);
+}
+.erp-module-tabs-label {
+  font-size: 9px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .12em;
+  color: rgba(255,255,255,.25);
+  padding: 0 18px; margin-bottom: 4px;
+}
+.erp-tab-link {
+  display: flex; align-items: center; gap: 8px;
+  padding: 7px 18px;
+  color: rgba(255,255,255,.55);
+  font-size: 12px; font-weight: 500;
+  font-family: 'DM Sans', sans-serif;
+  transition: all .15s;
+  border-left: 3px solid transparent;
+  -webkit-tap-highlight-color: transparent;
+  cursor: pointer;
+  background: none; border-right: none;
+  border-top: none; border-bottom: none;
+  width: 100%; text-align: left; text-decoration: none;
+}
+.erp-tab-link:hover {
+  color: #fff; background: rgba(255,255,255,.06);
+}
+.erp-tab-link.active {
+  color: #c9a84c; font-weight: 600;
+  background: rgba(201,168,76,.1);
+  border-left-color: #c9a84c;
+}
+
+/* ── SIDEBAR FOOTER (user badge + sync) ── */
+.erp-sidebar-footer {
+  padding: 12px 18px;
+  border-top: 1px solid rgba(255,255,255,.08);
+  flex-shrink: 0;
+}
+.erp-user-badge {
+  font-size: 11px; color: rgba(255,255,255,.45);
+  display: flex; align-items: center; gap: 6px;
+}
+.erp-sync-row {
+  display: flex; align-items: center; gap: 6px;
+  margin-top: 6px;
+}
+.sync-label { font-size: 10px; color: rgba(255,255,255,.3); }
+
+/* ── MAIN CONTENT AREA ── */
+.erp-main {
+  margin-left: 220px;
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── TOP BAR (module title + actions) ── */
+.erp-topbar {
+  background: #fff;
+  border-bottom: 1px solid #d4e0de;
+  padding: 0 28px;
+  height: 52px;
+  display: flex; align-items: center; gap: 12px;
+  position: sticky; top: 0; z-index: 100;
+  box-shadow: 0 1px 8px rgba(26,122,110,.08);
+  flex-shrink: 0;
+}
+.erp-topbar-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 18px; font-weight: 600;
+  color: #115950; flex: 1;
+}
+.erp-topbar-actions { display: flex; gap: 8px; align-items: center; }
+
+/* ── HAMBURGER (mobile only) ── */
+.erp-hamburger {
+  display: none;
+  background: none; border: none;
+  color: #115950; font-size: 22px;
+  cursor: pointer; padding: 4px 8px;
+  border-radius: 6px;
+  -webkit-tap-highlight-color: transparent;
+}
+.erp-overlay {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.5);
+  z-index: 590;
+}
+
+/* ── MOBILE ── */
+@media (max-width: 900px) {
+  .erp-sidebar {
+    transform: translateX(-100%);
+  }
+  .erp-sidebar.open {
+    transform: translateX(0);
+  }
+  .erp-overlay.open { display: block; }
+  .erp-main { margin-left: 0; }
+  .erp-hamburger { display: block; }
+  .erp-topbar { padding: 0 14px; }
+}
+@media (max-width: 600px) {
+  .container, main { padding: 12px 10px 60px !important; }
+  table { min-width: 480px; }
+  .stats-bar, .kpi-grid { grid-template-columns: repeat(2,1fr) !important; }
+}
+
+
 </style>
+    <script src="https://alcdn.msauth.net/browser/2.38.0/js/msal-browser.min.js"></script>
+    <script>
+    (function(){
+      const _msalConfig={
+        auth:{
+          clientId:'0938023f-cbbf-45f1-a71d-b18c95745ea6',
+          authority:'https://login.microsoftonline.com/9c30b606-6648-4777-a623-64867e43e54f',
+          redirectUri:'https://kissamosrealestate.com/wp-content/erp/index.html'
+        },
+        cache:{cacheLocation:'sessionStorage',storeAuthStateInCookie:false}
+      };
+      const _msal=new msal.PublicClientApplication(_msalConfig);
+      const _loginRequest={scopes:['openid','profile','User.Read']};
+
+      
+      // ── MSAL AUTH ──────────────────────────────────────────
+      const _isMobile = /iPhone|iPad|iPod|Android|Mobile/i.test(navigator.userAgent);
+
+      async function _ensureLogin() {
+        await _msal.initialize();
+        // Handle any redirect result first
+        try {
+          const redirectResult = await _msal.handleRedirectPromise();
+          if (redirectResult && redirectResult.account) {
+            _msal.setActiveAccount(redirectResult.account);
+            _showUserBadge(redirectResult.account.name || redirectResult.account.username);
+            document.documentElement.style.visibility = 'visible';
+            return;
+          }
+        } catch(e) { console.warn('Redirect promise:', e); }
+
+        // Check for existing session
+        const accounts = _msal.getAllAccounts();
+        if (accounts.length > 0) {
+          _msal.setActiveAccount(accounts[0]);
+          _showUserBadge(accounts[0].name || accounts[0].username);
+          document.documentElement.style.visibility = 'visible';
+          return;
+        }
+
+        // No session - login
+        if (_isMobile) {
+          // Mobile: try popup first, fallback to redirect
+          try {
+            const result = await _msal.loginPopup(_loginRequest);
+            if (result && result.account) {
+              _msal.setActiveAccount(result.account);
+              _showUserBadge(result.account.name || result.account.username);
+            }
+            document.documentElement.style.visibility = 'visible';
+          } catch(e) {
+            if (e.errorCode !== 'user_cancelled') {
+              sessionStorage.setItem('msal_return_url', window.location.href);
+              await _msal.loginRedirect(_loginRequest);
+            } else {
+              document.documentElement.style.visibility = 'visible';
+            }
+          }
+        } else {
+          // Desktop: store current page, redirect to login, come back
+          sessionStorage.setItem('msal_return_url', window.location.href);
+          await _msal.loginRedirect(_loginRequest);
+        }
+      }
+
+
+      function _showUserBadge(name) {
+        // Store name globally for sidebar to pick up
+        window._erpUserName = name;
+        // Try to update sidebar user display
+        const zsUser = document.getElementById('zsUser');
+        if (zsUser) {
+          zsUser.innerHTML = '<span>👤 ' + name + '</span>' +
+            '<button onclick="window._azureLogout()" style="background:transparent;border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.5);font-size:10px;padding:2px 7px;border-radius:4px;cursor:pointer;font-family:DM Sans,sans-serif;margin-left:4px">Sign out</button>';
+        }
+        // Also try old header-right for backwards compat
+        const hdr = document.querySelector('.header-right');
+        if (hdr && !document.getElementById('_azure_badge')) {
+          const badge = document.createElement('div');
+          badge.id = '_azure_badge';
+          badge.style.cssText = 'display:flex;align-items:center;gap:8px';
+          badge.innerHTML = '<span style="font-size:12px;color:rgba(255,255,255,.75);font-family:DM Sans,sans-serif">👤 ' + name + '</span>' +
+            '<button onclick="window._azureLogout()" style="padding:4px 10px;border-radius:7px;border:1px solid rgba(255,255,255,.3);background:transparent;color:rgba(255,255,255,.7);font-size:11px;cursor:pointer;font-family:DM Sans,sans-serif">Sign out</button>';
+          hdr.appendChild(badge);
+        }
+      }
+
+      window._azureLogout=function(){
+        const accounts=_msal.getAllAccounts();
+        if(accounts.length>0){_msal.logoutRedirect({account:accounts[0]});}
+      };
+
+      document.addEventListener('DOMContentLoaded',function(){
+        const accounts=_msal.getAllAccounts();
+        if(accounts.length===0){document.body.style.visibility='hidden';}
+        else{document.body.style.visibility='visible';}
+      });
+
+      _ensureLogin().then(()=>{
+        document.body.style.visibility='visible';
+      });
+    })();
+    </script>
+    <!-- Azure MSAL Authentication -->
+    
+    <script>
+    (function(){
+      const _msalConfig={
+        auth:{
+          clientId:'0938023f-cbbf-45f1-a71d-b18c95745ea6',
+          authority:'https://login.microsoftonline.com/9c30b606-6648-4777-a623-64867e43e54f',
+          redirectUri:'https://kissamosrealestate.com/wp-content/erp/index.html'
+        },
+        cache:{cacheLocation:'sessionStorage',storeAuthStateInCookie:false}
+      };
+      const _msal=new msal.PublicClientApplication(_msalConfig);
+      const _loginRequest={scopes:['openid','profile','User.Read']};
+      function _showUserBadge(name) {
+        // Store name globally for sidebar to pick up
+        window._erpUserName = name;
+        // Try to update sidebar user display
+        const zsUser = document.getElementById('zsUser');
+        if (zsUser) {
+          zsUser.innerHTML = '<span>👤 ' + name + '</span>' +
+            '<button onclick="window._azureLogout()" style="background:transparent;border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.5);font-size:10px;padding:2px 7px;border-radius:4px;cursor:pointer;font-family:DM Sans,sans-serif;margin-left:4px">Sign out</button>';
+        }
+        // Also try old header-right for backwards compat
+        const hdr = document.querySelector('.header-right');
+        if (hdr && !document.getElementById('_azure_badge')) {
+          const badge = document.createElement('div');
+          badge.id = '_azure_badge';
+          badge.style.cssText = 'display:flex;align-items:center;gap:8px';
+          badge.innerHTML = '<span style="font-size:12px;color:rgba(255,255,255,.75);font-family:DM Sans,sans-serif">👤 ' + name + '</span>' +
+            '<button onclick="window._azureLogout()" style="padding:4px 10px;border-radius:7px;border:1px solid rgba(255,255,255,.3);background:transparent;color:rgba(255,255,255,.7);font-size:11px;cursor:pointer;font-family:DM Sans,sans-serif">Sign out</button>';
+          hdr.appendChild(badge);
+        }
+      }
+
+      window._azureLogout=function(){
+        const accounts=_msal.getAllAccounts();
+        if(accounts.length>0){_msal.logoutRedirect({account:accounts[0]});}
+      };
+
+      document.documentElement.style.visibility='hidden';
+
+      _ensureLogin().catch(function(){
+        _msal.loginRedirect(_loginRequest);
+      });
+    })();
+    </script>
 </head>
-<body>
+<body class="erp-layout">
+
+<div class="erp-overlay" id="erpOverlay"></div>
+<aside class="erp-sidebar" id="erpSidebar">
+  <div class="erp-brand">
+    <div class="erp-brand-name">Zesty <span>ERP</span></div>
+    <div class="erp-brand-sub">Kissamos · Operations</div>
+  </div>
+  <nav class="erp-nav-section">
+    <div class="erp-nav-section-label">Modules</div>
+      <a href="index.html" class="erp-nav-link"><span class="nav-icon">🏠</span><span class="nav-label">Home</span></a>
+      <a href="owners-crm.html" class="erp-nav-link"><span class="nav-icon">👤</span><span class="nav-label">Owners</span></a>
+      <a href="properties-db.html" class="erp-nav-link"><span class="nav-icon">🏠</span><span class="nav-label">Properties</span></a>
+      <a href="guests-crm.html" class="erp-nav-link"><span class="nav-icon">✈️</span><span class="nav-label">Guests</span></a>
+      <a href="cleaning-system.html" class="erp-nav-link active"><span class="nav-icon">🧹</span><span class="nav-label">Cleaning</span></a>
+      <a href="contacts-crm.html" class="erp-nav-link"><span class="nav-icon">📋</span><span class="nav-label">Contacts</span></a>
+      <a href="employees.html" class="erp-nav-link"><span class="nav-icon">👥</span><span class="nav-label">Staff</span></a>
+      <a href="leave.html" class="erp-nav-link"><span class="nav-icon">🏖️</span><span class="nav-label">Leave</span></a>
+      <a href="tasks.html" class="erp-nav-link"><span class="nav-icon">✅</span><span class="nav-label">Tasks</span></a>
+      <a href="jobs.html" class="erp-nav-link"><span class="nav-icon">🔧</span><span class="nav-label">Job Orders</span></a>
+      <a href="laundry.html" class="erp-nav-link"><span class="nav-icon">👔</span><span class="nav-label">Laundry ERP</span></a>
+      <a href="onboarding.html" class="erp-nav-link"><span class="nav-icon">📋</span><span class="nav-label">Onboarding</span></a>
+      <a href="settings.html" class="erp-nav-link"><span class="nav-icon">⚙️</span><span class="nav-label">Settings</span></a>
+  </nav>
+      <div class="erp-module-tabs">
+      <div class="erp-module-tabs-label">Module Sections</div>
+            <button class="erp-tab-link active" onclick="showTab&&showTab('staff')">👥 Staff</button>
+      <button class="erp-tab-link" onclick="showTab&&showTab('schedule')">📅 Schedule</button>
+      <button class="erp-tab-link" onclick="showTab&&showTab('jobs')">🔧 Jobs</button>
+    </div>
+  <div class="erp-sidebar-footer">
+    <div class="erp-user-badge" id="sidebarUser"></div>
+    <div class="erp-sync-row">
+      <span class="sync-dot" id="syncDot" title="Saved" style="display:inline-block"></span>
+      <span class="sync-label">Connected</span>
+    </div>
+  </div>
+</aside>
+
+<div class="erp-main">
+<div class="erp-topbar">
+    <button class="erp-hamburger" id="erpHamburger">☰</button>
+    <div class="erp-topbar-title">🧹 Cleaning System</div>
+    <div class="erp-topbar-actions"></div>
+  </div>
+
+
 <div class="container">
-  <div class="page-title-bar">
-    <div><h1>Cleaning System</h1><p>Schedule and track property cleaning assignments and staff</p></div>
-    <div class="page-actions">
-      <div class="sync-status"><span class="sync-dot" id="syncDot"></span><span>Connected</span></div>
-      <button class="btn btn-outline btn-sm" onclick="exportCSV()">↓ Export</button>
-      <button class="btn btn-primary" onclick="openAdd()">+ New Assignment</button>
+
+<!-- AUTO-IMPORT BANNER -->
+<div id="autoImportBanner" style="display:none;background:linear-gradient(135deg,#1a7a6e,#23a090);color:#fff;border-radius:12px;padding:14px 18px;margin-bottom:18px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;box-shadow:0 4px 16px rgba(26,122,110,.3);">
+  <div style="display:flex;align-items:center;gap:10px;">
+    <span style="font-size:22px">📥</span>
+    <div>
+      <div style="font-weight:600;font-size:14px">New booking data available</div>
+      <div id="autoImportBannerMsg" style="font-size:12px;opacity:.85;margin-top:2px"></div>
     </div>
   </div>
-
-  <div class="stats-bar">
-    <div class="stat-card" onclick="setFilter('Scheduled')"><div class="stat-label">Scheduled</div><div class="stat-value gold" id="st-sched">—</div></div>
-    <div class="stat-card" onclick="setFilter('In Progress')"><div class="stat-label">In Progress</div><div class="stat-value" style="color:var(--info)" id="st-prog">—</div></div>
-    <div class="stat-card" onclick="setFilter('Done')"><div class="stat-label">Done</div><div class="stat-value success" id="st-done">—</div></div>
-    <div class="stat-card" onclick="clearFilter()"><div class="stat-label">Active Staff</div><div class="stat-value" id="st-staff">—</div></div>
-  </div>
-
-  <!-- TABS -->
-  <div class="tabs">
-    <button class="tab active" onclick="switchTab('assignments',this)">Assignments</button>
-    <button class="tab" onclick="switchTab('staff',this)">Cleaning Staff</button>
-  </div>
-
-  <!-- ASSIGNMENTS -->
-  <div id="tab-assignments">
-    <div class="filter-bar">
-      <input type="search" id="q" placeholder="Search property, cleaner…" oninput="render()">
-      <input type="date" id="fDate" onchange="render()">
-      <select id="fStatus" onchange="render()">
-        <option value="">All statuses</option>
-        <option value="Scheduled">Scheduled</option>
-        <option value="In Progress">In Progress</option>
-        <option value="Done">Done</option>
-        <option value="Cancelled">Cancelled</option>
-      </select>
-      <select id="fCleaner" onchange="render()"><option value="">All cleaners</option></select>
-      <div class="filter-spacer"></div>
-    </div>
-
-    <div class="table-wrap">
-      <div class="table-header"><h3 id="tableCount">Assignments</h3></div>
-      <table>
-        <thead><tr>
-          <th onclick="sortBy('date')">Date <span class="sa">↕</span></th>
-          <th onclick="sortBy('propertyName')">Property</th>
-          <th>Assigned To</th>
-          <th>Shift</th>
-          <th onclick="sortBy('type')">Type</th>
-          <th onclick="sortBy('status')">Status</th>
-          <th>Notes</th>
-          <th style="width:110px"></th>
-        </tr></thead>
-        <tbody id="tBody"><tr class="empty-row"><td colspan="8"><div class="empty-icon">🧹</div><p>Loading…</p></td></tr></tbody>
-      </table>
-      <div class="pagination" id="pagination"></div>
-    </div>
-  </div>
-
-  <!-- STAFF -->
-  <div id="tab-staff" style="display:none">
-    <div style="display:flex;justify-content:flex-end;margin-bottom:16px">
-      <button class="btn btn-primary" onclick="openAddStaff()">+ Add Cleaner</button>
-    </div>
-    <div class="table-wrap">
-      <table>
-        <thead><tr>
-          <th>Name</th><th>Phone</th><th>Zone</th><th>Status</th><th style="width:80px"></th>
-        </tr></thead>
-        <tbody id="staffBody"></tbody>
-      </table>
-    </div>
+  <div style="display:flex;gap:8px">
+    <button onclick="runAutoImport()" style="background:#fff;color:#1a7a6e;border:none;padding:8px 16px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer">⚡ Import Now</button>
+    <button onclick="dismissAutoImport()" style="background:rgba(255,255,255,.2);color:#fff;border:1px solid rgba(255,255,255,.4);padding:8px 12px;border-radius:8px;font-size:12px;cursor:pointer">Dismiss</button>
   </div>
 </div>
 
-<!-- ASSIGNMENT MODAL -->
-<div class="modal-overlay" id="formModal">
-  <div class="modal" style="max-width:620px">
-    <div class="modal-header">
-      <h2 id="formTitle">New Assignment</h2>
-      <button class="modal-close" onclick="closeModal('formModal')">✕</button>
+<!-- ==================== STAFF PAGE ==================== -->
+<div id="page-staff" class="page active">
+  <div class="stats-bar">
+    <div class="stat-card"><div class="stat-label">Total Staff</div><div class="stat-value" id="s-total">0</div></div>
+    <div class="stat-card"><div class="stat-label">Active</div><div class="stat-value" id="s-active">0</div></div>
+    <div class="stat-card"><div class="stat-label">Zones Covered</div><div class="stat-value" id="s-zones">5</div></div>
+    <div class="stat-card"><div class="stat-label">Jobs This Month</div><div class="stat-value" id="s-jobs">0</div></div>
+    <div class="stat-card"><div class="stat-label">Total Pay This Month</div><div class="stat-value" id="s-pay">€0</div></div>
+  </div>
+  <div class="toolbar">
+    <div class="search-wrap"><span class="search-icon">🔍</span><input type="text" id="staffSearch" placeholder="Search staff..." oninput="renderStaff()"></div>
+    <select id="staffZoneFilter" onchange="renderStaff()">
+      <option value="">All Zones</option>
+      <option value="Kissamos">Kissamos</option>
+      <option value="Kaliviani">Kaliviani</option>
+      <option value="Falasarna">Falasarna</option>
+      <option value="Agia Marina">Agia Marina</option>
+      <option value="Chania">Chania</option>
+    </select>
+    <div style="margin-left:auto;display:flex;gap:8px">
+      <button class="btn btn-primary" onclick="openAddStaff()">＋ Add Cleaner</button>
     </div>
-    <div class="modal-body">
-      <input type="hidden" id="f_id">
-      <div class="form-grid">
-        <div class="form-group"><label>Date *</label><input type="date" id="f_date"></div>
-        <div class="form-group"><label>Status</label>
-          <select id="f_status">
-            <option value="Scheduled">Scheduled</option>
-            <option value="In Progress">In Progress</option>
-            <option value="Done">Done</option>
-            <option value="Cancelled">Cancelled</option>
-          </select>
-        </div>
-        <div class="form-group form-span-2"><label>Property</label>
-          <select id="f_propertyId" onchange="fillPropName()"><option value="">— Select Property —</option></select>
-        </div>
-        <div class="form-group form-span-2"><label>Assigned To</label>
-          <select id="f_cleanerId" onchange="fillCleanerName()"><option value="">— Select Cleaner —</option></select>
-        </div>
-        <div class="form-group"><label>Shift</label>
-          <select id="f_shift">
-            <option value="Morning">Morning</option>
-            <option value="Afternoon">Afternoon</option>
-            <option value="Full Day">Full Day</option>
-          </select>
-        </div>
-        <div class="form-group"><label>Type</label>
-          <select id="f_type">
-            <option value="Checkout">Checkout Clean</option>
-            <option value="Deep Clean">Deep Clean</option>
-            <option value="Standard">Standard</option>
-            <option value="Pre-Arrival">Pre-Arrival</option>
-            <option value="Post-Maintenance">Post-Maintenance</option>
-          </select>
-        </div>
-        <div class="form-group"><label>Duration (hrs)</label><input type="number" id="f_hours" step="0.5" min="0.5" placeholder="2"></div>
-        <div class="form-group"><label>Pay Rate (€/hr)</label><input type="number" id="f_rate" step="0.01" min="0" placeholder="8.00"></div>
-        <div class="form-group form-span-2"><label>Notes</label><textarea id="f_notes" rows="2"></textarea></div>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Cleaner</th>
+          <th>Phone</th>
+          <th>Zones</th>
+          <th>Hourly Rate</th>
+          <th>Transport Cost</th>
+          <th>Car</th>
+          <th>License</th>
+          <th>Insurance</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="staffTable"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ==================== SCHEDULE PAGE ==================== -->
+<div id="page-schedule" class="page">
+  <div class="toolbar">
+    <input type="month" id="calMonth" onchange="renderCalendar()">
+    <select id="calCleaner" onchange="renderCalendar()">
+      <option value="">All Cleaners</option>
+    </select>
+    <select id="calZone" onchange="renderCalendar()">
+      <option value="">All Zones</option>
+      <option value="Kissamos">Kissamos</option>
+      <option value="Kaliviani">Kaliviani</option>
+      <option value="Falasarna">Falasarna</option>
+      <option value="Agia Marina">Agia Marina</option>
+      <option value="Chania">Chania</option>
+    </select>
+    <select id="calJobType" onchange="renderCalendar()">
+      <option value="">All Job Types</option>
+      <option value="checkout">Checkout Clean</option>
+      <option value="midstay">Mid-Stay Clean</option>
+    </select>
+    <div style="margin-left:auto;display:flex;gap:8px">
+      <button class="btn btn-print no-print" onclick="printSchedule()">🖨 Print Schedule</button>
+      <button class="btn btn-teal no-print" onclick="exportScheduleCSV()">⬇ Export CSV</button>
+    </div>
+  </div>
+
+  <!-- Legend -->
+  <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px" id="calLegend"></div>
+
+  <div class="calendar-wrap">
+    <div class="cal-header">
+      <div class="cal-nav">
+        <button onclick="changeMonth(-1)">‹</button>
+        <h3 id="calTitle">Month Year</h3>
+        <button onclick="changeMonth(1)">›</button>
+      </div>
+      <div style="font-size:12px;opacity:0.7" id="calJobCount"></div>
+    </div>
+    <div class="cal-grid" id="calDayHeaders">
+      <div class="cal-day-header">Mon</div>
+      <div class="cal-day-header">Tue</div>
+      <div class="cal-day-header">Wed</div>
+      <div class="cal-day-header">Thu</div>
+      <div class="cal-day-header">Fri</div>
+      <div class="cal-day-header">Sat</div>
+      <div class="cal-day-header">Sun</div>
+    </div>
+    <div class="cal-grid" id="calBody" style="grid-auto-rows:minmax(90px,auto)"></div>
+  </div>
+</div>
+
+<!-- ==================== IMPORT PAGE ==================== -->
+<div id="page-import" class="page">
+  <div class="import-panel">
+    <h3>📥 Import Bookings from Lodgify</h3>
+    <p>Export your bookings from Lodgify as CSV and drop the file below. The system will automatically create checkout cleaning jobs and calculate mid-stay cleans based on each property's schedule.</p>
+    <div class="drop-zone" id="dropZone" onclick="document.getElementById('csvFile').click()" ondragover="dragOver(event)" ondragleave="dragLeave(event)" ondrop="dropFile(event)">
+      <div class="drop-zone-icon">📂</div>
+      <p><strong>Click to browse</strong> or drag & drop your Lodgify CSV file</p>
+      <p style="margin-top:6px;font-size:12px">Supports: BookingReport_*.csv from Lodgify</p>
+      <p id="cleanLastImport" style="margin-top:8px;font-size:11px;color:var(--teal-light)"></p>
+      <input type="file" id="csvFile" accept=".csv" style="display:none" onchange="handleFile(event)">
+    </div>
+    <div class="import-results" id="importResults">
+      <div class="import-summary" id="importSummary"></div>
+      <div style="display:flex;gap:10px;margin-bottom:14px">
+        <select id="importStatusFilter" onchange="renderImportPreview()">
+          <option value="Booked" selected>Booked only</option>
+            <option value="">All Statuses</option>
+          <option value="Booked">Booked</option>
+          <option value="Open">Open</option>
+          <option value="Declined">Declined</option>
+        </select>
+        <select id="importPropFilter" onchange="renderImportPreview()">
+          <option value="">All Properties</option>
+        </select>
+      </div>
+      <div class="table-wrap" style="max-height:400px;overflow-y:auto">
+        <table>
+          <thead>
+            <tr>
+              <th>Guest</th>
+              <th>Property</th>
+              <th>Check-in</th>
+              <th>Check-out</th>
+              <th>Nights</th>
+              <th>Source</th>
+              <th>Status</th>
+              <th>Checkout Clean</th>
+              <th>Mid-Stay Cleans</th>
+            </tr>
+          </thead>
+          <tbody id="importPreview"></tbody>
+        </table>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:14px;justify-content:flex-end">
+        <button class="btn btn-outline" onclick="clearImport()">✕ Clear</button>
+        <button class="btn btn-primary" onclick="confirmImport()">✅ Import & Generate Jobs</button>
       </div>
     </div>
-    <div class="modal-footer">
-      <button class="btn btn-danger btn-sm" id="fDeleteBtn" onclick="deleteCurrent()" style="display:none;margin-right:auto">🗑</button>
-      <button class="btn btn-outline" onclick="closeModal('formModal')">Cancel</button>
-      <button class="btn btn-primary" onclick="save()">Save</button>
+  </div>
+
+  <!-- Import History -->
+  <div class="table-wrap">
+    <div style="padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
+      <strong style="font-size:13px">Import History</strong>
+      <button class="btn btn-danger btn-sm" onclick="clearAllJobs()">🗑 Clear All Jobs</button>
+    </div>
+    <table>
+      <thead><tr><th>Date Imported</th><th>File</th><th>Bookings</th><th>Jobs Created</th><th>Status</th></tr></thead>
+      <tbody id="importHistory"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ==================== JOBS PAGE ==================== -->
+<div id="page-jobs" class="page">
+  <div class="stats-bar">
+    <div class="stat-card"><div class="stat-label">Total Jobs</div><div class="stat-value" id="j-total">0</div></div>
+    <div class="stat-card"><div class="stat-label">This Month</div><div class="stat-value" id="j-month">0</div></div>
+    <div class="stat-card"><div class="stat-label">Checkout Cleans</div><div class="stat-value" id="j-checkout">0</div></div>
+    <div class="stat-card"><div class="stat-label">Mid-Stay Cleans</div><div class="stat-value" id="j-midstay">0</div></div>
+    <div class="stat-card"><div class="stat-label">Unassigned</div><div class="stat-value" id="j-unassigned">0</div></div>
+  </div>
+  <div class="toolbar">
+    <div class="search-wrap"><span class="search-icon">🔍</span><input type="text" id="jobSearch" placeholder="Search property, cleaner..." oninput="renderJobs()"></div>
+    <input type="month" id="jobMonth" onchange="renderJobs()">
+    <select id="jobZone" onchange="renderJobs()">
+      <option value="">All Zones</option>
+      <option value="Kissamos">Kissamos</option>
+      <option value="Kaliviani">Kaliviani</option>
+      <option value="Falasarna">Falasarna</option>
+      <option value="Agia Marina">Agia Marina</option>
+      <option value="Chania">Chania</option>
+    </select>
+    <select id="jobType" onchange="renderJobs()">
+      <option value="">All Types</option>
+      <option value="checkout">Checkout Clean</option>
+      <option value="midstay">Mid-Stay Clean</option>
+    </select>
+    <select id="jobCleaner" onchange="renderJobs()">
+      <option value="">All Cleaners</option>
+    </select>
+    <button class="btn btn-teal btn-sm" style="margin-left:auto" onclick="autoAssign()">⚡ Auto-Assign</button>
+    <button class="btn btn-outline btn-sm" onclick="exportJobsCSV()">⬇ Export CSV</button>
+    <button class="btn btn-print btn-sm" onclick="printAllJobs()">🖨 Print PDF</button>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th onclick="sortJobs('date')">Date ↕</th>
+          <th>Property</th>
+          <th>Zone</th>
+          <th>Type</th>
+          <th>Nights</th>
+          <th>Assigned To</th>
+          <th>Est. Hours</th>
+          <th>Transport</th>
+          <th>Total Pay</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="jobsTable"></tbody>
+    </table>
+    <div class="pagination" style="padding:12px 18px;border-top:1px solid var(--border);display:flex;justify-content:space-between;font-size:13px;color:var(--text-muted)">
+      <span id="jobPaginationInfo"></span>
+      <div id="jobPageBtns" style="display:flex;gap:4px"></div>
     </div>
   </div>
 </div>
+
+</div><!-- end container -->
 
 <!-- STAFF MODAL -->
 <div class="modal-overlay" id="staffModal">
-  <div class="modal" style="max-width:500px">
+  <div class="modal">
     <div class="modal-header">
-      <h2 id="staffFormTitle">Add Cleaner</h2>
+      <div class="modal-title" id="staffModalTitle">Add Cleaner</div>
       <button class="modal-close" onclick="closeModal('staffModal')">✕</button>
     </div>
     <div class="modal-body">
-      <input type="hidden" id="fs_id">
+      <input type="hidden" id="s_editId">
+      <div class="section-title">👤 Personal Details</div>
       <div class="form-grid">
-        <div class="form-group"><label>First Name *</label><input id="fs_firstName"></div>
-        <div class="form-group"><label>Last Name *</label><input id="fs_lastName"></div>
-        <div class="form-group"><label>Phone</label><input id="fs_phone" type="tel"></div>
-        <div class="form-group"><label>Zone</label><input id="fs_zone" placeholder="e.g. North, South"></div>
+        <div class="form-group"><label>First Name *</label><input type="text" id="s_firstName" placeholder="First name"></div>
+        <div class="form-group"><label>Last Name *</label><input type="text" id="s_lastName" placeholder="Last name"></div>
         <div class="form-group"><label>Status</label>
-          <select id="fs_status"><option value="Active">Active</option><option value="Inactive">Inactive</option></select>
+          <select id="s_status"><option value="Active">Active</option><option value="Inactive">Inactive</option></select>
         </div>
-        <div class="form-group"><label>Pay Rate (€/hr)</label><input type="number" id="fs_rate" step="0.01"></div>
+        <div class="form-group"><label>Phone</label><input type="text" id="s_phone" placeholder="+30 6900000000"></div>
+        <div class="form-group"><label>Email</label><input type="email" id="s_email" placeholder="email@example.com"></div>
+        <div class="form-group"><label>Birthdate</label><input type="date" id="s_birthdate"></div>
+        <div class="form-group col-span-3"><label>Home Address</label><input type="text" id="s_address" placeholder="Full home address"></div>
       </div>
+
+      <div class="section-title">🗺 Zones & Rates</div>
+      <div class="form-group" style="margin-bottom:12px">
+        <label>Zones Covered</label>
+        <div class="zones-grid" id="zoneCheckboxes">
+          <div class="zone-check" data-zone="Kissamos" onclick="toggleZone(this)">Kissamos</div>
+          <div class="zone-check" data-zone="Kaliviani" onclick="toggleZone(this)">Kaliviani</div>
+          <div class="zone-check" data-zone="Falasarna" onclick="toggleZone(this)">Falasarna</div>
+          <div class="zone-check" data-zone="Agia Marina" onclick="toggleZone(this)">Agia Marina</div>
+          <div class="zone-check" data-zone="Chania" onclick="toggleZone(this)">Chania</div>
+        </div>
+      </div>
+      <div class="form-grid form-grid-4">
+        <div class="form-group"><label>Hourly Rate (€)</label><input type="number" id="s_hourlyRate" placeholder="0.00" step="0.01" min="0"></div>
+        <div class="form-group"><label>Transport Cost (€/trip)</label><input type="number" id="s_transportCost" placeholder="0.00" step="0.01" min="0"></div>
+      </div>
+
+      <div class="section-title">🚗 Vehicle & Documents</div>
+      <div class="form-grid form-grid-4">
+        <div class="form-group"><label>Has Car</label>
+          <select id="s_hasCar"><option value="">Not set</option><option value="Yes">Yes</option><option value="No">No</option></select>
+        </div>
+        <div class="form-group"><label>Car Model / Plate</label><input type="text" id="s_carDetails" placeholder="e.g. Toyota Yaris / ABC-1234"></div>
+        <div class="form-group"><label>Driving License</label>
+          <select id="s_drivingLicense"><option value="">Not set</option><option value="Yes">Yes</option><option value="No">No</option></select>
+        </div>
+        <div class="form-group"><label>License Number</label><input type="text" id="s_licenseNumber" placeholder="License number"></div>
+        <div class="form-group"><label>Insurance</label>
+          <select id="s_insurance"><option value="">Not set</option><option value="Yes">Yes</option><option value="No">No</option></select>
+        </div>
+        <div class="form-group"><label>Insurance Expiry</label><input type="date" id="s_insuranceExpiry"></div>
+      </div>
+
+      <div class="section-title">🏦 Bank Details</div>
+      <div class="form-grid form-grid-4">
+        <div class="form-group col-span-2"><label>IBAN</label><input type="text" id="s_iban" placeholder="GR00 0000..."></div>
+        <div class="form-group"><label>Bank</label><input type="text" id="s_bank" placeholder="Bank name"></div>
+        <div class="form-group"><label>Beneficiary</label><input type="text" id="s_beneficiary" placeholder="Account holder name"></div>
+      </div>
+
+      <div class="section-title">📝 Notes</div>
+      <div class="form-group"><textarea id="s_notes" placeholder="Any notes about this cleaner..."></textarea></div>
     </div>
     <div class="modal-footer">
-      <button class="btn btn-danger btn-sm" id="fsDeleteBtn" onclick="deleteStaff()" style="display:none;margin-right:auto">🗑</button>
       <button class="btn btn-outline" onclick="closeModal('staffModal')">Cancel</button>
-      <button class="btn btn-primary" onclick="saveStaff()">Save</button>
+      <button class="btn btn-primary" onclick="saveStaff()">💾 Save</button>
     </div>
   </div>
 </div>
 
-<script src="erp-base.js"></script>
+<!-- JOB ASSIGN MODAL -->
+<div class="modal-overlay" id="jobModal">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-header">
+      <div class="modal-title">Assign / Edit Job</div>
+      <button class="modal-close" onclick="closeModal('jobModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="j_editId">
+      <div class="form-grid form-grid-2">
+        <div class="form-group col-span-2"><label>Property</label><input type="text" id="j_property" readonly style="background:#f5f5f5"></div>
+        <div class="form-group"><label>Date</label><input type="date" id="j_date"></div>
+        <div class="form-group"><label>Job Type</label>
+          <select id="j_type">
+            <option value="checkout">Checkout Clean</option>
+            <option value="midstay">Mid-Stay Clean</option>
+          </select>
+        </div>
+        <div class="form-group col-span-2">
+          <label>Assign Cleaners (select one or more)</label>
+          <div id="j_cleaners_list" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:4px;padding:10px;background:var(--cream);border:1px solid var(--border);border-radius:8px;min-height:42px"></div>
+        </div>
+        <div class="form-group"><label>Estimated Hours (per cleaner)</label><input type="number" id="j_hours" placeholder="e.g. 3" step="0.5" min="0"></div>
+        <div class="form-group"><label>Transport Charge (€) from property</label><input type="number" id="j_transport" placeholder="0.00" step="0.01" readonly style="background:#f0faf8;font-weight:600;color:var(--teal-dark)"></div>
+        <div class="form-group col-span-2"><label>Notes</label><textarea id="j_notes" style="min-height:60px" placeholder="Any special instructions..."></textarea></div>
+        <div class="form-group col-span-2" id="j_cost_preview" style="background:var(--cream);border-radius:8px;padding:12px;font-size:12px;color:var(--text-muted);display:none"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('jobModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveJob()">💾 Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- CONFIRM -->
+<div class="confirm-overlay" id="confirmOverlay">
+  <div class="confirm-box">
+    <div class="confirm-icon" id="confirmIcon">⚠️</div>
+    <div class="confirm-title" id="confirmTitle">Are you sure?</div>
+    <div class="confirm-msg" id="confirmMsg"></div>
+    <div class="confirm-btns">
+      <button class="btn btn-outline" onclick="closeConfirm()">Cancel</button>
+      <button class="btn" id="confirmBtn" onclick="doConfirm()">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+
 <script>
-let assignments = [], cleaners = [], propsList = [];
-let sort = { field: 'date', dir: -1 };
-let page = 1;
-const PAGE = 20;
+
+const SUPABASE_URL='https://whuytfjwdjjepayeiohj.supabase.co';
+const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndodXl0Zmp3ZGpqZXBheWVpb2hqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIyODQxMzQsImV4cCI6MjA4Nzg2MDEzNH0.pTDAqw_Cnzc9D3tJU-tU7Ch5qpapKmteiqI_ooSCufY';
+const DB={
+  _h(){return{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json','Prefer':'return=representation,resolution=merge-duplicates'}},
+  _hG(){return{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY}},
+  _hD(){return{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json'}},
+  _ok(){return!!(SUPABASE_URL&&SUPABASE_KEY&&SUPABASE_URL.includes('supabase.co'))},
+  async _fetch(method,table,body,query,ms){
+    if(!this._ok())return{ok:false,data:null,err:'Not configured'};
+    const ctrl=new AbortController(),t=setTimeout(()=>ctrl.abort(),ms||15000);
+    try{
+      const url=SUPABASE_URL+'/rest/v1/'+table+(query||'');
+      const headers=method==='GET'?this._hG():method==='DELETE'?this._hD():this._h();
+      const opts={method,headers,signal:ctrl.signal};
+      if(body)opts.body=JSON.stringify(body);
+      const res=await fetch(url,opts);clearTimeout(t);
+      if(!res.ok){
+        let e='HTTP '+res.status;
+        try{const j=await res.json();e=j.message||j.hint||j.error||e}catch(x){}
+        return{ok:false,data:null,err:e};
+      }
+      if(res.status===204||method==='DELETE')return{ok:true,data:[]};
+      const ct=res.headers.get('content-type')||'';
+      if(!ct.includes('json'))return{ok:true,data:[]};
+      try{return{ok:true,data:await res.json()}}catch(x){return{ok:true,data:[]}}
+    }catch(e){clearTimeout(t);return{ok:false,data:null,err:e.name==='AbortError'?'Timeout':e.message}}
+  },
+  async loadAll(table){
+    const r=await this._fetch('GET',table,null,'?select=id,data,updated_at&order=created_at.asc&limit=100000');
+    if(!r.ok)return{ok:false,rows:null,err:r.err};
+    const rows=(r.data||[]).map(row=>({id:row.id,...(row.data||{})}));
+    return{ok:true,rows};
+  },
+  async upsertOne(table,record){
+    const{id,...rest}=record;
+    const rid=id||('rec_'+Date.now()+'_'+Math.random().toString(36).slice(2,6));
+    const row={id:rid,data:rest,updated_at:new Date().toISOString()};
+    const r=await this._fetch('POST',table,row,'?on_conflict=id');
+    return{ok:r.ok,id:rid,err:r.err};
+  },
+  async upsertMany(table,records){
+    if(!records.length)return{ok:true};
+    const rows=records.map(({id,...rest})=>({id:id||('rec_'+Date.now()+'_'+Math.random().toString(36).slice(2,6)),data:rest,updated_at:new Date().toISOString()}));
+    const size=200;
+    for(let i=0;i<rows.length;i+=size){
+      const r=await this._fetch('POST',table,rows.slice(i,i+size),'?on_conflict=id');
+      if(!r.ok)return{ok:false,err:r.err};
+    }
+    return{ok:true};
+  },
+  async deleteOne(table,id){
+    const r=await this._fetch('DELETE',table,null,'?id=eq.'+encodeURIComponent(id));
+    return{ok:r.ok,err:r.err};
+  },
+  isConfigured(){return this._ok()}
+};
+const SyncStore={
+  _pendingDeletes:{},
+  async load(lsKey,table){
+    const cached=this._getLocal(lsKey);
+    const result=await DB.loadAll(table);
+    if(result.ok&&result.rows!==null){
+      const pending=this._pendingDeletes[table]||new Set();
+      const rows=result.rows.filter(r=>!pending.has(r.id));
+      localStorage.setItem(lsKey,JSON.stringify(rows));
+      return{data:rows,fromCache:false,online:true};
+    }
+    return{data:cached,fromCache:true,online:false};
+  },
+  async saveOne(lsKey,table,record,all){
+    localStorage.setItem(lsKey,JSON.stringify(all));
+    const r=await DB.upsertOne(table,record);
+    if(!r.ok)showSyncErr(r.err);
+    return r;
+  },
+  async saveAll(lsKey,table,records){
+    localStorage.setItem(lsKey,JSON.stringify(records));
+    const r=await DB.upsertMany(table,records);
+    if(!r.ok)showSyncErr(r.err);
+    return r.ok;
+  },
+  async deleteOne(lsKey,table,id,all){
+    if(!this._pendingDeletes[table])this._pendingDeletes[table]=new Set();
+    this._pendingDeletes[table].add(id);
+    localStorage.setItem(lsKey,JSON.stringify(all));
+    const r=await DB.deleteOne(table,id);
+    if(!r.ok){
+      this._pendingDeletes[table].delete(id);
+      showSyncErr('Delete failed: '+r.err);
+      return{ok:false,err:r.err};
+    }
+    setTimeout(()=>{if(this._pendingDeletes[table])this._pendingDeletes[table].delete(id)},120000);
+    return{ok:true};
+  },
+  _getLocal(key){try{return JSON.parse(localStorage.getItem(key)||'[]')||[]}catch{return[]}}
+};
+function startPoll(table,lsKey,ms,onData){
+  let lastHash='';
+  const poll=async()=>{
+    const result=await DB.loadAll(table);
+    if(!result.ok||!result.rows)return;
+    const pending=SyncStore._pendingDeletes[table]||new Set();
+    const rows=result.rows.filter(r=>!pending.has(r.id));
+    const hash=rows.length+'|'+rows.map(r=>r.id).join(',');
+    if(hash!==lastHash){lastHash=hash;localStorage.setItem(lsKey,JSON.stringify(rows));onData(rows)}
+  };
+  setInterval(poll,ms);
+  return poll;
+}
+function showDbStatus(online){
+  const old=document.getElementById('db-status-bar');if(old)old.remove();
+  if(online)return;
+  const b=document.createElement('div');b.id='db-status-bar';
+  b.style.cssText='position:fixed;bottom:0;left:0;right:0;background:#c0392b;color:#fff;text-align:center;padding:8px;font-size:12px;z-index:9998;cursor:pointer;';
+  b.textContent='⚠ Database offline — working in local mode. Click to retry.';
+  b.onclick=()=>{location.reload()};
+  document.body.appendChild(b);
+}
+function showSyncErr(err){
+  let b=document.getElementById('sync-err-bar');
+  if(!b){b=document.createElement('div');b.id='sync-err-bar';b.style.cssText='position:fixed;bottom:40px;right:16px;background:#c0392b;color:#fff;border-radius:8px;padding:8px 14px;font-size:12px;z-index:9999;max-width:320px;';document.body.appendChild(b)}
+  b.textContent='Save error: '+err;b.style.display='block';
+  clearTimeout(b._t);b._t=setTimeout(()=>b.style.display='none',6000);
+}
+
+function showDbStatus(online){
+  const old=document.getElementById('db-status-bar');if(old)old.remove();
+  if(online)return;
+  const b=document.createElement('div');b.id='db-status-bar';
+  b.style.cssText='position:fixed;bottom:0;left:0;right:0;background:#c0392b;color:#fff;text-align:center;padding:8px;font-size:12px;z-index:9998;cursor:pointer;';
+  b.textContent='⚠ Database offline — working in local mode. Click to retry.';
+  b.onclick=()=>{location.reload()};
+  document.body.appendChild(b);
+}
+function showSyncErr(err){
+  let b=document.getElementById('sync-err-bar');
+  if(!b){b=document.createElement('div');b.id='sync-err-bar';b.style.cssText='position:fixed;bottom:40px;right:16px;background:#c0392b;color:#fff;border-radius:8px;padding:8px 14px;font-size:12px;z-index:9999;max-width:320px;';document.body.appendChild(b)}
+  b.textContent='Save error: '+err;b.style.display='block';
+  clearTimeout(b._t);b._t=setTimeout(()=>b.style.display='none',6000);
+}
+
+
+</script>
+<script>
+// ============ DATA ============
+let staff = [];
+let cleaningJobs = [];
+let importHistory = [];
+let importPreviewData = [];
+let currentCalMonth;
+let jobPage = 1;
+const JOB_PAGE_SIZE = 20;
+let jobSortDir = -1;
+let confirmCb = null;
+
+// Cleaner colors
+const COLORS = ['#1a7a6e','#c9a84c','#e67e22','#8e44ad','#2471a3','#1e8449','#c0392b','#2c3e50'];
+
+function getColor(idx) { return COLORS[idx % COLORS.length]; }
+
+function getInitials(f, l) {
+  return ((f||'')[0]||'') + ((l||'')[0]||'');
+}
+
+// ============ INIT ============
+function updateCleanImportStatus() {
+  const el = document.getElementById('cleanLastImport');
+  if (!el) return;
+  try {
+    const last = JSON.parse(localStorage.getItem('zesty_last_clean_import') || 'null');
+    if (!last) { el.textContent = ''; return; }
+    const d = new Date(last.date);
+    el.innerHTML = `✓ Last import: <strong>${last.filename}</strong> on ${d.toLocaleDateString('el-GR')} · ${last.jobs} jobs created`;
+  } catch { el.textContent = ''; }
+}
 
 async function init() {
-  const [aRes, cRes, pRes] = await Promise.all([
-    SyncStore.load('zesty_cleaning', 'cleaning'),
-    SyncStore.load('zesty_staff', 'staff'),
-    SyncStore.load('zesty_properties', 'properties')
-  ]);
-  assignments = aRes.data;
-  cleaners = cRes.data;
-  propsList = pRes.data;
-  populateSelects();
-  render();
-  renderStaff();
-}
-init();
-
-function populateSelects() {
-  const pSel = document.getElementById('f_propertyId');
-  pSel.innerHTML = '<option value="">— Select Property —</option>' +
-    propsList.filter(p=>!p.archived).sort((a,b)=>(a.name||'')<(b.name||'')?-1:1)
-      .map(p=>`<option value="${p.id}">${p.name}</option>`).join('');
-
-  const cSel = document.getElementById('f_cleanerId');
-  const fSel = document.getElementById('fCleaner');
-  const activeCl = cleaners.filter(c=>!c.archived&&c.status!=='Inactive');
-  const opts = activeCl.map(c=>`<option value="${c.id}">${(c.firstName||'')+' '+(c.lastName||'')}</option>`).join('');
-  cSel.innerHTML = '<option value="">— Select Cleaner —</option>' + opts;
-  fSel.innerHTML = '<option value="">All cleaners</option>' + opts;
-}
-
-function fillPropName() {
-  const id=document.getElementById('f_propertyId').value;
-  const p=propsList.find(x=>x.id===id);
-  if(p) document.getElementById('f_propertyName') && (document.getElementById('f_propertyName').value=p.name);
-}
-function fillCleanerName() {
-  const id=document.getElementById('f_cleanerId').value;
-  const c=cleaners.find(x=>x.id===id);
-  if(c) document.getElementById('f_cleanerName') && (document.getElementById('f_cleanerName').value=((c.firstName||'')+' '+(c.lastName||'')).trim());
-}
-
-function switchTab(tab, btn) {
-  document.getElementById('tab-assignments').style.display = tab==='assignments'?'':'none';
-  document.getElementById('tab-staff').style.display = tab==='staff'?'':'none';
-  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
-  btn.classList.add('active');
-}
-
-const SHIFT_DOT = { Morning:'shift-morning', Afternoon:'shift-afternoon', 'Full Day':'shift-full' };
-function statusBadge(s){
-  if(s==='Done')return '<span class="badge b-active">Done</span>';
-  if(s==='In Progress')return '<span class="badge b-progress">In Progress</span>';
-  if(s==='Cancelled')return '<span class="badge b-inactive">Cancelled</span>';
-  return '<span class="badge b-pending">Scheduled</span>';
-}
-
-function render() {
-  const q=(document.getElementById('q').value||'').toLowerCase();
-  const fStatus=document.getElementById('fStatus').value;
-  const fDate=document.getElementById('fDate').value;
-  const fCleaner=document.getElementById('fCleaner').value;
-  let list=assignments.filter(a=>{
-    if(fStatus&&a.status!==fStatus)return false;
-    if(fDate&&a.date!==fDate)return false;
-    if(fCleaner&&a.cleanerId!==fCleaner)return false;
-    if(q&&!((a.propertyName||'')+(a.cleanerName||'')).toLowerCase().includes(q))return false;
-    return true;
-  });
-  list.sort((a,b)=>((a[sort.field]||'')<(b[sort.field]||'')?-sort.dir:sort.dir));
-
-  const total=list.length;
-  const pages=Math.ceil(total/PAGE)||1;
-  if(page>pages)page=1;
-  const slice=list.slice((page-1)*PAGE,page*PAGE);
-
-  document.getElementById('st-sched').textContent=assignments.filter(a=>a.status==='Scheduled').length;
-  document.getElementById('st-prog').textContent=assignments.filter(a=>a.status==='In Progress').length;
-  document.getElementById('st-done').textContent=assignments.filter(a=>a.status==='Done').length;
-  document.getElementById('st-staff').textContent=cleaners.filter(c=>!c.archived&&c.status!=='Inactive').length;
-  document.getElementById('tableCount').textContent=`${total} Assignment${total!==1?'s':''}`;
-
-  document.getElementById('tBody').innerHTML=!slice.length
-    ?`<tr class="empty-row"><td colspan="8"><div class="empty-icon">🧹</div><p>No assignments</p></td></tr>`
-    :slice.map(a=>`<tr>
-        <td style="font-weight:500">${fmtDate(a.date)}</td>
-        <td><strong>${a.propertyName||'—'}</strong></td>
-        <td style="font-size:12px">${a.cleanerName||'—'}</td>
-        <td><span class="shift-indicator ${SHIFT_DOT[a.shift]||''}"></span>${a.shift||'—'}</td>
-        <td><span class="badge b-individual">${a.type||'—'}</span></td>
-        <td>${statusBadge(a.status)}</td>
-        <td style="font-size:11px;color:var(--text-muted);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${a.notes||'—'}</td>
-        <td><div class="table-actions">
-          ${a.status!=='Done'?`<button class="btn btn-success btn-xs" onclick="markDone('${a.id}')">✓</button>`:''}
-          <button class="btn btn-teal btn-xs" onclick="edit('${a.id}')">✏️</button>
-          <button class="btn btn-danger btn-xs" onclick="confirmDel('${a.id}')">🗑</button>
-        </div></td>
-      </tr>`).join('');
-
-  const pg=document.getElementById('pagination');
-  if(pages<=1){pg.innerHTML='';return;}
-  let h=`<span>${total} total</span><div class="pagination-spacer"></div>`;
-  for(let i=1;i<=pages;i++){
-    if(i===1||i===pages||Math.abs(i-page)<=1)h+=`<button class="page-btn ${i===page?'active':''}" onclick="page=${i};render()">${i}</button>`;
-    else if(Math.abs(i-page)===2)h+='<span>…</span>';
+  // Clear stale localStorage from old key names
+  if (!localStorage.getItem('zesty_clean_v2')) {
+    localStorage.removeItem('zesty_cleaning_staff');
+    localStorage.setItem('zesty_clean_v2', '1');
   }
-  pg.innerHTML=h;
-}
 
-function setFilter(s){document.getElementById('fStatus').value=s;page=1;render();}
-function clearFilter(){document.getElementById('fStatus').value='';document.getElementById('fDate').value='';document.getElementById('fCleaner').value='';page=1;render();}
-function sortBy(f){if(sort.field===f)sort.dir*=-1;else{sort.field=f;sort.dir=1;}render();}
+  // Show cache instantly
+  const _s = SyncStore._getLocal('zesty_staff');
+  const _j = SyncStore._getLocal('zesty_jobs');
+  const _h = SyncStore._getLocal('zesty_import_history');
+  if (_s.length) staff = _s;
+  if (_j.length) cleaningJobs = _j;
+  if (_h.length) importHistory = _h;
 
-function openAdd(){document.getElementById('formTitle').textContent='New Assignment';document.getElementById('fDeleteBtn').style.display='none';clearForm();document.getElementById('f_date').value=new Date().toISOString().slice(0,10);openModal('formModal');}
-function edit(id){
-  const a=assignments.find(x=>x.id===id);if(!a)return;
-  document.getElementById('formTitle').textContent='Edit Assignment';document.getElementById('fDeleteBtn').style.display='';
-  ['id','date','status','propertyId','cleanerId','shift','type','hours','rate','notes'].forEach(f=>{const el=document.getElementById('f_'+f);if(el)el.value=a[f]||'';});
-  openModal('formModal');
-}
-function clearForm(){
-  ['id','hours','rate','notes'].forEach(f=>{const el=document.getElementById('f_'+f);if(el)el.value='';});
-  document.getElementById('f_date').value='';
-  document.getElementById('f_status').value='Scheduled';
-  document.getElementById('f_propertyId').value='';
-  document.getElementById('f_cleanerId').value='';
-  document.getElementById('f_shift').value='Morning';
-  document.getElementById('f_type').value='Checkout';
-}
+  const now = new Date();
+  currentCalMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+  document.getElementById('calMonth').value = formatMonthValue(currentCalMonth);
+  document.getElementById('jobMonth').value = formatMonthValue(currentCalMonth);
 
-async function save(){
-  const date=document.getElementById('f_date').value;
-  if(!date){showToast('Date required','error');return;}
-  const id=document.getElementById('f_id').value||genId('clean');
-  const pId=document.getElementById('f_propertyId').value;
-  const cId=document.getElementById('f_cleanerId').value;
-  const p=propsList.find(x=>x.id===pId);
-  const c=cleaners.find(x=>x.id===cId);
-  const record={id,
-    date,
-    status:document.getElementById('f_status').value,
-    propertyId:pId, propertyName:p?p.name:'',
-    cleanerId:cId, cleanerName:c?((c.firstName||'')+' '+(c.lastName||'')).trim():'',
-    shift:document.getElementById('f_shift').value,
-    type:document.getElementById('f_type').value,
-    hours:document.getElementById('f_hours').value,
-    rate:document.getElementById('f_rate').value,
-    notes:document.getElementById('f_notes').value
-  };
-  const existing=assignments.find(a=>a.id===id);
-  if(existing)Object.assign(existing,record);else assignments.push(record);
-  closeModal('formModal');render();
-  await SyncStore.saveOne('zesty_cleaning','cleaning',record,assignments);
-  showToast('✓ Saved','success');
-}
+  renderStaff(); renderCalendar(); renderJobs(); renderImportHistory();
+  updateStaffDropdowns(); updateStaffStats(); updateJobStats();
+  updateCleanImportStatus();
+  const ol = document.getElementById('loadingOverlay');
+  if (ol) { ol.style.opacity='0'; ol.style.transition='opacity 0.3s'; setTimeout(()=>ol.remove(),300); }
 
-async function markDone(id){const a=assignments.find(x=>x.id===id);if(!a)return;a.status='Done';render();await SyncStore.saveOne('zesty_cleaning','cleaning',a,assignments);showToast('✓ Done','success');}
+  // Load from Supabase
+  await syncCleaningData();
+  showDbStatus(true);
 
-function deleteCurrent(){const id=document.getElementById('f_id').value;if(!id)return;closeModal('formModal');confirmDel(id);}
-function confirmDel(id){
-  const a=assignments.find(x=>x.id===id);if(!a)return;
-  showConfirm('🗑️','Delete?','Delete this assignment?','btn-danger','Delete',async()=>{
-    assignments=assignments.filter(x=>x.id!==id);await SyncStore.deleteOne('zesty_cleaning','cleaning',id,assignments);render();showToast('Deleted','error');
+  // 30-second poll for all cleaning data
+  startPoll('cleaning_jobs', 'zesty_jobs', 30000, (rows) => {
+    cleaningJobs = rows;
+    renderCalendar(); renderJobs(); updateJobStats();
   });
+  startPoll('cleaning_staff', 'zesty_staff', 30000, (rows) => {
+    staff = rows;
+    renderStaff(); updateStaffDropdowns(); updateStaffStats();
+  });
+
+  checkAutoImport();
 }
 
-// ── STAFF ──
-function renderStaff(){
-  document.getElementById('staffBody').innerHTML=!cleaners.length
-    ?`<tr class="empty-row"><td colspan="5"><p>No cleaners added</p></td></tr>`
-    :cleaners.map(c=>`<tr class="${c.archived?'archived':''}">
-        <td><strong>${(c.firstName||'')+' '+(c.lastName||'')}</strong></td>
-        <td style="font-size:12px">${c.phone||'—'}</td>
-        <td style="font-size:12px">${c.zone||'—'}</td>
-        <td><span class="badge ${c.status==='Active'?'b-active':'b-inactive'}">${c.status||'Active'}</span></td>
-        <td><div class="table-actions">
-          <button class="btn btn-teal btn-xs" onclick="editStaff('${c.id}')">✏️</button>
-          <button class="btn btn-danger btn-xs" onclick="confirmDelStaff('${c.id}')">🗑</button>
-        </div></td>
-      </tr>`).join('');
+async function syncCleaningData() {
+  const bar = document.getElementById('syncBar');
+  if (bar) { bar.textContent = 'Syncing...'; bar.style.display = 'block'; }
+  try {
+    const [rs, rj, rh] = await Promise.all([
+      SyncStore.load('zesty_staff', 'cleaning_staff'),
+      SyncStore.load('zesty_jobs', 'cleaning_jobs'),
+      SyncStore.load('zesty_import_history', 'import_history'),
+    ]);
+    // New API returns {data, online, fromCache}
+    let changed = false;
+    if (rs.online) { staff = rs.data; changed = true; }
+    if (rj.online && rj.data.length !== cleaningJobs.length) { cleaningJobs = rj.data; changed = true; }
+    if (rh.online && rh.data.length > 0) importHistory = rh.data;
+    if (changed) {
+      renderStaff(); renderCalendar(); renderJobs(); renderImportHistory();
+      updateStaffDropdowns(); updateStaffStats(); updateJobStats();
+    }
+    if (bar) bar.textContent = rs.online ? 'Synced' : 'Offline - using cache';
+  } catch(e) {
+    if (bar) bar.textContent = 'Sync error';
+  }
+  if (bar) setTimeout(() => { bar.style.display = 'none'; }, 3000);
+  checkAutoImport();
 }
 
-function openAddStaff(){document.getElementById('staffFormTitle').textContent='Add Cleaner';document.getElementById('fsDeleteBtn').style.display='none';['id','firstName','lastName','phone','zone','rate'].forEach(f=>{const el=document.getElementById('fs_'+f);if(el)el.value='';});document.getElementById('fs_status').value='Active';openModal('staffModal');}
-function editStaff(id){
-  const c=cleaners.find(x=>x.id===id);if(!c)return;
-  document.getElementById('staffFormTitle').textContent='Edit Cleaner';document.getElementById('fsDeleteBtn').style.display='';
-  ['id','firstName','lastName','phone','zone','status','rate'].forEach(f=>{const el=document.getElementById('fs_'+f);if(el)el.value=c[f]||'';});
+function checkAutoImport() {
+  try {
+    const rawCSV = JSON.parse(localStorage.getItem('zesty_raw_lodgify_csv') || 'null');
+    if (!rawCSV || !rawCSV.text) return;
+
+    const lastImport = JSON.parse(localStorage.getItem('zesty_last_clean_import') || 'null');
+    const csvDate = new Date(rawCSV.savedAt);
+    const lastDate = lastImport ? new Date(lastImport.date) : new Date(0);
+    if (csvDate <= lastDate) return; // No newer data
+
+    // Parse the CSV (same logic as processCSV)
+    const lines = rawCSV.text.split('\n').filter(l => l.trim());
+    const headers = parseCSVLine(lines[0]);
+    const rows = lines.slice(1).map(l => {
+      const vals = parseCSVLine(l);
+      const obj = {};
+      headers.forEach((h, i) => obj[h.trim()] = (vals[i]||'').trim());
+      return obj;
+    }).filter(r => r.Id && r.DateArrival && r.DateDeparture);
+
+    if (!rows.length) return;
+
+    // Pre-load into importPreviewData so confirmImport works immediately
+    importPreviewData = rows;
+    const activeRows = rows.filter(r => r.Status === 'Booked' || r.Status === 'Open');
+
+    const banner = document.getElementById('autoImportBanner');
+    const msg = document.getElementById('autoImportBannerMsg');
+    if (!banner) return;
+    const d = new Date(rawCSV.savedAt);
+    const dateStr = d.toLocaleDateString('en-GB', {day:'numeric',month:'short',year:'numeric'});
+    const timeStr = d.toLocaleTimeString('en-GB', {hour:'2-digit',minute:'2-digit'});
+    msg.textContent = `${rawCSV.filename} · ${dateStr} ${timeStr} · ${activeRows.length} active bookings`;
+    banner.style.display = 'flex';
+  } catch(e) { console.warn('checkAutoImport error:', e); }
+}
+
+function dismissAutoImport() {
+  const banner = document.getElementById('autoImportBanner');
+  if (banner) banner.style.display = 'none';
+  const rawCSV = JSON.parse(localStorage.getItem('zesty_raw_lodgify_csv') || 'null');
+  if (rawCSV) {
+    // Mark dismissed so it won't show again for this CSV
+    localStorage.setItem('zesty_last_clean_import', JSON.stringify({
+      date: rawCSV.savedAt, filename: rawCSV.filename, dismissed: true, bookings: 0, jobs: 0, updated: 0
+    }));
+  }
+}
+
+async function runAutoImport() {
+  const banner = document.getElementById('autoImportBanner');
+  if (banner) banner.style.display = 'none';
+  if (!importPreviewData || !importPreviewData.length) {
+    showToast('No booking data loaded yet — please upload CSV on the Home page first', 'error');
+    return;
+  }
+  // Go to import tab and show the preview — user clicks Confirm to generate jobs
+  showPage('import');
+  await new Promise(r => setTimeout(r, 150));
+  const rawCSV = JSON.parse(localStorage.getItem('zesty_raw_lodgify_csv') || 'null');
+  showImportResults(rawCSV ? rawCSV.filename : 'Lodgify Import', importPreviewData);
+  showToast(`📋 ${importPreviewData.filter(r=>r.Status==='Booked'||r.Status==='Open').length} bookings ready — review and confirm`, 'success');
+}
+
+
+async function save() {
+  await SyncStore.saveAll('zesty_staff', 'cleaning_staff', staff);
+  await SyncStore.saveAll('zesty_jobs', 'cleaning_jobs', cleaningJobs);
+  await SyncStore.saveAll('zesty_import_history', 'import_history', importHistory);
+}
+
+function formatMonthValue(d) {
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0');
+}
+
+function formatDate(d) {
+  if (!d) return '—';
+  try { return new Date(d).toLocaleDateString('el-GR'); } catch { return d; }
+}
+
+// ============ NAVIGATION ============
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  event.target.classList.add('active');
+  if (name === 'schedule') renderCalendar();
+  if (name === 'jobs') renderJobs();
+}
+
+// ============ STAFF ============
+function renderStaff() {
+  const search = document.getElementById('staffSearch').value.toLowerCase();
+  const zoneFilter = document.getElementById('staffZoneFilter').value;
+  const filtered = staff.filter(s => {
+    const matchSearch = !search || `${s.firstName} ${s.lastName}`.toLowerCase().includes(search) || (s.phone||'').includes(search);
+    const matchZone = !zoneFilter || (s.zones||[]).includes(zoneFilter);
+    return matchSearch && matchZone;
+  });
+
+  const tbody = document.getElementById('staffTable');
+  if (filtered.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="10"><div class="empty-state"><div class="empty-icon">👩</div><p>No cleaning staff yet. Add your first cleaner.</p></div></td></tr>`;
+  } else {
+    tbody.innerHTML = filtered.map((s, i) => {
+      const colorIdx = staff.indexOf(s);
+      const zones = (s.zones||[]).map(z => `<span class="zone-tag zone-${z.replace(' ','-')}">${z}</span>`).join('');
+      const statusBadge = `<span class="badge badge-${s.status === 'Active' ? 'active' : 'inactive'}">${s.status||'Active'}</span>`;
+      return `<tr>
+        <td>
+          <div style="display:flex;align-items:center;gap:10px">
+            <div class="cleaner-avatar" style="background:${getColor(colorIdx)}">${getInitials(s.firstName,s.lastName)}</div>
+            <div>
+              <div style="font-weight:500">${s.firstName} ${s.lastName}</div>
+              <div style="font-size:11px;color:var(--text-muted)">${s.email||''}</div>
+            </div>
+          </div>
+        </td>
+        <td style="font-size:12px">${s.phone||'—'}</td>
+        <td>${zones||'—'}</td>
+        <td>${s.hourlyRate ? '€'+s.hourlyRate+'/hr' : '—'}</td>
+        <td>${s.transportCost ? '€'+s.transportCost : '—'}</td>
+        <td>${s.hasCar === 'Yes' ? '🚗 Yes' : s.hasCar === 'No' ? '❌ No' : '—'}</td>
+        <td>${s.drivingLicense === 'Yes' ? '✅' : s.drivingLicense === 'No' ? '❌' : '—'}</td>
+        <td>${s.insurance === 'Yes' ? `✅ ${s.insuranceExpiry ? '(exp: '+formatDate(s.insuranceExpiry)+')' : ''}` : s.insurance === 'No' ? '❌' : '—'}</td>
+        <td>${statusBadge}</td>
+        <td>
+          <div style="display:flex;gap:5px">
+            <button class="btn btn-teal btn-sm" onclick="editStaff('${s.id}')">✏️</button>
+            <button class="btn btn-danger btn-sm" onclick="deleteStaff('${s.id}')">🗑</button>
+          </div>
+        </td>
+      </tr>`;
+    }).join('');
+  }
+  updateStaffStats();
+}
+
+function updateStaffStats() {
+  document.getElementById('s-total').textContent = staff.length;
+  document.getElementById('s-active').textContent = staff.filter(s => s.status !== 'Inactive').length;
+  const now = new Date();
+  const monthJobs = cleaningJobs.filter(j => {
+    const d = new Date(j.date);
+    return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+  });
+  document.getElementById('s-jobs').textContent = monthJobs.length;
+  const pay = monthJobs.reduce((sum, j) => {
+    if (!(j.cleanerIds||[]).length || !j.hours) return sum;
+    return sum + (j.cleanerIds||[]).reduce((s2, cid) => {
+      const cl = staff.find(s => s.id === cid);
+      return s2 + (cl ? (cl.hourlyRate||0) * j.hours : 0);
+    }, 0);
+  }, 0);
+  document.getElementById('s-pay').textContent = '€' + pay.toFixed(0);
+}
+
+function openAddStaff() {
+  document.getElementById('staffModalTitle').textContent = 'Add Cleaner';
+  document.getElementById('s_editId').value = '';
+  clearStaffForm();
   openModal('staffModal');
 }
 
-async function saveStaff(){
-  const fn=document.getElementById('fs_firstName').value.trim();
-  const ln=document.getElementById('fs_lastName').value.trim();
-  if(!fn&&!ln){showToast('Name required','error');return;}
-  const id=document.getElementById('fs_id').value||genId('cleaner');
-  const record={id};
-  ['firstName','lastName','phone','zone','status','rate'].forEach(f=>{record[f]=document.getElementById('fs_'+f)?.value||'';});
-  const existing=cleaners.find(c=>c.id===id);
-  if(existing)Object.assign(existing,record);else cleaners.push(record);
-  closeModal('staffModal');populateSelects();renderStaff();
-  await SyncStore.saveOne('zesty_staff','staff',record,cleaners);
-  showToast('✓ Saved','success');
+function editStaff(id) {
+  const s = staff.find(x => x.id === id);
+  if (!s) return;
+  document.getElementById('staffModalTitle').textContent = 'Edit Cleaner';
+  document.getElementById('s_editId').value = id;
+  document.getElementById('s_firstName').value = s.firstName||'';
+  document.getElementById('s_lastName').value = s.lastName||'';
+  document.getElementById('s_status').value = s.status||'Active';
+  document.getElementById('s_phone').value = s.phone||'';
+  document.getElementById('s_email').value = s.email||'';
+  document.getElementById('s_birthdate').value = s.birthdate||'';
+  document.getElementById('s_address').value = s.address||'';
+  document.getElementById('s_hourlyRate').value = s.hourlyRate||'';
+  document.getElementById('s_transportCost').value = s.transportCost||'';
+  document.getElementById('s_hasCar').value = s.hasCar||'';
+  document.getElementById('s_carDetails').value = s.carDetails||'';
+  document.getElementById('s_drivingLicense').value = s.drivingLicense||'';
+  document.getElementById('s_licenseNumber').value = s.licenseNumber||'';
+  document.getElementById('s_insurance').value = s.insurance||'';
+  document.getElementById('s_insuranceExpiry').value = s.insuranceExpiry||'';
+  document.getElementById('s_iban').value = s.iban||'';
+  document.getElementById('s_bank').value = s.bank||'';
+  document.getElementById('s_beneficiary').value = s.beneficiary||'';
+  document.getElementById('s_notes').value = s.notes||'';
+  // Set zones
+  document.querySelectorAll('.zone-check').forEach(el => {
+    el.classList.toggle('selected', (s.zones||[]).includes(el.dataset.zone));
+  });
+  openModal('staffModal');
 }
 
-function deleteStaff(){const id=document.getElementById('fs_id').value;if(!id)return;closeModal('staffModal');confirmDelStaff(id);}
-function confirmDelStaff(id){
-  const c=cleaners.find(x=>x.id===id);if(!c)return;
-  showConfirm('🗑️','Delete Cleaner?',`Delete ${(c.firstName||'')+' '+(c.lastName||'')}?`,'btn-danger','Delete',async()=>{
-    cleaners=cleaners.filter(x=>x.id!==id);await SyncStore.deleteOne('zesty_staff','staff',id,cleaners);populateSelects();renderStaff();showToast('Deleted','error');
+function clearStaffForm() {
+  ['s_firstName','s_lastName','s_phone','s_email','s_birthdate','s_address','s_hourlyRate',
+   's_transportCost','s_carDetails','s_licenseNumber','s_insuranceExpiry','s_iban','s_bank',
+   's_beneficiary','s_notes'].forEach(id => { const el = document.getElementById(id); if(el) el.value=''; });
+  document.getElementById('s_status').value = 'Active';
+  document.getElementById('s_hasCar').value = '';
+  document.getElementById('s_drivingLicense').value = '';
+  document.getElementById('s_insurance').value = '';
+  document.querySelectorAll('.zone-check').forEach(el => el.classList.remove('selected'));
+}
+
+function toggleZone(el) { el.classList.toggle('selected'); }
+
+async function saveStaff() {
+  const firstName = document.getElementById('s_firstName').value.trim();
+  const lastName = document.getElementById('s_lastName').value.trim();
+  if (!firstName) { showToast('Please enter a first name.', 'error'); return; }
+  const zones = [...document.querySelectorAll('.zone-check.selected')].map(el => el.dataset.zone);
+  const data = {
+    firstName, lastName,
+    status: document.getElementById('s_status').value,
+    phone: document.getElementById('s_phone').value.trim(),
+    email: document.getElementById('s_email').value.trim(),
+    birthdate: document.getElementById('s_birthdate').value,
+    address: document.getElementById('s_address').value.trim(),
+    zones,
+    hourlyRate: parseFloat(document.getElementById('s_hourlyRate').value)||null,
+    transportCost: parseFloat(document.getElementById('s_transportCost').value)||null,
+    hasCar: document.getElementById('s_hasCar').value,
+    carDetails: document.getElementById('s_carDetails').value.trim(),
+    drivingLicense: document.getElementById('s_drivingLicense').value,
+    licenseNumber: document.getElementById('s_licenseNumber').value.trim(),
+    insurance: document.getElementById('s_insurance').value,
+    insuranceExpiry: document.getElementById('s_insuranceExpiry').value,
+    iban: document.getElementById('s_iban').value.trim(),
+    bank: document.getElementById('s_bank').value.trim(),
+    beneficiary: document.getElementById('s_beneficiary').value.trim(),
+    notes: document.getElementById('s_notes').value.trim(),
+  };
+
+  const editId = document.getElementById('s_editId').value;
+  if (editId) {
+    const idx = staff.findIndex(s => s.id === editId);
+    if (idx !== -1) { staff[idx] = {...staff[idx], ...data}; showToast('✓ Cleaner updated', 'success'); }
+  } else {
+    staff.push({ id: 'staff_' + Date.now(), ...data });
+    showToast('✓ Cleaner added', 'success');
+  }
+  await save();
+  closeModal('staffModal');
+  renderStaff();
+  updateStaffDropdowns();
+}
+
+async function deleteStaff(id) {
+  const s = staff.find(x => x.id === id);
+  showConfirm('🗑️', 'Delete Cleaner?', `Delete ${s.firstName} ${s.lastName}? This cannot be undone.`, 'btn-danger', 'Delete', async () => {
+    staff = staff.filter(x => x.id !== id);
+    const dr1 = await SyncStore.deleteOne('zesty_staff','cleaning_staff',id,staff);
+    if(!dr1.ok){ staff=(await SyncStore.load('zesty_staff','cleaning_staff')).data; }
+    renderStaff(); updateStaffDropdowns();
+    showToast('Deleted', 'error');
   });
 }
 
-function exportCSV(){
-  const rows=[['Date','Property','Cleaner','Shift','Type','Status','Hours','Notes']];
-  assignments.forEach(a=>rows.push([a.date||'',a.propertyName||'',a.cleanerName||'',a.shift||'',a.type||'',a.status||'',a.hours||'',a.notes||'']));
-  const csv=rows.map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
-  const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);a.download='cleaning_'+new Date().toISOString().slice(0,10)+'.csv';a.click();
+function updateStaffDropdowns() {
+  const activeStaff = staff.filter(s => s.status !== 'Inactive');
+  const opts = `<option value="">Unassigned</option>` + activeStaff.map(s => `<option value="${s.id}">${s.firstName} ${s.lastName}</option>`).join('');
+  const filterOpts = `<option value="">All Cleaners</option>` + staff.map(s => `<option value="${s.id}">${s.firstName} ${s.lastName}</option>`).join('');
+  const set = (id, val) => { const el = document.getElementById(id); if (el) el.innerHTML = val; };
+  set('j_cleaner', opts);
+  set('calCleaner', filterOpts);
+  set('jobCleaner', filterOpts);
 }
+
+// ============ IMPORT ============
+function dragOver(e) { e.preventDefault(); document.getElementById('dropZone').classList.add('dragover'); }
+function dragLeave(e) { document.getElementById('dropZone').classList.remove('dragover'); }
+function dropFile(e) { e.preventDefault(); dragLeave(e); const file = e.dataTransfer.files[0]; if (file) processCSV(file); }
+function handleFile(e) { const file = e.target.files[0]; if (file) processCSV(file); }
+
+function processCSV(file) {
+  const reader = new FileReader();
+  reader.onload = async e => {
+    const text = e.target.result;
+    const lines = text.split('\n').filter(l => l.trim());
+    const headers = parseCSVLine(lines[0]);
+    const rows = lines.slice(1).map(l => {
+      const vals = parseCSVLine(l);
+      const obj = {};
+      headers.forEach((h, i) => obj[h.trim()] = (vals[i]||'').trim());
+      return obj;
+    }).filter(r => r.Id && r.DateArrival && r.DateDeparture);
+
+    importPreviewData = rows;
+    showImportResults(file.name, rows);
+  };
+  reader.readAsText(file, 'utf-8');
+}
+
+function parseCSVLine(line) {
+  const result = [];
+  let current = '';
+  let inQuotes = false;
+  for (let i = 0; i < line.length; i++) {
+    if (line[i] === '"') {
+      if (inQuotes && line[i+1] === '"') { current += '"'; i++; }
+      else inQuotes = !inQuotes;
+    } else if (line[i] === ',' && !inQuotes) {
+      result.push(current); current = '';
+    } else {
+      current += line[i];
+    }
+  }
+  result.push(current);
+  return result;
+}
+
+function showImportResults(filename, rows) {
+  const booked = rows.filter(r => r.Status === 'Booked').length;
+  const open = rows.filter(r => r.Status === 'Open').length;
+  const declined = rows.filter(r => r.Status === 'Declined').length;
+  const existingIds = new Set(cleaningJobs.map(j => j.bookingId));
+  const newBooked = rows.filter(r => r.Status === 'Booked' && !existingIds.has(r.Id)).length;
+  const alreadyImported = rows.filter(r => r.Status === 'Booked' && existingIds.has(r.Id)).length;
+
+  document.getElementById('importSummary').innerHTML = `
+    <div class="import-stat"><div class="num">${rows.length}</div><div class="lbl">Total Rows</div></div>
+    <div class="import-stat"><div class="num" style="color:var(--success)">${booked}</div><div class="lbl">Booked</div></div>
+    <div class="import-stat"><div class="num" style="color:#27ae60">${newBooked}</div><div class="lbl">New (to import)</div></div>
+    <div class="import-stat"><div class="num" style="color:#7f8c8d">${alreadyImported}</div><div class="lbl">Already in DB</div></div>
+    <div class="import-stat"><div class="num" style="color:var(--danger)">${declined + open}</div><div class="lbl">Skipped (Declined/Open)</div></div>
+  `;
+
+  // Populate property filter
+  const props = [...new Set(rows.map(r => r.HouseInternalName || r.HouseName).filter(Boolean))].sort();
+  document.getElementById('importPropFilter').innerHTML = `<option value="">All Properties</option>` + props.map(p => `<option value="${p}">${p}</option>`).join('');
+
+  document.getElementById('importResults').style.display = 'block';
+  renderImportPreview();
+}
+
+function renderImportPreview() {
+  const statusF = document.getElementById('importStatusFilter').value;
+  const propF = document.getElementById('importPropFilter').value;
+
+  const existingIds2 = new Set(cleaningJobs.map(j => j.bookingId));
+  // Default to showing only Booked rows in the preview
+  const filtered = importPreviewData.filter(r => {
+    const matchStatus = statusF ? r.Status === statusF : r.Status === 'Booked';
+    const matchProp = !propF || r.HouseInternalName === propF || r.HouseName === propF;
+    return matchStatus && matchProp;
+  });
+
+  const tbody = document.getElementById('importPreview');
+  tbody.innerHTML = filtered.slice(0, 100).map(r => {
+    const nights = parseInt(r.Nights) || 0;
+    const propId = r.House_Id || r.HouseName;
+    const cleanType = getPropertyCleanType(propId);
+    const hasCleaning = getPropertyHasCleaning(propId);
+    const midDays = hasCleaning ? getCleanDays(cleanType, nights) : [];
+    const alreadyIn = existingIds2.has(r.Id);
+    const statusColor = r.Status === 'Booked' ? 'var(--success)' : r.Status === 'Declined' ? 'var(--danger)' : '#e67e22';
+    const rowStyle = alreadyIn ? 'opacity:0.55;' : '';
+    return `<tr style="${rowStyle}">
+      <td style="font-size:12px">${r.Name||'—'}</td>
+      <td style="font-size:12px">${r.HouseInternalName || r.HouseName || '—'}</td>
+      <td style="font-size:12px">${formatDate(r.DateArrival)}</td>
+      <td style="font-size:12px">${formatDate(r.DateDeparture)}</td>
+      <td style="text-align:center">${nights}</td>
+      <td style="font-size:11px">${r.Source||'—'}</td>
+      <td><span style="color:${statusColor};font-size:12px;font-weight:500">${r.Status}</span></td>
+      <td style="font-size:11px;color:${hasCleaning ? 'var(--teal)' : 'var(--text-muted)'}">
+        ${hasCleaning ? '📅 ' + formatDate(r.DateDeparture) : '⛔ No cleaning'}
+      </td>
+      <td style="font-size:11px;color:var(--text-muted)">
+        ${!hasCleaning ? '—' : midDays.length ? midDays.length + ' mid-stay' : '—'}
+        ${alreadyIn ? '<span style="font-size:10px;background:#ecf0f1;padding:1px 5px;border-radius:8px;color:#7f8c8d">already in DB</span>' : ''}
+      </td>
+    </tr>`;
+  }).join('');
+  if (filtered.length > 100) {
+    tbody.innerHTML += `<tr><td colspan="10" style="text-align:center;padding:12px;color:var(--text-muted);font-size:12px">Showing first 100 of ${filtered.length} rows</td></tr>`;
+  }
+}
+
+function getPropertyCleanType(houseIdOrName) {
+  // Try to find in properties database
+  try {
+    const props = JSON.parse(localStorage.getItem('zesty_properties') || '[]');
+    const p = props.find(p => String(p.propertyId) === String(houseIdOrName) || p.shortName === houseIdOrName || p.propertyName === houseIdOrName);
+    return p ? p.cleanType : 'pattern';
+  } catch { return 'pattern'; }
+}
+
+function getCleanDays(type, nights) {
+  if (!type || type === 'none' || type === 'other' || nights < 4) return [];
+  const days = [];
+  if (type === 'fourth') {
+    for (let d = 4; d < nights; d += 4) days.push(d);
+  } else {
+    // pattern: alternating 3-4
+    let d = 3; let step = 4;
+    while (d < nights) { days.push(d); d += step; step = step === 4 ? 3 : 4; }
+  }
+  return days;
+}
+
+async function confirmImport() {
+  const activeRows = importPreviewData.filter(r => r.Status === 'Booked');
+  // Incremental: find truly new bookings (no existing job for this booking ID)
+  const existingBookingIds = new Set(cleaningJobs.map(j => j.bookingId));
+  const newRows = activeRows.filter(r => !existingBookingIds.has(r.Id));
+  const updateRows = activeRows.filter(r => existingBookingIds.has(r.Id));
+  showConfirm('📥', 'Import Bookings?',
+    `${newRows.length} new bookings will get cleaning jobs. ${updateRows.length} existing will be updated. Cancelled/Open bookings are skipped.`,
+    'btn-primary', 'Import',
+    async () => {
+      let created = 0;
+      let updated = 0;
+      // Process all active rows: create for new, update for existing
+      const allRows = [...newRows, ...updateRows];
+      allRows.forEach(r => {
+        const nights = parseInt(r.Nights) || 0;
+        const checkoutDate = r.DateDeparture;
+        const bookingId = r.Id;
+        const propName = r.HouseInternalName || r.HouseName;
+        const propId = r.House_Id;
+        const cleanType = getPropertyCleanType(propId || propName);
+        const zone = getPropertyZone(propId || propName);
+
+        // Checkout clean
+        const checkoutJobId = `job_${bookingId}_checkout`;
+        const existingCheckout = cleaningJobs.findIndex(j => j.id === checkoutJobId);
+        const propTransport = getPropertyTransport(propId || propName);
+        const propHasCleaning = getPropertyHasCleaning(propId || propName);
+        if (!propHasCleaning) return; // Skip properties not managed for cleaning
+        const checkoutJob = { id: checkoutJobId, bookingId, propertyName: propName, propertyId: propId, date: checkoutDate, type: 'checkout', nights, zone, cleanerIds: [], hours: null, propertyTransport: propTransport, notes: '', source: r.Source, guestName: r.Name };
+        if (existingCheckout >= 0) {
+          // Preserve manually assigned cleaners, hours, and notes — only update scheduling data
+          const existing = cleaningJobs[existingCheckout];
+          cleaningJobs[existingCheckout] = {
+            ...existing,
+            ...checkoutJob,
+            cleanerIds: existing.cleanerIds?.length ? existing.cleanerIds : checkoutJob.cleanerIds,
+            hours: existing.hours !== null ? existing.hours : checkoutJob.hours,
+            notes: existing.notes || checkoutJob.notes,
+          };
+          updated++;
+        }
+        else { cleaningJobs.push(checkoutJob); created++; }
+
+        // Mid-stay cleans
+        const midDays = getCleanDays(cleanType, nights);
+        midDays.forEach((day, idx) => {
+          const cleanDate = new Date(r.DateArrival);
+          cleanDate.setDate(cleanDate.getDate() + day);
+          const midJobId = `job_${bookingId}_mid_${idx}`;
+          const existing = cleaningJobs.findIndex(j => j.id === midJobId);
+          const midJob = { id: midJobId, bookingId, propertyName: propName, propertyId: propId, date: cleanDate.toISOString().slice(0,10), type: 'midstay', nights, zone, cleanerIds: [], hours: null, propertyTransport: propTransport, notes: '', source: r.Source, guestName: r.Name, midStayDay: day };
+          if (existing >= 0) {
+            const existingMid = cleaningJobs[existing];
+            cleaningJobs[existing] = {
+              ...existingMid,
+              ...midJob,
+              cleanerIds: existingMid.cleanerIds?.length ? existingMid.cleanerIds : midJob.cleanerIds,
+              hours: existingMid.hours !== null ? existingMid.hours : midJob.hours,
+              notes: existingMid.notes || midJob.notes,
+            };
+            updated++;
+          }
+          else { cleaningJobs.push(midJob); created++; }
+        });
+      });
+
+      // Add to history
+      const _rawMeta = JSON.parse(localStorage.getItem('zesty_raw_lodgify_csv') || '{}');
+      const importRec = { date: new Date().toISOString(), filename: (typeof file !== 'undefined' && file?.name) || _rawMeta.filename || 'Lodgify Import', bookings: activeRows.length, newBookings: newRows.length, jobs: created, updated };
+      importHistory.unshift(importRec);
+      localStorage.setItem('zesty_last_clean_import', JSON.stringify(importRec));
+      updateCleanImportStatus();
+      await save();
+      renderCalendar();
+      renderJobs();
+      renderImportHistory();
+      updateJobStats();
+      clearImport();
+      showToast(`✓ Created ${created} jobs, updated ${updated}`, 'success');
+    }
+  );
+}
+
+function getPropertyTransport(propIdOrName) {
+  try {
+    const props = JSON.parse(localStorage.getItem('zesty_properties') || '[]');
+    const p = props.find(p => String(p.propertyId) === String(propIdOrName) || p.shortName === propIdOrName || p.propertyName === propIdOrName);
+    return p ? (parseFloat(p.transportCharge) || 0) : 0;
+  } catch { return 0; }
+}
+
+function getPropertyHasCleaning(propIdOrName) {
+  try {
+    const props = JSON.parse(localStorage.getItem('zesty_properties') || '[]');
+    const p = props.find(p => String(p.propertyId) === String(propIdOrName) || p.shortName === propIdOrName || p.propertyName === propIdOrName);
+    if (!p) return true; // assume yes if not in DB yet
+    // We do cleaning if: cleaningFee > 0 OR cleanType is set (and not 'none')
+    const hasFee = parseFloat(p.cleaningFee) > 0;
+    const hasSchedule = p.cleanType && p.cleanType !== 'none' && p.cleanType !== '';
+    return hasFee || hasSchedule;
+  } catch { return true; }
+}
+
+function getPropertyZone(propIdOrName) {
+  try {
+    const props = JSON.parse(localStorage.getItem('zesty_properties') || '[]');
+    const p = props.find(p => String(p.propertyId) === String(propIdOrName) || p.shortName === propIdOrName || p.propertyName === propIdOrName);
+    return p ? (p.location || p.zone || '') : '';
+  } catch { return ''; }
+}
+
+function clearImport() {
+  importPreviewData = [];
+  document.getElementById('importResults').style.display = 'none';
+  document.getElementById('csvFile').value = '';
+}
+
+async function clearAllJobs() {
+  showConfirm('🗑️', 'Clear All Jobs?', 'This will permanently delete all cleaning jobs. This cannot be undone.', 'btn-danger', 'Delete All', async () => {
+    cleaningJobs = [];
+    importHistory = [];
+    await save(); renderJobs(); renderCalendar(); renderImportHistory(); updateJobStats();
+    showToast('All jobs cleared', 'error');
+  });
+}
+
+function renderImportHistory() {
+  const tbody = document.getElementById('importHistory');
+  if (importHistory.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="5"><div class="empty-state" style="padding:20px"><p>No imports yet.</p></div></td></tr>`;
+  } else {
+    tbody.innerHTML = importHistory.map(h => `<tr>
+      <td style="font-size:12px">${formatDate(h.date)}</td>
+      <td style="font-size:12px">${h.filename}</td>
+      <td style="text-align:center">${h.bookings}</td>
+      <td style="text-align:center">${h.jobs}</td>
+      <td><span class="badge badge-active">Imported</span></td>
+    </tr>`).join('');
+  }
+}
+
+// ============ CALENDAR ============
+function changeMonth(dir) {
+  currentCalMonth = new Date(currentCalMonth.getFullYear(), currentCalMonth.getMonth() + dir, 1);
+  document.getElementById('calMonth').value = formatMonthValue(currentCalMonth);
+  renderCalendar();
+}
+
+function renderCalendar() {
+  const monthVal = document.getElementById('calMonth').value;
+  if (monthVal) currentCalMonth = new Date(monthVal + '-01');
+  const cleanerFilter = document.getElementById('calCleaner').value;
+  const zoneFilter = document.getElementById('calZone').value;
+  const typeFilter = document.getElementById('calJobType').value;
+
+  const year = currentCalMonth.getFullYear();
+  const month = currentCalMonth.getMonth();
+  const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  document.getElementById('calTitle').textContent = `${monthNames[month]} ${year}`;
+
+  // Filter jobs
+  const monthJobs = cleaningJobs.filter(j => {
+    const d = new Date(j.date);
+    const matchMonth = d.getFullYear() === year && d.getMonth() === month;
+    const matchCleaner = !cleanerFilter || (j.cleanerIds||[]).includes(cleanerFilter);
+    const matchZone = !zoneFilter || (j.zone||'').toLowerCase().includes(zoneFilter.toLowerCase());
+    const matchType = !typeFilter || j.type === typeFilter;
+    return matchMonth && matchCleaner && matchZone && matchType;
+  });
+  document.getElementById('calJobCount').textContent = `${monthJobs.length} jobs this month`;
+
+  // Build calendar grid
+  const firstDay = new Date(year, month, 1);
+  const lastDay = new Date(year, month + 1, 0);
+  // Monday-based: 0=Mon, 6=Sun
+  let startDow = firstDay.getDay() - 1;
+  if (startDow < 0) startDow = 6;
+
+  const today = new Date();
+  const calBody = document.getElementById('calBody');
+  calBody.innerHTML = '';
+
+  // Empty cells before first day
+  for (let i = 0; i < startDow; i++) {
+    const cell = document.createElement('div');
+    cell.className = 'cal-day other-month';
+    calBody.appendChild(cell);
+  }
+
+  for (let d = 1; d <= lastDay.getDate(); d++) {
+    const cell = document.createElement('div');
+    const isToday = today.getDate() === d && today.getMonth() === month && today.getFullYear() === year;
+    cell.className = 'cal-day' + (isToday ? ' today' : '');
+
+    const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const dateEl = document.createElement('div');
+    dateEl.className = 'cal-date' + (isToday ? ' is-today' : '');
+    dateEl.textContent = d;
+    cell.appendChild(dateEl);
+
+    // Jobs for this day
+    const dayJobs = monthJobs.filter(j => j.date === dateStr);
+    dayJobs.forEach(j => {
+      const assignedCleaners = (j.cleanerIds||[]).map(cid => staff.find(s => s.id === cid)).filter(Boolean);
+      const cl = assignedCleaners[0] || null;
+      const colorIdx = cl ? staff.indexOf(cl) : -1;
+      const bg = cl ? getColor(colorIdx) : (j.type === 'checkout' ? '#c0392b' : '#e67e22');
+      const jobEl = document.createElement('div');
+      jobEl.className = 'cal-job';
+      jobEl.style.background = bg + '20';
+      jobEl.style.color = bg;
+      jobEl.style.border = `1px solid ${bg}40`;
+      const initials = assignedCleaners.map(c => getInitials(c.firstName,c.lastName)).join('+') || '?';
+      jobEl.textContent = `${j.type === 'checkout' ? '🏁' : '🔄'} ${j.propertyName || 'Unknown'}`;
+      jobEl.title = `${j.propertyName}\n${j.type === 'checkout' ? 'Checkout Clean' : 'Mid-Stay Clean'}\nCleaners: ${assignedCleaners.map(c=>c.firstName+' '+c.lastName).join(', ') || 'Unassigned'}`;
+      jobEl.onclick = () => openJobModal(j.id);
+      cell.appendChild(jobEl);
+    });
+    calBody.appendChild(cell);
+  }
+
+  // Legend
+  const legend = document.getElementById('calLegend');
+  const activeCleaners = staff.filter(s => s.status !== 'Inactive');
+  legend.innerHTML = [
+    `<div style="display:flex;align-items:center;gap:5px;font-size:12px"><span style="width:12px;height:12px;border-radius:3px;background:#c0392b;display:inline-block"></span> Checkout (unassigned)</div>`,
+    `<div style="display:flex;align-items:center;gap:5px;font-size:12px"><span style="width:12px;height:12px;border-radius:3px;background:#e67e22;display:inline-block"></span> Mid-Stay (unassigned)</div>`,
+    ...activeCleaners.map((cl, i) => `<div style="display:flex;align-items:center;gap:5px;font-size:12px"><div class="cleaner-avatar" style="background:${getColor(staff.indexOf(cl))};width:16px;height:16px;font-size:9px">${getInitials(cl.firstName,cl.lastName)}</div> ${cl.firstName} ${cl.lastName}</div>`)
+  ].join('');
+}
+
+// ============ JOBS ============
+function updateJobStats() {
+  const now = new Date();
+  const monthJobs = cleaningJobs.filter(j => {
+    const d = new Date(j.date);
+    return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+  });
+  document.getElementById('j-total').textContent = cleaningJobs.length;
+  document.getElementById('j-month').textContent = monthJobs.length;
+  document.getElementById('j-checkout').textContent = cleaningJobs.filter(j => j.type === 'checkout').length;
+  document.getElementById('j-midstay').textContent = cleaningJobs.filter(j => j.type === 'midstay').length;
+  document.getElementById('j-unassigned').textContent = cleaningJobs.filter(j => !(j.cleanerIds||[]).length).length;
+}
+
+function renderJobs() {
+  const search = (document.getElementById('jobSearch').value||'').toLowerCase();
+  const monthVal = document.getElementById('jobMonth').value;
+  const zoneFilter = document.getElementById('jobZone').value;
+  const typeFilter = document.getElementById('jobType').value;
+  const cleanerFilter = document.getElementById('jobCleaner').value;
+
+  let filtered = cleaningJobs.filter(j => {
+    const matchSearch = !search || (j.propertyName||'').toLowerCase().includes(search);
+    const matchMonth = !monthVal || j.date.startsWith(monthVal);
+    const matchZone = !zoneFilter || (j.zone||'').toLowerCase().includes(zoneFilter.toLowerCase());
+    const matchType = !typeFilter || j.type === typeFilter;
+    const matchCleaner = !cleanerFilter || (j.cleanerIds||[]).includes(cleanerFilter);
+    return matchSearch && matchMonth && matchZone && matchType && matchCleaner;
+  });
+
+  filtered.sort((a, b) => (a.date > b.date ? 1 : -1) * jobSortDir);
+
+  const total = filtered.length;
+  const pages = Math.max(1, Math.ceil(total / JOB_PAGE_SIZE));
+  if (jobPage > pages) jobPage = 1;
+  const start = (jobPage - 1) * JOB_PAGE_SIZE;
+  const pageData = filtered.slice(start, start + JOB_PAGE_SIZE);
+
+  const tbody = document.getElementById('jobsTable');
+  if (pageData.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="9"><div class="empty-state"><div class="empty-icon">🧹</div><p>No jobs found. Import bookings to generate cleaning jobs.</p></div></td></tr>`;
+  } else {
+    tbody.innerHTML = pageData.map(j => {
+      const assignedCls = (j.cleanerIds||[]).map(cid => staff.find(s => s.id === cid)).filter(Boolean);
+      const typeBadge = j.type === 'checkout'
+        ? `<span style="background:#fdebd0;color:#a04000;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:500">🏁 Checkout</span>`
+        : `<span style="background:#fdf6e3;color:#8e6b23;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:500">🔄 Mid-Stay</span>`;
+      const cleanerCell = assignedCls.length
+        ? assignedCls.map(cl => `<div style="display:inline-flex;align-items:center;gap:5px;margin-right:6px"><div class="cleaner-avatar" style="background:${getColor(staff.indexOf(cl))};width:24px;height:24px;font-size:9px">${getInitials(cl.firstName,cl.lastName)}</div><span style="font-size:12px">${cl.firstName}</span></div>`).join('')
+        : `<span style="color:var(--danger);font-size:12px">⚠ Unassigned</span>`;
+      const totalPay = j.hours ? assignedCls.reduce((sum, cl) => {
+        const base = (cl.hourlyRate||0) * j.hours;
+        const transport = (cl.hasCar === 'Yes' && j.propertyTransport) ? j.propertyTransport : 0;
+        return sum + base + transport;
+      }, 0) : 0;
+      const pay = totalPay > 0 ? `€${totalPay.toFixed(0)}` : '—';
+      return `<tr>
+        <td style="font-size:12px;font-weight:500">${formatDate(j.date)}</td>
+        <td style="font-size:12px">${j.propertyName||'—'}</td>
+        <td><span class="zone-tag zone-${(j.zone||'').replace(' ','-')}">${j.zone||'—'}</span></td>
+        <td>${typeBadge}</td>
+        <td style="text-align:center;font-size:12px">${j.nights||'—'}</td>
+        <td>${cleanerCell}</td>
+        <td style="text-align:center;font-size:12px">${j.hours ? j.hours+'h' : '—'}</td>
+        <td style="text-align:center;font-size:12px;color:var(--teal)">${j.propertyTransport ? '€'+j.propertyTransport : '—'}</td>
+        <td style="text-align:right;font-size:12px;font-weight:500;color:var(--teal-dark)">${pay}</td>
+        <td>
+          <div style="display:flex;gap:4px">
+            <button class="btn btn-teal btn-sm" onclick="openJobModal('${j.id}')">✏️</button>
+            <button class="btn btn-danger btn-sm" onclick="deleteJob('${j.id}')">🗑</button>
+          </div>
+        </td>
+      </tr>`;
+    }).join('');
+  }
+
+  document.getElementById('jobPaginationInfo').textContent = `Showing ${Math.min(start+1,total)}–${Math.min(start+JOB_PAGE_SIZE,total)} of ${total} jobs`;
+  const btns = document.getElementById('jobPageBtns');
+  btns.innerHTML = '';
+  for (let i = 1; i <= Math.min(pages, 10); i++) {
+    const btn = document.createElement('button');
+    btn.style.cssText = `width:28px;height:28px;border:1px solid var(--border);border-radius:5px;background:${i===jobPage?'var(--teal)':'white'};color:${i===jobPage?'white':'var(--text)'};cursor:pointer;font-size:12px`;
+    btn.textContent = i;
+    btn.onclick = () => { jobPage = i; renderJobs(); };
+    btns.appendChild(btn);
+  }
+  updateJobStats();
+}
+
+function sortJobs(field) { jobSortDir *= -1; renderJobs(); }
+
+function openJobModal(id) {
+  const j = cleaningJobs.find(x => x.id === id);
+  if (!j) return;
+  document.getElementById('j_editId').value = id;
+  document.getElementById('j_property').value = j.propertyName || '';
+  document.getElementById('j_date').value = j.date || '';
+  document.getElementById('j_type').value = j.type || 'checkout';
+  document.getElementById('j_hours').value = j.hours || '';
+  document.getElementById('j_transport').value = j.propertyTransport || '';
+  document.getElementById('j_notes').value = j.notes || '';
+  // Render cleaner checkboxes
+  renderCleanerCheckboxes(j.cleanerIds || [], j.propertyTransport || 0);
+  updateCostPreview(j);
+  openModal('jobModal');
+}
+
+function renderCleanerCheckboxes(selectedIds, transportCharge) {
+  const container = document.getElementById('j_cleaners_list');
+  const activeStaff = staff.filter(s => s.status !== 'Inactive');
+  if (activeStaff.length === 0) {
+    container.innerHTML = '<span style="color:var(--text-muted);font-size:12px">No active cleaners. Add staff first.</span>';
+    return;
+  }
+  container.innerHTML = activeStaff.map((cl, i) => {
+    const idx = staff.indexOf(cl);
+    const checked = selectedIds.includes(cl.id);
+    const getsTransport = cl.hasCar === 'Yes' && transportCharge > 0;
+    return `<label data-selected="${checked}" data-staffid="${cl.id}" style="display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border:1px solid ${checked ? 'var(--teal)' : 'var(--border)'};border-radius:20px;cursor:pointer;background:${checked ? '#e0f5f1' : 'var(--cream)'};font-size:12px;font-weight:${checked?'500':'400'};transition:all 0.2s" onclick="toggleCleanerCheck(this,'${cl.id}')">
+      <div class="cleaner-avatar" style="background:${getColor(idx)};width:20px;height:20px;font-size:9px">${getInitials(cl.firstName,cl.lastName)}</div>
+      ${cl.firstName} ${cl.lastName}
+      ${getsTransport ? '<span style="font-size:10px;color:var(--teal);margin-left:3px">🚗+€'+transportCharge+'</span>' : ''}
+    </label>`;
+  }).join('');
+}
+
+function toggleCleanerCheck(el, staffId) {
+  const isSelected = el.dataset.selected === 'true';
+  el.dataset.selected = isSelected ? 'false' : 'true';
+  if (!isSelected) {
+    el.style.background = '#e0f5f1';
+    el.style.borderColor = 'var(--teal)';
+    el.style.fontWeight = '500';
+  } else {
+    el.style.background = 'var(--cream)';
+    el.style.borderColor = 'var(--border)';
+    el.style.fontWeight = '400';
+  }
+  // Update cost preview
+  const j = cleaningJobs.find(x => x.id === document.getElementById('j_editId').value);
+  updateCostPreview(j);
+}
+
+function getSelectedCleanerIds() {
+  const container = document.getElementById('j_cleaners_list');
+  return [...container.querySelectorAll('label[data-selected="true"]')]
+    .map(lbl => lbl.dataset.staffid)
+    .filter(Boolean);
+}
+
+function updateCostPreview(j) {
+  const preview = document.getElementById('j_cost_preview');
+  if (!preview) return;
+  const hours = parseFloat(document.getElementById('j_hours').value) || 0;
+  const transport = parseFloat(document.getElementById('j_transport').value) || 0;
+  const selectedIds = getSelectedCleanerIds();
+  if (!selectedIds.length || !hours) { preview.style.display = 'none'; return; }
+  const lines = selectedIds.map(cid => {
+    const cl = staff.find(s => s.id === cid);
+    if (!cl) return '';
+    const base = (cl.hourlyRate||0) * hours;
+    const tr = cl.hasCar === 'Yes' ? transport : 0;
+    return `<span style="margin-right:16px"><strong>${cl.firstName}</strong>: €${base.toFixed(0)} pay${tr > 0 ? ' + €'+tr+' transport' : ''} = €${(base+tr).toFixed(0)}</span>`;
+  }).filter(Boolean).join('');
+  preview.innerHTML = '💰 Estimated cost: ' + lines;
+  preview.style.display = 'block';
+}
+
+async function saveJob() {
+  const id = document.getElementById('j_editId').value;
+  const idx = cleaningJobs.findIndex(j => j.id === id);
+  if (idx === -1) return;
+  cleaningJobs[idx].date = document.getElementById('j_date').value;
+  cleaningJobs[idx].type = document.getElementById('j_type').value;
+  cleaningJobs[idx].cleanerIds = getSelectedCleanerIds();
+  cleaningJobs[idx].hours = parseFloat(document.getElementById('j_hours').value) || null;
+  cleaningJobs[idx].propertyTransport = parseFloat(document.getElementById('j_transport').value) || null;
+  cleaningJobs[idx].notes = document.getElementById('j_notes').value.trim();
+  await save();
+  closeModal('jobModal');
+  renderJobs();
+  renderCalendar();
+  showToast('✓ Job updated', 'success');
+}
+
+async function deleteJob(id) {
+  showConfirm('🗑️','Delete Job?','Remove this cleaning job?','btn-danger','Delete', async () => {
+    cleaningJobs = cleaningJobs.filter(j => j.id !== id);
+    const dr2 = await SyncStore.deleteOne('zesty_cleaning_jobs','cleaning_jobs',id,cleaningJobs);
+    if(!dr2.ok){ cleaningJobs=(await SyncStore.load('zesty_cleaning_jobs','cleaning_jobs')).data; }
+    renderJobs(); renderCalendar(); updateJobStats();
+    showToast('Deleted', 'error');
+  });
+}
+
+async function autoAssign() {
+  let assigned = 0;
+  cleaningJobs.forEach(j => {
+    if ((j.cleanerIds||[]).length) return;
+    const eligible = staff.filter(s => s.status !== 'Inactive' && (
+      !j.zone || (s.zones||[]).some(z => j.zone.toLowerCase().includes(z.toLowerCase()) || z.toLowerCase().includes(j.zone.toLowerCase()))
+    ));
+    if (eligible.length === 0) return;
+    const jDate = j.date;
+    const counts = eligible.map(cl => ({
+      cl, count: cleaningJobs.filter(jj => jj.date === jDate && (jj.cleanerIds||[]).includes(cl.id)).length
+    }));
+    counts.sort((a, b) => a.count - b.count);
+    j.cleanerIds = [counts[0].cl.id];
+    assigned++;
+  });
+  await save(); renderJobs(); renderCalendar();
+  showToast(`⚡ Auto-assigned ${assigned} jobs`, 'success');
+}
+
+function exportJobsCSV() {
+  const headers = ['Date','Property','Zone','Type','Nights','Cleaners','Hours','Transport €','Total Pay','Notes'];
+  const rows = cleaningJobs.map(j => {
+    const cls = (j.cleanerIds||[]).map(cid => staff.find(s => s.id === cid)).filter(Boolean);
+    const totalPay = j.hours ? cls.reduce((sum, cl) => {
+      const base = (cl.hourlyRate||0) * j.hours;
+      const tr = cl.hasCar === 'Yes' ? (j.propertyTransport||0) : 0;
+      return sum + base + tr;
+    }, 0) : 0;
+    return [j.date, j.propertyName, j.zone, j.type, j.nights, cls.map(c=>c.firstName+' '+c.lastName).join(' + '), j.hours||'', j.propertyTransport||'', totalPay > 0 ? totalPay.toFixed(2) : '', j.notes].map(v => `"${(v||'').toString().replace(/"/g,'""')}"`).join(',');
+  });
+  const csv = [headers.join(','), ...rows].join('\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob(['\ufeff'+csv], {type:'text/csv;charset=utf-8;'}));
+  a.download = `zesty_cleaning_jobs_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+  showToast('✓ Exported', 'success');
+}
+
+function exportScheduleCSV() {
+  const monthVal = document.getElementById('calMonth').value;
+  const monthJobs = cleaningJobs.filter(j => !monthVal || j.date.startsWith(monthVal));
+  monthJobs.sort((a,b) => a.date > b.date ? 1 : -1);
+  const headers = ['Date','Property','Zone','Type','Cleaner','Hours','Pay'];
+  const rows = monthJobs.map(j => {
+    const cls = (j.cleanerIds||[]).map(cid => staff.find(s => s.id === cid)).filter(Boolean);
+    const totalPay = j.hours ? cls.reduce((sum,cl) => sum + (cl.hourlyRate||0)*j.hours + (cl.hasCar==='Yes'?(j.propertyTransport||0):0), 0) : 0;
+    return [j.date, j.propertyName, j.zone, j.type === 'checkout' ? 'Checkout' : 'Mid-Stay', cls.map(c=>c.firstName+' '+c.lastName).join(' + ') || 'Unassigned', j.hours||'', totalPay > 0 ? '€'+totalPay.toFixed(2) : ''].map(v => `"${(v||'').toString().replace(/"/g,'""')}"`).join(',');
+  });
+  const csv = [headers.join(','), ...rows].join('\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob(['\ufeff'+csv], {type:'text/csv;charset=utf-8;'}));
+  a.download = `zesty_schedule_${monthVal}.csv`;
+  a.click();
+  showToast('✓ Schedule exported', 'success');
+}
+
+function buildPrintStyles() {
+  return `
+    @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&display=swap');
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'DM Sans', Arial, sans-serif; font-size: 13px; color: #1e2a28; background: white; }
+    .print-page { page-break-after: always; padding: 28px 32px; }
+    .print-page:last-child { page-break-after: avoid; }
+    .print-logo { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 20px; }
+    .print-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 22px; padding-bottom: 14px; border-bottom: 3px solid #115950; }
+    .print-name { font-size: 22px; font-weight: 700; color: #115950; }
+    .print-sub { font-size: 13px; color: #666; margin-top: 4px; }
+    .print-summary { text-align: right; }
+    .print-summary .big { font-size: 20px; font-weight: 700; color: #115950; }
+    .print-summary .small { font-size: 11px; color: #888; }
+    .col-headers { display: grid; grid-template-columns: 90px 1fr 80px 50px 60px 130px 90px; gap: 0; background: #115950; color: white; padding: 7px 10px; border-radius: 6px 6px 0 0; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0; }
+    .print-job-row { display: grid; grid-template-columns: 90px 1fr 80px 50px 60px 130px 90px; gap: 0; padding: 9px 10px; border-bottom: 1px solid #e8f0ef; font-size: 12px; }
+    .print-job-row:nth-child(even) { background: #f8f5f0; }
+    .type-badge { display: inline-block; padding: 1px 7px; border-radius: 10px; font-size: 10px; font-weight: 600; }
+    .type-checkout { background: #fdebd0; color: #a04000; }
+    .type-midstay { background: #fdf6e3; color: #8e6b23; }
+    .coworker-tag { display: inline-block; padding: 1px 6px; background: #e0f5f1; color: #115950; border-radius: 10px; font-size: 10px; font-weight: 500; margin: 1px; }
+    .totals-row { display: flex; justify-content: flex-end; gap: 20px; padding: 12px 10px; border-top: 2px solid #115950; margin-top: 2px; }
+    .total-item { text-align: right; }
+    .total-label { font-size: 10px; text-transform: uppercase; color: #888; letter-spacing: 0.5px; }
+    .total-val { font-size: 16px; font-weight: 700; color: #115950; }
+  `;
+}
+
+function printSchedule() {
+  const monthVal = document.getElementById('calMonth').value;
+  const cleanerFilter = document.getElementById('calCleaner').value;
+  const monthJobs = cleaningJobs.filter(j => j.date.startsWith(monthVal) && (!cleanerFilter || (j.cleanerIds||[]).includes(cleanerFilter)));
+  monthJobs.sort((a,b) => a.date > b.date ? 1 : -1);
+
+  const printCleaners = cleanerFilter ? [staff.find(s => s.id === cleanerFilter)].filter(Boolean) : staff.filter(s => s.status !== 'Inactive');
+  const monthName = new Date(monthVal+'-01').toLocaleDateString('en-GB',{month:'long',year:'numeric'});
+  let printContent = '';
+
+  printCleaners.forEach(cl => {
+    const clJobs = monthJobs.filter(j => (j.cleanerIds||[]).includes(cl.id));
+    if (clJobs.length === 0 && !cleanerFilter) return;
+    const totalHours = clJobs.reduce((sum,j) => sum + (j.hours||0), 0);
+    const totalPay = clJobs.reduce((sum,j) => {
+      const base = (cl.hourlyRate||0) * (j.hours||0);
+      const tr = cl.hasCar === 'Yes' ? (j.propertyTransport||0) : 0;
+      return sum + base + tr;
+    }, 0);
+    const totalTransport = cl.hasCar === 'Yes' ? clJobs.reduce((sum,j) => sum + (j.propertyTransport||0), 0) : 0;
+
+    printContent += `
+      <div class="print-page">
+        <div class="print-logo">Zesty Rentals — Cleaning Schedule</div>
+        <div class="print-header">
+          <div>
+            <div class="print-name">${cl.firstName} ${cl.lastName}</div>
+            <div class="print-sub">${monthName} · ${(cl.zones||[]).join(', ') || 'All zones'} · €${cl.hourlyRate||0}/hr${cl.hasCar==='Yes' ? ' · 🚗 Car' : ''}</div>
+          </div>
+          <div class="print-summary">
+            <div class="big">${clJobs.length} jobs</div>
+            <div class="small">${totalHours.toFixed(1)}h · €${totalPay.toFixed(2)} total${totalTransport > 0 ? ' (incl. €'+totalTransport.toFixed(2)+' transport)' : ''}</div>
+          </div>
+        </div>
+        <div class="col-headers">
+          <div>Date</div><div>Property</div><div>Type</div><div>Hours</div><div>Pay</div><div>Co-workers</div><div>Notes</div>
+        </div>
+        ${clJobs.length === 0 ? '<p style="padding:20px;color:#999">No jobs assigned this month.</p>' :
+          clJobs.map(j => {
+            const base = (cl.hourlyRate||0) * (j.hours||0);
+            const tr = cl.hasCar === 'Yes' ? (j.propertyTransport||0) : 0;
+            const jobPay = base + tr;
+            const coworkers = (j.cleanerIds||[]).filter(cid => cid !== cl.id).map(cid => {
+              const c2 = staff.find(s => s.id === cid);
+              return c2 ? `<span class="coworker-tag">${c2.firstName} ${c2.lastName}</span>` : '';
+            }).join('');
+            return `<div class="print-job-row">
+              <div><strong>${formatDate(j.date)}</strong></div>
+              <div>${j.propertyName}${j.zone ? '<br><span style="font-size:10px;color:#888">'+j.zone+'</span>' : ''}</div>
+              <div><span class="type-badge type-${j.type}">${j.type === 'checkout' ? 'Checkout' : 'Mid-Stay'}</span></div>
+              <div>${j.hours ? j.hours+'h' : '—'}</div>
+              <div style="font-weight:600;color:#115950">${jobPay > 0 ? '€'+jobPay.toFixed(0) : '—'}${tr > 0 ? '<br><span style="font-size:10px;color:#888">+€'+tr+' 🚗</span>' : ''}</div>
+              <div>${coworkers || '<span style="color:#ccc;font-size:11px">Solo</span>'}</div>
+              <div style="font-size:11px;color:#666">${j.notes||''}</div>
+            </div>`;
+          }).join('')
+        }
+        <div class="totals-row">
+          ${totalTransport > 0 ? `<div class="total-item"><div class="total-label">Transport</div><div class="total-val">€${totalTransport.toFixed(2)}</div></div>` : ''}
+          <div class="total-item"><div class="total-label">Hours Pay</div><div class="total-val">€${(totalPay - totalTransport).toFixed(2)}</div></div>
+          <div class="total-item"><div class="total-label">Total</div><div class="total-val">€${totalPay.toFixed(2)}</div></div>
+        </div>
+      </div>`;
+  });
+
+  const w = window.open('', '_blank');
+  w.document.write(`<html><head><title>Cleaning Schedule ${monthName}</title><style>${buildPrintStyles()}</style></head><body>${printContent || '<p style="padding:40px;font-family:Arial">No jobs found for this period.</p>'}</div><!-- /erp-main -->
+</body></html>`);
+  w.document.close();
+  setTimeout(() => w.print(), 600);
+}
+
+function printAllJobs() {
+  const monthVal = document.getElementById('jobMonth').value;
+  const zoneFilter = document.getElementById('jobZone').value;
+  const typeFilter = document.getElementById('jobType').value;
+  const cleanerFilter = document.getElementById('jobCleaner').value;
+  const search = (document.getElementById('jobSearch').value||'').toLowerCase();
+
+  let jobs = cleaningJobs.filter(j => {
+    return (!monthVal || j.date.startsWith(monthVal)) &&
+      (!zoneFilter || (j.zone||'').toLowerCase().includes(zoneFilter.toLowerCase())) &&
+      (!typeFilter || j.type === typeFilter) &&
+      (!cleanerFilter || (j.cleanerIds||[]).includes(cleanerFilter)) &&
+      (!search || (j.propertyName||'').toLowerCase().includes(search));
+  });
+  jobs.sort((a,b) => a.date > b.date ? 1 : -1);
+
+  const monthName = monthVal ? new Date(monthVal+'-01').toLocaleDateString('en-GB',{month:'long',year:'numeric'}) : 'All Time';
+  const totalJobs = jobs.length;
+  const totalPayAll = jobs.reduce((sum,j) => {
+    return sum + (j.cleanerIds||[]).reduce((s2, cid) => {
+      const cl = staff.find(s => s.id === cid);
+      if (!cl) return s2;
+      return s2 + (cl.hourlyRate||0)*(j.hours||0) + (cl.hasCar==='Yes' ? (j.propertyTransport||0) : 0);
+    }, 0);
+  }, 0);
+
+  const rows = jobs.map(j => {
+    const cls = (j.cleanerIds||[]).map(cid => staff.find(s => s.id === cid)).filter(Boolean);
+    const totalPay = cls.reduce((sum,cl) => {
+      return sum + (cl.hourlyRate||0)*(j.hours||0) + (cl.hasCar==='Yes'?(j.propertyTransport||0):0);
+    }, 0);
+    return `<div class="print-job-row">
+      <div><strong>${formatDate(j.date)}</strong></div>
+      <div>${j.propertyName}${j.zone ? '<br><span style="font-size:10px;color:#888">'+j.zone+'</span>' : ''}</div>
+      <div><span class="type-badge type-${j.type}">${j.type === 'checkout' ? 'Checkout' : 'Mid-Stay'}</span></div>
+      <div>${cls.map(cl=>`<span class="coworker-tag">${cl.firstName} ${cl.lastName}</span>`).join('') || '<span style="color:#e74c3c;font-size:11px">⚠ Unassigned</span>'}</div>
+      <div>${j.hours ? j.hours+'h' : '—'}</div>
+      <div>${j.propertyTransport ? '€'+j.propertyTransport : '—'}</div>
+      <div style="font-weight:600;color:#115950">${totalPay > 0 ? '€'+totalPay.toFixed(0) : '—'}</div>
+      <div style="font-size:11px;color:#666">${j.notes||''}</div>
+    </div>`;
+  }).join('');
+
+  const printStyles = buildPrintStyles() + `
+    .col-headers { grid-template-columns: 85px 1fr 75px 130px 50px 60px 65px 80px; }
+    .print-job-row { grid-template-columns: 85px 1fr 75px 130px 50px 60px 65px 80px; }
+  `;
+
+  const w = window.open('', '_blank');
+  w.document.write(`<html><head><title>All Cleaning Jobs — ${monthName}</title><style>${printStyles}</style></head><body>
+    <div class="print-page">
+      <div class="print-logo">Zesty Rentals — All Cleaning Jobs</div>
+      <div class="print-header">
+        <div>
+          <div class="print-name">Cleaning Jobs Report</div>
+          <div class="print-sub">${monthName}${zoneFilter ? ' · '+zoneFilter : ''}${typeFilter ? ' · '+(typeFilter==='checkout'?'Checkout':'Mid-Stay') : ''}</div>
+        </div>
+        <div class="print-summary">
+          <div class="big">${totalJobs} jobs</div>
+          <div class="small">Total cost: €${totalPayAll.toFixed(2)}</div>
+        </div>
+      </div>
+      <div class="col-headers">
+        <div>Date</div><div>Property</div><div>Type</div><div>Cleaners</div><div>Hours</div><div>Transport</div><div>Pay</div><div>Notes</div>
+      </div>
+      ${rows || '<p style="padding:20px;color:#999">No jobs found.</p>'}
+    </div>
+  </body></html>`);
+  w.document.close();
+  setTimeout(() => w.print(), 600);
+}
+
+// ============ MODALS / CONFIRM / TOAST ============
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+function showConfirm(icon, title, msg, btnClass, btnText, cb) {
+  document.getElementById('confirmIcon').textContent = icon;
+  document.getElementById('confirmTitle').textContent = title;
+  document.getElementById('confirmMsg').textContent = msg;
+  const btn = document.getElementById('confirmBtn');
+  btn.className = `btn ${btnClass}`; btn.textContent = btnText;
+  confirmCb = cb;
+  document.getElementById('confirmOverlay').classList.add('open');
+}
+function closeConfirm() { document.getElementById('confirmOverlay').classList.remove('open'); confirmCb = null; }
+function doConfirm() { if (confirmCb) confirmCb(); closeConfirm(); }
+function showToast(msg, type='') {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = `toast ${type} show`;
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+['staffModal','jobModal'].forEach(id => {
+  document.getElementById(id).addEventListener('click', e => { if(e.target === e.currentTarget) closeModal(id); });
+});
+document.getElementById('confirmOverlay').addEventListener('click', e => { if(e.target === e.currentTarget) closeConfirm(); });
+
+
+// ── SIDEBAR NAVIGATION ──────────────────────────────────
+function _initSidebar() {
+  const sidebar = document.getElementById('erpSidebar');
+  const overlay = document.getElementById('erpOverlay');
+  const hamburger = document.getElementById('erpHamburger');
+  if (!sidebar) return;
+  // Hamburger toggle
+  if (hamburger) {
+    hamburger.addEventListener('click', () => {
+      sidebar.classList.toggle('open');
+      overlay.classList.toggle('open');
+    });
+  }
+  // Close on overlay click
+  if (overlay) {
+    overlay.addEventListener('click', () => {
+      sidebar.classList.remove('open');
+      overlay.classList.remove('open');
+    });
+  }
+  // Inject Azure user badge into sidebar footer
+  const origBadge = document.getElementById('_azure_badge');
+  const footerUser = document.getElementById('sidebarUser');
+  if (origBadge && footerUser) {
+    footerUser.innerHTML = origBadge.innerHTML;
+    origBadge.remove();
+  }
+  // Watch for badge to appear
+  const obs = new MutationObserver(() => {
+    const b = document.getElementById('_azure_badge');
+    const fu = document.getElementById('sidebarUser');
+    if (b && fu) {
+      fu.innerHTML = b.innerHTML;
+      b.remove();
+      obs.disconnect();
+    }
+  });
+  obs.observe(document.body, {childList:true, subtree:true});
+}
+document.addEventListener('DOMContentLoaded', _initSidebar);
+
+
+init().catch(console.error);
+showDbStatus(true);
 </script>
 <script src="erp-nav.js"></script>
 </body>
