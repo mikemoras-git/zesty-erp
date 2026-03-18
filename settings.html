@@ -43,7 +43,7 @@
     <div class="db-info">
       <div><strong>Project:</strong> whuytfjwdjjepayeiohj.supabase.co</div>
       <div style="margin-top:6px"><strong>Status:</strong> <span id="dbStatus">Checking…</span></div>
-      <div style="margin-top:6px"><strong>Tables:</strong> owners · properties · guests · jobs · employees · staff · tasks · cleaning · contacts · leave · onboardings · tickets</div>
+      <div style="margin-top:6px"><strong>Tables:</strong> owners · properties · guests · jobs · employees · staff · tasks · cleaning · contacts · leave · onboardings · tickets · laundry_customers · laundry_orders · laundry_receipts · laundry_pricelists</div>
     </div>
     <button class="btn btn-teal btn-sm" style="margin-top:14px" onclick="testConnection()">🔌 Test Connection</button>
   </div>
@@ -122,6 +122,94 @@
         </select>
       </div>
     </div>
+  </div>
+
+  <!-- MISSING TABLES SQL -->
+  <div class="settings-section">
+    <h2>Create Missing Supabase Tables</h2>
+    <p>If modules show "database offline", run this SQL once in your <a href="https://supabase.com/dashboard/project/whuytfjwdjjepayeiohj/editor" target="_blank" style="color:var(--teal)">Supabase SQL Editor</a> to create the missing tables.</p>
+    <details style="margin-bottom:14px">
+      <summary style="cursor:pointer;font-size:13px;font-weight:600;color:var(--teal);padding:8px 0">▶ Show SQL for: contacts · leave · laundry tables</summary>
+      <pre id="sqlBlock" style="background:var(--cream);border:1px solid var(--border);border-radius:8px;padding:14px;font-size:11px;font-family:monospace;overflow-x:auto;white-space:pre;margin-top:10px;line-height:1.6">-- Run this once in Supabase SQL Editor
+-- https://supabase.com/dashboard/project/whuytfjwdjjepayeiohj/editor
+
+-- Contacts
+create table if not exists contacts (
+  id text primary key,
+  data jsonb,
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
+);
+
+-- Leave requests
+create table if not exists leave (
+  id text primary key,
+  data jsonb,
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
+);
+
+-- Onboardings (if not exists)
+create table if not exists onboardings (
+  id text primary key,
+  data jsonb,
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
+);
+
+-- Laundry: Customers
+create table if not exists laundry_customers (
+  id text primary key,
+  data jsonb,
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
+);
+
+-- Laundry: Service Orders
+create table if not exists laundry_orders (
+  id text primary key,
+  data jsonb,
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
+);
+
+-- Laundry: Receipts
+create table if not exists laundry_receipts (
+  id text primary key,
+  data jsonb,
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
+);
+
+-- Laundry: Pricelists
+create table if not exists laundry_pricelists (
+  id text primary key,
+  data jsonb,
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
+);
+
+-- Enable RLS and allow anon access on all new tables
+alter table contacts enable row level security;
+alter table leave enable row level security;
+alter table onboardings enable row level security;
+alter table laundry_customers enable row level security;
+alter table laundry_orders enable row level security;
+alter table laundry_receipts enable row level security;
+alter table laundry_pricelists enable row level security;
+
+create policy if not exists "anon_all" on contacts for all using (true) with check (true);
+create policy if not exists "anon_all" on leave for all using (true) with check (true);
+create policy if not exists "anon_all" on onboardings for all using (true) with check (true);
+create policy if not exists "anon_all" on laundry_customers for all using (true) with check (true);
+create policy if not exists "anon_all" on laundry_orders for all using (true) with check (true);
+create policy if not exists "anon_all" on laundry_receipts for all using (true) with check (true);
+create policy if not exists "anon_all" on laundry_pricelists for all using (true) with check (true);</pre>
+      <button class="btn btn-teal btn-sm" style="margin-top:10px" onclick="copySql()">📋 Copy SQL</button>
+      <span id="sqlCopied" style="font-size:12px;color:var(--success);margin-left:10px;display:none">✓ Copied!</span>
+    </details>
+    <div id="tableStatus" style="margin-top:4px"></div>
+    <button class="btn btn-outline btn-sm" style="margin-top:8px" onclick="checkAllTables()">🔍 Check All Tables</button>
   </div>
 
   <!-- DATA MANAGEMENT -->
@@ -219,6 +307,71 @@ function clearAllCache() {
 }
 
 testConnection();
+
+function copySql() {
+  const sql = document.getElementById('sqlBlock').textContent;
+  navigator.clipboard.writeText(sql).then(() => {
+    const el = document.getElementById('sqlCopied');
+    el.style.display = 'inline';
+    setTimeout(() => el.style.display = 'none', 2500);
+  }).catch(() => {
+    // Fallback: select the text
+    const el = document.getElementById('sqlBlock');
+    const range = document.createRange();
+    range.selectNodeContents(el);
+    window.getSelection().removeAllRanges();
+    window.getSelection().addRange(range);
+  });
+}
+
+const ALL_TABLES = [
+  { name: 'owners', label: 'Owners' },
+  { name: 'properties', label: 'Properties' },
+  { name: 'guests', label: 'Guests' },
+  { name: 'jobs', label: 'Jobs' },
+  { name: 'employees', label: 'Employees' },
+  { name: 'staff', label: 'Staff' },
+  { name: 'tasks', label: 'Tasks' },
+  { name: 'cleaning', label: 'Cleaning' },
+  { name: 'contacts', label: 'Contacts' },
+  { name: 'leave', label: 'Leave' },
+  { name: 'onboardings', label: 'Onboardings' },
+  { name: 'tickets', label: 'Tickets' },
+  { name: 'laundry_customers', label: 'Laundry Customers' },
+  { name: 'laundry_orders', label: 'Laundry Orders' },
+  { name: 'laundry_receipts', label: 'Laundry Receipts' },
+  { name: 'laundry_pricelists', label: 'Laundry Pricelists' },
+];
+
+const SB_URL = 'https://whuytfjwdjjepayeiohj.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndodXl0Zmp3ZGpqZXBheWVpb2hqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIyODQxMzQsImV4cCI6MjA4Nzg2MDEzNH0.pTDAqw_Cnzc9D3tJU-tU7Ch5qpapKmteiqI_ooSCufY';
+
+async function checkAllTables() {
+  const el = document.getElementById('tableStatus');
+  el.innerHTML = '<span style="color:var(--text-muted);font-size:12px">Checking tables…</span>';
+  const results = await Promise.all(ALL_TABLES.map(async t => {
+    try {
+      const r = await fetch(`${SB_URL}/rest/v1/${t.name}?select=id&limit=1`, {
+        headers: { apikey: SB_KEY, Authorization: 'Bearer ' + SB_KEY }
+      });
+      const count = r.ok ? (await r.json()).length : null;
+      return { ...t, ok: r.ok, status: r.status };
+    } catch(e) {
+      return { ...t, ok: false, status: 'err' };
+    }
+  }));
+
+  el.innerHTML = `<div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px">` +
+    results.map(t => `<div style="padding:4px 12px;border-radius:20px;font-size:11px;font-weight:600;
+      background:${t.ok ? 'var(--success-light)' : 'var(--danger-light)'};
+      color:${t.ok ? 'var(--success)' : 'var(--danger)'};
+      border:1px solid ${t.ok ? '#a9e4c0' : '#f5c6c2'}">
+      ${t.ok ? '✓' : '✗'} ${t.label}
+    </div>`).join('') + `</div>
+    <div style="margin-top:8px;font-size:11px;color:var(--text-muted)">
+      ${results.filter(t=>!t.ok).length === 0 ? '✓ All tables exist' : '✗ Missing tables highlighted above — run the SQL above to create them'}
+    </div>`;
+}
 </script>
 <script src="erp-nav.js"></script>
 </body>

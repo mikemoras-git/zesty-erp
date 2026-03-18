@@ -144,18 +144,35 @@ async function init() {
 init();
 
 function renderStats() {
-  const active = onboardings.filter(o=>!['completed','declined'].includes(o.stage)).length;
+  const stages = onboardings.map(o => normalizeStage(o.stage));
+  const active = stages.filter(s=>!['completed','declined'].includes(s)).length;
   document.getElementById('st-active').textContent = active;
-  document.getElementById('st-agreement').textContent = onboardings.filter(o=>o.stage==='agreement').length;
-  document.getElementById('st-setup').textContent = onboardings.filter(o=>o.stage==='setup').length;
-  document.getElementById('st-completed').textContent = onboardings.filter(o=>o.stage==='completed').length;
-  document.getElementById('st-declined').textContent = onboardings.filter(o=>o.stage==='declined').length;
+  document.getElementById('st-agreement').textContent = stages.filter(s=>s==='agreement').length;
+  document.getElementById('st-setup').textContent = stages.filter(s=>s==='setup').length;
+  document.getElementById('st-completed').textContent = stages.filter(s=>s==='completed').length;
+  document.getElementById('st-declined').textContent = stages.filter(s=>s==='declined').length;
+}
+
+// Normalize stage from old data formats to new keys
+function normalizeStage(stage) {
+  if (!stage) return 'contact';
+  const s = stage.toLowerCase();
+  if (s === 'contact' || s === 'initial' || s === 'initial contact') return 'contact';
+  if (s === 'visit' || s === 'property visit') return 'visit';
+  if (s === 'offer' || s === 'offer sent') return 'offer';
+  if (s === 'agreement' || s === 'signed' || s === 'active') return 'agreement';
+  if (s === 'setup' || s === 'onboarding' || s === 'in progress') return 'setup';
+  if (s === 'completed' || s === 'complete' || s === 'done') return 'completed';
+  if (s === 'declined' || s === 'rejected' || s === 'lost') return 'declined';
+  return 'contact'; // default unknown stages to contact column
 }
 
 function renderPipeline() {
   const board = document.getElementById('pipelineBoard');
+  // Normalize all stages first
+  const normalized = onboardings.map(o => ({ ...o, _stage: normalizeStage(o.stage) }));
   board.innerHTML = STAGES.map(s => {
-    const cards = onboardings.filter(o => o.stage === s.key);
+    const cards = normalized.filter(o => o._stage === s.key);
     return `<div class="pipe-col stage-${s.key}">
       <div class="pipe-header">${s.label} <span style="margin-left:6px;opacity:.6">${cards.length}</span></div>
       <div class="pipe-body">
@@ -174,7 +191,7 @@ function renderTable() {
   const q = (document.getElementById('q')?.value||'').toLowerCase();
   const fStage = document.getElementById('fStage')?.value||'';
   let list = onboardings.filter(o => {
-    if (fStage && o.stage!==fStage) return false;
+    if (fStage && normalizeStage(o.stage)!==fStage) return false;
     if (q && !((o.name||'')+(o.property||'')+(o.phone||'')).toLowerCase().includes(q)) return false;
     return true;
   }).sort((a,b)=>((a.updatedAt||a.contactDate||'')<(b.updatedAt||b.contactDate||'')?1:-1));

@@ -40,7 +40,11 @@ const DB = {
   /** Load all records from a table (expects {id, data, updated_at} schema) */
   async loadAll(table) {
     const r = await this._fetch('GET', table, null, '?select=id,data,updated_at&order=created_at.asc&limit=100000');
-    if (!r.ok) return { ok: false, rows: null, err: r.err };
+    if (!r.ok) {
+      // Table doesn't exist yet — treat as empty, not an error worth showing offline banner
+      const tableNotFound = r.err && (r.err.includes('does not exist') || r.err.includes('relation') || r.err.includes('42P01') || r.err.includes('404'));
+      return { ok: tableNotFound ? true : false, rows: tableNotFound ? [] : null, err: r.err };
+    }
     const rows = (r.data || []).map(row => ({ id: row.id, ...(row.data || {}) }));
     return { ok: true, rows };
   },
@@ -87,11 +91,19 @@ const SyncStore = {
     if (result.ok && result.rows !== null) {
       const pending = this._pending[table] || new Set();
       const rows = result.rows.filter(r => !pending.has(r.id));
+      // Table exists but is empty — use local cache if we have it
+      // (avoids wiping cached data when Supabase table not yet created)
+      if (rows.length === 0 && cached.length > 0) {
+        setSyncDot('ok');
+        showDbStatus(true);
+        return { data: cached, fromCache: true };
+      }
       localStorage.setItem(lsKey, JSON.stringify(rows));
       setSyncDot('ok');
       showDbStatus(true);
       return { data: rows, fromCache: false };
     }
+    // Real connection error — show offline banner, fall back to cache
     setSyncDot('error');
     showDbStatus(false);
     return { data: cached, fromCache: true };
