@@ -337,10 +337,32 @@ body {
       </div>
     </div>
 
-    <!-- Open tickets -->
+    <!-- Tickets stats + list -->
     <div class="card">
-      <div class="card-title">Open Tickets</div>
-      <div class="card-sub">Bugs & improvements</div>
+      <div class="card-title">Tickets</div>
+      <div class="card-sub">Bugs, improvements & ideas</div>
+      <!-- Stats bars -->
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px">
+        <div style="background:rgba(192,57,43,.15);border:1px solid rgba(192,57,43,.3);border-radius:9px;padding:12px;text-align:center">
+          <div style="font-size:22px;font-weight:700;color:#ff8080" id="tk-bugs">—</div>
+          <div style="font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:rgba(255,255,255,.35);margin-top:3px">🐛 Bugs</div>
+        </div>
+        <div style="background:rgba(230,126,34,.12);border:1px solid rgba(230,126,34,.25);border-radius:9px;padding:12px;text-align:center">
+          <div style="font-size:22px;font-weight:700;color:#ffc080" id="tk-improve">—</div>
+          <div style="font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:rgba(255,255,255,.35);margin-top:3px">⚡ Improve</div>
+        </div>
+        <div style="background:rgba(39,174,96,.12);border:1px solid rgba(39,174,96,.25);border-radius:9px;padding:12px;text-align:center">
+          <div style="font-size:22px;font-weight:700;color:#5de8a0" id="tk-ideas">—</div>
+          <div style="font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:rgba(255,255,255,.35);margin-top:3px">💡 Ideas</div>
+        </div>
+      </div>
+      <!-- Status bar -->
+      <div style="display:flex;gap:16px;margin-bottom:14px;font-size:12px">
+        <span style="color:rgba(255,255,255,.45)">Open: <strong style="color:#ff8080" id="tk-open">—</strong></span>
+        <span style="color:rgba(255,255,255,.45)">WIP: <strong style="color:#ffc080" id="tk-wip">—</strong></span>
+        <span style="color:rgba(255,255,255,.45)">Fixed: <strong style="color:#5de8a0" id="tk-fixed">—</strong></span>
+        <span style="color:rgba(255,255,255,.45)">Total: <strong style="color:rgba(255,255,255,.7)" id="tk-total">—</strong></span>
+      </div>
       <div id="tickets-list"></div>
     </div>
   </div>
@@ -503,6 +525,17 @@ async function loadAll(){
   const maxP=Math.max(...Object.values(ptypes),1);
   document.getElementById('props-bars').innerHTML=Object.entries(ptypes).sort(([,a],[,b])=>b-a).slice(0,6)
     .map(([k,v],i)=>bar(k,v,maxP,CHART_COLORS[i%CHART_COLORS.length])).join('')||'<div style="color:rgba(255,255,255,.25);font-size:12px">No properties data</div>';
+
+  /* Ticket stats */
+  const tkOpen=tickets.filter(t=>t.status==='open').length;
+  const tkWip=tickets.filter(t=>t.status==='wip').length;
+  const tkFixed=tickets.filter(t=>t.status==='fixed').length;
+  const tkBugs=tickets.filter(t=>t.type==='bug'&&t.status!=='fixed').length;
+  const tkImprove=tickets.filter(t=>t.type==='improvement'&&t.status!=='fixed').length;
+  const tkIdeas=tickets.filter(t=>t.type==='idea'&&t.status!=='fixed').length;
+  const setEl=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v||'0';};
+  setEl('tk-bugs',tkBugs); setEl('tk-improve',tkImprove); setEl('tk-ideas',tkIdeas);
+  setEl('tk-open',tkOpen); setEl('tk-wip',tkWip); setEl('tk-fixed',tkFixed); setEl('tk-total',tickets.length);
 
   /* Open tickets */
   const openT=tickets.filter(t=>t.status!=='fixed').slice(0,5);

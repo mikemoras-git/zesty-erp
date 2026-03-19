@@ -2,428 +2,776 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Zesty ERP — Tasks</title>
-<link rel="stylesheet" href="erp-style.css">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Zesty ERP - Tasks</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display&display=swap" rel="stylesheet">
 <style>
-.priority-High{color:#c0392b;font-weight:700}
-.priority-Medium{color:#e67e22;font-weight:600}
-.priority-Low{color:#6b7e7b}
-.subtask-list{list-style:none;margin-top:10px}
-.subtask-item{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border);font-size:13px}
-.subtask-item:last-child{border:none}
-.subtask-item input[type=checkbox]{width:15px;height:15px;cursor:pointer;accent-color:var(--teal)}
-.subtask-item.done span{text-decoration:line-through;color:var(--text-muted)}
-.progress-bar{height:5px;background:var(--border);border-radius:3px;overflow:hidden;margin-top:4px}
-.progress-fill{height:100%;background:var(--teal);border-radius:3px;transition:width .3s}
-.row-expand{background:#f7fbfa !important}
-.subtask-row td{padding:8px 14px 14px 44px !important;background:#f7fbfa}
+:root{--teal:#1a7a6e;--teal-light:#23a090;--teal-dark:#115950;--gold:#c9a84c;--gold-light:#e8c97a;--cream:#f8f5f0;--white:#fff;--text:#1e2a28;--text-muted:#6b7e7b;--border:#d4e0de;--danger:#c0392b;--success:#27ae60;--warning:#e67e22;--info:#2980b9;--purple:#8e44ad;--shadow:0 2px 16px rgba(26,122,110,.10);--shadow-lg:0 8px 40px rgba(26,122,110,.15)}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--text);min-height:100vh}
+header{background:linear-gradient(135deg,var(--teal-dark),var(--teal));padding:14px 28px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 12px rgba(0,0,0,.15);position:sticky;top:0;z-index:100;flex-wrap:wrap;gap:10px}
+.logo{font-family:'DM Serif Display',serif;color:#fff;font-size:20px}.logo span{color:var(--gold-light)}
+.header-right{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:8px;font-size:13px;font-family:'DM Sans',sans-serif;font-weight:500;cursor:pointer;border:none;transition:all .18s}
+.btn-outline{background:transparent;border:1px solid rgba(255,255,255,.3);color:var(--gold-light)}.btn-outline:hover{background:rgba(255,255,255,.1)}
+.btn-active{background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.5);color:#fff}
+.btn-primary{background:var(--gold);color:var(--teal-dark);font-weight:600}.btn-primary:hover{background:var(--gold-light)}
+.btn-danger{background:var(--danger);color:#fff}.btn-danger:hover{background:#a93226}
+.btn-ghost{background:transparent;border:1px solid var(--border);color:var(--text-muted)}.btn-ghost:hover{background:var(--border);color:var(--text)}
+.btn-save{background:var(--teal);color:#fff}.btn-save:hover{background:var(--teal-light)}
+.btn-sm{padding:5px 10px;font-size:12px}
+main{max-width:1400px;margin:0 auto;padding:24px 24px 100px}
+.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px}
+.page-header h1{font-family:'DM Serif Display',serif;font-size:26px;color:var(--teal-dark)}
+.page-header p{color:var(--text-muted);font-size:13px;margin-top:2px}
+/* STATS */
+.stats-row{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:20px}
+.stat-card{background:var(--white);border-radius:12px;padding:14px 16px;border:1px solid var(--border);cursor:pointer;transition:all .18s}
+.stat-card:hover{border-color:var(--teal-light);transform:translateY(-1px)}
+.stat-card.active-filter{border-color:var(--teal);background:#f0faf8}
+.stat-card .num{font-size:24px;font-weight:700;color:var(--teal)}
+.stat-card.open .num{color:var(--warning)}
+.stat-card.inprog .num{color:var(--info)}
+.stat-card.closed .num{color:var(--success)}
+.stat-card.high .num{color:var(--danger)}
+.stat-card .lbl{font-size:11px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--text-muted);margin-top:2px}
+/* FILTER BAR */
+.filter-bar{background:var(--white);border-radius:12px;padding:12px 16px;border:1px solid var(--border);margin-bottom:16px;display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.filter-bar input,.filter-bar select{flex:1;min-width:130px;padding:7px 11px;border:1px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;background:var(--cream);outline:none}
+.filter-bar input:focus,.filter-bar select:focus{border-color:var(--teal-light)}
+/* TABLE */
+.table-wrap{background:var(--white);border-radius:12px;border:1px solid var(--border);box-shadow:var(--shadow);overflow:hidden}
+table{width:100%;border-collapse:collapse}
+thead{background:var(--cream)}
+th{padding:10px 14px;text-align:left;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text-muted);border-bottom:1px solid var(--border);white-space:nowrap;cursor:pointer;user-select:none}
+th:hover{color:var(--teal)}
+th.sorted{color:var(--teal)}
+td{padding:11px 14px;border-bottom:1px solid var(--border);font-size:13px;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr.task-row{cursor:pointer;transition:background .15s}
+tr.task-row:hover{background:#f0faf8}
+.badge{display:inline-block;padding:2px 9px;border-radius:12px;font-size:11px;font-weight:600}
+.b-open{background:#fff3e0;color:var(--warning)}
+.b-inprog{background:#e8f4f8;color:var(--info)}
+.b-closed{background:#e8f8f0;color:var(--success)}
+.b-high{background:#fdf0ef;color:var(--danger)}
+.b-medium{background:#fff3e0;color:var(--warning)}
+.b-low{background:#f0f0f0;color:var(--text-muted)}
+.b-loc{background:#f0e8ff;color:var(--purple)}
+.b-assign{background:#e8f0ff;color:var(--info)}
+.overdue{color:var(--danger);font-weight:600}
+.days-chip{display:inline-block;padding:2px 7px;border-radius:8px;font-size:11px;font-weight:600}
+.dc-0{background:#e8f8f0;color:var(--success)}
+.dc-3{background:#fff3e0;color:var(--warning)}
+.dc-7{background:#fde8e8;color:var(--danger)}
+.empty-row td{text-align:center;padding:60px;color:var(--text-muted)}
+/* MODAL */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1000;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto}
+.modal-overlay.open{display:flex}
+.modal{background:var(--white);border-radius:16px;width:100%;max-width:640px;margin:auto;box-shadow:var(--shadow-lg)}
+.modal-header{padding:20px 24px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.modal-header h2{font-family:'DM Serif Display',serif;font-size:20px;color:var(--teal-dark)}
+.modal-close{background:none;border:none;font-size:20px;cursor:pointer;color:var(--text-muted);padding:4px 8px;border-radius:6px}
+.modal-close:hover{background:var(--border)}
+.modal-body{padding:24px;display:flex;flex-direction:column;gap:14px}
+.modal-footer{padding:16px 24px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:10px}
+.fg{display:flex;flex-direction:column;gap:5px}
+.fg label{font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em}
+.fg input,.fg select,.fg textarea{padding:9px 12px;border:1px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:14px;background:var(--cream);outline:none;transition:border-color .18s}
+.fg input:focus,.fg select:focus,.fg textarea:focus{border-color:var(--teal-light);background:var(--white)}
+.fg textarea{resize:vertical;min-height:80px}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.form-row.three{grid-template-columns:1fr 1fr 1fr}
+/* AGING BADGE */
+.aging{display:inline-block;padding:2px 8px;border-radius:8px;font-size:11px;font-weight:600}
+.a0{background:#e8f8f0;color:#27ae60}
+.a3{background:#fff3e0;color:#e67e22}
+.a7{background:#fde8e8;color:#c0392b}
+.a14{background:#f0e8ff;color:#8e44ad}
+.a30{background:#fdf0ef;color:#c0392b}
+.toast{position:fixed;bottom:80px;right:20px;background:var(--teal-dark);color:#fff;padding:10px 18px;border-radius:10px;font-size:13px;z-index:2000;transform:translateY(60px);opacity:0;transition:all .3s}
+.toast.show{transform:translateY(0);opacity:1}.toast.err{background:var(--danger)}
+#loadingOverlay{position:fixed;inset:0;background:var(--cream);display:flex;align-items:center;justify-content:center;z-index:9000;font-size:14px;color:var(--text-muted)}
+@media(max-width:900px){.stats-row{grid-template-columns:repeat(2,1fr)}.form-row{grid-template-columns:1fr}.form-row.three{grid-template-columns:1fr 1fr}table{font-size:12px}td,th{padding:8px 10px}}
 </style>
+    <script>
+    (function(){
+      const _msalConfig={
+        auth:{
+          clientId:'0938023f-cbbf-45f1-a71d-b18c95745ea6',
+          authority:'https://login.microsoftonline.com/9c30b606-6648-4777-a623-64867e43e54f',
+          redirectUri:'https://kissamosrealestate.com/wp-content/erp/index.html'
+        },
+        cache:{cacheLocation:'sessionStorage',storeAuthStateInCookie:false}
+      };
+      const _msal=new msal.PublicClientApplication(_msalConfig);
+      const _loginRequest={scopes:['openid','profile','User.Read']};
+
+      async function _ensureLogin(){
+        await _msal.initialize();
+        try{ await _msal.handleRedirectPromise(); }catch(e){}
+        const accounts=_msal.getAllAccounts();
+        if(accounts.length>0){
+          const acct=accounts[0];
+          _showUserBadge(acct.name||acct.username);
+          return;
+        }
+        _msal.loginRedirect(_loginRequest);
+      }
+
+      function _showUserBadge(name){
+        const show=()=>{
+          const hdr=document.querySelector('.header-right');
+          if(!hdr)return;
+          if(document.getElementById('_azure_badge'))return;
+          const badge=document.createElement('div');
+          badge.id='_azure_badge';
+          badge.style.cssText='display:flex;align-items:center;gap:8px;margin-left:4px';
+          badge.innerHTML=`<span style="font-size:12px;color:rgba(255,255,255,.75);font-family:DM Sans,sans-serif">&#128100; ${name}</span>`+
+            `<button onclick="window._azureLogout()" style="padding:4px 10px;border-radius:7px;border:1px solid rgba(255,255,255,.3);background:transparent;color:rgba(255,255,255,.7);font-size:11px;cursor:pointer;font-family:DM Sans,sans-serif">Sign out</button>`;
+          hdr.appendChild(badge);
+        };
+        if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',show);}
+        else{show();}
+      }
+
+      window._azureLogout=function(){
+        const accounts=_msal.getAllAccounts();
+        if(accounts.length>0){_msal.logoutRedirect({account:accounts[0]});}
+      };
+
+      document.addEventListener('DOMContentLoaded',function(){
+        const accounts=_msal.getAllAccounts();
+        if(accounts.length===0){document.body.style.visibility='hidden';}
+        else{document.body.style.visibility='visible';}
+      });
+
+      _ensureLogin().then(()=>{
+        document.body.style.visibility='visible';
+      });
+    })();
+    </script>
+    <!-- Azure MSAL Authentication -->
+    <script src="https://alcdn.msauth.net/browser/2.38.0/js/msal-browser.min.js"></script>
+    <script>
+    (function(){
+      const _msalConfig={
+        auth:{
+          clientId:'0938023f-cbbf-45f1-a71d-b18c95745ea6',
+          authority:'https://login.microsoftonline.com/9c30b606-6648-4777-a623-64867e43e54f',
+          redirectUri:'https://kissamosrealestate.com/wp-content/erp/index.html'
+        },
+        cache:{cacheLocation:'sessionStorage',storeAuthStateInCookie:false}
+      };
+      const _msal=new msal.PublicClientApplication(_msalConfig);
+      const _loginRequest={scopes:['openid','profile','User.Read']};
+
+      async function _ensureLogin(){
+        await _msal.initialize();
+        try{ await _msal.handleRedirectPromise(); }catch(e){}
+        const accounts=_msal.getAllAccounts();
+        if(accounts.length>0){
+          const acct=accounts[0];
+          if(acct.tenantId!=='9c30b606-6648-4777-a623-64867e43e54f'){
+            document.documentElement.style.visibility='visible';
+            document.body.innerHTML='<div style="display:flex;align-items:center;justify-content:center;height:100vh;font-family:sans-serif;flex-direction:column;gap:12px"><div style="font-size:48px">🔒</div><div style="font-size:18px;font-weight:600;color:#1e2a28">Access Denied</div><div style="font-size:14px;color:#666">Your account is not authorised to access this system.</div><button onclick="window._azureLogout()" style="margin-top:12px;padding:8px 20px;background:#1a7a6e;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:14px">Sign out</button></div>';
+            return;
+          }
+          _showUserBadge(acct.name||acct.username);
+          document.documentElement.style.visibility='visible';
+          return;
+        }
+        await _msal.loginRedirect(_loginRequest);
+      }
+
+      function _showUserBadge(name){
+        const show=()=>{
+          const hdr=document.querySelector('.header-right');
+          if(!hdr)return;
+          if(document.getElementById('_azure_badge'))return;
+          const badge=document.createElement('div');
+          badge.id='_azure_badge';
+          badge.style.cssText='display:flex;align-items:center;gap:8px;margin-left:4px';
+          badge.innerHTML='<span style="font-size:12px;color:rgba(255,255,255,.75);font-family:DM Sans,sans-serif">&#128100; '+name+'</span>'+
+            '<button onclick="window._azureLogout()" style="padding:4px 10px;border-radius:7px;border:1px solid rgba(255,255,255,.3);background:transparent;color:rgba(255,255,255,.7);font-size:11px;cursor:pointer;font-family:DM Sans,sans-serif">Sign out</button>';
+          hdr.appendChild(badge);
+        };
+        if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',show);}
+        else{show();}
+      }
+
+      window._azureLogout=function(){
+        const accounts=_msal.getAllAccounts();
+        if(accounts.length>0){_msal.logoutRedirect({account:accounts[0]});}
+      };
+
+      document.documentElement.style.visibility='hidden';
+
+      _ensureLogin().catch(function(){
+        _msal.loginRedirect(_loginRequest);
+      });
+    })();
+    </script>
 </head>
 <body>
-<div class="container">
-  <div class="page-title-bar">
-    <div>
-      <h1>Task Tracker</h1>
-      <p>Internal tasks, assignments and to-dos across the team</p>
-    </div>
-    <div class="page-actions">
-      <div class="sync-status"><span class="sync-dot" id="syncDot"></span><span>Connected</span></div>
-      <button class="btn btn-outline btn-sm" onclick="exportCSV()">↓ Export</button>
-      <button class="btn btn-primary" onclick="openAdd()">+ Add Task</button>
+<div id="loadingOverlay">Loading tasks...</div>
+<header>
+  <div class="logo">Zesty <span>ERP</span> &middot; Tasks</div>
+  <div class="header-right">    <button class="btn btn-outline" onclick="location.href='index.html'">Home</button>
+    <button class="btn btn-outline" onclick="location.href='employees.html'">Staff CRM</button>
+    <button class="btn btn-outline" onclick="location.href='leave.html'">Leave</button>
+    <button class="btn btn-active">Tasks</button>
+    <button class="btn btn-outline" onclick="location.href='settings.html'">&#9881; Settings</button></div>
+</header>
+<main>
+  <div class="page-header">
+    <div><h1>Task Tracker</h1><p id="taskSubtitle">Loading...</p></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn btn-ghost btn-sm" onclick="exportCSV()">&#8595; Export</button>
+      <button class="btn btn-primary" onclick="openAdd()">+ New Task</button>
     </div>
   </div>
 
-  <div class="stats-bar">
-    <div class="stat-card" onclick="setFilter('status','Open')"><div class="stat-label">Open</div><div class="stat-value" style="color:var(--warning)" id="st-open">—</div></div>
-    <div class="stat-card" onclick="setFilter('status','In Progress')"><div class="stat-label">In Progress</div><div class="stat-value" style="color:var(--info)" id="st-prog">—</div></div>
-    <div class="stat-card" onclick="setFilter('status','Done')"><div class="stat-label">Done</div><div class="stat-value success" id="st-done">—</div></div>
-    <div class="stat-card" onclick="setFilter('priority','High')"><div class="stat-label">High Priority</div><div class="stat-value danger" id="st-high">—</div></div>
-    <div class="stat-card" onclick="clearFilter()"><div class="stat-label">Total</div><div class="stat-value" id="st-total">—</div></div>
+  <div class="stats-row">
+    <div class="stat-card" onclick="filterByStatus('')" id="sc-all"><div class="num" id="s-all">0</div><div class="lbl">Total</div></div>
+    <div class="stat-card open" onclick="filterByStatus('Open')" id="sc-open"><div class="num" id="s-open">0</div><div class="lbl">Open</div></div>
+    <div class="stat-card inprog" onclick="filterByStatus('In Progress')" id="sc-inprog"><div class="num" id="s-inprog">0</div><div class="lbl">In Progress</div></div>
+    <div class="stat-card closed" onclick="filterByStatus('Closed')" id="sc-closed"><div class="num" id="s-closed">0</div><div class="lbl">Closed</div></div>
+    <div class="stat-card high" onclick="filterByPriority('High')" id="sc-high"><div class="num" id="s-high">0</div><div class="lbl">High Priority</div></div>
   </div>
 
   <div class="filter-bar">
-    <input type="search" id="q" placeholder="Search task title, assignee…" oninput="render()">
-    <select id="fStatus" onchange="render()">
-      <option value="">All statuses</option>
+    <input type="text" id="fSearch" placeholder="Search description, location, assignee..." oninput="renderTable()">
+    <select id="fStatus" onchange="renderTable()">
+      <option value="">All Statuses</option>
       <option value="Open">Open</option>
       <option value="In Progress">In Progress</option>
-      <option value="Done">Done</option>
+      <option value="Closed">Closed</option>
     </select>
-    <select id="fPriority" onchange="render()">
-      <option value="">All priorities</option>
+    <select id="fPriority" onchange="renderTable()">
+      <option value="">All Priorities</option>
       <option value="High">High</option>
       <option value="Medium">Medium</option>
       <option value="Low">Low</option>
     </select>
-    <select id="fAssignee" onchange="render()"><option value="">All assignees</option></select>
-    <div class="filter-spacer"></div>
-    <label style="font-size:12px;color:var(--text-muted)"><input type="checkbox" id="showDone" onchange="render()"> Show done</label>
+    <select id="fAssignee" onchange="renderTable()"><option value="">All Assignees</option></select>
+    <select id="fLocation" onchange="renderTable()"><option value="">All Locations</option></select>
+    <button class="btn btn-ghost btn-sm" onclick="clearFilters()">Clear</button>
   </div>
 
   <div class="table-wrap">
-    <div class="table-header"><h3 id="tableCount">Tasks</h3></div>
     <table>
-      <thead><tr>
-        <th style="width:28px"></th>
-        <th onclick="sortBy('title')">Title <span class="sa" id="sa-title">↕</span></th>
-        <th onclick="sortBy('priority')">Priority <span class="sa" id="sa-priority">↕</span></th>
-        <th onclick="sortBy('assignee')">Assignee <span class="sa" id="sa-assignee">↕</span></th>
-        <th onclick="sortBy('dueDate')">Due Date <span class="sa" id="sa-dueDate">↕</span></th>
-        <th onclick="sortBy('status')">Status <span class="sa" id="sa-status">↕</span></th>
-        <th style="width:110px"></th>
-      </tr></thead>
-      <tbody id="tBody"><tr class="empty-row"><td colspan="7"><div class="empty-icon">✅</div><p>Loading tasks…</p></td></tr></tbody>
+      <thead>
+        <tr>
+          <th onclick="sort('id')" id="th_id">#</th>
+          <th onclick="sort('description')" id="th_description">Description</th>
+          <th onclick="sort('assignedTo')" id="th_assignedTo">Assigned To</th>
+          <th onclick="sort('priority')" id="th_priority">Priority</th>
+          <th onclick="sort('location')" id="th_location">Location</th>
+          <th onclick="sort('dateAssigned')" id="th_dateAssigned">Assigned</th>
+          <th onclick="sort('dueDate')" id="th_dueDate">Due Date</th>
+          <th onclick="sort('status')" id="th_status">Status</th>
+          <th>Days Open</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="taskTableBody"></tbody>
     </table>
-    <div class="pagination" id="pagination"></div>
   </div>
-</div>
+</main>
 
-<!-- FORM MODAL -->
-<div class="modal-overlay" id="formModal">
-  <div class="modal" style="max-width:640px">
+<!-- ADD/EDIT MODAL -->
+<div id="taskModal" class="modal-overlay">
+  <div class="modal">
     <div class="modal-header">
-      <h2 id="formTitle">Add Task</h2>
-      <button class="modal-close" onclick="closeModal('formModal')">✕</button>
+      <h2 id="modalTitle">New Task</h2>
+      <button class="modal-close" onclick="closeModal()">&#10005;</button>
     </div>
     <div class="modal-body">
-      <input type="hidden" id="f_id">
-      <div class="form-grid">
-        <div class="form-group form-span-2">
-          <label>Task Title *</label>
-          <input id="f_title" placeholder="What needs to be done?">
+      <div class="fg"><label>Description *</label><textarea id="m_desc" placeholder="What needs to be done?"></textarea></div>
+      <div class="form-row">
+        <div class="fg"><label>Assigned To *</label>
+          <select id="m_assignee"><option value="">Select assignee</option></select>
         </div>
-        <div class="form-group">
-          <label>Status</label>
-          <select id="f_status">
-            <option value="Open">Open</option>
-            <option value="In Progress">In Progress</option>
-            <option value="Done">Done</option>
-          </select>
+        <div class="fg"><label>Location / Property</label>
+          <select id="m_location"><option value="">— Select or type —</option></select>
         </div>
-        <div class="form-group">
-          <label>Priority</label>
-          <select id="f_priority">
-            <option value="Medium">Medium</option>
+      </div>
+      <div class="form-row three">
+        <div class="fg"><label>Priority</label>
+          <select id="m_priority">
             <option value="High">High</option>
+            <option value="Medium" selected>Medium</option>
             <option value="Low">Low</option>
           </select>
         </div>
-        <div class="form-group">
-          <label>Assignee</label>
-          <input id="f_assignee" placeholder="Person responsible">
+        <div class="fg"><label>Status</label>
+          <select id="m_status">
+            <option value="Open" selected>Open</option>
+            <option value="In Progress">In Progress</option>
+            <option value="Closed">Closed</option>
+          </select>
         </div>
-        <div class="form-group">
-          <label>Due Date</label>
-          <input type="date" id="f_dueDate">
-        </div>
-        <div class="form-group form-span-2">
-          <label>Description</label>
-          <textarea id="f_description" rows="3" placeholder="Optional details…"></textarea>
-        </div>
+        <div class="fg"><label>Date Assigned</label><input type="date" id="m_dateAssigned"></div>
       </div>
-
-      <!-- Subtasks -->
-      <div style="margin-top:20px">
-        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted);margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border)">Subtasks</div>
-        <ul class="subtask-list" id="subtaskList"></ul>
-        <div style="display:flex;gap:8px;margin-top:8px">
-          <input id="newSubtask" placeholder="Add subtask…" style="flex:1;padding:7px 12px;border:1px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;outline:none" onkeydown="if(event.key==='Enter'){event.preventDefault();addSubtask()}">
-          <button class="btn btn-outline btn-sm" onclick="addSubtask()">+ Add</button>
-        </div>
+      <div class="form-row">
+        <div class="fg"><label>Due Date</label><input type="date" id="m_dueDate"></div>
+        <div class="fg"><label>Completion Date</label><input type="date" id="m_completionDate"></div>
       </div>
+      <div class="fg"><label>Comments</label><textarea id="m_comments" placeholder="Any notes or comments..."></textarea></div>
     </div>
     <div class="modal-footer">
-      <button class="btn btn-danger btn-sm" id="fDeleteBtn" onclick="deleteCurrent()" style="display:none;margin-right:auto">🗑 Delete</button>
-      <button class="btn btn-outline" onclick="closeModal('formModal')">Cancel</button>
-      <button class="btn btn-primary" onclick="save()">Save Task</button>
+      <button class="btn btn-danger btn-sm" id="m_deleteBtn" onclick="deleteTask()" style="display:none">Delete Task</button>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-save" onclick="saveTask()">Save Task</button>
+      </div>
     </div>
   </div>
 </div>
 
-<script src="erp-base.js"></script>
+<div id="toast" class="toast"></div>
 <script>
+const SUPABASE_URL='https://whuytfjwdjjepayeiohj.supabase.co';
+const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndodXl0Zmp3ZGpqZXBheWVpb2hqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIyODQxMzQsImV4cCI6MjA4Nzg2MDEzNH0.pTDAqw_Cnzc9D3tJU-tU7Ch5qpapKmteiqI_ooSCufY';
+const DB={
+  _h(){return{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json','Prefer':'return=representation,resolution=merge-duplicates'}},
+  _hG(){return{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY}},
+  _hD(){return{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json'}},
+  _ok(){return!!(SUPABASE_URL&&SUPABASE_KEY&&SUPABASE_URL.includes('supabase.co'))},
+  async _fetch(method,table,body,query,ms){
+    if(!this._ok())return{ok:false,data:null,err:'Not configured'};
+    const ctrl=new AbortController(),t=setTimeout(()=>ctrl.abort(),ms||15000);
+    try{
+      const url=SUPABASE_URL+'/rest/v1/'+table+(query||'');
+      const headers=method==='GET'?this._hG():method==='DELETE'?this._hD():this._h();
+      const opts={method,headers,signal:ctrl.signal};
+      if(body)opts.body=JSON.stringify(body);
+      const res=await fetch(url,opts);clearTimeout(t);
+      if(!res.ok){
+        let e='HTTP '+res.status;
+        try{const j=await res.json();e=j.message||j.hint||j.error||e}catch(x){}
+        return{ok:false,data:null,err:e};
+      }
+      if(res.status===204||method==='DELETE')return{ok:true,data:[]};
+      const ct=res.headers.get('content-type')||'';
+      if(!ct.includes('json'))return{ok:true,data:[]};
+      try{return{ok:true,data:await res.json()}}catch(x){return{ok:true,data:[]}}
+    }catch(e){clearTimeout(t);return{ok:false,data:null,err:e.name==='AbortError'?'Timeout':e.message}}
+  },
+  async loadAll(table){
+    const r=await this._fetch('GET',table,null,'?select=id,data,updated_at&order=created_at.asc&limit=100000');
+    if(!r.ok)return{ok:false,rows:null,err:r.err};
+    const rows=(r.data||[]).map(row=>({id:row.id,...(row.data||{})}));
+    return{ok:true,rows};
+  },
+  async upsertOne(table,record){
+    const{id,...rest}=record;
+    const rid=id||('rec_'+Date.now()+'_'+Math.random().toString(36).slice(2,6));
+    const row={id:rid,data:rest,updated_at:new Date().toISOString()};
+    const r=await this._fetch('POST',table,row,'?on_conflict=id');
+    return{ok:r.ok,id:rid,err:r.err};
+  },
+  async upsertMany(table,records){
+    if(!records.length)return{ok:true};
+    const rows=records.map(({id,...rest})=>({id:id||('rec_'+Date.now()+'_'+Math.random().toString(36).slice(2,6)),data:rest,updated_at:new Date().toISOString()}));
+    const size=200;
+    for(let i=0;i<rows.length;i+=size){
+      const r=await this._fetch('POST',table,rows.slice(i,i+size),'?on_conflict=id');
+      if(!r.ok)return{ok:false,err:r.err};
+    }
+    return{ok:true};
+  },
+  async deleteOne(table,id){
+    const r=await this._fetch('DELETE',table,null,'?id=eq.'+encodeURIComponent(id));
+    return{ok:r.ok,err:r.err};
+  },
+  isConfigured(){return this._ok()}
+};
+const SyncStore={
+  _pendingDeletes:{},
+  async load(lsKey,table){
+    const cached=this._getLocal(lsKey);
+    const result=await DB.loadAll(table);
+    if(result.ok&&result.rows!==null){
+      const pending=this._pendingDeletes[table]||new Set();
+      const rows=result.rows.filter(r=>!pending.has(r.id));
+      localStorage.setItem(lsKey,JSON.stringify(rows));
+      return{data:rows,fromCache:false,online:true};
+    }
+    return{data:cached,fromCache:true,online:false};
+  },
+  async saveOne(lsKey,table,record,all){
+    localStorage.setItem(lsKey,JSON.stringify(all));
+    const r=await DB.upsertOne(table,record);
+    if(!r.ok)showSyncErr(r.err);
+    return r;
+  },
+  async saveAll(lsKey,table,records){
+    localStorage.setItem(lsKey,JSON.stringify(records));
+    const r=await DB.upsertMany(table,records);
+    if(!r.ok)showSyncErr(r.err);
+    return r.ok;
+  },
+  async deleteOne(lsKey,table,id,all){
+    if(!this._pendingDeletes[table])this._pendingDeletes[table]=new Set();
+    this._pendingDeletes[table].add(id);
+    localStorage.setItem(lsKey,JSON.stringify(all));
+    const r=await DB.deleteOne(table,id);
+    if(!r.ok){
+      this._pendingDeletes[table].delete(id);
+      showSyncErr('Delete failed: '+r.err);
+      return{ok:false,err:r.err};
+    }
+    setTimeout(()=>{if(this._pendingDeletes[table])this._pendingDeletes[table].delete(id)},120000);
+    return{ok:true};
+  },
+  _getLocal(key){try{return JSON.parse(localStorage.getItem(key)||'[]')||[]}catch{return[]}}
+};
+function startPoll(table,lsKey,ms,onData){
+  let lastHash='';
+  const poll=async()=>{
+    const result=await DB.loadAll(table);
+    if(!result.ok||!result.rows)return;
+    const pending=SyncStore._pendingDeletes[table]||new Set();
+    const rows=result.rows.filter(r=>!pending.has(r.id));
+    const hash=rows.length+'|'+rows.map(r=>r.id).join(',');
+    if(hash!==lastHash){lastHash=hash;localStorage.setItem(lsKey,JSON.stringify(rows));onData(rows)}
+  };
+  setInterval(poll,ms);
+  return poll;
+}
+function showDbStatus(online){
+  const old=document.getElementById('db-status-bar');if(old)old.remove();
+  if(online)return;
+  const b=document.createElement('div');b.id='db-status-bar';
+  b.style.cssText='position:fixed;bottom:0;left:0;right:0;background:#c0392b;color:#fff;text-align:center;padding:8px;font-size:12px;z-index:9998;cursor:pointer;';
+  b.textContent='⚠ Database offline — working in local mode. Click to retry.';
+  b.onclick=()=>{location.reload()};
+  document.body.appendChild(b);
+}
+function showSyncErr(err){
+  let b=document.getElementById('sync-err-bar');
+  if(!b){b=document.createElement('div');b.id='sync-err-bar';b.style.cssText='position:fixed;bottom:40px;right:16px;background:#c0392b;color:#fff;border-radius:8px;padding:8px 14px;font-size:12px;z-index:9999;max-width:320px;';document.body.appendChild(b)}
+  b.textContent='Save error: '+err;b.style.display='block';
+  clearTimeout(b._t);b._t=setTimeout(()=>b.style.display='none',6000);
+}
+
+
+
+
 let tasks = [];
-let sort = { field: 'dueDate', dir: 1 };
-let page = 1;
-const PAGE = 25;
-let subtasks = [];
-let expandedId = null;
+let employees = [];
+let properties = [];
+let settings = {};
+let editingId = null;
+let sortCol = 'dateAssigned', sortDir = -1;
+let filterStatus = '', filterPriority = '';
 
 async function init() {
-  const res = await SyncStore.load('zesty_tasks', 'tasks');
-  tasks = res.data;
-  populateAssignees();
-  render();
-  startPoll('tasks', 'zesty_tasks', 30000, rows => { tasks = rows; populateAssignees(); render(); });
-}
-init();
+  const today = new Date().toISOString().slice(0,10);
+  document.getElementById('m_dateAssigned').value = today;
 
-function populateAssignees() {
-  const sel = document.getElementById('fAssignee');
-  const cur = sel.value;
-  const names = [...new Set(tasks.map(t => t.assignee).filter(Boolean))].sort();
-  sel.innerHTML = '<option value="">All assignees</option>' + names.map(n => `<option value="${n}">${n}</option>`).join('');
-  sel.value = cur;
+  const ol = document.getElementById('loadingOverlay');
+
+  // Load all data in parallel
+  const [tR, eR, pR, sR] = await Promise.all([
+    SyncStore.load('zesty_tasks','tasks'),
+    SyncStore.load('zesty_employees','employees'),
+    SyncStore.load('zesty_properties','properties'),
+    SyncStore.load('zesty_settings','settings')
+  ]);
+
+  showDbStatus(tR.online);
+  tasks = tR.data;
+  employees = eR.data.filter(e=>e.status !== 'inactive');
+  properties = pR.data;
+  settings = sR.data[0] || {};
+
+  populateDropdowns();
+  renderTable();
+  updateStats();
+
+  if(ol){ol.style.opacity='0';ol.style.transition='opacity 0.3s';setTimeout(()=>ol.remove(),300)}
+
+  // Poll all
+  startPoll('tasks','zesty_tasks',30000,(rows)=>{tasks=rows;renderTable();updateStats();});
+  startPoll('employees','zesty_employees',30000,(rows)=>{employees=rows.filter(e=>e.status!=='inactive');populateDropdowns();});
+  startPoll('properties','zesty_properties',30000,(rows)=>{properties=rows;populateDropdowns();});
+  startPoll('settings','zesty_settings',30000,(rows)=>{settings=rows[0]||{};populateDropdowns();});
 }
 
-function statusBadge(s) {
-  if (s === 'Done') return `<span class="badge b-active">Done</span>`;
-  if (s === 'In Progress') return `<span class="badge b-progress">In Progress</span>`;
-  return `<span class="badge b-pending">Open</span>`;
+function getAssignees() {
+  const fromEmp = employees.map(e=>((e.firstName||'')+' '+(e.lastName||'')).trim()).filter(Boolean);
+  const manual = settings.taskAssignees || [];
+  return [...new Set([...fromEmp, ...manual])].sort();
+}
+
+function getLocations() {
+  const fromProps = properties.map(p=>p.name||p.propertyName||'').filter(Boolean);
+  const manual = settings.taskLocations || [];
+  return [...new Set([...fromProps, ...manual])].sort();
+}
+
+function populateDropdowns() {
+  const assignees = getAssignees();
+  const locations = getLocations();
+
+  // Filter dropdowns
+  const fA = document.getElementById('fAssignee');
+  const curA = fA.value;
+  fA.innerHTML = '<option value="">All Assignees</option>' + assignees.map(a=>`<option${a===curA?' selected':''}>${a}</option>`).join('');
+
+  const fL = document.getElementById('fLocation');
+  const curL = fL.value;
+  fL.innerHTML = '<option value="">All Locations</option>' + locations.map(l=>`<option${l===curL?' selected':''}>${l}</option>`).join('');
+
+  // Modal dropdowns
+  const mA = document.getElementById('m_assignee');
+  const mAcur = mA.value;
+  mA.innerHTML = '<option value="">Select assignee</option>' + assignees.map(a=>`<option${a===mAcur?' selected':''}>${a}</option>`).join('');
+
+  const mL = document.getElementById('m_location');
+  const mLcur = mL.value;
+  mL.innerHTML = '<option value="">— No location —</option>' + locations.map(l=>`<option${l===mLcur?' selected':''}>${l}</option>`).join('');
+}
+
+function getFiltered() {
+  const q = document.getElementById('fSearch').value.toLowerCase();
+  const fS = document.getElementById('fStatus').value || filterStatus;
+  const fP = document.getElementById('fPriority').value || filterPriority;
+  const fA = document.getElementById('fAssignee').value;
+  const fL = document.getElementById('fLocation').value;
+  return tasks.filter(t=> {
+    return (!q || (t.description||'').toLowerCase().includes(q)
+                || (t.assignedTo||'').toLowerCase().includes(q)
+                || (t.location||'').toLowerCase().includes(q))
+      && (!fS || t.status===fS)
+      && (!fP || t.priority===fP)
+      && (!fA || t.assignedTo===fA)
+      && (!fL || t.location===fL);
+  });
+}
+
+const STATUS_BADGE = {Open:'b-open',['In Progress']:'b-inprog',Closed:'b-closed'};
+const PRIORITY_BADGE = {High:'b-high',Medium:'b-medium',Low:'b-low'};
+
+function agingBucket(days) {
+  if(days===null||days===undefined||days==='') return '';
+  const d = parseInt(days);
+  if(d<=3) return `<span class="days-chip dc-0">${d}d</span>`;
+  if(d<=7) return `<span class="days-chip dc-3">${d}d</span>`;
+  return `<span class="days-chip dc-7">${d}d</span>`;
+}
+
+function calcDaysOpen(t) {
+  if(!t.dateAssigned) return null;
+  const start = new Date(t.dateAssigned);
+  const end = t.status==='Closed' && t.completionDate ? new Date(t.completionDate) : new Date();
+  const diff = Math.round((end-start)/86400000);
+  return diff >= 0 ? diff : 0;
 }
 
 function isOverdue(t) {
-  return t.dueDate && t.status !== 'Done' && new Date(t.dueDate) < new Date();
+  if(t.status==='Closed') return false;
+  if(!t.dueDate) return false;
+  return t.dueDate < new Date().toISOString().slice(0,10);
 }
 
-function render() {
-  const q = (document.getElementById('q').value || '').toLowerCase();
-  const fStatus = document.getElementById('fStatus').value;
-  const fPriority = document.getElementById('fPriority').value;
-  const fAssignee = document.getElementById('fAssignee').value;
-  const showDone = document.getElementById('showDone').checked;
+function sort(col) {
+  if(sortCol===col) sortDir*=-1; else {sortCol=col;sortDir=1;}
+  document.querySelectorAll('th').forEach(t=>t.classList.remove('sorted'));
+  const th=document.getElementById('th_'+col);
+  if(th) th.classList.add('sorted');
+  renderTable();
+}
 
-  let list = tasks.filter(t => {
-    if (!showDone && t.status === 'Done') return false;
-    if (fStatus && t.status !== fStatus) return false;
-    if (fPriority && t.priority !== fPriority) return false;
-    if (fAssignee && t.assignee !== fAssignee) return false;
-    if (q && !((t.title || '') + ' ' + (t.assignee || '') + ' ' + (t.description || '')).toLowerCase().includes(q)) return false;
-    return true;
+function renderTable() {
+  const list = getFiltered().sort((a,b)=>{
+    let va=a[sortCol]||'', vb=b[sortCol]||'';
+    if(sortCol==='id'){va=parseInt(a.taskNum||a.id||0);vb=parseInt(b.taskNum||b.id||0);}
+    return va<vb?-sortDir:va>vb?sortDir:0;
   });
 
-  list.sort((a, b) => {
-    let av = a[sort.field] || '', bv = b[sort.field] || '';
-    // Priority sort order
-    if (sort.field === 'priority') {
-      const order = { High: 0, Medium: 1, Low: 2 };
-      av = order[av] ?? 1; bv = order[bv] ?? 1;
-      return (av - bv) * sort.dir;
-    }
-    return (av < bv ? -1 : av > bv ? 1 : 0) * sort.dir;
-  });
+  document.getElementById('taskSubtitle').textContent = list.length+' of '+tasks.length+' tasks';
 
-  const total = list.length;
-  const pages = Math.ceil(total / PAGE) || 1;
-  if (page > pages) page = 1;
-  const slice = list.slice((page - 1) * PAGE, page * PAGE);
-
-  // Stats
-  document.getElementById('st-open').textContent = tasks.filter(t => t.status === 'Open').length;
-  document.getElementById('st-prog').textContent = tasks.filter(t => t.status === 'In Progress').length;
-  document.getElementById('st-done').textContent = tasks.filter(t => t.status === 'Done').length;
-  document.getElementById('st-high').textContent = tasks.filter(t => t.priority === 'High' && t.status !== 'Done').length;
-  document.getElementById('st-total').textContent = tasks.length;
-  document.getElementById('tableCount').textContent = `${total} Task${total !== 1 ? 's' : ''}`;
-
-  const tbody = document.getElementById('tBody');
-  if (!slice.length) {
-    tbody.innerHTML = `<tr class="empty-row"><td colspan="7"><div class="empty-icon">✅</div><p>No tasks found</p></td></tr>`;
-  } else {
-    const rows = [];
-    slice.forEach(t => {
-      const overdue = isOverdue(t);
-      const subs = t.subtasks || [];
-      const subDone = subs.filter(s => s.done).length;
-      const hasExpand = expandedId === t.id;
-      rows.push(`<tr class="${hasExpand ? 'row-expand' : ''}">
-        <td style="padding:0 0 0 12px;width:28px">
-          ${subs.length ? `<button style="background:none;border:none;cursor:pointer;font-size:13px;padding:4px" onclick="toggleExpand('${t.id}')">${hasExpand ? '▼' : '▶'}</button>` : ''}
-        </td>
-        <td>
-          <div style="font-weight:500">${t.title || '—'}</div>
-          ${t.description ? `<div style="font-size:11px;color:var(--text-muted);margin-top:2px">${t.description.slice(0,60)}${t.description.length > 60 ? '…' : ''}</div>` : ''}
-          ${subs.length ? `<div style="margin-top:4px;font-size:10px;color:var(--text-muted)">${subDone}/${subs.length} subtasks
-            <div class="progress-bar" style="width:100px"><div class="progress-fill" style="width:${subs.length ? Math.round(subDone/subs.length*100) : 0}%"></div></div>
-          </div>` : ''}
-        </td>
-        <td><span class="priority-${t.priority || 'Medium'}">${t.priority || 'Medium'}</span></td>
-        <td style="font-size:12px">${t.assignee || '—'}</td>
-        <td style="font-size:12px;${overdue ? 'color:var(--danger);font-weight:600' : ''}">${fmtDate(t.dueDate)}${overdue ? ' ⚠' : ''}</td>
-        <td>${statusBadge(t.status)}</td>
-        <td>
-          <div class="table-actions">
-            <button class="btn btn-teal btn-xs" onclick="editTask('${t.id}')">✏️</button>
-            ${t.status !== 'Done' ? `<button class="btn btn-success btn-xs" onclick="markDone('${t.id}')">✓</button>` : ''}
-            <button class="btn btn-danger btn-xs" onclick="confirmDel('${t.id}')">🗑</button>
-          </div>
-        </td>
-      </tr>`);
-      // Expanded subtask row
-      if (hasExpand && subs.length) {
-        rows.push(`<tr class="subtask-row"><td colspan="7">
-          <ul class="subtask-list">
-            ${subs.map((s, i) => `<li class="subtask-item ${s.done ? 'done' : ''}">
-              <input type="checkbox" ${s.done ? 'checked' : ''} onchange="toggleSubDone('${t.id}', ${i})">
-              <span>${s.text}</span>
-            </li>`).join('')}
-          </ul>
-        </td></tr>`);
-      }
-    });
-    tbody.innerHTML = rows.join('');
+  const tbody = document.getElementById('taskTableBody');
+  if(!list.length){
+    tbody.innerHTML='<tr class="empty-row"><td colspan="10">No tasks found.</td></tr>';
+    return;
   }
 
-  // Pagination
-  const pg = document.getElementById('pagination');
-  if (pages <= 1) { pg.innerHTML = ''; return; }
-  let h = `<span>${total} total</span><div class="pagination-spacer"></div>`;
-  for (let i = 1; i <= pages; i++) {
-    if (i === 1 || i === pages || Math.abs(i - page) <= 1) h += `<button class="page-btn ${i === page ? 'active' : ''}" onclick="page=${i};render()">${i}</button>`;
-    else if (Math.abs(i - page) === 2) h += '<span>…</span>';
-  }
-  pg.innerHTML = h;
+  tbody.innerHTML = list.map(t=>{
+    const sBadge = STATUS_BADGE[t.status]||'';
+    const pBadge = PRIORITY_BADGE[t.priority]||'';
+    const days = calcDaysOpen(t);
+    const overdue = isOverdue(t);
+    return `<tr class="task-row" onclick="openEdit('${t.id}')">
+      <td style="color:var(--text-muted);font-size:12px">${t.taskNum||''}</td>
+      <td><div style="max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500">${t.description||'—'}</div></td>
+      <td><span class="badge b-assign">${t.assignedTo||'—'}</span></td>
+      <td>${t.priority?`<span class="badge ${pBadge}">${t.priority}</span>`:'—'}</td>
+      <td>${t.location?`<span class="badge b-loc">${t.location}</span>`:'—'}</td>
+      <td style="color:var(--text-muted);font-size:12px">${t.dateAssigned||'—'}</td>
+      <td class="${overdue?'overdue':''}" style="font-size:12px">${t.dueDate||'—'}${overdue?' ⚠':''}</td>
+      <td>${sBadge?`<span class="badge ${sBadge}">${t.status}</span>`:'—'}</td>
+      <td>${agingBucket(days)}</td>
+      <td onclick="event.stopPropagation()"><button class="btn btn-ghost btn-sm" onclick="openEdit('${t.id}')">Edit</button></td>
+    </tr>`;
+  }).join('');
 }
 
-function sortBy(f) {
-  if (sort.field === f) sort.dir *= -1; else { sort.field = f; sort.dir = 1; }
-  render();
-}
-function setFilter(k, v) {
-  if (k === 'status') document.getElementById('fStatus').value = v;
-  if (k === 'priority') document.getElementById('fPriority').value = v;
-  page = 1; render();
-}
-function clearFilter() {
-  document.getElementById('fStatus').value = '';
-  document.getElementById('fPriority').value = '';
-  document.getElementById('fAssignee').value = '';
-  document.getElementById('q').value = '';
-  page = 1; render();
+function updateStats() {
+  const t = tasks;
+  document.getElementById('s-all').textContent = t.length;
+  document.getElementById('s-open').textContent = t.filter(x=>x.status==='Open').length;
+  document.getElementById('s-inprog').textContent = t.filter(x=>x.status==='In Progress').length;
+  document.getElementById('s-closed').textContent = t.filter(x=>x.status==='Closed').length;
+  document.getElementById('s-high').textContent = t.filter(x=>x.priority==='High'&&x.status!=='Closed').length;
 }
 
-function toggleExpand(id) {
-  expandedId = expandedId === id ? null : id;
-  render();
+function filterByStatus(s) {
+  filterStatus=s; filterPriority='';
+  document.getElementById('fStatus').value=s;
+  document.getElementById('fPriority').value='';
+  document.querySelectorAll('.stat-card').forEach(c=>c.classList.remove('active-filter'));
+  const map={'':'sc-all','Open':'sc-open','In Progress':'sc-inprog','Closed':'sc-closed'};
+  if(map[s]) document.getElementById(map[s]).classList.add('active-filter');
+  renderTable();
 }
 
-async function toggleSubDone(taskId, idx) {
-  const t = tasks.find(x => x.id === taskId);
-  if (!t || !t.subtasks) return;
-  t.subtasks[idx].done = !t.subtasks[idx].done;
-  render();
-  await SyncStore.saveOne('zesty_tasks', 'tasks', t, tasks);
+function filterByPriority(p) {
+  filterPriority=p; filterStatus='';
+  document.getElementById('fPriority').value=p;
+  document.getElementById('fStatus').value='';
+  document.querySelectorAll('.stat-card').forEach(c=>c.classList.remove('active-filter'));
+  if(p==='High') document.getElementById('sc-high').classList.add('active-filter');
+  renderTable();
 }
 
-async function markDone(id) {
-  const t = tasks.find(x => x.id === id);
-  if (!t) return;
-  t.status = 'Done';
-  render();
-  await SyncStore.saveOne('zesty_tasks', 'tasks', t, tasks);
-  showToast('✓ Task marked done', 'success');
+function clearFilters() {
+  filterStatus=''; filterPriority='';
+  document.getElementById('fSearch').value='';
+  document.getElementById('fStatus').value='';
+  document.getElementById('fPriority').value='';
+  document.getElementById('fAssignee').value='';
+  document.getElementById('fLocation').value='';
+  document.querySelectorAll('.stat-card').forEach(c=>c.classList.remove('active-filter'));
+  renderTable();
 }
 
-// ── FORM ──
 function openAdd() {
-  document.getElementById('formTitle').textContent = 'Add Task';
-  document.getElementById('fDeleteBtn').style.display = 'none';
-  clearForm();
-  openModal('formModal');
+  editingId = null;
+  document.getElementById('modalTitle').textContent = 'New Task';
+  document.getElementById('m_deleteBtn').style.display = 'none';
+  document.getElementById('m_desc').value = '';
+  document.getElementById('m_assignee').value = '';
+  document.getElementById('m_location').value = '';
+  document.getElementById('m_priority').value = 'Medium';
+  document.getElementById('m_status').value = 'Open';
+  document.getElementById('m_dateAssigned').value = new Date().toISOString().slice(0,10);
+  document.getElementById('m_dueDate').value = '';
+  document.getElementById('m_completionDate').value = '';
+  document.getElementById('m_comments').value = '';
+  document.getElementById('taskModal').classList.add('open');
 }
 
-function editTask(id) {
-  const t = tasks.find(x => x.id === id);
-  if (!t) return;
-  document.getElementById('formTitle').textContent = 'Edit Task';
-  document.getElementById('fDeleteBtn').style.display = '';
-  document.getElementById('f_id').value = t.id;
-  document.getElementById('f_title').value = t.title || '';
-  document.getElementById('f_status').value = t.status || 'Open';
-  document.getElementById('f_priority').value = t.priority || 'Medium';
-  document.getElementById('f_assignee').value = t.assignee || '';
-  document.getElementById('f_dueDate').value = t.dueDate || '';
-  document.getElementById('f_description').value = t.description || '';
-  subtasks = (t.subtasks || []).map(s => ({ ...s }));
-  renderSubtaskForm();
-  openModal('formModal');
+function openEdit(id) {
+  const t = tasks.find(x=>x.id===id);
+  if(!t) return;
+  editingId = id;
+  document.getElementById('modalTitle').textContent = 'Edit Task';
+  document.getElementById('m_deleteBtn').style.display = 'inline-flex';
+  document.getElementById('m_desc').value = t.description||'';
+  document.getElementById('m_assignee').value = t.assignedTo||'';
+  document.getElementById('m_location').value = t.location||'';
+  document.getElementById('m_priority').value = t.priority||'Medium';
+  document.getElementById('m_status').value = t.status||'Open';
+  document.getElementById('m_dateAssigned').value = t.dateAssigned||'';
+  document.getElementById('m_dueDate').value = t.dueDate||'';
+  document.getElementById('m_completionDate').value = t.completionDate||'';
+  document.getElementById('m_comments').value = t.comments||'';
+  document.getElementById('taskModal').classList.add('open');
 }
 
-function clearForm() {
-  document.getElementById('f_id').value = '';
-  document.getElementById('f_title').value = '';
-  document.getElementById('f_status').value = 'Open';
-  document.getElementById('f_priority').value = 'Medium';
-  document.getElementById('f_assignee').value = '';
-  document.getElementById('f_dueDate').value = '';
-  document.getElementById('f_description').value = '';
-  subtasks = [];
-  renderSubtaskForm();
-}
+async function saveTask() {
+  const desc = document.getElementById('m_desc').value.trim();
+  const assignee = document.getElementById('m_assignee').value;
+  if(!desc){showToast('Description is required.','err');return}
+  if(!assignee){showToast('Please select an assignee.','err');return}
 
-function renderSubtaskForm() {
-  document.getElementById('subtaskList').innerHTML = subtasks.map((s, i) =>
-    `<li class="subtask-item ${s.done ? 'done' : ''}">
-      <input type="checkbox" ${s.done ? 'checked' : ''} onchange="subtasks[${i}].done=this.checked;renderSubtaskForm()">
-      <span style="flex:1">${s.text}</span>
-      <button style="background:none;border:none;cursor:pointer;color:var(--text-muted);font-size:13px" onclick="subtasks.splice(${i},1);renderSubtaskForm()">✕</button>
-    </li>`
-  ).join('');
-}
-
-function addSubtask() {
-  const inp = document.getElementById('newSubtask');
-  const text = inp.value.trim();
-  if (!text) return;
-  subtasks.push({ text, done: false });
-  inp.value = '';
-  renderSubtaskForm();
-}
-
-async function save() {
-  const title = document.getElementById('f_title').value.trim();
-  if (!title) { showToast('Task title is required', 'error'); return; }
-  const id = document.getElementById('f_id').value || genId('task');
   const record = {
-    id,
-    title,
-    status: document.getElementById('f_status').value,
-    priority: document.getElementById('f_priority').value,
-    assignee: document.getElementById('f_assignee').value,
-    dueDate: document.getElementById('f_dueDate').value,
-    description: document.getElementById('f_description').value,
-    subtasks: subtasks.slice(),
-    updatedAt: new Date().toISOString()
+    id: editingId || ('task_'+Date.now()+'_'+Math.random().toString(36).slice(2,5)),
+    taskNum: editingId ? (tasks.find(x=>x.id===editingId)||{}).taskNum : (tasks.length ? Math.max(...tasks.map(x=>parseInt(x.taskNum)||0))+1 : 1),
+    description: desc,
+    assignedTo: assignee,
+    location: document.getElementById('m_location').value,
+    priority: document.getElementById('m_priority').value,
+    status: document.getElementById('m_status').value,
+    dateAssigned: document.getElementById('m_dateAssigned').value,
+    dueDate: document.getElementById('m_dueDate').value,
+    completionDate: document.getElementById('m_completionDate').value,
+    comments: document.getElementById('m_comments').value.trim()
   };
-  if (!record.createdAt) record.createdAt = record.updatedAt;
-  const existing = tasks.find(t => t.id === id);
-  if (existing) Object.assign(existing, record); else tasks.push(record);
-  closeModal('formModal');
-  populateAssignees();
-  render();
-  await SyncStore.saveOne('zesty_tasks', 'tasks', record, tasks);
-  showToast(existing ? '✓ Task updated' : '✓ Task created', 'success');
+
+  // Auto-set completion date when closing
+  if(record.status==='Closed' && !record.completionDate) {
+    record.completionDate = new Date().toISOString().slice(0,10);
+    document.getElementById('m_completionDate').value = record.completionDate;
+  }
+
+  const allResult = await SyncStore.load('zesty_tasks','tasks');
+  let all = allResult.data;
+  const idx = all.findIndex(x=>x.id===record.id);
+  if(idx!==-1) all[idx]=record; else all.push(record);
+  tasks = all;
+
+  const r = await SyncStore.saveOne('zesty_tasks','tasks',record,all);
+  if(r.ok!==false){
+    showToast(editingId?'Task updated':'Task created');
+    closeModal();
+    renderTable();
+    updateStats();
+  } else showToast('Save failed','err');
 }
 
-function deleteCurrent() {
-  const id = document.getElementById('f_id').value;
-  if (!id) return;
-  closeModal('formModal');
-  confirmDel(id);
+async function deleteTask() {
+  if(!editingId) return;
+  if(!confirm('Delete this task permanently?')) return;
+  const all = tasks.filter(x=>x.id!==editingId);
+  const r = await SyncStore.deleteOne('zesty_tasks','tasks',editingId,all);
+  if(r.ok){
+    tasks = all;
+    showToast('Task deleted');
+    closeModal();
+    renderTable();
+    updateStats();
+  } else showToast('Delete failed','err');
 }
 
-function confirmDel(id) {
-  const t = tasks.find(x => x.id === id);
-  if (!t) return;
-  showConfirm('🗑️', 'Delete Task?', `Delete "${t.title}"? This cannot be undone.`, 'btn-danger', 'Delete', async () => {
-    tasks = tasks.filter(x => x.id !== id);
-    await SyncStore.deleteOne('zesty_tasks', 'tasks', id, tasks);
-    render();
-    showToast('Task deleted', 'error');
-  });
+function closeModal() {
+  document.getElementById('taskModal').classList.remove('open');
+  editingId = null;
 }
 
 function exportCSV() {
-  const rows = [['Title', 'Status', 'Priority', 'Assignee', 'Due Date', 'Description']];
-  tasks.forEach(t => rows.push([t.title || '', t.status || '', t.priority || '', t.assignee || '', t.dueDate || '', t.description || '']));
-  const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n');
-  const a = document.createElement('a');
-  a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
-  a.download = 'tasks_' + new Date().toISOString().slice(0, 10) + '.csv';
+  const h = ['#','Description','Assigned To','Priority','Location','Date Assigned','Due Date','Completion Date','Status','Comments'];
+  const rows = tasks.map(t=>[t.taskNum,t.description,t.assignedTo,t.priority,t.location,t.dateAssigned,t.dueDate,t.completionDate,t.status,t.comments].map(v=>`"${(v||'').toString().replace(/"/g,'""')}"`));
+  const csv = [h.join(','),...rows.map(r=>r.join(','))].join('\n');
+  const a=document.createElement('a');
+  a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
+  a.download='tasks_'+new Date().toISOString().slice(0,10)+'.csv';
   a.click();
 }
+
+function showToast(msg,type){
+  const t=document.getElementById('toast');t.textContent=msg;t.className='toast show'+(type==='err'?' err':'');
+  clearTimeout(t._t);t._t=setTimeout(()=>t.className='toast',3000);
+}
+
+document.getElementById('taskModal').addEventListener('click',function(e){if(e.target===this)closeModal()});
+document.addEventListener('DOMContentLoaded', init);
+
 </script>
 <script src="erp-nav.js"></script>
 </body>
