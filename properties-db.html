@@ -886,7 +886,7 @@ function renderTable() {
           <div class="prop-name">${p.shortName}</div>
           <div class="prop-short">${p.propertyName && p.propertyName !== p.shortName ? p.propertyName.slice(0,45)+(p.propertyName.length>45?'...':'') : ''}</div>
         </td>
-        <td style="font-size:12px">${p.category ? `<span style="display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;background:#e8f4f8;color:#1a5a8a">${p.category}</span>` : '—'}</td>
+        <td style="font-size:12px">${p.category ? '<span style="display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;background:#e8f4f8;color:#1a5a8a">'+p.category+'</span>' : '—'}</td>
         <td style="font-size:12px">${p.owner ? `<span onclick="openOwnerCRM('${p.owner}')" style="color:var(--teal);cursor:pointer;text-decoration:underline;text-underline-offset:3px" title="View in Owners CRM">${p.ownerName||p.owner}</span>` : '—'}</td>
         <td style="font-size:12px;color:var(--text-muted)">${p.group && p.group !== p.propertyName ? p.group.slice(0,30)+(p.group.length>30?'...':'') : '—'}</td>
         <td style="text-align:center">${p.bedrooms ?? '—'}</td>
@@ -966,7 +966,7 @@ function editProperty(id) {
   setField('f_sqm', p.sqm);
   setField('f_capacity', p.capacity);
   setField('f_location', p.location);
-  const catSel = document.getElementById('f_category'); if(catSel) catSel.value = p.category || '';
+  const _catSel = document.getElementById('f_category'); if(_catSel) _catSel.value = p.category || '';
   setField('f_listingUrl', p.listingUrl);
   setField('f_checkin', p.checkin);
   setField('f_checkinCharge', p.checkinCharge);
@@ -1051,7 +1051,7 @@ async function saveProperty() {
     sqm: parseNum('f_sqm'),
     capacity: parseNum('f_capacity'),
     location: document.getElementById('f_location').value.trim(),
-    category: document.getElementById('f_category').value,
+    category: document.getElementById('f_category') ? document.getElementById('f_category').value : '',
     listingUrl: document.getElementById('f_listingUrl').value.trim(),
     checkin: document.getElementById('f_checkin').value,
     checkinCharge: parseNum('f_checkinCharge'),
