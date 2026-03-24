@@ -216,11 +216,14 @@
     background: white;
     border-radius: 12px;
     box-shadow: var(--shadow);
-    overflow: hidden;
+    overflow-x: auto;
+    overflow-y: visible;
+    -webkit-overflow-scrolling: touch;
   }
 
   table {
     width: 100%;
+    min-width: 900px;
     border-collapse: collapse;
     font-size: 13px;
   }
@@ -1242,7 +1245,7 @@ function renderTable() {
           <div class="actions">
             <button class="btn btn-outline btn-sm" onclick="viewOwner('${o.id}')">👁</button>
             <button class="btn btn-teal btn-sm" onclick="editOwner('${o.id}')">✏️</button>
-            <button class="btn btn-archive btn-sm" onclick="toggleArchive('${o.id}')">${o.archived ? '↩' : '📦'}</button>
+            <button class="btn btn-archive btn-sm" onclick="requirePassword(()=>toggleArchive('${o.id}'))">${o.archived ? '↩' : '📦'}</button>
             <button class="btn btn-danger btn-sm" onclick="deleteOwner('${o.id}')">🗑</button>
           </div>
         </td>
@@ -1686,6 +1689,15 @@ document.getElementById('f_attachments').addEventListener('change', function() {
 init().catch(console.error);
 showDbStatus();
 </script>
+
+// ── PASSWORD PROTECTION ──
+const ERP_PASSWORD = 'Zesty2025!';
+function requirePassword(cb) {
+  const pw = prompt('🔒 Enter ERP password to continue:');
+  if (pw === ERP_PASSWORD) { cb(); }
+  else if (pw !== null) { alert('Incorrect password.'); }
+}
+
 <script src="erp-nav.js"></script>
 </body>
 </html>

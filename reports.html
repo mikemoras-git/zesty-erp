@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Zesty ERP — Reports</title>
+<link rel="stylesheet" href="erp-style.css">
+<style>
+.report-subnav{display:flex;gap:4px;margin-bottom:24px;border-bottom:2px solid var(--border);flex-wrap:wrap}
+.report-tab{padding:10px 20px;cursor:pointer;font-size:13px;font-weight:500;color:var(--text-muted);border-bottom:3px solid transparent;margin-bottom:-2px;transition:all .18s;background:transparent;border-top:none;border-left:none;border-right:none;font-family:'DM Sans',sans-serif;white-space:nowrap}
+.report-tab:hover{color:var(--teal)}
+.report-tab.active{color:var(--teal);border-bottom-color:var(--teal);font-weight:600}
+.report-panel{display:none}
+.report-panel.active{display:block}
+.rpt-wrap{background:#fff;border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;margin-top:18px}
+.rpt-section{padding:20px 24px;border-bottom:1px solid var(--border)}
+.rpt-section:last-child{border-bottom:none}
+.rpt-section-title{font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:500;color:var(--teal-dark);margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+.rpt-table{width:100%;border-collapse:collapse;font-size:13px}
+.rpt-table th{padding:8px 11px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);background:var(--cream);border-bottom:1px solid var(--border);white-space:nowrap}
+.rpt-table td{padding:9px 11px;border-bottom:1px solid var(--border);vertical-align:middle}
+.rpt-table tr:last-child td{border-bottom:none}
+.rpt-table tfoot td{font-weight:700;background:var(--cream)}
+.rpt-table tbody tr:hover{background:#f0faf8}
+.src-badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600}
+.src-airbnb{background:#FFD700;color:#333}
+.src-booking{background:#003580;color:#fff}
+.src-zesty{background:#23a090;color:#fff}
+.src-vrbo{background:#1B468F;color:#fff}
+.src-direct{background:#eafaf1;color:#27ae60}
+.src-other{background:var(--cream-dark);color:var(--text-muted)}
+.sum-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px}
+.sum-row.subtotal{border-top:2px solid var(--teal);border-bottom:none;margin-top:4px;padding-top:10px;font-weight:700}
+.sum-row.payable{border-top:3px solid var(--teal-dark);margin-top:8px;padding-top:12px;font-weight:700;font-size:17px;color:var(--teal-dark)}
+.sum-label{color:var(--text-muted)}
+.sum-val{font-weight:600}
+.channel-row{display:flex;align-items:center;gap:10px;margin-bottom:7px}
+.channel-track{flex:1;height:8px;background:var(--cream-dark);border-radius:4px;overflow:hidden}
+.channel-fill{height:100%;border-radius:4px}
+@media print{.no-print,.report-subnav,.page-title-bar,.filter-bar{display:none!important}.container{padding:0!important}body{background:#fff!important}.rpt-wrap{box-shadow:none!important;border:1px solid #ddd}@page{margin:14mm;size:A4}}
+</style>
+<script src="https://alcdn.msauth.net/browser/2.38.0/js/msal-browser.min.js"></script>
+<script>
+(function(){
+  const cfg={auth:{clientId:'0938023f-cbbf-45f1-a71d-b18c95745ea6',authority:'https://login.microsoftonline.com/9c30b606-6648-4777-a623-64867e43e54f',redirectUri:window.location.href.split('#')[0].split('?')[0]},cache:{cacheLocation:'sessionStorage'}};
+  const app=new msal.PublicClientApplication(cfg);
+  (async()=>{
+    await app.initialize();
+    try{const r=await app.handleRedirectPromise();if(r?.account)window._erpUserName=r.account.name;}catch(e){}
+    const accs=app.getAllAccounts();
+    if(!accs.length){await app.loginRedirect({scopes:['User.Read']});return;}
+    window._erpUserName=accs[0].name||accs[0].username;
+    window._azureLogout=()=>app.logoutRedirect({account:accs[0]});
+    const b=document.createElement('div');b.id='_azure_badge';b.innerHTML='<span>👤 '+window._erpUserName+'</span>';document.body.appendChild(b);
+  })();
+})();
+</script>
+</head>
+<body>
+<div class="container">
+
+  <div class="page-title-bar">
+    <div><h1>Reports</h1><p>Owner statements, occupancy and financial reports</p></div>
+    <div class="page-actions">
+      <div class="sync-status"><span class="sync-dot" id="syncDot"></span><span>Connected</span></div>
+      <button class="btn btn-teal no-print" onclick="window.print()">🖨 Print / PDF</button>
+    </div>
+  </div>
+
+  <div class="report-subnav">
+    <button class="report-tab active" onclick="showTab('owner',this)">📄 Owner Statement</button>
+    <button class="report-tab" onclick="showTab('occupancy',this)">📊 Occupancy</button>
+    <!-- Future tabs go here -->
+  </div>
+
+  <!-- ═══ OWNER STATEMENT ═══ -->
+  <div class="report-panel active" id="panel-owner">
+    <div class="filter-bar">
+      <select id="s-prop" style="min-width:220px" onchange="onPropChange()"><option value="">— Select Property —</option></select>
+      <input type="month" id="s-month">
+      <button class="btn btn-primary" onclick="generateOwner()">Generate</button>
+      <div class="filter-spacer"></div>
+      <span id="s-owner-lbl" style="font-size:12px;color:var(--text-muted)"></span>
+    </div>
+    <div id="owner-out">
+      <div style="text-align:center;padding:70px;color:var(--text-muted)">
+        <div style="font-size:40px;margin-bottom:14px">📄</div>
+        <div>Select a property and month then click Generate</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ OCCUPANCY ═══ -->
+  <div class="report-panel" id="panel-occupancy">
+    <div class="filter-bar">
+      <label style="font-size:12px;color:var(--text-muted)">From</label>
+      <input type="date" id="occ-from">
+      <label style="font-size:12px;color:var(--text-muted)">To</label>
+      <input type="date" id="occ-to">
+      <button class="btn btn-primary" onclick="generateOccupancy()">Generate</button>
+    </div>
+    <div id="occ-out">
+      <div style="text-align:center;padding:70px;color:var(--text-muted)">
+        <div style="font-size:40px;margin-bottom:14px">📊</div>
+        <div>Select date range then click Generate</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+<script src="erp-base.js"></script>
+<script>
+let properties=[],owners=[],jobs=[],cleanJobs=[];
+
+async function init(){
+  const[rp,ro,rj,rc]=await Promise.all([
+    SyncStore.load('zesty_properties','properties'),
+    SyncStore.load('zesty_owners','owners'),
+    SyncStore.load('zesty_jobs','jobs'),
+    SyncStore.load('zesty_cleaning_jobs','cleaning_jobs'),
+  ]);
+  properties=rp.data||[]; owners=ro.data||[]; jobs=rj.data||[]; cleanJobs=rc.data||[];
+  const sel=document.getElementById('s-prop');
+  properties.filter(p=>!p.archived).sort((a,b)=>(a.shortName||'').localeCompare(b.shortName||'')).forEach(p=>{
+    const o=document.createElement('option'); o.value=p.id; o.textContent=p.shortName||p.propertyName; sel.appendChild(o);
+  });
+  const now=new Date();
+  document.getElementById('s-month').value=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
+  const y=now.getFullYear(),m=now.getMonth();
+  document.getElementById('occ-from').value=new Date(y,m,1).toISOString().slice(0,10);
+  document.getElementById('occ-to').value=new Date(y,m+1,0).toISOString().slice(0,10);
+}
+init();
+
+function showTab(name,btn){
+  document.querySelectorAll('.report-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.report-tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('panel-'+name).classList.add('active');
+  btn.classList.add('active');
+}
+
+function eur(n){return '€'+(parseFloat(n)||0).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,',');}
+function pct(n){return (parseFloat(n)||0).toFixed(1)+'%';}
+function srcClass(s){
+  if(!s)return'src-other';const l=s.toLowerCase();
+  if(l.includes('airbnb'))return'src-airbnb';
+  if(l.includes('booking'))return'src-booking';
+  if(l.includes('zesty'))return'src-zesty';
+  if(l.includes('vrbo')||l.includes('homeaway'))return'src-vrbo';
+  if(l.includes('direct')||l.includes('manual'))return'src-direct';
+  return'src-other';
+}
+function getCommRate(prop,src){
+  if(!prop||!src)return 0; const s=src.toLowerCase();
+  if(s.includes('airbnb'))return parseFloat(prop.commAirbnb)||0;
+  if(s.includes('booking'))return parseFloat(prop.commBooking)||0;
+  if(s.includes('vrbo'))return parseFloat(prop.commVrbo)||0;
+  return 0;
+}
+function calcJobCharge(j){
+  if(j.lineItems&&j.lineItems.length) return (j.lineItems||[]).reduce((s,li)=>s+(parseFloat(li.chargeAmount)||0),0)+(parseFloat(j.zestyFee)||0);
+  return parseFloat(j.finalCharge||j.totalCharge||0);
+}
+function onPropChange(){
+  const p=properties.find(x=>x.id===document.getElementById('s-prop').value);
+  if(!p){document.getElementById('s-owner-lbl').textContent='';return;}
+  const o=owners.find(x=>x.id===p.owner||x.id===p.ownerId);
+  const name=o?((o.repFirst||'')+' '+(o.repLast||'')).trim()||o.companyName:'—';
+  document.getElementById('s-owner-lbl').textContent='Owner: '+name+' · Mgmt: '+pct(p.maintenance||p.ownerCommission);
+}
+
+function parseCSVLine(line){
+  const r=[];let cur='',inQ=false;
+  for(let i=0;i<line.length;i++){
+    if(line[i]==='"'){if(inQ&&line[i+1]==='"'){cur+='"';i++;}else inQ=!inQ;}
+    else if(line[i]===','&&!inQ){r.push(cur);cur='';}else cur+=line[i];
+  }
+  r.push(cur);return r;
+}
+function parseCSV(text){
+  const lines=text.split('\n').filter(l=>l.trim());
+  if(!lines.length)return[];
+  const headers=parseCSVLine(lines[0]);
+  return lines.slice(1).map(l=>{const vals=parseCSVLine(l),obj={};headers.forEach((h,i)=>obj[h.trim()]=(vals[i]||'').trim());return obj;})
+    .filter(r=>r.Id&&(r.DateArrival||r.DateDeparture));
+}
+function getCSVBookings(){
+  const raw=JSON.parse(localStorage.getItem('zesty_raw_lodgify_csv')||'null');
+  return raw&&raw.text?parseCSV(raw.text):[];
+}
+function matchProp(r,prop){
+  const ps=(prop.shortName||prop.propertyName||'').toLowerCase().split(' ')[0];
+  const cn=(r.HouseInternalName||r.HouseName||'').toLowerCase();
+  return cn.includes(ps)||String(r.House_Id)===String(prop.propertyId);
+}
+
+/* ═══ OWNER STATEMENT ═══ */
+function generateOwner(){
+  const propId=document.getElementById('s-prop').value;
+  const month=document.getElementById('s-month').value;
+  if(!propId||!month){showToast('Select property and month','error');return;}
+  const prop=properties.find(p=>p.id===propId);
+  if(!prop)return;
+  const owner=owners.find(o=>o.id===prop.owner||o.id===prop.ownerId);
+  const ownerName=owner?(((owner.repFirst||'')+' '+(owner.repLast||'')).trim()||owner.companyName||'—'):'—';
+  const mgmt=parseFloat(prop.maintenance||prop.ownerCommission)||0;
+  const[yr,mo]=month.split('-');
+  const mStart=new Date(yr,parseInt(mo)-1,1), mEnd=new Date(yr,parseInt(mo),0);
+  const monthName=mStart.toLocaleDateString('en-GB',{month:'long',year:'numeric'});
+
+  // Bookings
+  const allB=getCSVBookings();
+  const bookings=allB.filter(r=>{
+    if(r.Status!=='Booked'&&r.Status!=='Open')return false;
+    if(!matchProp(r,prop))return false;
+    return new Date(r.DateArrival)<=mEnd&&new Date(r.DateDeparture)>=mStart;
+  });
+
+  let tRent=0,tOTA=0,tRec=0,tRecbl=0,tZesty=0,tDue=0,tNet=0;
+  const bySource={};
+  const bRows=bookings.map((r,i)=>{
+    const nights=parseInt(r.Nights)||0, guests=parseInt(r.Guests)||0;
+    const rent=parseFloat(r.TotalRent||r.Total||0);
+    const otaRate=getCommRate(prop,r.Source);
+    const ota=parseFloat(r.OTACommission||0)||parseFloat((rent*otaRate/100).toFixed(2));
+    const rec=parseFloat(r.Received||0), recbl=parseFloat(r.Receivable||0);
+    const netRent=rent-ota, zesty=parseFloat((netRent*mgmt/100).toFixed(2));
+    const due=rec>0?zesty:0, netInc=netRent-due, daily=nights>0?rent/nights:0;
+    tRent+=rent;tOTA+=ota;tRec+=rec;tRecbl+=recbl;tZesty+=zesty;tDue+=due;tNet+=netInc;
+    bySource[r.Source||'Other']=(bySource[r.Source||'Other']||0)+rent;
+    return`<tr>
+      <td style="color:var(--text-muted);font-size:11px">${i+1}</td>
+      <td><strong>${r.Name||'—'}</strong>${r.Origin?`<br><small style="color:var(--text-muted)">${r.Origin}</small>`:''}</td>
+      <td style="font-size:11px;color:var(--text-muted)">${r.BookingDate||'—'}</td>
+      <td style="font-size:12px">${fmtDate(r.DateArrival)}</td>
+      <td style="font-size:12px">${fmtDate(r.DateDeparture)}</td>
+      <td style="text-align:center">${nights}</td>
+      <td style="text-align:center">${guests||'—'}</td>
+      <td><span class="src-badge ${srcClass(r.Source)}">${r.Source||'—'}</span></td>
+      <td style="text-align:right;font-size:12px">${daily>0?eur(daily):'—'}</td>
+      <td style="text-align:right;font-weight:600">${eur(rent)}</td>
+      <td style="text-align:right;color:var(--danger);font-size:12px">${ota>0?eur(ota):'—'}</td>
+      <td style="text-align:right;color:var(--info);font-size:12px">${rec>0?eur(rec):'—'}</td>
+      <td style="text-align:right;font-size:12px">${recbl>0?eur(recbl):'—'}</td>
+      <td style="text-align:right;color:var(--text-muted);font-size:12px">${eur(zesty)}</td>
+      <td style="text-align:right;color:var(--warning);font-size:12px">${due>0?eur(due):'—'}</td>
+      <td style="text-align:right;font-weight:700;color:var(--teal-dark)">${eur(netInc)}</td>
+      <td style="font-size:11px;color:var(--text-muted)">${r.Comments||r.Notes||''}</td>
+    </tr>`;
+  }).join('');
+
+  // Jobs
+  const propJobs=jobs.filter(j=>{
+    const jn=(j.propertyName||'').toLowerCase(), ps=(prop.shortName||'').toLowerCase().split(' ')[0];
+    return (jn.includes(ps)||j.propertyId===prop.id) && (j.dateStarted||j.dateCompleted||j.dateInvoiced||'').startsWith(month);
+  });
+  const tJobs=propJobs.reduce((s,j)=>s+calcJobCharge(j),0);
+  const jRows=propJobs.map(j=>`<tr>
+    <td style="font-family:monospace;font-size:11px;color:var(--teal)">${j.jobId||'—'}</td>
+    <td>${j.title||'—'}</td>
+    <td style="font-size:12px">${fmtDate(j.dateStarted)}</td>
+    <td style="text-align:right;font-weight:600">${eur(calcJobCharge(j))}</td>
+    <td style="font-size:12px;color:var(--text-muted)">${j.notes||''}</td>
+  </tr>`).join('');
+
+  // Cleaning
+  const cleans=cleanJobs.filter(j=>{
+    const cp=(j.propertyName||'').toLowerCase(), ps=(prop.shortName||'').toLowerCase().split(' ')[0];
+    return cp.includes(ps)&&(j.date||'').startsWith(month);
+  });
+  const tCleanH=cleans.reduce((s,j)=>s+(j.hours||0),0);
+  const staffC=JSON.parse(localStorage.getItem('zesty_staff')||'[]');
+  const cRows=cleans.map(j=>{
+    const cls=(j.cleanerIds||[]).map(id=>staffC.find(s=>s.id===id)).filter(Boolean);
+    const pay=cls.reduce((s,cl)=>s+(cl.hourlyRate||0)*(j.hours||0)+(cl.hasCar==='Yes'?(j.propertyTransport||0):0),0);
+    return`<tr>
+      <td style="font-size:12px">${fmtDate(j.date)}</td>
+      <td><span style="font-size:11px;font-weight:600;padding:2px 6px;border-radius:8px;background:${j.type==='checkout'?'#fdebd0':'#fdf6e3'};color:${j.type==='checkout'?'#a04000':'#8e6b23'}">${j.type==='checkout'?'Checkout':'Mid-Stay'}</span></td>
+      <td>${cls.map(cl=>cl.firstName+' '+cl.lastName).join(', ')||'—'}</td>
+      <td style="text-align:center">${j.hours||'—'}</td>
+      <td style="text-align:right">${pay>0?eur(pay):'—'}</td>
+    </tr>`;
+  }).join('');
+
+  // Occupancy
+  const booked=bookings.reduce((s,r)=>s+(parseInt(r.Nights)||0),0);
+  const daysM=mEnd.getDate(), occ=daysM>0?Math.round(booked/daysM*100):0;
+  const firstD=bookings.length?bookings.reduce((a,b)=>a.DateArrival<b.DateArrival?a:b).DateArrival:'—';
+  const lastD=bookings.length?bookings.reduce((a,b)=>a.DateDeparture>b.DateDeparture?a:b).DateDeparture:'—';
+
+  // Channel bars
+  const maxS=Math.max(...Object.values(bySource),1);
+  const COLS={'Airbnb':'#FFD700','Booking.com':'#003580','Zesty.gr':'#23a090','Vrbo':'#1B468F','Manual':'#27ae60'};
+  const chanBars=Object.entries(bySource).sort(([,a],[,b])=>b-a).map(([src,amt])=>`
+    <div class="channel-row">
+      <span class="src-badge ${srcClass(src)}" style="width:100px;text-align:center">${src}</span>
+      <div class="channel-track"><div class="channel-fill" style="width:${Math.round(amt/maxS*100)}%;background:${COLS[src]||'#95a5a6'}"></div></div>
+      <span style="font-size:12px;font-weight:600;min-width:80px;text-align:right">${eur(amt)}</span>
+    </div>`).join('');
+
+  const payable=tNet-tJobs;
+
+  document.getElementById('owner-out').innerHTML=`
+  <div class="rpt-wrap">
+    <div class="rpt-section" style="background:linear-gradient(135deg,var(--teal-dark),var(--teal));color:#fff;padding:26px 28px">
+      <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:16px;align-items:flex-start">
+        <div>
+          <div style="font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:400">Monthly Statement</div>
+          <div style="font-size:15px;opacity:.9;margin-top:5px">Rental: <strong>${prop.shortName||prop.propertyName}</strong></div>
+          <div style="font-size:13px;opacity:.7;margin-top:3px">Period: <strong>${monthName}</strong> &nbsp;|&nbsp; Issued: ${new Date().toLocaleDateString('en-GB')}</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:12px;opacity:.65">Owner</div>
+          <div style="font-size:20px;font-weight:600">${ownerName}</div>
+          <div style="font-size:12px;opacity:.65;margin-top:4px">Management Fee: <strong>${pct(mgmt)}</strong></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="rpt-section">
+      <div class="rpt-section-title">Bookings</div>
+      ${bookings.length===0?`<div style="background:#fff8e0;border:1px solid #f0d060;border-radius:8px;padding:12px 16px;font-size:13px;color:#8e6b23">
+        ⚠ No bookings found. Upload your Lodgify CSV on the <a href="index.html">Dashboard</a> first, or check the property name matches the CSV.
+      </div>`:`
+      <div style="overflow-x:auto"><table class="rpt-table">
+        <thead><tr><th>#</th><th>Guest</th><th>Booked</th><th>Check-in</th><th>Check-out</th>
+          <th>Nts</th><th>Gst</th><th>Source</th><th>Daily Avg</th><th>Total Rent</th>
+          <th>OTA Comm</th><th>Received</th><th>Receivable</th>
+          <th>Zesty (${pct(mgmt)})</th><th>Due Zesty</th><th>Net Income</th><th>Notes</th>
+        </tr></thead>
+        <tbody>${bRows}</tbody>
+        <tfoot><tr><td colspan="9" style="text-align:right">TOTAL</td>
+          <td style="text-align:right">${eur(tRent)}</td>
+          <td style="text-align:right;color:var(--danger)">${eur(tOTA)}</td>
+          <td style="text-align:right;color:var(--info)">${eur(tRec)}</td>
+          <td style="text-align:right">${eur(tRecbl)}</td>
+          <td style="text-align:right">${eur(tZesty)}</td>
+          <td style="text-align:right;color:var(--warning)">${eur(tDue)}</td>
+          <td style="text-align:right;color:var(--teal-dark);font-size:14px">${eur(tNet)}</td>
+          <td></td>
+        </tr></tfoot>
+      </table></div>`}
+    </div>
+
+    ${propJobs.length>0?`<div class="rpt-section">
+      <div class="rpt-section-title">Maintenance & Job Orders</div>
+      <table class="rpt-table">
+        <thead><tr><th>Job ID</th><th>Description</th><th>Date</th><th style="text-align:right">Charge</th><th>Notes</th></tr></thead>
+        <tbody>${jRows}</tbody>
+        <tfoot><tr><td colspan="3" style="text-align:right">TOTAL</td><td style="text-align:right">${eur(tJobs)}</td><td></td></tr></tfoot>
+      </table>
+    </div>`:''}
+
+    ${cleans.length>0?`<div class="rpt-section">
+      <div class="rpt-section-title">Cleaning — ${cleans.length} sessions · ${tCleanH}h total</div>
+      <table class="rpt-table">
+        <thead><tr><th>Date</th><th>Type</th><th>Cleaner(s)</th><th style="text-align:center">Hours</th><th style="text-align:right">Pay</th></tr></thead>
+        <tbody>${cRows}</tbody>
+      </table>
+    </div>`:''}
+
+    <div class="rpt-section">
+      <div class="rpt-section-title">Summary</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px">
+        <div>
+          <div class="sum-row"><span class="sum-label">Total Rent</span><span class="sum-val">${eur(tRent)}</span></div>
+          <div class="sum-row"><span class="sum-label">OTA Commissions</span><span class="sum-val" style="color:var(--danger)">− ${eur(tOTA)}</span></div>
+          <div class="sum-row"><span class="sum-label">Net Rent</span><span class="sum-val">${eur(tRent-tOTA)}</span></div>
+          <div class="sum-row"><span class="sum-label">Zesty Management (${pct(mgmt)})</span><span class="sum-val" style="color:var(--warning)">− ${eur(tZesty)}</span></div>
+          <div class="sum-row subtotal"><span>Net Income</span><span style="color:var(--success)">${eur(tNet)}</span></div>
+          ${propJobs.length>0?`<div class="sum-row"><span class="sum-label">Job Orders</span><span class="sum-val" style="color:var(--danger)">− ${eur(tJobs)}</span></div>`:''}
+          <div class="sum-row payable"><span>PAYABLE TO OWNER</span><span>${eur(payable)}</span></div>
+        </div>
+        <div>
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted);margin-bottom:12px">Revenue by Channel</div>
+          ${chanBars||'<div style="color:var(--text-muted);font-size:13px">No data</div>'}
+          <div style="margin-top:20px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted);margin-bottom:10px">Occupancy</div>
+          <div style="font-size:13px">
+            <div class="sum-row"><span class="sum-label">First Day</span><strong>${fmtDate(firstD)}</strong></div>
+            <div class="sum-row"><span class="sum-label">Last Day</span><strong>${fmtDate(lastD)}</strong></div>
+            <div class="sum-row"><span class="sum-label">Booked Days</span><strong>${booked}</strong></div>
+            <div class="sum-row"><span class="sum-label">Days in Month</span><strong>${daysM}</strong></div>
+            <div class="sum-row"><span class="sum-label">Occupancy</span><strong style="color:var(--teal)">${occ}%</strong></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+/* ═══ OCCUPANCY ═══ */
+function generateOccupancy(){
+  const from=document.getElementById('occ-from').value, to=document.getElementById('occ-to').value;
+  if(!from||!to){showToast('Select date range','error');return;}
+  const allB=getCSVBookings();
+  const inRange=allB.filter(r=>(r.Status==='Booked'||r.Status==='Open')&&r.DateDeparture>=from&&r.DateArrival<=to);
+  const byProp={};
+  inRange.forEach(r=>{
+    const name=r.HouseInternalName||r.HouseName||'Unknown';
+    if(!byProp[name])byProp[name]={nights:0,bookings:0,revenue:0,src:{}};
+    byProp[name].nights+=parseInt(r.Nights)||0;
+    byProp[name].bookings++;
+    byProp[name].revenue+=parseFloat(r.TotalRent||0);
+    const s=r.Source||'Other';byProp[name].src[s]=(byProp[name].src[s]||0)+1;
+  });
+  const totalDays=Math.round((new Date(to)-new Date(from))/86400000)+1;
+  const rows=Object.entries(byProp).sort(([,a],[,b])=>b.nights-a.nights).map(([name,d])=>{
+    const occ=totalDays>0?Math.round(d.nights/totalDays*100):0;
+    const ms=Object.entries(d.src).sort(([,a],[,b])=>b-a)[0];
+    return`<tr>
+      <td><strong>${name}</strong></td>
+      <td style="text-align:center">${d.bookings}</td>
+      <td style="text-align:center">${d.nights}</td>
+      <td>
+        <div style="display:flex;align-items:center;gap:8px">
+          <div style="flex:1;height:8px;background:var(--cream-dark);border-radius:4px;overflow:hidden">
+            <div style="width:${occ}%;height:100%;background:var(--teal);border-radius:4px"></div>
+          </div>
+          <span style="font-weight:600;color:var(--teal);min-width:36px">${occ}%</span>
+        </div>
+      </td>
+      <td style="text-align:right;font-weight:600">${eur(d.revenue)}</td>
+      <td style="text-align:right">${d.nights>0?eur(d.revenue/d.nights):'—'}</td>
+      <td>${ms?`<span class="src-badge ${srcClass(ms[0])}">${ms[0]}</span>`:'—'}</td>
+    </tr>`;
+  }).join('');
+  document.getElementById('occ-out').innerHTML=`<div class="rpt-wrap">
+    <div class="rpt-section" style="background:linear-gradient(135deg,var(--teal-dark),var(--teal));color:#fff;padding:20px 24px">
+      <div style="font-family:'Cormorant Garamond',serif;font-size:22px">Occupancy Report</div>
+      <div style="font-size:13px;opacity:.8;margin-top:4px">${fmtDate(from)} → ${fmtDate(to)} · ${totalDays} days window</div>
+    </div>
+    <div class="rpt-section">
+      ${inRange.length===0?`<div style="text-align:center;padding:40px;color:var(--text-muted)">No bookings found. Upload Lodgify CSV on Dashboard first.</div>`:`
+      <table class="rpt-table">
+        <thead><tr><th>Property</th><th style="text-align:center">Bookings</th><th style="text-align:center">Nights</th>
+          <th>Occupancy</th><th style="text-align:right">Revenue</th><th style="text-align:right">Avg/Night</th><th>Top Channel</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>`}
+    </div>
+  </div>`;
+}
+</script>
+<script src="erp-nav.js"></script>
+</body>
+</html>

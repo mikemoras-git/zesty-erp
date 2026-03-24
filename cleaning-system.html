@@ -656,6 +656,7 @@ body.erp-layout {
       <button class="erp-tab-link" onclick="showTab('schedule')">📅 Schedule</button>
       <button class="erp-tab-link" onclick="showTab('jobs')">🔧 Jobs</button>
       <button class="erp-tab-link" onclick="showTab('import')">📥 Import CSV</button>
+      <button class="erp-tab-link" onclick="showTab('hours')">⏱ Hours</button>
     </div>
   <div class="erp-sidebar-footer">
     <div class="erp-user-badge" id="sidebarUser"></div>
@@ -699,6 +700,7 @@ body.erp-layout {
     <button onclick="showPage('schedule')" style="padding:8px 18px;border-radius:8px;border:1px solid var(--border);background:#fff;color:var(--text-muted);font-size:13px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif">📅 Schedule</button>
     <button onclick="showPage('jobs')" style="padding:8px 18px;border-radius:8px;border:1px solid var(--border);background:#fff;color:var(--text-muted);font-size:13px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif">🔧 Jobs</button>
     <button onclick="showPage('import')" style="padding:8px 18px;border-radius:8px;border:1px solid var(--border);background:#fff;color:var(--text-muted);font-size:13px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif">📥 Import CSV</button>
+    <button onclick="showPage('hours')" style="padding:8px 18px;border-radius:8px;border:1px solid var(--border);background:#fff;color:var(--text-muted);font-size:13px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif">⏱ Hours</button>
   </div>
   <div class="stats-bar">
     <div class="stat-card"><div class="stat-label">Total Staff</div><div class="stat-value" id="s-total">0</div></div>
@@ -749,6 +751,7 @@ body.erp-layout {
     <button onclick="showPage('schedule')" style="padding:8px 18px;border-radius:8px;border:1px solid var(--border);background:#fff;color:var(--text-muted);font-size:13px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif">📅 Schedule</button>
     <button onclick="showPage('jobs')" style="padding:8px 18px;border-radius:8px;border:1px solid var(--border);background:#fff;color:var(--text-muted);font-size:13px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif">🔧 Jobs</button>
     <button onclick="showPage('import')" style="padding:8px 18px;border-radius:8px;border:1px solid var(--border);background:#fff;color:var(--text-muted);font-size:13px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif">📥 Import CSV</button>
+    <button onclick="showPage('hours')" style="padding:8px 18px;border-radius:8px;border:1px solid var(--border);background:#fff;color:var(--text-muted);font-size:13px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif">⏱ Hours</button>
   </div>
   <div class="toolbar">
     <input type="month" id="calMonth" onchange="renderCalendar()">
@@ -806,6 +809,7 @@ body.erp-layout {
     <button onclick="showPage('schedule')" style="padding:8px 18px;border-radius:8px;border:1px solid var(--border);background:#fff;color:var(--text-muted);font-size:13px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif">📅 Schedule</button>
     <button onclick="showPage('jobs')" style="padding:8px 18px;border-radius:8px;border:1px solid var(--border);background:#fff;color:var(--text-muted);font-size:13px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif">🔧 Jobs</button>
     <button onclick="showPage('import')" style="padding:8px 18px;border-radius:8px;border:1px solid var(--border);background:#fff;color:var(--text-muted);font-size:13px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif">📥 Import CSV</button>
+    <button onclick="showPage('hours')" style="padding:8px 18px;border-radius:8px;border:1px solid var(--border);background:#fff;color:var(--text-muted);font-size:13px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif">⏱ Hours</button>
   </div>
   <div class="import-panel">
     <h3>📥 Import Bookings from Lodgify</h3>
@@ -876,6 +880,7 @@ body.erp-layout {
     <button onclick="showPage('schedule')" style="padding:8px 18px;border-radius:8px;border:1px solid var(--border);background:#fff;color:var(--text-muted);font-size:13px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif">📅 Schedule</button>
     <button onclick="showPage('jobs')" style="padding:8px 18px;border-radius:8px;border:1px solid var(--border);background:#fff;color:var(--text-muted);font-size:13px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif">🔧 Jobs</button>
     <button onclick="showPage('import')" style="padding:8px 18px;border-radius:8px;border:1px solid var(--border);background:#fff;color:var(--text-muted);font-size:13px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif">📥 Import CSV</button>
+    <button onclick="showPage('hours')" style="padding:8px 18px;border-radius:8px;border:1px solid var(--border);background:#fff;color:var(--text-muted);font-size:13px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif">⏱ Hours</button>
   </div>
   <div class="stats-bar">
     <div class="stat-card"><div class="stat-label">Total Jobs</div><div class="stat-value" id="j-total">0</div></div>
@@ -1424,6 +1429,7 @@ function showPage(name) {
   if (event && event.target) event.target.classList.add('active');
   if (name === 'schedule') renderCalendar();
   if (name === 'jobs') renderJobs();
+  if (name === 'hours') renderHoursSheet();
 }
 // Alias so sidebar buttons work
 function showTab(name) { showPage(name); }
@@ -1743,16 +1749,29 @@ function getCleanDays(type, nights) {
 
 async function confirmImport() {
   const activeRows = importPreviewData.filter(r => r.Status === 'Booked');
-  // Incremental: find truly new bookings (no existing job for this booking ID)
+  // Cancelled bookings that have existing jobs — remove them
+  const cancelledIds = new Set(
+    importPreviewData.filter(r => r.Status === 'Declined' || r.Status === 'Cancelled')
+      .map(r => r.Id)
+  );
+  const jobsToDelete = cleaningJobs.filter(j => j.bookingId && cancelledIds.has(j.bookingId));
   const existingBookingIds = new Set(cleaningJobs.map(j => j.bookingId));
   const newRows = activeRows.filter(r => !existingBookingIds.has(r.Id));
   const updateRows = activeRows.filter(r => existingBookingIds.has(r.Id));
+  const cancelMsg = jobsToDelete.length > 0 ? ` ${jobsToDelete.length} cancelled jobs will be removed.` : '';
   showConfirm('📥', 'Import Bookings?',
-    `${newRows.length} new bookings will get cleaning jobs. ${updateRows.length} existing will be updated. Cancelled/Open bookings are skipped.`,
+    `${newRows.length} new bookings will get cleaning jobs. ${updateRows.length} existing will be updated.${cancelMsg}`,
     'btn-primary', 'Import',
     async () => {
       let created = 0;
       let updated = 0;
+      let deleted = 0;
+      // Delete jobs for cancelled bookings
+      if (jobsToDelete.length > 0) {
+        const delIds = new Set(jobsToDelete.map(j => j.id));
+        cleaningJobs = cleaningJobs.filter(j => !delIds.has(j.id));
+        deleted = jobsToDelete.length;
+      }
       // Process all active rows: create for new, update for existing
       const allRows = [...newRows, ...updateRows];
       allRows.forEach(r => {
@@ -1820,7 +1839,7 @@ async function confirmImport() {
       renderImportHistory();
       updateJobStats();
       clearImport();
-      showToast(`✓ Created ${created} jobs, updated ${updated}`, 'success');
+      showToast(`✓ Created ${created} · Updated ${updated}${deleted?' · Removed '+deleted+' cancelled':''}`, 'success');
     }
   );
 }
@@ -1837,11 +1856,9 @@ function getPropertyHasCleaning(propIdOrName) {
   try {
     const props = JSON.parse(localStorage.getItem('zesty_properties') || '[]');
     const p = props.find(p => String(p.propertyId) === String(propIdOrName) || p.shortName === propIdOrName || p.propertyName === propIdOrName);
-    if (!p) return true; // assume yes if not in DB yet
-    // We do cleaning if: cleaningFee > 0 OR cleanType is set (and not 'none')
-    const hasFee = parseFloat(p.cleaningFee) > 0;
-    const hasSchedule = p.cleanType && p.cleanType !== 'none' && p.cleanType !== '';
-    return hasFee || hasSchedule;
+    if (!p) return false; // not in properties DB = not a cleaning property
+    // We do cleaning if: cleaningFee > 0 (we charge for cleaning)
+    return parseFloat(p.cleaningFee) > 0;
   } catch { return true; }
 }
 
@@ -2319,8 +2336,7 @@ function printSchedule() {
   });
 
   const w = window.open('', '_blank');
-  w.document.write(`<html><head><title>Cleaning Schedule ${monthName}</title><style>${buildPrintStyles()}</style></head><body>${printContent || '<p style="padding:40px;font-family:Arial">No jobs found for this period.</p>'}</div><!-- /erp-main -->
-</body></html>`);
+  w.document.write(`<html><head><title>Cleaning Schedule ${monthName}</title><style>${buildPrintStyles()}</style></head><body>${printContent || '<p style="padding:40px;font-family:Arial">No jobs found for this period.</p>'}</body></html>`);
   w.document.close();
   setTimeout(() => w.print(), 600);
 }
@@ -2392,6 +2408,49 @@ function printAllJobs() {
       </div>
       ${rows || '<p style="padding:20px;color:#999">No jobs found.</p>'}
     </div>
+<!-- ==================== HOURS PAGE ==================== -->
+<div id="page-hours" class="page">
+  <div style="display:flex;gap:6px;margin-bottom:22px;flex-wrap:wrap">
+    <button onclick="showPage('staff')" style="padding:8px 18px;border-radius:8px;border:1px solid var(--border);background:#fff;color:var(--text-muted);font-size:13px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif">👥 Staff</button>
+    <button onclick="showPage('schedule')" style="padding:8px 18px;border-radius:8px;border:1px solid var(--border);background:#fff;color:var(--text-muted);font-size:13px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif">📅 Schedule</button>
+    <button onclick="showPage('jobs')" style="padding:8px 18px;border-radius:8px;border:1px solid var(--border);background:#fff;color:var(--text-muted);font-size:13px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif">🔧 Jobs</button>
+    <button onclick="showPage('import')" style="padding:8px 18px;border-radius:8px;border:1px solid var(--border);background:#fff;color:var(--text-muted);font-size:13px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif">📥 Import CSV</button>
+    <button onclick="showPage('hours')" style="padding:8px 18px;border-radius:8px;border:2px solid var(--teal);background:var(--teal);color:#fff;font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif">⏱ Hours</button>
+  </div>
+
+  <div class="toolbar" style="flex-wrap:wrap;gap:10px">
+    <input type="month" id="hoursMonth" onchange="renderHoursSheet()">
+    <select id="hoursPropFilter" onchange="renderHoursSheet()"><option value="">All Properties</option></select>
+    <button class="btn btn-teal btn-sm" onclick="addHoursRow()">+ Add Extra Cleaning</button>
+    <button class="btn btn-primary btn-sm" onclick="saveHoursSheet()">💾 Save Sheet</button>
+    <button class="btn btn-print btn-sm" onclick="printHoursSheet()">🖨 Print</button>
+    <button class="btn btn-outline btn-sm" onclick="exportHoursCSV()">⬇ Export CSV</button>
+    <div style="margin-left:auto;font-size:12px;color:var(--text-muted)" id="hoursSavedMsg"></div>
+  </div>
+
+  <!-- Summary -->
+  <div class="stats-bar" style="margin-bottom:18px">
+    <div class="stat-card"><div class="stat-label">Total Jobs</div><div class="stat-value" id="h-total">0</div></div>
+    <div class="stat-card"><div class="stat-label">Total Hours</div><div class="stat-value" id="h-hours">0</div></div>
+    <div class="stat-card"><div class="stat-label">Total Labour Cost</div><div class="stat-value" id="h-labour">€0</div></div>
+    <div class="stat-card"><div class="stat-label">Transport Cost</div><div class="stat-value" id="h-transport">€0</div></div>
+    <div class="stat-card"><div class="stat-label">Total Cost</div><div class="stat-value" id="h-cost">€0</div></div>
+  </div>
+
+  <div class="table-wrap">
+    <div class="table-header">
+      <h3 id="hoursTableTitle">Hours Sheet</h3>
+    </div>
+    <div style="overflow-x:auto">
+      <table id="hoursTable">
+        <thead id="hoursHead"></thead>
+        <tbody id="hoursBody"></tbody>
+        <tfoot id="hoursFoot"></tfoot>
+      </table>
+    </div>
+  </div>
+</div>
+
   </body></html>`);
   w.document.close();
   setTimeout(() => w.print(), 600);
@@ -2467,6 +2526,196 @@ document.addEventListener('DOMContentLoaded', _initSidebar);
 
 init().catch(console.error);
 showDbStatus(true);
+
+// ── HOURS SHEET ──
+let hoursExtra = []; // extra manual cleaning rows
+
+function renderHoursSheet() {
+  const monthVal = document.getElementById('hoursMonth').value;
+  if (!monthVal) return;
+  const [yr, mo] = monthVal.split('-');
+  const monthName = new Date(yr, parseInt(mo)-1, 1).toLocaleDateString('en-GB',{month:'long',year:'numeric'});
+  document.getElementById('hoursTableTitle').textContent = 'Hours Sheet — ' + monthName;
+  document.getElementById('hoursPropFilter').innerHTML = '<option value="">All Properties</option>' +
+    [...new Set(cleaningJobs.filter(j=>j.date.startsWith(monthVal)).map(j=>j.propertyName).filter(Boolean))].sort()
+    .map(p=>`<option value="${p}">${p}</option>`).join('');
+
+  const propF = document.getElementById('hoursPropFilter').value;
+  const monthJobs = [
+    ...cleaningJobs.filter(j => j.date.startsWith(monthVal) && (!propF || j.propertyName===propF)),
+    ...hoursExtra.filter(j => (j.date||'').startsWith(monthVal) && (!propF || j.propertyName===propF))
+  ].sort((a,b) => (a.date||'') > (b.date||'') ? 1 : -1);
+
+  const activeStaff = staff.filter(s => s.status !== 'Inactive');
+  if (!activeStaff.length) {
+    document.getElementById('hoursBody').innerHTML = '<tr class="empty-row"><td colspan="10">No active staff found.</td></tr>';
+    return;
+  }
+
+  // Header: Date | Property | Type | Guest | [cleaner cols...] | Total Hours | Transport | Total Pay
+  const staffCols = activeStaff.map(s => `<th style="min-width:80px;text-align:center">${s.firstName}<br><span style="font-size:10px;color:var(--text-muted)">${s.hourlyRate?'€'+s.hourlyRate+'/h':''}</span></th>`).join('');
+  document.getElementById('hoursHead').innerHTML = `<tr>
+    <th onclick="sortHours('date')">Date ↕</th><th>Property</th><th>Type</th><th>Guest</th>
+    ${staffCols}
+    <th style="text-align:right">Hours</th><th style="text-align:right">Transport</th><th style="text-align:right">Total Pay</th><th></th>
+  </tr>`;
+
+  let totalHours=0, totalLabour=0, totalTransport=0, staffTotals={};
+  activeStaff.forEach(s => staffTotals[s.id] = {hours:0, pay:0});
+
+  const rows = monthJobs.map((j, idx) => {
+    const assignedIds = j.cleanerIds || [];
+    let rowHours = 0, rowPay = 0, rowTransport = j.propertyTransport||0;
+    const staffInputs = activeStaff.map(s => {
+      const isAssigned = assignedIds.includes(s.id);
+      const hrs = j.cleanerHours ? (j.cleanerHours[s.id] || '') : (isAssigned && j.hours ? j.hours : '');
+      const pay = hrs ? (parseFloat(hrs)*(s.hourlyRate||0) + (s.hasCar==='Yes'?rowTransport:0)) : 0;
+      if (hrs) { rowHours += parseFloat(hrs)||0; rowPay += pay; staffTotals[s.id].hours += parseFloat(hrs)||0; staffTotals[s.id].pay += pay; }
+      return `<td style="text-align:center;padding:4px 6px">
+        <input type="number" step="0.5" min="0" max="24" value="${hrs}" data-job="${idx}" data-staff="${s.id}"
+          oninput="onHoursInput(this)" style="width:60px;padding:5px;border:1px solid var(--border);border-radius:5px;text-align:center;font-size:13px;font-family:'DM Sans',sans-serif">
+      </td>`;
+    }).join('');
+    totalHours += rowHours; totalLabour += rowPay; totalTransport += rowTransport;
+    const isExtra = j._extra;
+    return `<tr data-idx="${idx}" style="${isExtra?'background:#fffbe6':''}">
+      <td style="font-size:12px">${formatDate(j.date)}</td>
+      <td>${j.propertyName||'—'}${isExtra?'<span style="font-size:10px;margin-left:4px;color:var(--gold-dim)">+extra</span>':''}</td>
+      <td><span style="font-size:11px;font-weight:600;padding:2px 6px;border-radius:8px;background:${j.type==='checkout'?'#fdebd0':'#fdf6e3'};color:${j.type==='checkout'?'#a04000':'#8e6b23'}">${j.type==='checkout'?'Checkout':'Mid-Stay'}</span></td>
+      <td style="font-size:12px;color:var(--text-muted)">${j.guestName||'—'}</td>
+      ${staffInputs}
+      <td style="text-align:right;font-weight:600" id="row-hrs-${idx}">${rowHours||'—'}</td>
+      <td style="text-align:right;font-size:12px;color:var(--text-muted)">${rowTransport>0?'€'+rowTransport:'-'}</td>
+      <td style="text-align:right;font-weight:600;color:var(--teal)">${rowPay>0?'€'+rowPay.toFixed(0):'-'}</td>
+      <td>${isExtra?`<button onclick="removeExtra(${idx})" style="background:none;border:none;color:var(--danger);cursor:pointer;font-size:14px">✕</button>`:''}</td>
+    </tr>`;
+  }).join('');
+
+  // Staff totals footer
+  const staffFooter = activeStaff.map(s => `<td style="text-align:center;font-weight:700;color:var(--teal)">
+    ${staffTotals[s.id].hours>0?staffTotals[s.id].hours+'h':'—'}<br>
+    <span style="font-size:11px;color:var(--text-muted)">${staffTotals[s.id].pay>0?'€'+staffTotals[s.id].pay.toFixed(0):''}</span>
+  </td>`).join('');
+
+  document.getElementById('hoursBody').innerHTML = rows || '<tr class="empty-row"><td colspan="20">No cleaning jobs for this period</td></tr>';
+  document.getElementById('hoursFoot').innerHTML = `<tr style="background:var(--cream);font-weight:700">
+    <td colspan="4">TOTAL</td>${staffFooter}
+    <td style="text-align:right">${totalHours}h</td>
+    <td style="text-align:right">€${totalTransport.toFixed(0)}</td>
+    <td style="text-align:right;color:var(--teal-dark)">€${(totalLabour).toFixed(0)}</td>
+    <td></td>
+  </tr>`;
+
+  // Stats
+  document.getElementById('h-total').textContent = monthJobs.length;
+  document.getElementById('h-hours').textContent = totalHours + 'h';
+  document.getElementById('h-labour').textContent = '€' + totalLabour.toFixed(0);
+  document.getElementById('h-transport').textContent = '€' + totalTransport.toFixed(0);
+  document.getElementById('h-cost').textContent = '€' + (totalLabour + totalTransport).toFixed(0);
+
+  // Store current job list for saving
+  window._currentHoursJobs = monthJobs;
+}
+
+function onHoursInput(input) {
+  const idx = parseInt(input.dataset.job);
+  const staffId = input.dataset.staff;
+  const hrs = parseFloat(input.value) || 0;
+  const job = window._currentHoursJobs[idx];
+  if (!job) return;
+  if (!job.cleanerHours) job.cleanerHours = {};
+  job.cleanerHours[staffId] = hrs;
+  // Update the job in cleaningJobs or hoursExtra
+  const cjIdx = cleaningJobs.findIndex(j => j.id === job.id);
+  if (cjIdx >= 0) cleaningJobs[cjIdx].cleanerHours = job.cleanerHours;
+  // Recalculate row totals live
+  renderHoursSheet();
+}
+
+function addHoursRow() {
+  const monthVal = document.getElementById('hoursMonth').value;
+  const date = monthVal ? monthVal + '-01' : new Date().toISOString().slice(0,10);
+  hoursExtra.push({ id: 'extra_' + Date.now(), date, propertyName: '', type: 'checkout', guestName: '', cleanerIds: [], cleanerHours: {}, propertyTransport: 0, _extra: true });
+  renderHoursSheet();
+}
+
+function removeExtra(idx) {
+  const job = window._currentHoursJobs[idx];
+  if (job && job._extra) {
+    hoursExtra = hoursExtra.filter(j => j.id !== job.id);
+    renderHoursSheet();
+  }
+}
+
+async function saveHoursSheet() {
+  // Save cleanerHours back to cleaningJobs
+  const msg = document.getElementById('hoursSavedMsg');
+  if (msg) { msg.textContent = 'Saving…'; }
+  await SyncStore.saveAll('zesty_jobs', 'cleaning_jobs', cleaningJobs);
+  // Save extra rows
+  localStorage.setItem('zesty_hours_extra', JSON.stringify(hoursExtra));
+  if (msg) { msg.textContent = '✓ Saved ' + new Date().toLocaleTimeString('en-GB'); }
+  setTimeout(() => { if(msg) msg.textContent = ''; }, 3000);
+  showToast('✓ Hours sheet saved', 'success');
+}
+
+function exportHoursCSV() {
+  const monthVal = document.getElementById('hoursMonth').value;
+  const jobs = window._currentHoursJobs || [];
+  const activeStaff = staff.filter(s => s.status !== 'Inactive');
+  const headers = ['Date','Property','Type','Guest',...activeStaff.map(s=>s.firstName+' '+s.lastName),'Total Hours','Transport','Total Pay'];
+  const rows = jobs.map(j => {
+    const staffHrs = activeStaff.map(s => (j.cleanerHours&&j.cleanerHours[s.id]) || '');
+    const totalH = staffHrs.reduce((s,h)=>s+(parseFloat(h)||0),0);
+    const totalPay = activeStaff.reduce((sum,s,i) => {
+      const h = parseFloat(staffHrs[i])||0;
+      return sum + h*(s.hourlyRate||0) + (h>0&&s.hasCar==='Yes'?(j.propertyTransport||0):0);
+    }, 0);
+    return [j.date,j.propertyName||'',j.type,j.guestName||'',...staffHrs,totalH||'',j.propertyTransport||'',totalPay>0?totalPay.toFixed(2):''];
+  });
+  const csv = [headers,...rows].map(r=>r.map(v=>`"${(v||'').toString().replace(/"/g,'""')}"`).join(',')).join('
+');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob(['﻿'+csv],{type:'text/csv;charset=utf-8;'}));
+  a.download = `hours_${monthVal}.csv`; a.click();
+}
+
+function printHoursSheet() {
+  const monthVal = document.getElementById('hoursMonth').value;
+  const jobs = window._currentHoursJobs || [];
+  const activeStaff = staff.filter(s => s.status !== 'Inactive');
+  const monthName = monthVal ? new Date(monthVal+'-01').toLocaleDateString('en-GB',{month:'long',year:'numeric'}) : '';
+  const staffCols = activeStaff.map(s=>`<th style="min-width:70px">${s.firstName}</th>`).join('');
+  const rows = jobs.map(j => {
+    const staffHrs = activeStaff.map(s => (j.cleanerHours&&j.cleanerHours[s.id]) ? `<strong>${j.cleanerHours[s.id]}h</strong>` : '—');
+    const totalH = activeStaff.reduce((s,st) => s+(parseFloat(j.cleanerHours&&j.cleanerHours[st.id])||0),0);
+    return `<tr><td>${formatDate(j.date)}</td><td>${j.propertyName||'—'}</td><td>${j.type==='checkout'?'Checkout':'Mid-Stay'}</td>${staffHrs.map(h=>`<td style="text-align:center">${h}</td>`).join('')}<td style="text-align:right;font-weight:700">${totalH||'—'}</td></tr>`;
+  }).join('');
+  const w = window.open('','_blank');
+  w.document.write(`<html><head><title>Hours ${monthName}</title><style>
+    body{font-family:Arial,sans-serif;font-size:12px;color:#1e2a28}
+    table{width:100%;border-collapse:collapse}th,td{padding:6px 8px;border:1px solid #d4e0de;text-align:left}
+    th{background:#f0faf8;font-weight:700;font-size:11px;text-transform:uppercase}
+    h1{font-size:18px;color:#115950;margin-bottom:4px}
+    @page{margin:12mm}
+  </style></head><body>
+    <h1>Cleaning Hours — ${monthName}</h1>
+    <p style="color:#6b7e7b;margin-bottom:14px">Zesty Rentals</p>
+    <table><thead><tr><th>Date</th><th>Property</th><th>Type</th>${staffCols}<th style="text-align:right">Total</th></tr></thead>
+    <tbody>${rows}</tbody></table>
+  </body></html>`);
+  w.document.close(); setTimeout(()=>w.print(),400);
+}
+
+// Init hours tab
+(function(){
+  const now = new Date();
+  const el = document.getElementById('hoursMonth');
+  if(el) el.value = now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
+  // Load saved extra rows
+  try { hoursExtra = JSON.parse(localStorage.getItem('zesty_hours_extra')||'[]'); } catch { hoursExtra=[]; }
+})();
+
 </script>
 <script src="erp-nav.js"></script>
 </body>

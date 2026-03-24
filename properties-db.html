@@ -900,8 +900,8 @@ function renderTable() {
           <div class="actions">
             <button class="btn btn-outline btn-sm" onclick="viewProperty('${p.id}')">👁</button>
             <button class="btn btn-teal btn-sm" onclick="editProperty('${p.id}')">✏️</button>
-            <button class="btn btn-archive btn-sm" onclick="toggleArchive('${p.id}')">${p.archived ? '↩' : '📦'}</button>
-            <button class="btn btn-danger btn-sm" onclick="deleteProperty('${p.id}')">🗑</button>
+            <button class="btn btn-archive btn-sm" onclick="requirePassword(()=>toggleArchive('${p.id}'))">${p.archived ? '↩' : '📦'}</button>
+            <button class="btn btn-danger btn-sm" onclick="requirePassword(()=>deleteProperty('${p.id}'))">🗑</button>
           </div>
         </td>
       </tr>`;
@@ -1461,6 +1461,15 @@ function calcMaintFee() {
 init().catch(console.error);
 showDbStatus();
 </script>
+
+// ── PASSWORD PROTECTION ──
+const ERP_PASSWORD = 'Zesty2025!';
+function requirePassword(cb) {
+  const pw = prompt('🔒 Enter ERP password to continue:');
+  if (pw === ERP_PASSWORD) { cb(); }
+  else if (pw !== null) { alert('Incorrect password.'); }
+}
+
 <script src="erp-nav.js"></script>
 </body>
 </html>
