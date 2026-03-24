@@ -203,9 +203,19 @@ function getCSVBookings(){
   return raw&&raw.text?parseCSV(raw.text):[];
 }
 function matchProp(r,prop){
-  const ps=(prop.shortName||prop.propertyName||'').toLowerCase().split(' ')[0];
-  const cn=(r.HouseInternalName||r.HouseName||'').toLowerCase();
-  return cn.includes(ps)||String(r.House_Id)===String(prop.propertyId);
+  const csvName=(r.HouseInternalName||r.HouseName||'').toLowerCase().trim();
+  const shortName=(prop.shortName||prop.propertyName||'').toLowerCase().trim();
+  // Direct match first
+  if(csvName===shortName) return true;
+  // House_Id match
+  if(prop.propertyId && String(r.House_Id)===String(prop.propertyId)) return true;
+  // First word of property name in CSV name
+  const firstWord=shortName.split(' ')[0];
+  if(firstWord.length>2 && csvName.includes(firstWord)) return true;
+  // First word of CSV name in property name
+  const csvFirst=csvName.split(' ')[0];
+  if(csvFirst.length>2 && shortName.includes(csvFirst)) return true;
+  return false;
 }
 
 /* ═══ OWNER STATEMENT ═══ */
@@ -225,7 +235,8 @@ function generateOwner(){
   // Bookings
   const allB=getCSVBookings();
   const bookings=allB.filter(r=>{
-    if(r.Status!=='Booked'&&r.Status!=='Open')return false;
+    // Lodgify: Booked = confirmed, skip Declined/Cancelled
+    if(r.Status==='Declined'||r.Status==='Cancelled'||r.Status==='')return false;
     if(!matchProp(r,prop))return false;
     return new Date(r.DateArrival)<=mEnd&&new Date(r.DateDeparture)>=mStart;
   });
@@ -233,19 +244,24 @@ function generateOwner(){
   let tRent=0,tOTA=0,tRec=0,tRecbl=0,tZesty=0,tDue=0,tNet=0;
   const bySource={};
   const bRows=bookings.map((r,i)=>{
-    const nights=parseInt(r.Nights)||0, guests=parseInt(r.Guests)||0;
-    const rent=parseFloat(r.TotalRent||r['Total Rent']||r.GrossAmount||r.Amount||r.Total||0);
+    const nights=parseInt(r.Nights)||0;
+    const guests=parseInt(r.People||r.Guests||0);
+    // Lodgify CSV: TotalAmount = total booking value
+    const rent=parseFloat(r.TotalAmount||r.TotalRent||r['Total Rent']||r.GrossAmount||0);
+    // OTA commission: calculate from property rate (not in CSV)
     const otaRate=getCommRate(prop,r.Source);
-    const ota=parseFloat(r.OTACommission||0)||parseFloat((rent*otaRate/100).toFixed(2));
-    const rec=parseFloat(r.Received||0), recbl=parseFloat(r.Receivable||0);
+    const ota=parseFloat((rent*otaRate/100).toFixed(2));
+    // AmountPaid = Received, BalanceDue = Receivable
+    const rec=parseFloat(r.AmountPaid||r.Received||0);
+    const recbl=parseFloat(r.BalanceDue||r.Receivable||0);
     const netRent=rent-ota, zesty=parseFloat((netRent*mgmt/100).toFixed(2));
     const due=rec>0?zesty:0, netInc=netRent-due, daily=nights>0?rent/nights:0;
     tRent+=rent;tOTA+=ota;tRec+=rec;tRecbl+=recbl;tZesty+=zesty;tDue+=due;tNet+=netInc;
     bySource[r.Source||'Other']=(bySource[r.Source||'Other']||0)+rent;
     return`<tr>
       <td style="color:var(--text-muted);font-size:11px">${i+1}</td>
-      <td><strong>${r.Name||'—'}</strong>${r.Origin?`<br><small style="color:var(--text-muted)">${r.Origin}</small>`:''}</td>
-      <td style="font-size:11px;color:var(--text-muted)">${r.BookingDate||'—'}</td>
+      <td><strong>${r.Name||'—'}</strong>${r.CountryName||r.Origin?`<br><small style="color:var(--text-muted)">${r.CountryName||r.Origin}</small>`:''}</td>
+      <td style="font-size:11px;color:var(--text-muted)">${r.DateCreated||r.BookingDate||'—'}</td>
       <td style="font-size:12px">${fmtDate(r.DateArrival)}</td>
       <td style="font-size:12px">${fmtDate(r.DateDeparture)}</td>
       <td style="text-align:center">${nights}</td>
@@ -334,11 +350,11 @@ function generateOwner(){
       ${bookings.length===0?`<div style="background:#fff8e0;border:1px solid #f0d060;border-radius:8px;padding:12px 16px;font-size:13px;color:#8e6b23">
         ⚠ No bookings found. Upload your Lodgify CSV on the <a href="index.html">Dashboard</a> first, or check the property name matches the CSV.
       </div>`:`
-      <div style="overflow-x:auto"><table class="rpt-table">
+      <div style="overflow-x:auto" class="rpt-scroll-wrap"><table class="rpt-table">
         <thead><tr><th>#</th><th>Guest</th><th>Booked</th><th>Check-in</th><th>Check-out</th>
           <th>Nts</th><th>Gst</th><th>Source</th><th>Daily Avg</th><th>Total Rent</th>
           <th>OTA Comm</th><th>Received</th><th>Receivable</th>
-          <th>Zesty (${pct(mgmt)})</th><th>Net Income</th>
+          <th>Zesty Comm</th><th>Net Income</th>
         </tr></thead>
         <tbody>${bRows}</tbody>
         <tfoot><tr><td colspan="8" style="text-align:right">TOTAL</td>
@@ -408,7 +424,7 @@ function generateOccupancy(){
     if(!byProp[name])byProp[name]={nights:0,bookings:0,revenue:0,src:{}};
     byProp[name].nights+=parseInt(r.Nights)||0;
     byProp[name].bookings++;
-    byProp[name].revenue+=parseFloat(r.TotalRent||0);
+    byProp[name].revenue+=parseFloat(r.TotalAmount||r.TotalRent||0);
     const s=r.Source||'Other';byProp[name].src[s]=(byProp[name].src[s]||0)+1;
   });
   const totalDays=Math.round((new Date(to)-new Date(from))/86400000)+1;

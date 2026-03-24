@@ -500,16 +500,24 @@ tr.highlighted td { border-color: #f0d060 !important; }
 }
 
 /* ── GLOBAL HORIZONTAL SCROLL ── */
+/* Tables always scroll horizontally at their own level */
 .table-wrap,
 [class*="table-wrap"] {
   overflow-x: auto !important;
   -webkit-overflow-scrolling: touch;
+  max-width: 100%;
 }
+/* All tables have a minimum width so they trigger scroll */
 table {
   min-width: 600px;
 }
-/* Ensure erp-main content scrolls properly */
-.erp-main, .container, main {
+/* The main content area itself scrolls horizontally */
+.erp-main {
   overflow-x: auto;
   min-width: 0;
+}
+/* Container never exceeds available width */
+.container {
+  overflow-x: visible;
+  max-width: 100%;
 }
