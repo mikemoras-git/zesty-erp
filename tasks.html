@@ -242,12 +242,12 @@ tr.task-row:hover{background:#f0faf8}
 
   <div class="filter-bar">
     <input type="text" id="fSearch" placeholder="Search description, location, assignee..." oninput="renderTable()">
-    <select id="fStatus" onchange="renderTable()">
-      <option value="">All Statuses</option>
-      <option value="Open">Open</option>
-      <option value="In Progress">In Progress</option>
-      <option value="Closed">Closed</option>
-    </select>
+    <div style="display:inline-flex;align-items:center;gap:10px;background:#fff;border:1px solid var(--border);border-radius:8px;padding:6px 12px">
+      <span style="font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em">Status:</span>
+      <label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer"><input type="checkbox" id="fs-open" value="Open" checked onchange="renderTable()"> Open</label>
+      <label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer"><input type="checkbox" id="fs-prog" value="In Progress" checked onchange="renderTable()"> In Progress</label>
+      <label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer"><input type="checkbox" id="fs-closed" value="Closed" onchange="renderTable()"> Closed</label>
+    </div>
     <select id="fPriority" onchange="renderTable()">
       <option value="">All Priorities</option>
       <option value="High">High</option>
@@ -538,7 +538,11 @@ function populateDropdowns() {
 
 function getFiltered() {
   const q = document.getElementById('fSearch').value.toLowerCase();
-  const fS = document.getElementById('fStatus').value || filterStatus;
+  // Multi-status filter from checkboxes
+  const _checkedStatuses = ['fs-open','fs-prog','fs-closed']
+    .filter(id => { const el=document.getElementById(id); return el && el.checked; })
+    .map(id => document.getElementById(id).value);
+  const fS = _checkedStatuses.length < 3 ? _checkedStatuses : []; // empty = all
   const fP = document.getElementById('fPriority').value || filterPriority;
   const fA = document.getElementById('fAssignee').value;
   const fL = document.getElementById('fLocation').value;
@@ -546,7 +550,7 @@ function getFiltered() {
     return (!q || (t.description||'').toLowerCase().includes(q)
                 || (t.assignedTo||'').toLowerCase().includes(q)
                 || (t.location||'').toLowerCase().includes(q))
-      && (!fS || t.status===fS)
+      && (fS.length === 0 || fS.includes(t.status))
       && (!fP || t.priority===fP)
       && (!fA || t.assignedTo===fA)
       && (!fL || t.location===fL);
@@ -643,7 +647,7 @@ function filterByStatus(s) {
 function filterByPriority(p) {
   filterPriority=p; filterStatus='';
   document.getElementById('fPriority').value=p;
-  document.getElementById('fStatus').value='';
+  ['fs-open','fs-prog','fs-closed'].forEach(id=>{const el=document.getElementById(id);if(el)el.checked=true;});
   document.querySelectorAll('.stat-card').forEach(c=>c.classList.remove('active-filter'));
   if(p==='High') document.getElementById('sc-high').classList.add('active-filter');
   renderTable();
@@ -652,7 +656,7 @@ function filterByPriority(p) {
 function clearFilters() {
   filterStatus=''; filterPriority='';
   document.getElementById('fSearch').value='';
-  document.getElementById('fStatus').value='';
+  ['fs-open','fs-prog','fs-closed'].forEach(id=>{const el=document.getElementById(id);if(el)el.checked=true;});
   document.getElementById('fPriority').value='';
   document.getElementById('fAssignee').value='';
   document.getElementById('fLocation').value='';

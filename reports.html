@@ -38,7 +38,20 @@
 .channel-row{display:flex;align-items:center;gap:10px;margin-bottom:7px}
 .channel-track{flex:1;height:8px;background:var(--cream-dark);border-radius:4px;overflow:hidden}
 .channel-fill{height:100%;border-radius:4px}
-@media print{.no-print,.report-subnav,.page-title-bar,.filter-bar{display:none!important}.container{padding:0!important}body{background:#fff!important}.rpt-wrap{box-shadow:none!important;border:1px solid #ddd}@page{margin:14mm;size:A4}}
+@media print{
+  .no-print,.report-subnav,.page-title-bar,.filter-bar,#z-sidebar,#z-hamburger,#z-ticket-fab,#z-overlay{display:none!important}
+  body{background:#fff!important;margin-left:0!important}
+  .container{padding:8mm!important;max-width:100%!important}
+  .rpt-wrap{box-shadow:none!important;border:1px solid #ccc;margin-top:0!important}
+  .rpt-section{padding:10px 14px!important}
+  .rpt-table{font-size:10px!important}
+  .rpt-table th,.rpt-table td{padding:5px 7px!important}
+  .summary-grid,.sum-block{display:block!important}
+  .rpt-section-title{font-size:13px!important;margin-bottom:8px!important}
+  table{page-break-inside:avoid}
+  .rpt-section{page-break-inside:avoid}
+  @page{margin:10mm;size:A4 landscape}
+}
 </style>
 <script src="https://alcdn.msauth.net/browser/2.38.0/js/msal-browser.min.js"></script>
 <script>
@@ -221,7 +234,7 @@ function generateOwner(){
   const bySource={};
   const bRows=bookings.map((r,i)=>{
     const nights=parseInt(r.Nights)||0, guests=parseInt(r.Guests)||0;
-    const rent=parseFloat(r.TotalRent||r.Total||0);
+    const rent=parseFloat(r.TotalRent||r['Total Rent']||r.GrossAmount||r.Amount||r.Total||0);
     const otaRate=getCommRate(prop,r.Source);
     const ota=parseFloat(r.OTACommission||0)||parseFloat((rent*otaRate/100).toFixed(2));
     const rec=parseFloat(r.Received||0), recbl=parseFloat(r.Receivable||0);
@@ -244,9 +257,7 @@ function generateOwner(){
       <td style="text-align:right;color:var(--info);font-size:12px">${rec>0?eur(rec):'—'}</td>
       <td style="text-align:right;font-size:12px">${recbl>0?eur(recbl):'—'}</td>
       <td style="text-align:right;color:var(--text-muted);font-size:12px">${eur(zesty)}</td>
-      <td style="text-align:right;color:var(--warning);font-size:12px">${due>0?eur(due):'—'}</td>
       <td style="text-align:right;font-weight:700;color:var(--teal-dark)">${eur(netInc)}</td>
-      <td style="font-size:11px;color:var(--text-muted)">${r.Comments||r.Notes||''}</td>
     </tr>`;
   }).join('');
 
@@ -327,18 +338,16 @@ function generateOwner(){
         <thead><tr><th>#</th><th>Guest</th><th>Booked</th><th>Check-in</th><th>Check-out</th>
           <th>Nts</th><th>Gst</th><th>Source</th><th>Daily Avg</th><th>Total Rent</th>
           <th>OTA Comm</th><th>Received</th><th>Receivable</th>
-          <th>Zesty (${pct(mgmt)})</th><th>Due Zesty</th><th>Net Income</th><th>Notes</th>
+          <th>Zesty (${pct(mgmt)})</th><th>Net Income</th>
         </tr></thead>
         <tbody>${bRows}</tbody>
-        <tfoot><tr><td colspan="9" style="text-align:right">TOTAL</td>
+        <tfoot><tr><td colspan="8" style="text-align:right">TOTAL</td>
           <td style="text-align:right">${eur(tRent)}</td>
           <td style="text-align:right;color:var(--danger)">${eur(tOTA)}</td>
           <td style="text-align:right;color:var(--info)">${eur(tRec)}</td>
           <td style="text-align:right">${eur(tRecbl)}</td>
           <td style="text-align:right">${eur(tZesty)}</td>
-          <td style="text-align:right;color:var(--warning)">${eur(tDue)}</td>
           <td style="text-align:right;color:var(--teal-dark);font-size:14px">${eur(tNet)}</td>
-          <td></td>
         </tr></tfoot>
       </table></div>`}
     </div>
@@ -367,19 +376,17 @@ function generateOwner(){
           <div class="sum-row"><span class="sum-label">Total Rent</span><span class="sum-val">${eur(tRent)}</span></div>
           <div class="sum-row"><span class="sum-label">OTA Commissions</span><span class="sum-val" style="color:var(--danger)">− ${eur(tOTA)}</span></div>
           <div class="sum-row"><span class="sum-label">Net Rent</span><span class="sum-val">${eur(tRent-tOTA)}</span></div>
-          <div class="sum-row"><span class="sum-label">Zesty Management (${pct(mgmt)})</span><span class="sum-val" style="color:var(--warning)">− ${eur(tZesty)}</span></div>
-          <div class="sum-row subtotal"><span>Net Income</span><span style="color:var(--success)">${eur(tNet)}</span></div>
-          ${propJobs.length>0?`<div class="sum-row"><span class="sum-label">Job Orders</span><span class="sum-val" style="color:var(--danger)">− ${eur(tJobs)}</span></div>`:''}
-          <div class="sum-row payable"><span>PAYABLE TO OWNER</span><span>${eur(payable)}</span></div>
+          <div class="sum-row"><span class="sum-label">Zesty Management (${pct(mgmt)})</span><span class="sum-val" style="color:var(--teal)">+ ${eur(tZesty)}</span></div>
+          <div class="sum-row subtotal"><span>Net Income (owner keeps)</span><span style="color:var(--success)">${eur(tNet)}</span></div>
+          ${propJobs.length>0?`<div class="sum-row"><span class="sum-label">Job Orders (charged)</span><span class="sum-val" style="color:var(--teal)">+ ${eur(tJobs)}</span></div>`:''}
+          <div class="sum-row payable"><span>DUE TO ZESTY</span><span>${eur(tZesty+tJobs)}</span></div>
         </div>
         <div>
           <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted);margin-bottom:12px">Revenue by Channel</div>
           ${chanBars||'<div style="color:var(--text-muted);font-size:13px">No data</div>'}
           <div style="margin-top:20px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted);margin-bottom:10px">Occupancy</div>
           <div style="font-size:13px">
-            <div class="sum-row"><span class="sum-label">First Day</span><strong>${fmtDate(firstD)}</strong></div>
-            <div class="sum-row"><span class="sum-label">Last Day</span><strong>${fmtDate(lastD)}</strong></div>
-            <div class="sum-row"><span class="sum-label">Booked Days</span><strong>${booked}</strong></div>
+            <div class="sum-row"><span class="sum-label">Booked Nights</span><strong>${booked}</strong></div>
             <div class="sum-row"><span class="sum-label">Days in Month</span><strong>${daysM}</strong></div>
             <div class="sum-row"><span class="sum-label">Occupancy</span><strong style="color:var(--teal)">${occ}%</strong></div>
           </div>
@@ -441,6 +448,26 @@ function generateOccupancy(){
     </div>
   </div>`;
 }
+
+function fmtDate(s) {
+  if (!s || s === '—') return '—';
+  try {
+    const d = new Date(s);
+    if (isNaN(d)) return s;
+    return d.toLocaleDateString('en-GB', {day:'numeric', month:'short', year:'numeric'});
+  } catch { return s; }
+}
+
+
+function showToast(msg, type) {
+  let t = document.getElementById('_toast');
+  if (!t) { t = document.createElement('div'); t.id = '_toast'; t.style.cssText='position:fixed;bottom:24px;right:24px;padding:12px 20px;border-radius:10px;font-size:13px;z-index:9999;color:#fff;font-family:DM Sans,sans-serif;transition:all .3s;opacity:0;transform:translateY(20px)'; document.body.appendChild(t); }
+  t.textContent = msg;
+  t.style.background = type === 'error' ? '#c0392b' : '#1a7a6e';
+  t.style.opacity = '1'; t.style.transform = 'translateY(0)';
+  setTimeout(() => { t.style.opacity = '0'; t.style.transform = 'translateY(20px)'; }, 3000);
+}
+
 </script>
 <script src="erp-nav.js"></script>
 </body>

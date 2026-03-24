@@ -44,6 +44,7 @@ body {
   background: var(--cream);
   color: var(--text);
   min-height: 100vh;
+  overflow-x: auto;
 }
 
 /* ── LAYOUT ── */
@@ -51,6 +52,7 @@ body {
   max-width: 1440px;
   margin: 0 auto;
   padding: 28px 28px 100px;
+  min-width: 0;
 }
 
 /* ── PAGE TITLE ── */
@@ -212,7 +214,9 @@ body {
   background: var(--white);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
-  overflow: hidden;
+  overflow-x: auto;
+  overflow-y: visible;
+  -webkit-overflow-scrolling: touch;
 }
 .table-header {
   padding: 14px 18px;
@@ -493,4 +497,19 @@ tr.highlighted td { border-color: #f0d060 !important; }
   .filter-bar input { width: 100%; }
   .stats-bar { grid-template-columns: 1fr 1fr; }
   .modal { border-radius: 12px; }
+}
+
+/* ── GLOBAL HORIZONTAL SCROLL ── */
+.table-wrap,
+[class*="table-wrap"] {
+  overflow-x: auto !important;
+  -webkit-overflow-scrolling: touch;
+}
+table {
+  min-width: 600px;
+}
+/* Ensure erp-main content scrolls properly */
+.erp-main, .container, main {
+  overflow-x: auto;
+  min-width: 0;
 }

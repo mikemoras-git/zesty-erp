@@ -5,6 +5,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Zesty Rentals — Job Orders</title>
+<link rel="stylesheet" href="erp-style.css">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -297,60 +298,23 @@ tr:hover td{background:#f7fbfa}
     
     
 </head>
-<body class="erp-layout">
-
-<div class="erp-overlay" id="erpOverlay"></div>
-<aside class="erp-sidebar" id="erpSidebar">
-  <div class="erp-brand">
-    <div class="erp-brand-name">Zesty <span>ERP</span></div>
-    <div class="erp-brand-sub">Kissamos · Operations</div>
-  </div>
-  <nav class="erp-nav-section">
-    <div class="erp-nav-section-label">Modules</div>
-      <a href="index.html" class="erp-nav-link"><span class="nav-icon">🏠</span><span class="nav-label">Home</span></a>
-      <a href="owners-crm.html" class="erp-nav-link"><span class="nav-icon">👤</span><span class="nav-label">Owners</span></a>
-      <a href="properties-db.html" class="erp-nav-link"><span class="nav-icon">🏠</span><span class="nav-label">Properties</span></a>
-      <a href="guests-crm.html" class="erp-nav-link"><span class="nav-icon">✈️</span><span class="nav-label">Guests</span></a>
-      <a href="cleaning-system.html" class="erp-nav-link"><span class="nav-icon">🧹</span><span class="nav-label">Cleaning</span></a>
-      <a href="contacts-crm.html" class="erp-nav-link"><span class="nav-icon">📋</span><span class="nav-label">Contacts</span></a>
-      <a href="employees.html" class="erp-nav-link"><span class="nav-icon">👥</span><span class="nav-label">Staff</span></a>
-      <a href="leave.html" class="erp-nav-link"><span class="nav-icon">🏖️</span><span class="nav-label">Leave</span></a>
-      <a href="tasks.html" class="erp-nav-link"><span class="nav-icon">✅</span><span class="nav-label">Tasks</span></a>
-      <a href="jobs.html" class="erp-nav-link active"><span class="nav-icon">🔧</span><span class="nav-label">Job Orders</span></a>
-      <a href="laundry.html" class="erp-nav-link"><span class="nav-icon">👔</span><span class="nav-label">Laundry ERP</span></a>
-      <a href="onboarding.html" class="erp-nav-link"><span class="nav-icon">📋</span><span class="nav-label">Onboarding</span></a>
-      <a href="settings.html" class="erp-nav-link"><span class="nav-icon">⚙️</span><span class="nav-label">Settings</span></a>
-  </nav>
-      <div class="erp-module-tabs">
-      <div class="erp-module-tabs-label">Module Sections</div>
-            <button class="erp-tab-link active" id="jf-all" onclick="setJobFilter(this,'status','')">📋 All Jobs</button>
-      <button class="erp-tab-link" id="jf-open" onclick="setJobFilter(this,'status','Open')">🔓 Open</button>
-      <button class="erp-tab-link" id="jf-progress" onclick="setJobFilter(this,'status','In Progress')">⚙️ In Progress</button>
-      <button class="erp-tab-link" id="jf-completed" onclick="setJobFilter(this,'status','Completed')">✅ Completed</button>
-      <button class="erp-tab-link" id="jf-paid" onclick="setJobFilter(this,'status','Paid')">💰 Paid</button>
-      <button class="erp-tab-link" id="jf-unpaid" onclick="setJobFilter(this,'paid','unpaid')">⚠️ Unpaid</button>
-    </div>
-  <div class="erp-sidebar-footer">
-    <div class="erp-user-badge" id="sidebarUser"></div>
-    <div class="erp-sync-row">
-      <span class="sync-dot" id="syncDot" title="Saved"></span>
-      <span class="sync-label" id="syncLabel">Synced</span>
-    </div>
-  </div>
-</aside>
-
-<div class="erp-main">
-<div class="erp-topbar">
-    <button class="erp-hamburger" id="erpHamburger">☰</button>
-    <div class="erp-topbar-title">🔧 Job Orders</div>
-    <div class="erp-topbar-actions"><button class="btn btn-outline btn-sm" onclick="openOwnerReport()">📊 Report</button>
-      <button class="btn btn-outline btn-sm" onclick="exportCSV()">↓ CSV</button>
-      <button class="btn btn-primary btn-sm" onclick="openNewJob()">+ New Job</button></div>
-  </div>
+<body>
 
 
+
+
+
+
+<span id="syncDot" style="display:none"></span>
 <div class="container">
-
+  <div class="page-title-bar">
+    <div><h1>Job Orders</h1></div>
+    <div class="page-actions">
+      <button class="btn btn-outline btn-sm" onclick="openOwnerReport()">📊 Report</button>
+      <button class="btn btn-outline btn-sm" onclick="exportCSV()">↓ CSV</button>
+      <button class="btn btn-primary btn-sm" onclick="openNewJob()">+ New Job</button>
+    </div>
+  </div>
   <!-- STATS -->
   <div class="stats-bar" style="grid-template-columns:repeat(6,1fr)">
     <div class="stat-card" onclick="setFilter('status','')">
@@ -1890,7 +1854,7 @@ document.addEventListener('DOMContentLoaded', _initSidebar);
 
 init().catch(console.error);
 </script>
-
+<script>
 // ── PASSWORD PROTECTION ──
 const ERP_PASSWORD = 'Zesty2025!';
 function requirePassword(cb) {
@@ -1898,8 +1862,8 @@ function requirePassword(cb) {
   if (pw === ERP_PASSWORD) { cb(); }
   else if (pw !== null) { alert('Incorrect password.'); }
 }
-
+</script>
 <script src="erp-nav.js"></script>
-</div><!-- /erp-main -->
+
 </body>
 </html>

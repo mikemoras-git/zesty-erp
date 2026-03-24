@@ -25,6 +25,7 @@
     { url: 'onboarding.html',      icon: '▷',  label: 'Onboarding' },
     { url: 'settings.html',        icon: '⚙',  label: 'Settings' },
     { url: 'tickets.html',         icon: '◈',  label: 'Tickets' },
+    { url: 'reports.html',         icon: '📊', label: 'Reports' },
   ];
 
   /* ── UTILS ───────────────────────────────────────────────── */
@@ -286,6 +287,8 @@
 
   /* ── INIT ────────────────────────────────────────────────── */
   function init() {
+    // Skip if this page has its own embedded sidebar already
+    if (document.getElementById('erpSidebar') || document.getElementById('z-sidebar')) return;
     injectCSS();
 
     var wrap = document.createElement('div');

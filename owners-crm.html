@@ -1689,7 +1689,7 @@ document.getElementById('f_attachments').addEventListener('change', function() {
 init().catch(console.error);
 showDbStatus();
 </script>
-
+<script>
 // ── PASSWORD PROTECTION ──
 const ERP_PASSWORD = 'Zesty2025!';
 function requirePassword(cb) {
@@ -1697,7 +1697,7 @@ function requirePassword(cb) {
   if (pw === ERP_PASSWORD) { cb(); }
   else if (pw !== null) { alert('Incorrect password.'); }
 }
-
+</script>
 <script src="erp-nav.js"></script>
 </body>
 </html>
