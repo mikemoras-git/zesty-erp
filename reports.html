@@ -39,19 +39,77 @@
 .channel-track{flex:1;height:8px;background:var(--cream-dark);border-radius:4px;overflow:hidden}
 .channel-fill{height:100%;border-radius:4px}
 @media print{
-  .no-print,.report-subnav,.page-title-bar,.filter-bar,#z-sidebar,#z-hamburger,#z-ticket-fab,#z-overlay{display:none!important}
-  body{background:#fff!important;margin-left:0!important}
-  .container{padding:8mm!important;max-width:100%!important}
-  .rpt-wrap{box-shadow:none!important;border:1px solid #ccc;margin-top:0!important}
-  .rpt-section{padding:10px 14px!important}
-  .rpt-table{font-size:10px!important}
-  .rpt-table th,.rpt-table td{padding:5px 7px!important}
-  .summary-grid,.sum-block{display:block!important}
-  .rpt-section-title{font-size:13px!important;margin-bottom:8px!important}
-  table{page-break-inside:avoid}
-  .rpt-section{page-break-inside:avoid}
-  @page{margin:10mm;size:A4 landscape}
+  /* Hide all navigation and browser chrome */
+  #z-sidebar,#z-hamburger,#z-ticket-fab,#z-overlay,#z-ticket-overlay,
+  .report-subnav,.page-title-bar,.filter-bar,.no-print,
+  .rpt-scroll-wrap > *::-webkit-scrollbar { display:none!important }
+
+  html,body { 
+    overflow:visible!important; 
+    margin:0!important; 
+    padding:0!important;
+    background:#fff!important;
+    -webkit-print-color-adjust:exact;
+    print-color-adjust:exact;
+  }
+  
+  .container { 
+    padding:0!important; 
+    max-width:100%!important; 
+    margin:0!important;
+    overflow:visible!important;
+  }
+  
+  .rpt-wrap { 
+    box-shadow:none!important; 
+    border:1px solid #ccc!important;
+    margin:0!important;
+    overflow:visible!important;
+  }
+  
+  /* Compact sections */
+  .rpt-section { padding:6px 10px!important; }
+  
+  /* Teal header - print in color */
+  .rpt-section[style*="gradient"] { 
+    -webkit-print-color-adjust:exact!important; 
+    print-color-adjust:exact!important;
+    padding:10px 14px!important;
+  }
+  
+  /* Compact tables */
+  .rpt-table { font-size:8.5px!important; width:100%!important; }
+  .rpt-table th { padding:3px 5px!important; font-size:7.5px!important; }
+  .rpt-table td { padding:3px 5px!important; }
+  
+  /* Scroll wrappers become visible */
+  .rpt-scroll-wrap, div[style*="overflow-x"] { 
+    overflow:visible!important; 
+    max-width:100%!important;
+  }
+  
+  /* Summary */
+  .summary-grid { display:grid!important; grid-template-columns:1fr 1fr!important; }
+  .sum-row { padding:4px 0!important; font-size:11px!important; }
+  .sum-row.payable { font-size:14px!important; }
+  
+  /* Section title */
+  .rpt-section-title { font-size:11px!important; margin-bottom:6px!important; padding-bottom:4px!important; }
+
+  /* Avoid page breaks inside tables */
+  table { page-break-inside:avoid!important; }
+  .rpt-section { page-break-inside:avoid!important; }
+  tr { page-break-inside:avoid!important; }
+  
+  /* Source badges in color */
+  .src-badge { -webkit-print-color-adjust:exact!important; print-color-adjust:exact!important; }
+
+  @page { 
+    margin:8mm; 
+    size:A4 landscape; 
+  }
 }
+
 </style>
 <script src="https://alcdn.msauth.net/browser/2.38.0/js/msal-browser.min.js"></script>
 <script>
@@ -166,9 +224,11 @@ function srcClass(s){
 }
 function getCommRate(prop,src){
   if(!prop||!src)return 0; const s=src.toLowerCase();
-  if(s.includes('airbnb'))return parseFloat(prop.commAirbnb)||0;
-  if(s.includes('booking'))return parseFloat(prop.commBooking)||0;
-  if(s.includes('vrbo'))return parseFloat(prop.commVrbo)||0;
+  // Use PLATFORM FEES (what the host pays to OTA) not guest-side commissions
+  if(s.includes('airbnb'))return parseFloat(prop.platFeeAirbnb)||parseFloat(prop.commAirbnb)||0;
+  if(s.includes('booking'))return parseFloat(prop.platFeeBooking)||parseFloat(prop.commBooking)||0;
+  if(s.includes('vrbo')||s.includes('homeaway'))return parseFloat(prop.platFeeVrbo)||parseFloat(prop.commVrbo)||0;
+  if(s.includes('manual')||s.includes('direct'))return 0; // direct bookings: no OTA fee
   return 0;
 }
 function calcJobCharge(j){
@@ -241,22 +301,27 @@ function generateOwner(){
     return new Date(r.DateArrival)<=mEnd&&new Date(r.DateDeparture)>=mStart;
   });
 
-  let tRent=0,tOTA=0,tRec=0,tRecbl=0,tZesty=0,tDue=0,tNet=0;
+  let tRent=0,tOTA=0,tRec=0,tRecbl=0,tZesty=0,tNet=0;
   const bySource={};
   const bRows=bookings.map((r,i)=>{
     const nights=parseInt(r.Nights)||0;
     const guests=parseInt(r.People||r.Guests||0);
     // Lodgify CSV: TotalAmount = total booking value
     const rent=parseFloat(r.TotalAmount||r.TotalRent||r['Total Rent']||r.GrossAmount||0);
-    // OTA commission: calculate from property rate (not in CSV)
+    // OTA commission: platform fee (host pays to OTA)
     const otaRate=getCommRate(prop,r.Source);
     const ota=parseFloat((rent*otaRate/100).toFixed(2));
-    // AmountPaid = Received, BalanceDue = Receivable
-    const rec=parseFloat(r.AmountPaid||r.Received||0);
-    const recbl=parseFloat(r.BalanceDue||r.Receivable||0);
-    const netRent=rent-ota, zesty=parseFloat((netRent*mgmt/100).toFixed(2));
-    const due=rec>0?zesty:0, netInc=netRent-due, daily=nights>0?rent/nights:0;
-    tRent+=rent;tOTA+=ota;tRec+=rec;tRecbl+=recbl;tZesty+=zesty;tDue+=due;tNet+=netInc;
+    // Received = TotalAmount - OTA (what owner actually receives)
+    // Use CSV AmountPaid if available, otherwise calculate
+    const rec=parseFloat(r.AmountPaid||0)||(rent-ota);
+    const recbl=parseFloat(r.BalanceDue||0);
+    const netRent=rent-ota;
+    // Zesty commission applied to net rent (after OTA deduction)
+    const zesty=parseFloat((netRent*mgmt/100).toFixed(2));
+    // Net income = what owner keeps = netRent - zesty commission
+    const netInc=netRent-zesty;
+    const daily=nights>0?rent/nights:0;
+    tRent+=rent;tOTA+=ota;tRec+=rec;tRecbl+=recbl;tZesty+=zesty;tNet+=netInc;
     bySource[r.Source||'Other']=(bySource[r.Source||'Other']||0)+rent;
     return`<tr>
       <td style="color:var(--text-muted);font-size:11px">${i+1}</td>

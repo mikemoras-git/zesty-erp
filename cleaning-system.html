@@ -1292,13 +1292,23 @@ async function syncCleaningData() {
       SyncStore.load('zesty_staff', 'cleaning_staff'),
       SyncStore.load('zesty_jobs', 'cleaning_jobs'),
     ]);
+    // Fallback: try 'staff' table if cleaning_staff is empty
+    if (!rs.fromCache && (!rs.data || rs.data.length === 0)) {
+      const rsFallback = await SyncStore.load('zesty_staff', 'staff');
+      if (!rsFallback.fromCache && rsFallback.data && rsFallback.data.length > 0) {
+        rs.data = rsFallback.data;
+        rs.fromCache = false;
+      }
+    }
     // Import history from localStorage only
     const _ih = JSON.parse(localStorage.getItem('zesty_import_history') || '[]');
     if (_ih.length) importHistory = _ih;
     // API returns {data, fromCache}
     let changed = false;
-    if (rs.data && rs.data.length >= 0) { staff = rs.data; changed = true; }
-    if (rj.data && rj.data.length !== cleaningJobs.length) { cleaningJobs = rj.data; changed = true; }
+    // Only update if Supabase returned actual data (not just empty from failed request)
+    if (!rs.fromCache && rs.data && rs.data.length > 0) { staff = rs.data; changed = true; }
+    else if (!rs.fromCache && rs.data && rs.data.length === 0 && staff.length === 0) { staff = []; }
+    if (!rj.fromCache && rj.data) { cleaningJobs = rj.data; changed = true; }
     if (changed) {
       renderStaff(); renderCalendar(); renderJobs(); renderImportHistory();
       updateStaffDropdowns(); updateStaffStats(); updateJobStats();

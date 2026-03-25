@@ -50,12 +50,9 @@
 
       * { box-sizing: border-box; }
 
-      body { margin-left: var(--z-sidebar-w) !important; overflow-x: auto; }
-      /* Main content area scrolls horizontally when content wider than viewport */
-      body > *:not(#z-sidebar):not(#z-overlay):not(#z-hamburger):not(#z-ticket-fab):not(#z-ticket-overlay) {
-        max-width: calc(100vw - var(--z-sidebar-w));
-        overflow-x: auto;
-      }
+      body { margin-left: var(--z-sidebar-w) !important; min-width: 0; }
+      /* Wrapper that scrolls horizontally - appears BELOW viewport if content overflows */
+      html { overflow-x: auto; }
       header { display: none !important; }
 
       /* ── SIDEBAR ── */
@@ -226,8 +223,7 @@
 
       /* ── RESPONSIVE ── */
       @media (max-width: 900px) {
-        body { margin-left: 0 !important; overflow-x: auto; }
-        body > *:not(#z-sidebar):not(#z-overlay):not(#z-hamburger):not(#z-ticket-fab):not(#z-ticket-overlay) { max-width: 100vw; overflow-x: auto; }
+        body { margin-left: 0 !important; }
         #z-sidebar { transform: translateX(-100%); }
         #z-sidebar.open { transform: translateX(0); }
         #z-hamburger { display: flex; align-items: center; }
