@@ -263,18 +263,13 @@ function getCSVBookings(){
   return raw&&raw.text?parseCSV(raw.text):[];
 }
 function matchProp(r,prop){
-  const csvName=(r.HouseInternalName||r.HouseName||'').toLowerCase().trim();
-  const shortName=(prop.shortName||prop.propertyName||'').toLowerCase().trim();
-  // Direct match first
-  if(csvName===shortName) return true;
-  // House_Id match
-  if(prop.propertyId && String(r.House_Id)===String(prop.propertyId)) return true;
-  // First word of property name in CSV name
-  const firstWord=shortName.split(' ')[0];
-  if(firstWord.length>2 && csvName.includes(firstWord)) return true;
-  // First word of CSV name in property name
-  const csvFirst=csvName.split(' ')[0];
-  if(csvFirst.length>2 && shortName.includes(csvFirst)) return true;
+  // PRIMARY: match by Lodgify House_Id = property propertyId (most reliable)
+  if(prop.propertyId && r.House_Id && String(r.House_Id)===String(prop.propertyId)) return true;
+  // SECONDARY: exact HouseInternalName match (case-insensitive)
+  const internalName=(r.HouseInternalName||'').trim();
+  const shortName=(prop.shortName||prop.propertyName||'').trim();
+  if(internalName && internalName!=='N/A' && shortName &&
+     internalName.toLowerCase()===shortName.toLowerCase()) return true;
   return false;
 }
 
@@ -344,8 +339,15 @@ function generateOwner(){
 
   // Jobs
   const propJobs=jobs.filter(j=>{
-    const jn=(j.propertyName||'').toLowerCase(), ps=(prop.shortName||'').toLowerCase().split(' ')[0];
-    return (jn.includes(ps)||j.propertyId===prop.id) && (j.dateStarted||j.dateCompleted||j.dateInvoiced||'').startsWith(month);
+    // Only completed jobs
+    if(j.status!=='Completed'&&j.status!=='Paid') return false;
+    // Match by property: try propertyId first, then name
+    const matchesProp = (prop.propertyId && String(j.propertyId)===String(prop.propertyId)) ||
+      (j.propertyName||'').toLowerCase().includes((prop.shortName||'').toLowerCase().split(' ')[0]);
+    if(!matchesProp) return false;
+    // Match by month: check completed date or started date
+    const d=j.dateCompleted||j.dateStarted||j.dateInvoiced||'';
+    return d.startsWith(month);
   });
   const tJobs=propJobs.reduce((s,j)=>s+calcJobCharge(j),0);
   const jRows=propJobs.map(j=>`<tr>
@@ -422,7 +424,7 @@ function generateOwner(){
           <th>Zesty Comm</th><th>Net Income</th>
         </tr></thead>
         <tbody>${bRows}</tbody>
-        <tfoot><tr><td colspan="8" style="text-align:right">TOTAL</td>
+        <tfoot><tr><td colspan="9" style="text-align:right">TOTAL</td>
           <td style="text-align:right">${eur(tRent)}</td>
           <td style="text-align:right;color:var(--danger)">${eur(tOTA)}</td>
           <td style="text-align:right;color:var(--info)">${eur(tRec)}</td>
