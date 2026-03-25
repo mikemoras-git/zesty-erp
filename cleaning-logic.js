@@ -60,17 +60,18 @@ async function init() {
   await syncCleaningData();
   showDbStatus(true);
   
-  // After loading: if current month has no jobs, jump to most recent month that does
+  // After loading: show current month. If empty, jump to NEXT upcoming month with jobs.
   const _curMonth = formatMonthValue(currentCalMonth);
   const _hasJobsThisMonth = cleaningJobs.some(j => j.date && j.date.startsWith(_curMonth));
   if (!_hasJobsThisMonth && cleaningJobs.length > 0) {
     const _months = [...new Set(cleaningJobs.map(j => j.date?.substring(0,7)).filter(Boolean))].sort();
-    const _latestMonth = _months[_months.length - 1];
-    if (_latestMonth) {
-      const [_yr, _mo] = _latestMonth.split('-');
+    // Find closest upcoming month (>= current), not the latest
+    const _nextMonth = _months.find(m => m >= _curMonth) || _months[0];
+    if (_nextMonth && _nextMonth !== _curMonth) {
+      const [_yr, _mo] = _nextMonth.split('-');
       currentCalMonth = new Date(parseInt(_yr), parseInt(_mo)-1, 1);
-      document.getElementById('calMonth').value = _latestMonth;
-      document.getElementById('jobMonth').value = _latestMonth;
+      document.getElementById('calMonth').value = _nextMonth;
+      document.getElementById('jobMonth').value = _nextMonth;
       renderCalendar(); renderJobs();
     }
   }
