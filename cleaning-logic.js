@@ -542,11 +542,9 @@ function renderImportPreview() {
 }
 
 function getPropertyCleanType(houseIdOrName) {
-  // Try to find in properties database
   try {
-    const props = JSON.parse(localStorage.getItem('zesty_properties') || '[]');
-    const p = props.find(p => String(p.propertyId) === String(houseIdOrName) || p.shortName === houseIdOrName || p.propertyName === houseIdOrName);
-    return p ? p.cleanType : 'pattern';
+    const p = _findProp(houseIdOrName) || _findPropByName(houseIdOrName);
+    return p ? (p.cleanType || 'pattern') : 'pattern';
   } catch { return 'pattern'; }
 }
 
@@ -564,6 +562,15 @@ function getCleanDays(type, nights) {
 }
 
 async function confirmImport() {
+  // Refresh property cache from Supabase before importing
+  // This ensures new properties added since last visit are included
+  try {
+    const freshProps = await SyncStore.load('zesty_properties', 'properties');
+    if (freshProps.data && freshProps.data.length > 0) {
+      window._propCache = freshProps.data;
+    }
+  } catch(e) { /* use existing cache */ }
+  
   const activeRows = importPreviewData.filter(r => r.Status === 'Booked');
   // Cancelled bookings that have existing jobs \u2014 remove them
   const cancelledIds = new Set(
@@ -662,26 +669,58 @@ async function confirmImport() {
 
 function getPropertyTransport(propIdOrName) {
   try {
-    const props = JSON.parse(localStorage.getItem('zesty_properties') || '[]');
-    const p = props.find(p => String(p.propertyId) === String(propIdOrName) || p.shortName === propIdOrName || p.propertyName === propIdOrName);
+    const p = _findProp(propIdOrName) || _findPropByName(propIdOrName);
     return p ? (parseFloat(p.transportCharge) || 0) : 0;
   } catch { return 0; }
 }
 
+// ── PROPERTY LOOKUP CACHE ──
+// Loaded once per session from localStorage (populated by properties-db.html)
+// Falls back to Supabase if localStorage is empty
+window._propCache = null;
+function _getProps() {
+  if (window._propCache) return window._propCache;
+  try {
+    const raw = JSON.parse(localStorage.getItem('zesty_properties') || '[]');
+    if (raw.length > 0) { window._propCache = raw; return raw; }
+  } catch {}
+  return [];
+}
+function _findProp(propIdOrName) {
+  const props = _getProps();
+  // Match by House_Id (string) = propertyId (number) OR by shortName/propertyName
+  return props.find(p =>
+    (p.propertyId && String(p.propertyId) === String(propIdOrName)) ||
+    (p.shortName && p.shortName.toLowerCase() === String(propIdOrName).toLowerCase()) ||
+    (p.propertyName && p.propertyName.toLowerCase() === String(propIdOrName).toLowerCase())
+  ) || null;
+}
+// Also try matching CSV HouseInternalName to property shortName
+function _findPropByName(csvName) {
+  if (!csvName || csvName === 'N/A') return null;
+  const props = _getProps();
+  const nameLow = csvName.toLowerCase();
+  // Exact shortName match first
+  let p = props.find(p => p.shortName && p.shortName.toLowerCase() === nameLow);
+  if (p) return p;
+  // Try propertyId match via House_Id  
+  p = props.find(p => p.propertyId && csvName === String(p.propertyId));
+  if (p) return p;
+  return null;
+}
+
 function getPropertyHasCleaning(propIdOrName) {
   try {
-    const props = JSON.parse(localStorage.getItem('zesty_properties') || '[]');
-    const p = props.find(p => String(p.propertyId) === String(propIdOrName) || p.shortName === propIdOrName || p.propertyName === propIdOrName);
-    if (!p) return false; // not in properties DB = not a cleaning property
-    // We do cleaning if: cleaningFee > 0 (we charge for cleaning)
+    const p = _findProp(propIdOrName) || _findPropByName(propIdOrName);
+    if (!p) return false; // not in DB = skip
+    // Clean if cleaningFee > 0
     return parseFloat(p.cleaningFee) > 0;
-  } catch { return true; }
+  } catch { return false; }
 }
 
 function getPropertyZone(propIdOrName) {
   try {
-    const props = JSON.parse(localStorage.getItem('zesty_properties') || '[]');
-    const p = props.find(p => String(p.propertyId) === String(propIdOrName) || p.shortName === propIdOrName || p.propertyName === propIdOrName);
+    const p = _findProp(propIdOrName) || _findPropByName(propIdOrName);
     return p ? (p.location || p.zone || '') : '';
   } catch { return ''; }
 }
