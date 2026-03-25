@@ -490,7 +490,7 @@ body.erp-layout {
       const _loginRequest={scopes:['openid','profile','User.Read']};
 
       
-      // ── MSAL AUTH ──────────────────────────────────────────
+      // \u2500\u2500 MSAL AUTH \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
       const _isMobile = /iPhone|iPad|iPod|Android|Mobile/i.test(navigator.userAgent);
 
       async function _ensureLogin() {
@@ -547,7 +547,7 @@ body.erp-layout {
         // Try to update sidebar user display
         const zsUser = document.getElementById('zsUser');
         if (zsUser) {
-          zsUser.innerHTML = '<span>👤 ' + name + '</span>' +
+          zsUser.innerHTML = '<span>\u{1F464} ' + name + '</span>' +
             '<button onclick="window._azureLogout()" style="background:transparent;border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.5);font-size:10px;padding:2px 7px;border-radius:4px;cursor:pointer;font-family:DM Sans,sans-serif;margin-left:4px">Sign out</button>';
         }
         // Also try old header-right for backwards compat
@@ -556,7 +556,7 @@ body.erp-layout {
           const badge = document.createElement('div');
           badge.id = '_azure_badge';
           badge.style.cssText = 'display:flex;align-items:center;gap:8px';
-          badge.innerHTML = '<span style="font-size:12px;color:rgba(255,255,255,.75);font-family:DM Sans,sans-serif">👤 ' + name + '</span>' +
+          badge.innerHTML = '<span style="font-size:12px;color:rgba(255,255,255,.75);font-family:DM Sans,sans-serif">\u{1F464} ' + name + '</span>' +
             '<button onclick="window._azureLogout()" style="padding:4px 10px;border-radius:7px;border:1px solid rgba(255,255,255,.3);background:transparent;color:rgba(255,255,255,.7);font-size:11px;cursor:pointer;font-family:DM Sans,sans-serif">Sign out</button>';
           hdr.appendChild(badge);
         }
@@ -1135,7 +1135,7 @@ function showDbStatus(online){
   if(online)return;
   const b=document.createElement('div');b.id='db-status-bar';
   b.style.cssText='position:fixed;bottom:0;left:0;right:0;background:#c0392b;color:#fff;text-align:center;padding:8px;font-size:12px;z-index:9998;cursor:pointer;';
-  b.textContent='⚠ Database offline — working in local mode. Click to retry.';
+  b.textContent='\u26A0 Database offline \u2014 working in local mode. Click to retry.';
   b.onclick=()=>{location.reload()};
   document.body.appendChild(b);
 }
@@ -1151,7 +1151,7 @@ function showDbStatus(online){
   if(online)return;
   const b=document.createElement('div');b.id='db-status-bar';
   b.style.cssText='position:fixed;bottom:0;left:0;right:0;background:#c0392b;color:#fff;text-align:center;padding:8px;font-size:12px;z-index:9998;cursor:pointer;';
-  b.textContent='⚠ Database offline — working in local mode. Click to retry.';
+  b.textContent='\u26A0 Database offline \u2014 working in local mode. Click to retry.';
   b.onclick=()=>{location.reload()};
   document.body.appendChild(b);
 }
@@ -1193,7 +1193,7 @@ function updateCleanImportStatus() {
     const last = JSON.parse(localStorage.getItem('zesty_last_clean_import') || 'null');
     if (!last) { el.textContent = ''; return; }
     const d = new Date(last.date);
-    el.innerHTML = `✓ Last import: <strong>${last.filename}</strong> on ${d.toLocaleDateString('el-GR')} · ${last.jobs} jobs created`;
+    el.innerHTML = `\u2713 Last import: <strong>${last.filename}</strong> on ${d.toLocaleDateString('el-GR')} \u00B7 ${last.jobs} jobs created`;
   } catch { el.textContent = ''; }
 }
 
@@ -1309,7 +1309,7 @@ function checkAutoImport() {
     const d = new Date(rawCSV.savedAt);
     const dateStr = d.toLocaleDateString('en-GB', {day:'numeric',month:'short',year:'numeric'});
     const timeStr = d.toLocaleTimeString('en-GB', {hour:'2-digit',minute:'2-digit'});
-    msg.textContent = `${rawCSV.filename} · ${dateStr} ${timeStr} · ${activeRows.length} active bookings`;
+    msg.textContent = `${rawCSV.filename} \u00B7 ${dateStr} ${timeStr} \u00B7 ${activeRows.length} active bookings`;
     banner.style.display = 'flex';
   } catch(e) { console.warn('checkAutoImport error:', e); }
 }
@@ -1336,7 +1336,7 @@ async function runAutoImport() {
     await new Promise(r => setTimeout(r, 150));
     const rawCSV = JSON.parse(localStorage.getItem('zesty_raw_lodgify_csv') || 'null');
     showImportResults(rawCSV ? rawCSV.filename : 'Lodgify Import', importPreviewData);
-    showToast(`📋 ${importPreviewData.filter(r=>r.Status==='Booked'||r.Status==='Open').length} bookings ready — review and confirm`, 'success');
+    showToast(`\u{1F4CB} ${importPreviewData.filter(r=>r.Status==='Booked'||r.Status==='Open').length} bookings ready \u2014 review and confirm`, 'success');
     return;
   }
 
@@ -1356,12 +1356,12 @@ async function runAutoImport() {
       showPage('import');
       await new Promise(r => setTimeout(r, 150));
       showImportResults(rawCSV.filename || 'Lodgify Import', rows);
-      showToast(`📋 ${rows.filter(r=>r.Status==='Booked'||r.Status==='Open').length} bookings ready — review and confirm`, 'success');
+      showToast(`\u{1F4CB} ${rows.filter(r=>r.Status==='Booked'||r.Status==='Open').length} bookings ready \u2014 review and confirm`, 'success');
       return;
     }
   }
 
-  // No data anywhere — go to import tab so user can upload
+  // No data anywhere \u2014 go to import tab so user can upload
   showPage('import');
   showToast('Upload your Lodgify CSV file below to generate cleaning jobs', 'info');
 }
@@ -1380,7 +1380,7 @@ function formatMonthValue(d) {
 }
 
 function formatDate(d) {
-  if (!d) return '—';
+  if (!d) return '\u2014';
   try { return new Date(d).toLocaleDateString('el-GR'); } catch { return d; }
 }
 
@@ -1414,7 +1414,7 @@ function renderStaff() {
 
   const tbody = document.getElementById('staffTable');
   if (filtered.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="10"><div class="empty-state"><div class="empty-icon">👩</div><p>No cleaning staff yet. Add your first cleaner.</p></div></td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="10"><div class="empty-state"><div class="empty-icon">\u{1F469}</div><p>No cleaning staff yet. Add your first cleaner.</p></div></td></tr>`;
   } else {
     tbody.innerHTML = filtered.map((s, i) => {
       const colorIdx = staff.indexOf(s);
@@ -1430,18 +1430,18 @@ function renderStaff() {
             </div>
           </div>
         </td>
-        <td style="font-size:12px">${s.phone||'—'}</td>
-        <td>${zones||'—'}</td>
-        <td>${s.hourlyRate ? '€'+s.hourlyRate+'/hr' : '—'}</td>
-        <td>${s.transportCost ? '€'+s.transportCost : '—'}</td>
-        <td>${s.hasCar === 'Yes' ? '🚗 Yes' : s.hasCar === 'No' ? '❌ No' : '—'}</td>
-        <td>${s.drivingLicense === 'Yes' ? '✅' : s.drivingLicense === 'No' ? '❌' : '—'}</td>
-        <td>${s.insurance === 'Yes' ? `✅ ${s.insuranceExpiry ? '(exp: '+formatDate(s.insuranceExpiry)+')' : ''}` : s.insurance === 'No' ? '❌' : '—'}</td>
+        <td style="font-size:12px">${s.phone||'\u2014'}</td>
+        <td>${zones||'\u2014'}</td>
+        <td>${s.hourlyRate ? '\u20AC'+s.hourlyRate+'/hr' : '\u2014'}</td>
+        <td>${s.transportCost ? '\u20AC'+s.transportCost : '\u2014'}</td>
+        <td>${s.hasCar === 'Yes' ? '\u{1F697} Yes' : s.hasCar === 'No' ? '\u274C No' : '\u2014'}</td>
+        <td>${s.drivingLicense === 'Yes' ? '\u2705' : s.drivingLicense === 'No' ? '\u274C' : '\u2014'}</td>
+        <td>${s.insurance === 'Yes' ? `\u2705 ${s.insuranceExpiry ? '(exp: '+formatDate(s.insuranceExpiry)+')' : ''}` : s.insurance === 'No' ? '\u274C' : '\u2014'}</td>
         <td>${statusBadge}</td>
         <td>
           <div style="display:flex;gap:5px">
-            <button class="btn btn-teal btn-sm" onclick="editStaff('${s.id}')">✏️</button>
-            <button class="btn btn-danger btn-sm" onclick="deleteStaff('${s.id}')">🗑</button>
+            <button class="btn btn-teal btn-sm" onclick="editStaff('${s.id}')">\u270F\uFE0F</button>
+            <button class="btn btn-danger btn-sm" onclick="deleteStaff('${s.id}')">\u{1F5D1}</button>
           </div>
         </td>
       </tr>`;
@@ -1466,7 +1466,7 @@ function updateStaffStats() {
       return s2 + (cl ? (cl.hourlyRate||0) * j.hours : 0);
     }, 0);
   }, 0);
-  document.getElementById('s-pay').textContent = '€' + pay.toFixed(0);
+  document.getElementById('s-pay').textContent = '\u20AC' + pay.toFixed(0);
 }
 
 function openAddStaff() {
@@ -1550,10 +1550,10 @@ async function saveStaff() {
   const editId = document.getElementById('s_editId').value;
   if (editId) {
     const idx = staff.findIndex(s => s.id === editId);
-    if (idx !== -1) { staff[idx] = {...staff[idx], ...data}; showToast('✓ Cleaner updated', 'success'); }
+    if (idx !== -1) { staff[idx] = {...staff[idx], ...data}; showToast('\u2713 Cleaner updated', 'success'); }
   } else {
     staff.push({ id: 'staff_' + Date.now(), ...data });
-    showToast('✓ Cleaner added', 'success');
+    showToast('\u2713 Cleaner added', 'success');
   }
   await save();
   closeModal('staffModal');
@@ -1563,7 +1563,7 @@ async function saveStaff() {
 
 async function deleteStaff(id) {
   const s = staff.find(x => x.id === id);
-  showConfirm('🗑️', 'Delete Cleaner?', `Delete ${s.firstName} ${s.lastName}? This cannot be undone.`, 'btn-danger', 'Delete', async () => {
+  showConfirm('\u{1F5D1}\uFE0F', 'Delete Cleaner?', `Delete ${s.firstName} ${s.lastName}? This cannot be undone.`, 'btn-danger', 'Delete', async () => {
     staff = staff.filter(x => x.id !== id);
     const dr1 = await SyncStore.deleteOne('zesty_staff','cleaning_staff',id,staff);
     if(!dr1.ok){ staff=(await SyncStore.load('zesty_staff','cleaning_staff')).data; }
@@ -1672,18 +1672,18 @@ function renderImportPreview() {
     const statusColor = r.Status === 'Booked' ? 'var(--success)' : r.Status === 'Declined' ? 'var(--danger)' : '#e67e22';
     const rowStyle = alreadyIn ? 'opacity:0.55;' : '';
     return `<tr style="${rowStyle}">
-      <td style="font-size:12px">${r.Name||'—'}</td>
-      <td style="font-size:12px">${r.HouseInternalName || r.HouseName || '—'}</td>
+      <td style="font-size:12px">${r.Name||'\u2014'}</td>
+      <td style="font-size:12px">${r.HouseInternalName || r.HouseName || '\u2014'}</td>
       <td style="font-size:12px">${formatDate(r.DateArrival)}</td>
       <td style="font-size:12px">${formatDate(r.DateDeparture)}</td>
       <td style="text-align:center">${nights}</td>
-      <td style="font-size:11px">${r.Source||'—'}</td>
+      <td style="font-size:11px">${r.Source||'\u2014'}</td>
       <td><span style="color:${statusColor};font-size:12px;font-weight:500">${r.Status}</span></td>
       <td style="font-size:11px;color:${hasCleaning ? 'var(--teal)' : 'var(--text-muted)'}">
-        ${hasCleaning ? '📅 ' + formatDate(r.DateDeparture) : '⛔ No cleaning'}
+        ${hasCleaning ? '\u{1F4C5} ' + formatDate(r.DateDeparture) : '\u26D4 No cleaning'}
       </td>
       <td style="font-size:11px;color:var(--text-muted)">
-        ${!hasCleaning ? '—' : midDays.length ? midDays.length + ' mid-stay' : '—'}
+        ${!hasCleaning ? '\u2014' : midDays.length ? midDays.length + ' mid-stay' : '\u2014'}
         ${alreadyIn ? '<span style="font-size:10px;background:#ecf0f1;padding:1px 5px;border-radius:8px;color:#7f8c8d">already in DB</span>' : ''}
       </td>
     </tr>`;
@@ -1717,7 +1717,7 @@ function getCleanDays(type, nights) {
 
 async function confirmImport() {
   const activeRows = importPreviewData.filter(r => r.Status === 'Booked');
-  // Cancelled bookings that have existing jobs — remove them
+  // Cancelled bookings that have existing jobs \u2014 remove them
   const cancelledIds = new Set(
     importPreviewData.filter(r => r.Status === 'Declined' || r.Status === 'Cancelled')
       .map(r => r.Id)
@@ -1727,7 +1727,7 @@ async function confirmImport() {
   const newRows = activeRows.filter(r => !existingBookingIds.has(r.Id));
   const updateRows = activeRows.filter(r => existingBookingIds.has(r.Id));
   const cancelMsg = jobsToDelete.length > 0 ? ` ${jobsToDelete.length} cancelled jobs will be removed.` : '';
-  showConfirm('📥', 'Import Bookings?',
+  showConfirm('\u{1F4E5}', 'Import Bookings?',
     `${newRows.length} new bookings will get cleaning jobs. ${updateRows.length} existing will be updated.${cancelMsg}`,
     'btn-primary', 'Import',
     async () => {
@@ -1759,7 +1759,7 @@ async function confirmImport() {
         if (!propHasCleaning) return; // Skip properties not managed for cleaning
         const checkoutJob = { id: checkoutJobId, bookingId, propertyName: propName, propertyId: propId, date: checkoutDate, type: 'checkout', nights, zone, cleanerIds: [], hours: null, propertyTransport: propTransport, notes: '', source: r.Source, guestName: r.Name };
         if (existingCheckout >= 0) {
-          // Preserve manually assigned cleaners, hours, and notes — only update scheduling data
+          // Preserve manually assigned cleaners, hours, and notes \u2014 only update scheduling data
           const existing = cleaningJobs[existingCheckout];
           cleaningJobs[existingCheckout] = {
             ...existing,
@@ -1807,7 +1807,7 @@ async function confirmImport() {
       renderImportHistory();
       updateJobStats();
       clearImport();
-      showToast(`✓ Created ${created} · Updated ${updated}${deleted?' · Removed '+deleted+' cancelled':''}`, 'success');
+      showToast(`\u2713 Created ${created} \u00B7 Updated ${updated}${deleted?' \u00B7 Removed '+deleted+' cancelled':''}`, 'success');
     }
   );
 }
@@ -1845,7 +1845,7 @@ function clearImport() {
 }
 
 async function clearAllJobs() {
-  showConfirm('🗑️', 'Clear All Jobs?', 'This will permanently delete all cleaning jobs. This cannot be undone.', 'btn-danger', 'Delete All', async () => {
+  showConfirm('\u{1F5D1}\uFE0F', 'Clear All Jobs?', 'This will permanently delete all cleaning jobs. This cannot be undone.', 'btn-danger', 'Delete All', async () => {
     cleaningJobs = [];
     importHistory = [];
     await save(); renderJobs(); renderCalendar(); renderImportHistory(); updateJobStats();
@@ -1940,7 +1940,7 @@ function renderCalendar() {
       jobEl.style.color = bg;
       jobEl.style.border = `1px solid ${bg}40`;
       const initials = assignedCleaners.map(c => getInitials(c.firstName,c.lastName)).join('+') || '?';
-      jobEl.textContent = `${j.type === 'checkout' ? '🏁' : '🔄'} ${j.propertyName || 'Unknown'}`;
+      jobEl.textContent = `${j.type === 'checkout' ? '\u{1F3C1}' : '\u{1F504}'} ${j.propertyName || 'Unknown'}`;
       jobEl.title = `${j.propertyName}\n${j.type === 'checkout' ? 'Checkout Clean' : 'Mid-Stay Clean'}\nCleaners: ${assignedCleaners.map(c=>c.firstName+' '+c.lastName).join(', ') || 'Unassigned'}`;
       jobEl.onclick = () => openJobModal(j.id);
       cell.appendChild(jobEl);
@@ -1998,43 +1998,43 @@ function renderJobs() {
 
   const tbody = document.getElementById('jobsTable');
   if (pageData.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="9"><div class="empty-state"><div class="empty-icon">🧹</div><p>No jobs found. Import bookings to generate cleaning jobs.</p></div></td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="9"><div class="empty-state"><div class="empty-icon">\u{1F9F9}</div><p>No jobs found. Import bookings to generate cleaning jobs.</p></div></td></tr>`;
   } else {
     tbody.innerHTML = pageData.map(j => {
       const assignedCls = (j.cleanerIds||[]).map(cid => staff.find(s => s.id === cid)).filter(Boolean);
       const typeBadge = j.type === 'checkout'
-        ? `<span style="background:#fdebd0;color:#a04000;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:500">🏁 Checkout</span>`
-        : `<span style="background:#fdf6e3;color:#8e6b23;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:500">🔄 Mid-Stay</span>`;
+        ? `<span style="background:#fdebd0;color:#a04000;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:500">\u{1F3C1} Checkout</span>`
+        : `<span style="background:#fdf6e3;color:#8e6b23;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:500">\u{1F504} Mid-Stay</span>`;
       const cleanerCell = assignedCls.length
         ? assignedCls.map(cl => `<div style="display:inline-flex;align-items:center;gap:5px;margin-right:6px"><div class="cleaner-avatar" style="background:${getColor(staff.indexOf(cl))};width:24px;height:24px;font-size:9px">${getInitials(cl.firstName,cl.lastName)}</div><span style="font-size:12px">${cl.firstName}</span></div>`).join('')
-        : `<span style="color:var(--danger);font-size:12px">⚠ Unassigned</span>`;
+        : `<span style="color:var(--danger);font-size:12px">\u26A0 Unassigned</span>`;
       const totalPay = j.hours ? assignedCls.reduce((sum, cl) => {
         const base = (cl.hourlyRate||0) * j.hours;
         const transport = (cl.hasCar === 'Yes' && j.propertyTransport) ? j.propertyTransport : 0;
         return sum + base + transport;
       }, 0) : 0;
-      const pay = totalPay > 0 ? `€${totalPay.toFixed(0)}` : '—';
+      const pay = totalPay > 0 ? `\u20AC${totalPay.toFixed(0)}` : '\u2014';
       return `<tr>
         <td style="font-size:12px;font-weight:500">${formatDate(j.date)}</td>
-        <td style="font-size:12px">${j.propertyName||'—'}</td>
-        <td><span class="zone-tag zone-${(j.zone||'').replace(' ','-')}">${j.zone||'—'}</span></td>
+        <td style="font-size:12px">${j.propertyName||'\u2014'}</td>
+        <td><span class="zone-tag zone-${(j.zone||'').replace(' ','-')}">${j.zone||'\u2014'}</span></td>
         <td>${typeBadge}</td>
-        <td style="text-align:center;font-size:12px">${j.nights||'—'}</td>
+        <td style="text-align:center;font-size:12px">${j.nights||'\u2014'}</td>
         <td>${cleanerCell}</td>
-        <td style="text-align:center;font-size:12px">${j.hours ? j.hours+'h' : '—'}</td>
-        <td style="text-align:center;font-size:12px;color:var(--teal)">${j.propertyTransport ? '€'+j.propertyTransport : '—'}</td>
+        <td style="text-align:center;font-size:12px">${j.hours ? j.hours+'h' : '\u2014'}</td>
+        <td style="text-align:center;font-size:12px;color:var(--teal)">${j.propertyTransport ? '\u20AC'+j.propertyTransport : '\u2014'}</td>
         <td style="text-align:right;font-size:12px;font-weight:500;color:var(--teal-dark)">${pay}</td>
         <td>
           <div style="display:flex;gap:4px">
-            <button class="btn btn-teal btn-sm" onclick="openJobModal('${j.id}')">✏️</button>
-            <button class="btn btn-danger btn-sm" onclick="deleteJob('${j.id}')">🗑</button>
+            <button class="btn btn-teal btn-sm" onclick="openJobModal('${j.id}')">\u270F\uFE0F</button>
+            <button class="btn btn-danger btn-sm" onclick="deleteJob('${j.id}')">\u{1F5D1}</button>
           </div>
         </td>
       </tr>`;
     }).join('');
   }
 
-  document.getElementById('jobPaginationInfo').textContent = `Showing ${Math.min(start+1,total)}–${Math.min(start+JOB_PAGE_SIZE,total)} of ${total} jobs`;
+  document.getElementById('jobPaginationInfo').textContent = `Showing ${Math.min(start+1,total)}\u2013${Math.min(start+JOB_PAGE_SIZE,total)} of ${total} jobs`;
   const btns = document.getElementById('jobPageBtns');
   btns.innerHTML = '';
   for (let i = 1; i <= Math.min(pages, 10); i++) {
@@ -2079,7 +2079,7 @@ function renderCleanerCheckboxes(selectedIds, transportCharge) {
     return `<label data-selected="${checked}" data-staffid="${cl.id}" style="display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border:1px solid ${checked ? 'var(--teal)' : 'var(--border)'};border-radius:20px;cursor:pointer;background:${checked ? '#e0f5f1' : 'var(--cream)'};font-size:12px;font-weight:${checked?'500':'400'};transition:all 0.2s" onclick="toggleCleanerCheck(this,'${cl.id}')">
       <div class="cleaner-avatar" style="background:${getColor(idx)};width:20px;height:20px;font-size:9px">${getInitials(cl.firstName,cl.lastName)}</div>
       ${cl.firstName} ${cl.lastName}
-      ${getsTransport ? '<span style="font-size:10px;color:var(--teal);margin-left:3px">🚗+€'+transportCharge+'</span>' : ''}
+      ${getsTransport ? '<span style="font-size:10px;color:var(--teal);margin-left:3px">\u{1F697}+\u20AC'+transportCharge+'</span>' : ''}
     </label>`;
   }).join('');
 }
@@ -2120,9 +2120,9 @@ function updateCostPreview(j) {
     if (!cl) return '';
     const base = (cl.hourlyRate||0) * hours;
     const tr = cl.hasCar === 'Yes' ? transport : 0;
-    return `<span style="margin-right:16px"><strong>${cl.firstName}</strong>: €${base.toFixed(0)} pay${tr > 0 ? ' + €'+tr+' transport' : ''} = €${(base+tr).toFixed(0)}</span>`;
+    return `<span style="margin-right:16px"><strong>${cl.firstName}</strong>: \u20AC${base.toFixed(0)} pay${tr > 0 ? ' + \u20AC'+tr+' transport' : ''} = \u20AC${(base+tr).toFixed(0)}</span>`;
   }).filter(Boolean).join('');
-  preview.innerHTML = '💰 Estimated cost: ' + lines;
+  preview.innerHTML = '\u{1F4B0} Estimated cost: ' + lines;
   preview.style.display = 'block';
 }
 
@@ -2140,11 +2140,11 @@ async function saveJob() {
   closeModal('jobModal');
   renderJobs();
   renderCalendar();
-  showToast('✓ Job updated', 'success');
+  showToast('\u2713 Job updated', 'success');
 }
 
 async function deleteJob(id) {
-  showConfirm('🗑️','Delete Job?','Remove this cleaning job?','btn-danger','Delete', async () => {
+  showConfirm('\u{1F5D1}\uFE0F','Delete Job?','Remove this cleaning job?','btn-danger','Delete', async () => {
     cleaningJobs = cleaningJobs.filter(j => j.id !== id);
     const dr2 = await SyncStore.deleteOne('zesty_cleaning_jobs','cleaning_jobs',id,cleaningJobs);
     if(!dr2.ok){ cleaningJobs=(await SyncStore.load('zesty_cleaning_jobs','cleaning_jobs')).data; }
@@ -2170,11 +2170,11 @@ async function autoAssign() {
     assigned++;
   });
   await save(); renderJobs(); renderCalendar();
-  showToast(`⚡ Auto-assigned ${assigned} jobs`, 'success');
+  showToast(`\u26A1 Auto-assigned ${assigned} jobs`, 'success');
 }
 
 function exportJobsCSV() {
-  const headers = ['Date','Property','Zone','Type','Nights','Cleaners','Hours','Transport €','Total Pay','Notes'];
+  const headers = ['Date','Property','Zone','Type','Nights','Cleaners','Hours','Transport \u20AC','Total Pay','Notes'];
   const rows = cleaningJobs.map(j => {
     const cls = (j.cleanerIds||[]).map(cid => staff.find(s => s.id === cid)).filter(Boolean);
     const totalPay = j.hours ? cls.reduce((sum, cl) => {
@@ -2189,7 +2189,7 @@ function exportJobsCSV() {
   a.href = URL.createObjectURL(new Blob(['\ufeff'+csv], {type:'text/csv;charset=utf-8;'}));
   a.download = `zesty_cleaning_jobs_${new Date().toISOString().slice(0,10)}.csv`;
   a.click();
-  showToast('✓ Exported', 'success');
+  showToast('\u2713 Exported', 'success');
 }
 
 function exportScheduleCSV() {
@@ -2200,14 +2200,14 @@ function exportScheduleCSV() {
   const rows = monthJobs.map(j => {
     const cls = (j.cleanerIds||[]).map(cid => staff.find(s => s.id === cid)).filter(Boolean);
     const totalPay = j.hours ? cls.reduce((sum,cl) => sum + (cl.hourlyRate||0)*j.hours + (cl.hasCar==='Yes'?(j.propertyTransport||0):0), 0) : 0;
-    return [j.date, j.propertyName, j.zone, j.type === 'checkout' ? 'Checkout' : 'Mid-Stay', cls.map(c=>c.firstName+' '+c.lastName).join(' + ') || 'Unassigned', j.hours||'', totalPay > 0 ? '€'+totalPay.toFixed(2) : ''].map(v => `"${(v||'').toString().replace(/"/g,'""')}"`).join(',');
+    return [j.date, j.propertyName, j.zone, j.type === 'checkout' ? 'Checkout' : 'Mid-Stay', cls.map(c=>c.firstName+' '+c.lastName).join(' + ') || 'Unassigned', j.hours||'', totalPay > 0 ? '\u20AC'+totalPay.toFixed(2) : ''].map(v => `"${(v||'').toString().replace(/"/g,'""')}"`).join(',');
   });
   const csv = [headers.join(','), ...rows].join('\n');
   const a = document.createElement('a');
   a.href = URL.createObjectURL(new Blob(['\ufeff'+csv], {type:'text/csv;charset=utf-8;'}));
   a.download = `zesty_schedule_${monthVal}.csv`;
   a.click();
-  showToast('✓ Schedule exported', 'success');
+  showToast('\u2713 Schedule exported', 'success');
 }
 
 function buildPrintStyles() {
@@ -2261,15 +2261,15 @@ function printSchedule() {
 
     printContent += `
       <div class="print-page">
-        <div class="print-logo">Zesty Rentals — Cleaning Schedule</div>
+        <div class="print-logo">Zesty Rentals \u2014 Cleaning Schedule</div>
         <div class="print-header">
           <div>
             <div class="print-name">${cl.firstName} ${cl.lastName}</div>
-            <div class="print-sub">${monthName} · ${(cl.zones||[]).join(', ') || 'All zones'} · €${cl.hourlyRate||0}/hr${cl.hasCar==='Yes' ? ' · 🚗 Car' : ''}</div>
+            <div class="print-sub">${monthName} \u00B7 ${(cl.zones||[]).join(', ') || 'All zones'} \u00B7 \u20AC${cl.hourlyRate||0}/hr${cl.hasCar==='Yes' ? ' \u00B7 \u{1F697} Car' : ''}</div>
           </div>
           <div class="print-summary">
             <div class="big">${clJobs.length} jobs</div>
-            <div class="small">${totalHours.toFixed(1)}h · €${totalPay.toFixed(2)} total${totalTransport > 0 ? ' (incl. €'+totalTransport.toFixed(2)+' transport)' : ''}</div>
+            <div class="small">${totalHours.toFixed(1)}h \u00B7 \u20AC${totalPay.toFixed(2)} total${totalTransport > 0 ? ' (incl. \u20AC'+totalTransport.toFixed(2)+' transport)' : ''}</div>
           </div>
         </div>
         <div class="col-headers">
@@ -2288,17 +2288,17 @@ function printSchedule() {
               <div><strong>${formatDate(j.date)}</strong></div>
               <div>${j.propertyName}${j.zone ? '<br><span style="font-size:10px;color:#888">'+j.zone+'</span>' : ''}</div>
               <div><span class="type-badge type-${j.type}">${j.type === 'checkout' ? 'Checkout' : 'Mid-Stay'}</span></div>
-              <div>${j.hours ? j.hours+'h' : '—'}</div>
-              <div style="font-weight:600;color:#115950">${jobPay > 0 ? '€'+jobPay.toFixed(0) : '—'}${tr > 0 ? '<br><span style="font-size:10px;color:#888">+€'+tr+' 🚗</span>' : ''}</div>
+              <div>${j.hours ? j.hours+'h' : '\u2014'}</div>
+              <div style="font-weight:600;color:#115950">${jobPay > 0 ? '\u20AC'+jobPay.toFixed(0) : '\u2014'}${tr > 0 ? '<br><span style="font-size:10px;color:#888">+\u20AC'+tr+' \u{1F697}</span>' : ''}</div>
               <div>${coworkers || '<span style="color:#ccc;font-size:11px">Solo</span>'}</div>
               <div style="font-size:11px;color:#666">${j.notes||''}</div>
             </div>`;
           }).join('')
         }
         <div class="totals-row">
-          ${totalTransport > 0 ? `<div class="total-item"><div class="total-label">Transport</div><div class="total-val">€${totalTransport.toFixed(2)}</div></div>` : ''}
-          <div class="total-item"><div class="total-label">Hours Pay</div><div class="total-val">€${(totalPay - totalTransport).toFixed(2)}</div></div>
-          <div class="total-item"><div class="total-label">Total</div><div class="total-val">€${totalPay.toFixed(2)}</div></div>
+          ${totalTransport > 0 ? `<div class="total-item"><div class="total-label">Transport</div><div class="total-val">\u20AC${totalTransport.toFixed(2)}</div></div>` : ''}
+          <div class="total-item"><div class="total-label">Hours Pay</div><div class="total-val">\u20AC${(totalPay - totalTransport).toFixed(2)}</div></div>
+          <div class="total-item"><div class="total-label">Total</div><div class="total-val">\u20AC${totalPay.toFixed(2)}</div></div>
         </div>
       </div>`;
   });
@@ -2344,10 +2344,10 @@ function printAllJobs() {
       <div><strong>${formatDate(j.date)}</strong></div>
       <div>${j.propertyName}${j.zone ? '<br><span style="font-size:10px;color:#888">'+j.zone+'</span>' : ''}</div>
       <div><span class="type-badge type-${j.type}">${j.type === 'checkout' ? 'Checkout' : 'Mid-Stay'}</span></div>
-      <div>${cls.map(cl=>`<span class="coworker-tag">${cl.firstName} ${cl.lastName}</span>`).join('') || '<span style="color:#e74c3c;font-size:11px">⚠ Unassigned</span>'}</div>
-      <div>${j.hours ? j.hours+'h' : '—'}</div>
-      <div>${j.propertyTransport ? '€'+j.propertyTransport : '—'}</div>
-      <div style="font-weight:600;color:#115950">${totalPay > 0 ? '€'+totalPay.toFixed(0) : '—'}</div>
+      <div>${cls.map(cl=>`<span class="coworker-tag">${cl.firstName} ${cl.lastName}</span>`).join('') || '<span style="color:#e74c3c;font-size:11px">\u26A0 Unassigned</span>'}</div>
+      <div>${j.hours ? j.hours+'h' : '\u2014'}</div>
+      <div>${j.propertyTransport ? '\u20AC'+j.propertyTransport : '\u2014'}</div>
+      <div style="font-weight:600;color:#115950">${totalPay > 0 ? '\u20AC'+totalPay.toFixed(0) : '\u2014'}</div>
       <div style="font-size:11px;color:#666">${j.notes||''}</div>
     </div>`;
   }).join('');
@@ -2358,17 +2358,17 @@ function printAllJobs() {
   `;
 
   const w = window.open('', '_blank');
-  w.document.write(`<html><head><title>All Cleaning Jobs — ${monthName}</title><style>${printStyles}</style></head><body>
+  w.document.write(`<html><head><title>All Cleaning Jobs \u2014 ${monthName}</title><style>${printStyles}</style></head><body>
     <div class="print-page">
-      <div class="print-logo">Zesty Rentals — All Cleaning Jobs</div>
+      <div class="print-logo">Zesty Rentals \u2014 All Cleaning Jobs</div>
       <div class="print-header">
         <div>
           <div class="print-name">Cleaning Jobs Report</div>
-          <div class="print-sub">${monthName}${zoneFilter ? ' · '+zoneFilter : ''}${typeFilter ? ' · '+(typeFilter==='checkout'?'Checkout':'Mid-Stay') : ''}</div>
+          <div class="print-sub">${monthName}${zoneFilter ? ' \u00B7 '+zoneFilter : ''}${typeFilter ? ' \u00B7 '+(typeFilter==='checkout'?'Checkout':'Mid-Stay') : ''}</div>
         </div>
         <div class="print-summary">
           <div class="big">${totalJobs} jobs</div>
-          <div class="small">Total cost: €${totalPayAll.toFixed(2)}</div>
+          <div class="small">Total cost: \u20AC${totalPayAll.toFixed(2)}</div>
         </div>
       </div>
       <div class="col-headers">
@@ -2379,20 +2379,20 @@ function printAllJobs() {
 <!-- ==================== HOURS PAGE ==================== -->
 <div id="page-hours" class="page">
   <div style="display:flex;gap:6px;margin-bottom:22px;flex-wrap:wrap">
-    <button onclick="showPage('staff')" style="padding:8px 18px;border-radius:8px;border:1px solid var(--border);background:#fff;color:var(--text-muted);font-size:13px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif">👥 Staff</button>
-    <button onclick="showPage('schedule')" style="padding:8px 18px;border-radius:8px;border:1px solid var(--border);background:#fff;color:var(--text-muted);font-size:13px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif">📅 Schedule</button>
-    <button onclick="showPage('jobs')" style="padding:8px 18px;border-radius:8px;border:1px solid var(--border);background:#fff;color:var(--text-muted);font-size:13px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif">🔧 Jobs</button>
-    <button onclick="showPage('import')" style="padding:8px 18px;border-radius:8px;border:1px solid var(--border);background:#fff;color:var(--text-muted);font-size:13px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif">📥 Import CSV</button>
-    <button onclick="showPage('hours')" style="padding:8px 18px;border-radius:8px;border:2px solid var(--teal);background:var(--teal);color:#fff;font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif">⏱ Hours</button>
+    <button onclick="showPage('staff')" style="padding:8px 18px;border-radius:8px;border:1px solid var(--border);background:#fff;color:var(--text-muted);font-size:13px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif">\u{1F465} Staff</button>
+    <button onclick="showPage('schedule')" style="padding:8px 18px;border-radius:8px;border:1px solid var(--border);background:#fff;color:var(--text-muted);font-size:13px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif">\u{1F4C5} Schedule</button>
+    <button onclick="showPage('jobs')" style="padding:8px 18px;border-radius:8px;border:1px solid var(--border);background:#fff;color:var(--text-muted);font-size:13px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif">\u{1F527} Jobs</button>
+    <button onclick="showPage('import')" style="padding:8px 18px;border-radius:8px;border:1px solid var(--border);background:#fff;color:var(--text-muted);font-size:13px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif">\u{1F4E5} Import CSV</button>
+    <button onclick="showPage('hours')" style="padding:8px 18px;border-radius:8px;border:2px solid var(--teal);background:var(--teal);color:#fff;font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif">\u23F1 Hours</button>
   </div>
 
   <div class="toolbar" style="flex-wrap:wrap;gap:10px">
     <input type="month" id="hoursMonth" onchange="renderHoursSheet()">
     <select id="hoursPropFilter" onchange="renderHoursSheet()"><option value="">All Properties</option></select>
     <button class="btn btn-teal btn-sm" onclick="addHoursRow()">+ Add Extra Cleaning</button>
-    <button class="btn btn-primary btn-sm" onclick="saveHoursSheet()">💾 Save Sheet</button>
-    <button class="btn btn-print btn-sm" onclick="printHoursSheet()">🖨 Print</button>
-    <button class="btn btn-outline btn-sm" onclick="exportHoursCSV()">⬇ Export CSV</button>
+    <button class="btn btn-primary btn-sm" onclick="saveHoursSheet()">\u{1F4BE} Save Sheet</button>
+    <button class="btn btn-print btn-sm" onclick="printHoursSheet()">\u{1F5A8} Print</button>
+    <button class="btn btn-outline btn-sm" onclick="exportHoursCSV()">\u2B07 Export CSV</button>
     <div style="margin-left:auto;font-size:12px;color:var(--text-muted)" id="hoursSavedMsg"></div>
   </div>
 
@@ -2400,9 +2400,9 @@ function printAllJobs() {
   <div class="stats-bar" style="margin-bottom:18px">
     <div class="stat-card"><div class="stat-label">Total Jobs</div><div class="stat-value" id="h-total">0</div></div>
     <div class="stat-card"><div class="stat-label">Total Hours</div><div class="stat-value" id="h-hours">0</div></div>
-    <div class="stat-card"><div class="stat-label">Total Labour Cost</div><div class="stat-value" id="h-labour">€0</div></div>
-    <div class="stat-card"><div class="stat-label">Transport Cost</div><div class="stat-value" id="h-transport">€0</div></div>
-    <div class="stat-card"><div class="stat-label">Total Cost</div><div class="stat-value" id="h-cost">€0</div></div>
+    <div class="stat-card"><div class="stat-label">Total Labour Cost</div><div class="stat-value" id="h-labour">\u20AC0</div></div>
+    <div class="stat-card"><div class="stat-label">Transport Cost</div><div class="stat-value" id="h-transport">\u20AC0</div></div>
+    <div class="stat-card"><div class="stat-label">Total Cost</div><div class="stat-value" id="h-cost">\u20AC0</div></div>
   </div>
 
   <div class="table-wrap">
@@ -2450,7 +2450,7 @@ function showToast(msg, type='') {
 document.getElementById('confirmOverlay').addEventListener('click', e => { if(e.target === e.currentTarget) closeConfirm(); });
 
 
-// ── SIDEBAR NAVIGATION ──────────────────────────────────
+// \u2500\u2500 SIDEBAR NAVIGATION \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 function _initSidebar() {
   const sidebar = document.getElementById('erpSidebar');
   const overlay = document.getElementById('erpOverlay');
@@ -2495,7 +2495,7 @@ document.addEventListener('DOMContentLoaded', _initSidebar);
 init().catch(console.error);
 showDbStatus(true);
 
-// ── HOURS SHEET ──
+// \u2500\u2500 HOURS SHEET \u2500\u2500
 let hoursExtra = []; // extra manual cleaning rows
 
 function renderHoursSheet() {
@@ -2503,7 +2503,7 @@ function renderHoursSheet() {
   if (!monthVal) return;
   const [yr, mo] = monthVal.split('-');
   const monthName = new Date(yr, parseInt(mo)-1, 1).toLocaleDateString('en-GB',{month:'long',year:'numeric'});
-  document.getElementById('hoursTableTitle').textContent = 'Hours Sheet — ' + monthName;
+  document.getElementById('hoursTableTitle').textContent = 'Hours Sheet \u2014 ' + monthName;
   document.getElementById('hoursPropFilter').innerHTML = '<option value="">All Properties</option>' +
     [...new Set(cleaningJobs.filter(j=>j.date.startsWith(monthVal)).map(j=>j.propertyName).filter(Boolean))].sort()
     .map(p=>`<option value="${p}">${p}</option>`).join('');
@@ -2521,9 +2521,9 @@ function renderHoursSheet() {
   }
 
   // Header: Date | Property | Type | Guest | [cleaner cols...] | Total Hours | Transport | Total Pay
-  const staffCols = activeStaff.map(s => `<th style="min-width:80px;text-align:center">${s.firstName}<br><span style="font-size:10px;color:var(--text-muted)">${s.hourlyRate?'€'+s.hourlyRate+'/h':''}</span></th>`).join('');
+  const staffCols = activeStaff.map(s => `<th style="min-width:80px;text-align:center">${s.firstName}<br><span style="font-size:10px;color:var(--text-muted)">${s.hourlyRate?'\u20AC'+s.hourlyRate+'/h':''}</span></th>`).join('');
   document.getElementById('hoursHead').innerHTML = `<tr>
-    <th onclick="sortHours('date')">Date ↕</th><th>Property</th><th>Type</th><th>Guest</th>
+    <th onclick="sortHours('date')">Date \u2195</th><th>Property</th><th>Type</th><th>Guest</th>
     ${staffCols}
     <th style="text-align:right">Hours</th><th style="text-align:right">Transport</th><th style="text-align:right">Total Pay</th><th></th>
   </tr>`;
@@ -2548,38 +2548,38 @@ function renderHoursSheet() {
     const isExtra = j._extra;
     return `<tr data-idx="${idx}" style="${isExtra?'background:#fffbe6':''}">
       <td style="font-size:12px">${formatDate(j.date)}</td>
-      <td>${j.propertyName||'—'}${isExtra?'<span style="font-size:10px;margin-left:4px;color:var(--gold-dim)">+extra</span>':''}</td>
+      <td>${j.propertyName||'\u2014'}${isExtra?'<span style="font-size:10px;margin-left:4px;color:var(--gold-dim)">+extra</span>':''}</td>
       <td><span style="font-size:11px;font-weight:600;padding:2px 6px;border-radius:8px;background:${j.type==='checkout'?'#fdebd0':'#fdf6e3'};color:${j.type==='checkout'?'#a04000':'#8e6b23'}">${j.type==='checkout'?'Checkout':'Mid-Stay'}</span></td>
-      <td style="font-size:12px;color:var(--text-muted)">${j.guestName||'—'}</td>
+      <td style="font-size:12px;color:var(--text-muted)">${j.guestName||'\u2014'}</td>
       ${staffInputs}
-      <td style="text-align:right;font-weight:600" id="row-hrs-${idx}">${rowHours||'—'}</td>
-      <td style="text-align:right;font-size:12px;color:var(--text-muted)">${rowTransport>0?'€'+rowTransport:'-'}</td>
-      <td style="text-align:right;font-weight:600;color:var(--teal)">${rowPay>0?'€'+rowPay.toFixed(0):'-'}</td>
-      <td>${isExtra?`<button onclick="removeExtra(${idx})" style="background:none;border:none;color:var(--danger);cursor:pointer;font-size:14px">✕</button>`:''}</td>
+      <td style="text-align:right;font-weight:600" id="row-hrs-${idx}">${rowHours||'\u2014'}</td>
+      <td style="text-align:right;font-size:12px;color:var(--text-muted)">${rowTransport>0?'\u20AC'+rowTransport:'-'}</td>
+      <td style="text-align:right;font-weight:600;color:var(--teal)">${rowPay>0?'\u20AC'+rowPay.toFixed(0):'-'}</td>
+      <td>${isExtra?`<button onclick="removeExtra(${idx})" style="background:none;border:none;color:var(--danger);cursor:pointer;font-size:14px">\u2715</button>`:''}</td>
     </tr>`;
   }).join('');
 
   // Staff totals footer
   const staffFooter = activeStaff.map(s => `<td style="text-align:center;font-weight:700;color:var(--teal)">
-    ${staffTotals[s.id].hours>0?staffTotals[s.id].hours+'h':'—'}<br>
-    <span style="font-size:11px;color:var(--text-muted)">${staffTotals[s.id].pay>0?'€'+staffTotals[s.id].pay.toFixed(0):''}</span>
+    ${staffTotals[s.id].hours>0?staffTotals[s.id].hours+'h':'\u2014'}<br>
+    <span style="font-size:11px;color:var(--text-muted)">${staffTotals[s.id].pay>0?'\u20AC'+staffTotals[s.id].pay.toFixed(0):''}</span>
   </td>`).join('');
 
   document.getElementById('hoursBody').innerHTML = rows || '<tr class="empty-row"><td colspan="20">No cleaning jobs for this period</td></tr>';
   document.getElementById('hoursFoot').innerHTML = `<tr style="background:var(--cream);font-weight:700">
     <td colspan="4">TOTAL</td>${staffFooter}
     <td style="text-align:right">${totalHours}h</td>
-    <td style="text-align:right">€${totalTransport.toFixed(0)}</td>
-    <td style="text-align:right;color:var(--teal-dark)">€${(totalLabour).toFixed(0)}</td>
+    <td style="text-align:right">\u20AC${totalTransport.toFixed(0)}</td>
+    <td style="text-align:right;color:var(--teal-dark)">\u20AC${(totalLabour).toFixed(0)}</td>
     <td></td>
   </tr>`;
 
   // Stats
   document.getElementById('h-total').textContent = monthJobs.length;
   document.getElementById('h-hours').textContent = totalHours + 'h';
-  document.getElementById('h-labour').textContent = '€' + totalLabour.toFixed(0);
-  document.getElementById('h-transport').textContent = '€' + totalTransport.toFixed(0);
-  document.getElementById('h-cost').textContent = '€' + (totalLabour + totalTransport).toFixed(0);
+  document.getElementById('h-labour').textContent = '\u20AC' + totalLabour.toFixed(0);
+  document.getElementById('h-transport').textContent = '\u20AC' + totalTransport.toFixed(0);
+  document.getElementById('h-cost').textContent = '\u20AC' + (totalLabour + totalTransport).toFixed(0);
 
   // Store current job list for saving
   window._currentHoursJobs = monthJobs;
@@ -2618,13 +2618,13 @@ function removeExtra(idx) {
 async function saveHoursSheet() {
   // Save cleanerHours back to cleaningJobs
   const msg = document.getElementById('hoursSavedMsg');
-  if (msg) { msg.textContent = 'Saving…'; }
+  if (msg) { msg.textContent = 'Saving\u2026'; }
   await SyncStore.saveAll('zesty_jobs', 'cleaning_jobs', cleaningJobs);
   // Save extra rows
   localStorage.setItem('zesty_hours_extra', JSON.stringify(hoursExtra));
-  if (msg) { msg.textContent = '✓ Saved ' + new Date().toLocaleTimeString('en-GB'); }
+  if (msg) { msg.textContent = '\u2713 Saved ' + new Date().toLocaleTimeString('en-GB'); }
   setTimeout(() => { if(msg) msg.textContent = ''; }, 3000);
-  showToast('✓ Hours sheet saved', 'success');
+  showToast('\u2713 Hours sheet saved', 'success');
 }
 
 function exportHoursCSV() {
@@ -2644,7 +2644,7 @@ function exportHoursCSV() {
   const csv = [headers,...rows].map(r=>r.map(v=>`"${(v||'').toString().replace(/"/g,'""')}"`).join(',')).join('
 ');
   const a = document.createElement('a');
-  a.href = URL.createObjectURL(new Blob(['﻿'+csv],{type:'text/csv;charset=utf-8;'}));
+  a.href = URL.createObjectURL(new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'}));
   a.download = `hours_${monthVal}.csv`; a.click();
 }
 
@@ -2655,9 +2655,9 @@ function printHoursSheet() {
   const monthName = monthVal ? new Date(monthVal+'-01').toLocaleDateString('en-GB',{month:'long',year:'numeric'}) : '';
   const staffCols = activeStaff.map(s=>`<th style="min-width:70px">${s.firstName}</th>`).join('');
   const rows = jobs.map(j => {
-    const staffHrs = activeStaff.map(s => (j.cleanerHours&&j.cleanerHours[s.id]) ? `<strong>${j.cleanerHours[s.id]}h</strong>` : '—');
+    const staffHrs = activeStaff.map(s => (j.cleanerHours&&j.cleanerHours[s.id]) ? `<strong>${j.cleanerHours[s.id]}h</strong>` : '\u2014');
     const totalH = activeStaff.reduce((s,st) => s+(parseFloat(j.cleanerHours&&j.cleanerHours[st.id])||0),0);
-    return `<tr><td>${formatDate(j.date)}</td><td>${j.propertyName||'—'}</td><td>${j.type==='checkout'?'Checkout':'Mid-Stay'}</td>${staffHrs.map(h=>`<td style="text-align:center">${h}</td>`).join('')}<td style="text-align:right;font-weight:700">${totalH||'—'}</td></tr>`;
+    return `<tr><td>${formatDate(j.date)}</td><td>${j.propertyName||'\u2014'}</td><td>${j.type==='checkout'?'Checkout':'Mid-Stay'}</td>${staffHrs.map(h=>`<td style="text-align:center">${h}</td>`).join('')}<td style="text-align:right;font-weight:700">${totalH||'\u2014'}</td></tr>`;
   }).join('');
   const w = window.open('','_blank');
   w.document.write(`<html><head><title>Hours ${monthName}</title><style>
@@ -2667,7 +2667,7 @@ function printHoursSheet() {
     h1{font-size:18px;color:#115950;margin-bottom:4px}
     @page{margin:12mm}
   </style></head><body>
-    <h1>Cleaning Hours — ${monthName}</h1>
+    <h1>Cleaning Hours \u2014 ${monthName}</h1>
     <p style="color:#6b7e7b;margin-bottom:14px">Zesty Rentals</p>
     <table><thead><tr><th>Date</th><th>Property</th><th>Type</th>${staffCols}<th style="text-align:right">Total</th></tr></thead>
     <tbody>${rows}</tbody></table>
