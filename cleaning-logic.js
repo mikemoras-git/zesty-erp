@@ -39,7 +39,7 @@ async function init() {
 
   // Show cache instantly
   const _s = SyncStore._getLocal('zesty_staff');
-  const _j = SyncStore._getLocal('zesty_jobs');
+  const _j = SyncStore._getLocal('zesty_cleaning_jobs');
   const _h = JSON.parse(localStorage.getItem('zesty_import_history') || '[]');
   if (_s.length) staff = _s;
   if (_j.length) cleaningJobs = _j;
@@ -61,7 +61,7 @@ async function init() {
   showDbStatus(true);
 
   // 30-second poll for all cleaning data
-  startPoll('cleaning_jobs', 'zesty_jobs', 30000, (rows) => {
+  startPoll('cleaning_jobs', 'zesty_cleaning_jobs', 30000, (rows) => {
     cleaningJobs = rows;
     renderCalendar(); renderJobs(); updateJobStats();
   });
@@ -79,7 +79,7 @@ async function syncCleaningData() {
   try {
     const [rs, rj] = await Promise.all([
       SyncStore.load('zesty_staff', 'cleaning_staff'),
-      SyncStore.load('zesty_jobs', 'cleaning_jobs'),
+      SyncStore.load('zesty_cleaning_jobs', 'cleaning_jobs'),
     ]);
     // Fallback: try 'staff' table if cleaning_staff is empty
     if (!rs.fromCache && (!rs.data || rs.data.length === 0)) {
@@ -203,7 +203,7 @@ async function runAutoImport() {
 async function save() {
   // Save staff and jobs to Supabase
   await SyncStore.saveAll('zesty_staff', 'cleaning_staff', staff);
-  await SyncStore.saveAll('zesty_jobs', 'cleaning_jobs', cleaningJobs);
+  await SyncStore.saveAll('zesty_cleaning_jobs', 'cleaning_jobs', cleaningJobs);
   // Import history: localStorage only (no dedicated Supabase table needed)
   localStorage.setItem('zesty_import_history', JSON.stringify(importHistory));
 }
@@ -987,23 +987,76 @@ async function deleteJob(id) {
 }
 
 async function autoAssign() {
-  let assigned = 0;
-  cleaningJobs.forEach(j => {
-    if ((j.cleanerIds||[]).length) return;
-    const eligible = staff.filter(s => s.status !== 'Inactive' && (
-      !j.zone || (s.zones||[]).some(z => j.zone.toLowerCase().includes(z.toLowerCase()) || z.toLowerCase().includes(j.zone.toLowerCase()))
-    ));
-    if (eligible.length === 0) return;
-    const jDate = j.date;
-    const counts = eligible.map(cl => ({
-      cl, count: cleaningJobs.filter(jj => jj.date === jDate && (jj.cleanerIds||[]).includes(cl.id)).length
-    }));
-    counts.sort((a, b) => a.count - b.count);
-    j.cleanerIds = [counts[0].cl.id];
-    assigned++;
+  const monthVal = document.getElementById('jobMonth')?.value || '';
+  // Only assign jobs that are unassigned (no cleanerIds set) - NEVER touch saved jobs
+  const jobsToAssign = cleaningJobs.filter(j => {
+    if ((j.cleanerIds||[]).length > 0) return false; // already saved/assigned - skip
+    if (monthVal && j.date && !j.date.startsWith(monthVal)) return false; // wrong month
+    return true;
   });
-  await save(); renderJobs(); renderCalendar();
-  showToast(`\u26A1 Auto-assigned ${assigned} jobs`, 'success');
+
+  if (!jobsToAssign.length) {
+    showToast('No unassigned jobs to assign this month', 'info');
+    return;
+  }
+
+  const activeStaff = staff.filter(s => s.status !== 'Inactive');
+  if (!activeStaff.length) { showToast('No active staff found', 'error'); return; }
+
+  // Track hours assigned per staff member in this run (for even spreading)
+  const hoursThisRun = {};
+  activeStaff.forEach(s => hoursThisRun[s.id] = 0);
+
+  // Also count existing hours this month per staff (from already-saved jobs)
+  const existingHours = {};
+  activeStaff.forEach(s => {
+    existingHours[s.id] = cleaningJobs
+      .filter(j => (j.cleanerIds||[]).includes(s.id) && (!monthVal || (j.date||'').startsWith(monthVal)))
+      .reduce((sum, j) => sum + (j.hours || 4), 0); // estimate 4h if no hours set
+  });
+
+  let assigned = 0;
+
+  // Sort jobs by date for sequential assignment
+  const sorted = [...jobsToAssign].sort((a,b) => (a.date||'') > (b.date||'') ? 1 : -1);
+
+  sorted.forEach(j => {
+    // Find eligible staff: match job zone to staff zones
+    const jobZone = (j.zone || '').toLowerCase();
+    const eligible = activeStaff.filter(s => {
+      if (!jobZone) return true; // no zone set = any staff
+      const staffZones = (s.zones || []).map(z => z.toLowerCase());
+      return staffZones.some(z => jobZone.includes(z) || z.includes(jobZone));
+    });
+
+    if (!eligible.length) {
+      // No zone match - use all active staff as fallback
+      eligible.push(...activeStaff);
+    }
+
+    if (!eligible.length) return;
+
+    // Pick the staff member with the fewest total hours (existing + this run)
+    eligible.sort((a, b) => {
+      const totalA = (existingHours[a.id] || 0) + (hoursThisRun[a.id] || 0);
+      const totalB = (existingHours[b.id] || 0) + (hoursThisRun[b.id] || 0);
+      return totalA - totalB;
+    });
+
+    const picked = eligible[0];
+    // Find job in cleaningJobs and set cleanerIds
+    const idx = cleaningJobs.findIndex(jj => jj.id === j.id);
+    if (idx >= 0) {
+      cleaningJobs[idx].cleanerIds = [picked.id];
+      hoursThisRun[picked.id] += (j.hours || 4); // estimate 4h
+      assigned++;
+    }
+  });
+
+  await save();
+  renderJobs();
+  renderCalendar();
+  showToast(`\u26A1 Auto-assigned ${assigned} jobs (${jobsToAssign.length - assigned} skipped)`, 'success');
 }
 
 function exportJobsCSV() {
@@ -1026,8 +1079,9 @@ function exportJobsCSV() {
 }
 
 function exportScheduleCSV() {
-  const monthVal = document.getElementById('calMonth').value;
-  const monthJobs = cleaningJobs.filter(j => !monthVal || j.date.startsWith(monthVal));
+  const monthVal = document.getElementById('calMonth')?.value || '';
+  if (!monthVal) { showToast('Select a month first', 'error'); return; }
+  const monthJobs = cleaningJobs.filter(j => j.date && j.date.startsWith(monthVal));
   monthJobs.sort((a,b) => a.date > b.date ? 1 : -1);
   const headers = ['Date','Property','Zone','Type','Cleaner','Hours','Pay'];
   const rows = monthJobs.map(j => {
@@ -1072,9 +1126,10 @@ function buildPrintStyles() {
 }
 
 function printSchedule() {
-  const monthVal = document.getElementById('calMonth').value;
-  const cleanerFilter = document.getElementById('calCleaner').value;
-  const monthJobs = cleaningJobs.filter(j => j.date.startsWith(monthVal) && (!cleanerFilter || (j.cleanerIds||[]).includes(cleanerFilter)));
+  const monthVal = document.getElementById('calMonth')?.value || '';
+  const cleanerFilter = document.getElementById('calCleaner')?.value || '';
+  if (!monthVal) { showToast('Select a month first', 'error'); return; }
+  const monthJobs = cleaningJobs.filter(j => j.date && j.date.startsWith(monthVal) && (!cleanerFilter || (j.cleanerIds||[]).includes(cleanerFilter)));
   monthJobs.sort((a,b) => a.date > b.date ? 1 : -1);
 
   const printCleaners = cleanerFilter ? [staff.find(s => s.id === cleanerFilter)].filter(Boolean) : staff.filter(s => s.status !== 'Inactive');
@@ -1343,7 +1398,12 @@ function renderHoursSheet() {
 
   const propF = document.getElementById('hoursPropFilter').value;
   const monthJobs = [
-    ...cleaningJobs.filter(j => j.date.startsWith(monthVal) && (!propF || j.propertyName===propF)),
+    // Only cleaning-type jobs (checkout/midstay), not maintenance jobs
+    ...cleaningJobs.filter(j => 
+      j.date && j.date.startsWith(monthVal) && 
+      (j.type === 'checkout' || j.type === 'midstay') &&
+      (!propF || j.propertyName===propF)
+    ),
     ...hoursExtra.filter(j => (j.date||'').startsWith(monthVal) && (!propF || j.propertyName===propF))
   ].sort((a,b) => (a.date||'') > (b.date||'') ? 1 : -1);
 
@@ -1449,12 +1509,32 @@ function removeExtra(idx) {
 }
 
 async function saveHoursSheet() {
-  // Save cleanerHours back to cleaningJobs
+  const monthVal = document.getElementById('hoursMonth')?.value || '';
   const msg = document.getElementById('hoursSavedMsg');
   if (msg) { msg.textContent = 'Saving\u2026'; }
-  await SyncStore.saveAll('zesty_jobs', 'cleaning_jobs', cleaningJobs);
-  // Save extra rows
+  
+  // Save cleanerHours back to cleaningJobs in Supabase
+  await SyncStore.saveAll('zesty_cleaning_jobs', 'cleaning_jobs', cleaningJobs);
+  
+  // Save extra rows to localStorage
   localStorage.setItem('zesty_hours_extra', JSON.stringify(hoursExtra));
+  
+  // Save a monthly snapshot to localStorage (one per month, updatable)
+  if (monthVal && window._currentHoursJobs) {
+    const snapshot = {
+      month: monthVal,
+      savedAt: new Date().toISOString(),
+      jobs: window._currentHoursJobs.map(j => ({
+        id: j.id, date: j.date, propertyName: j.propertyName, type: j.type,
+        guestName: j.guestName, cleanerIds: j.cleanerIds, cleanerHours: j.cleanerHours,
+        hours: j.hours, propertyTransport: j.propertyTransport
+      }))
+    };
+    const allSnapshots = JSON.parse(localStorage.getItem('zesty_hours_snapshots') || '{}');
+    allSnapshots[monthVal] = snapshot; // overwrite same month
+    localStorage.setItem('zesty_hours_snapshots', JSON.stringify(allSnapshots));
+  }
+
   if (msg) { msg.textContent = '\u2713 Saved ' + new Date().toLocaleTimeString('en-GB'); }
   setTimeout(() => { if(msg) msg.textContent = ''; }, 3000);
   showToast('\u2713 Hours sheet saved', 'success');
