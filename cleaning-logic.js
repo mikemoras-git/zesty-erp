@@ -59,6 +59,21 @@ async function init() {
   // Load from Supabase
   await syncCleaningData();
   showDbStatus(true);
+  
+  // After loading: if current month has no jobs, jump to most recent month that does
+  const _curMonth = formatMonthValue(currentCalMonth);
+  const _hasJobsThisMonth = cleaningJobs.some(j => j.date && j.date.startsWith(_curMonth));
+  if (!_hasJobsThisMonth && cleaningJobs.length > 0) {
+    const _months = [...new Set(cleaningJobs.map(j => j.date?.substring(0,7)).filter(Boolean))].sort();
+    const _latestMonth = _months[_months.length - 1];
+    if (_latestMonth) {
+      const [_yr, _mo] = _latestMonth.split('-');
+      currentCalMonth = new Date(parseInt(_yr), parseInt(_mo)-1, 1);
+      document.getElementById('calMonth').value = _latestMonth;
+      document.getElementById('jobMonth').value = _latestMonth;
+      renderCalendar(); renderJobs();
+    }
+  }
 
   // 30-second poll for all cleaning data
   startPoll('cleaning_jobs', 'zesty_cleaning_jobs', 30000, (rows) => {
