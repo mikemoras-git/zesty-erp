@@ -72,8 +72,15 @@ async function init() {
       currentCalMonth = new Date(parseInt(_yr), parseInt(_mo)-1, 1);
       document.getElementById('calMonth').value = _nextMonth;
       document.getElementById('jobMonth').value = _nextMonth;
+      // Sync hours tab to same month as calendar
+      const hoursEl = document.getElementById('hoursMonth');
+      if (hoursEl) hoursEl.value = _nextMonth;
       renderCalendar(); renderJobs();
     }
+  } else {
+    // Current month has jobs - sync hours tab to current month too
+    const hoursEl = document.getElementById('hoursMonth');
+    if (hoursEl && !hoursEl.value) hoursEl.value = _curMonth;
   }
 
   // 30-second poll for all cleaning data
@@ -246,7 +253,18 @@ function showPage(name) {
   if (event && event.target) event.target.classList.add('active');
   if (name === 'schedule') renderCalendar();
   if (name === 'jobs') renderJobs();
-  if (name === 'hours') renderHoursSheet();
+  if (name === 'hours') {
+    const hm = document.getElementById('hoursMonth');
+    const cm = document.getElementById('calMonth');
+    if (hm && cm && !hm.value && cm.value) hm.value = cm.value;
+    renderHoursSheet();
+  }
+  if (name === 'checkin') {
+    const ciM = document.getElementById('ci-month');
+    const calM = document.getElementById('calMonth');
+    if (ciM && !ciM.value && calM?.value) ciM.value = calM.value;
+    if (typeof syncCheckinData === 'function') syncCheckinData().then(()=>renderCheckin());
+  }
 }
 // Alias so sidebar buttons work
 function showTab(name) { showPage(name); }
@@ -590,11 +608,14 @@ async function confirmImport() {
       let created = 0;
       let updated = 0;
       let deleted = 0;
-      // Delete jobs for cancelled bookings
+      // Delete jobs for cancelled bookings (memory + Supabase)
       if (jobsToDelete.length > 0) {
         const delIds = new Set(jobsToDelete.map(j => j.id));
         cleaningJobs = cleaningJobs.filter(j => !delIds.has(j.id));
         deleted = jobsToDelete.length;
+        for (const j of jobsToDelete) {
+          await SyncStore.deleteOne('zesty_cleaning_jobs','cleaning_jobs',j.id,cleaningJobs);
+        }
       }
       // Process all active rows: create for new, update for existing
       const allRows = [...newRows, ...updateRows];
@@ -1166,8 +1187,8 @@ function buildPrintStyles() {
     .print-summary { text-align: right; }
     .print-summary .big { font-size: 20px; font-weight: 700; color: #115950; }
     .print-summary .small { font-size: 11px; color: #888; }
-    .col-headers { display: grid; grid-template-columns: 90px 1fr 80px 50px 60px 130px 90px; gap: 0; background: #115950; color: white; padding: 7px 10px; border-radius: 6px 6px 0 0; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0; }
-    .print-job-row { display: grid; grid-template-columns: 90px 1fr 80px 50px 60px 130px 90px; gap: 0; padding: 9px 10px; border-bottom: 1px solid #e8f0ef; font-size: 12px; }
+    .col-headers { display: grid; grid-template-columns: 80px 1fr 75px 75px 75px 40px 50px 55px 120px 80px; gap: 0; background: #115950; color: white; padding: 7px 10px; border-radius: 6px 6px 0 0; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0; }
+    .print-job-row { display: grid; grid-template-columns: 80px 1fr 75px 75px 75px 40px 50px 55px 120px 80px; gap: 0; padding: 9px 10px; border-bottom: 1px solid #e8f0ef; font-size: 12px; }
     .print-job-row:nth-child(even) { background: #f8f5f0; }
     .type-badge { display: inline-block; padding: 1px 7px; border-radius: 10px; font-size: 10px; font-weight: 600; }
     .type-checkout { background: #fdebd0; color: #a04000; }
@@ -1216,7 +1237,7 @@ function printSchedule() {
           </div>
         </div>
         <div class="col-headers">
-          <div>Date</div><div>Property</div><div>Type</div><div>Hours</div><div>Pay</div><div>Co-workers</div><div>Notes</div>
+          <div>Date</div><div>Property</div><div>Type</div><div>Arrival</div><div>Departure</div><div>Nts</div><div>Hours</div><div>Pay</div><div>Co-workers</div><div>Notes</div>
         </div>
         ${clJobs.length === 0 ? '<p style="padding:20px;color:#999">No jobs assigned this month.</p>' :
           clJobs.map(j => {
@@ -1227,20 +1248,28 @@ function printSchedule() {
               const c2 = staff.find(s => s.id === cid);
               return c2 ? `<span class="coworker-tag">${c2.firstName} ${c2.lastName}</span>` : '';
             }).join('');
+            const _depDt = j.date ? new Date(j.date) : null;
+            const _arrDt = (_depDt && j.nights) ? new Date(new Date(j.date).setDate(new Date(j.date).getDate()-j.nights)) : null;
+            const _arrStr = _arrDt ? _arrDt.toLocaleDateString('en-GB',{day:'numeric',month:'short'}) : '\u2014';
+            const _depStr = j.type==='checkout' && _depDt ? _depDt.toLocaleDateString('en-GB',{day:'numeric',month:'short'}) : '\u2014';
+            const _babycot = (j.notes||'').toLowerCase().match(/infant|baby|cot/);
+            const _payNoTransport = (cl.hourlyRate||0)*(j.hours||0);
             return `<div class="print-job-row">
               <div><strong>${formatDate(j.date)}</strong></div>
               <div>${j.propertyName}${j.zone ? '<br><span style="font-size:10px;color:#888">'+j.zone+'</span>' : ''}</div>
-              <div><span class="type-badge type-${j.type}">${j.type === 'checkout' ? 'Checkout' : 'Mid-Stay'}</span></div>
+              <div><span class="type-badge type-${j.type}">${j.type === 'checkout' ? 'Checkout' : 'Mid-Stay'}</span>${_babycot ? '<br><span style="background:#ffcccc;color:#c0392b;padding:1px 5px;border-radius:8px;font-size:9px;font-weight:700">\u{1F6CF} BABYCOT</span>' : ''}</div>
+              <div style="font-size:11px">${_arrStr}</div>
+              <div style="font-size:11px">${_depStr}</div>
+              <div style="text-align:center">${j.nights||'\u2014'}</div>
               <div>${j.hours ? j.hours+'h' : '\u2014'}</div>
-              <div style="font-weight:600;color:#115950">${jobPay > 0 ? '\u20AC'+jobPay.toFixed(0) : '\u2014'}${tr > 0 ? '<br><span style="font-size:10px;color:#888">+\u20AC'+tr+' \u{1F697}</span>' : ''}</div>
+              <div style="font-weight:600;color:#115950">${_payNoTransport > 0 ? '\u20AC'+_payNoTransport.toFixed(0) : '\u2014'}</div>
               <div>${coworkers || '<span style="color:#ccc;font-size:11px">Solo</span>'}</div>
-              <div style="font-size:11px;color:#666">${j.notes||''}</div>
+              <div style="font-size:11px;color:#666">${(_babycot ? '\u{1F6CF} BABYCOT REQ. ' : '')+( j.notes||'')}</div>
             </div>`;
           }).join('')
         }
         <div class="totals-row">
-          ${totalTransport > 0 ? `<div class="total-item"><div class="total-label">Transport</div><div class="total-val">\u20AC${totalTransport.toFixed(2)}</div></div>` : ''}
-          <div class="total-item"><div class="total-label">Hours Pay</div><div class="total-val">\u20AC${(totalPay - totalTransport).toFixed(2)}</div></div>
+          <div class="total-item"><div class="total-label">Hours Pay</div><div class="total-val">\u20AC${totalPay.toFixed(2)}</div></div>
           <div class="total-item"><div class="total-label">Total</div><div class="total-val">\u20AC${totalPay.toFixed(2)}</div></div>
         </div>
       </div>`;
@@ -1250,6 +1279,135 @@ function printSchedule() {
   w.document.write(`<html><head><title>Cleaning Schedule ${monthName}</title><style>${buildPrintStyles()}</style></head><body>${printContent || '<p style="padding:40px;font-family:Arial">No jobs found for this period.</p>'}</body></html>`);
   w.document.close();
   setTimeout(() => w.print(), 600);
+}
+
+function printManagerSummary() {
+  const monthVal = document.getElementById('calMonth')?.value || '';
+  if (!monthVal) { showToast('Select a month first', 'error'); return; }
+  
+  const monthJobs = cleaningJobs.filter(j => j.date && j.date.startsWith(monthVal))
+    .sort((a,b) => a.date > b.date ? 1 : a.date < b.date ? -1 : 0);
+  
+  if (!monthJobs.length) { showToast('No jobs for this month', 'error'); return; }
+  
+  const monthName = new Date(monthVal+'-01').toLocaleDateString('en-GB',{month:'long',year:'numeric'});
+  
+  // Group by date
+  const byDate = {};
+  monthJobs.forEach(j => {
+    if (!byDate[j.date]) byDate[j.date] = [];
+    byDate[j.date].push(j);
+  });
+  
+  const styles = buildPrintStyles() + `
+    .day-header { background:#1a7a6e; color:#fff; padding:8px 12px; margin-top:16px; border-radius:6px 6px 0 0; font-weight:700; font-size:13px; }
+    .day-table { width:100%; border-collapse:collapse; margin-bottom:4px; font-size:11px; }
+    .day-table th { background:#f0faf8; padding:6px 8px; text-align:left; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; border-bottom:2px solid #1a7a6e; }
+    .day-table td { padding:7px 8px; border-bottom:1px solid #e8f0ef; vertical-align:top; }
+    .day-table tr:hover td { background:#f8fcfb; }
+    .badge-checkout { background:#fdebd0; color:#a04000; padding:2px 7px; border-radius:10px; font-size:10px; font-weight:700; }
+    .badge-midstay { background:#fdf6e3; color:#8e6b23; padding:2px 7px; border-radius:10px; font-size:10px; font-weight:700; }
+    .badge-babycot { background:#ffcccc; color:#c0392b; padding:2px 7px; border-radius:10px; font-size:10px; font-weight:700; border:1px solid #c0392b; }
+    .cleaner-tag { display:inline-block; background:#e0f5f1; color:#115950; padding:2px 6px; border-radius:10px; font-size:10px; font-weight:600; margin:1px; }
+    .same-day-alert { background:#fff3cd; color:#856404; padding:2px 7px; border-radius:10px; font-size:10px; font-weight:700; border:1px solid #ffc107; }
+    .manager-title { font-family:Arial,sans-serif; }
+    @page { size:A4 landscape; margin:8mm; }
+  `;
+  
+  // Check for same-day check-in/checkout
+  const checkoutDates = new Set(monthJobs.filter(j=>j.type==='checkout').map(j=>j.date));
+  
+  let html = `<div style="font-family:Arial,sans-serif;padding:16px 0">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;padding-bottom:12px;border-bottom:3px solid #1a7a6e">
+      <div>
+        <div style="font-size:22px;font-weight:700;color:#1a7a6e">Manager Schedule Summary</div>
+        <div style="font-size:14px;color:#666;margin-top:4px">${monthName}</div>
+      </div>
+      <div style="text-align:right;font-size:12px;color:#888">
+        <div>Zesty Rentals</div>
+        <div>Printed: ${new Date().toLocaleDateString('en-GB')}</div>
+        <div style="margin-top:4px;font-weight:700;color:#1a7a6e">${monthJobs.length} cleaning jobs</div>
+      </div>
+    </div>`;
+  
+  for (const [date, jobs] of Object.entries(byDate).sort()) {
+    const dayName = new Date(date).toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long'});
+    // Check if any checkout on this day has a check-in too (same day turnover)
+    const hasCheckout = jobs.some(j=>j.type==='checkout');
+    
+    html += `<div class="day-header">${dayName}
+      ${hasCheckout ? '<span style="margin-left:12px;background:rgba(255,255,255,0.2);padding:2px 8px;border-radius:8px;font-size:11px">' + jobs.filter(j=>j.type==='checkout').length + ' checkout' + (jobs.filter(j=>j.type==='checkout').length>1?'s':'') + '</span>' : ''}
+      ${jobs.filter(j=>j.type==='midstay').length>0 ? '<span style="margin-left:6px;background:rgba(255,255,255,0.15);padding:2px 8px;border-radius:8px;font-size:11px">' + jobs.filter(j=>j.type==='midstay').length + ' mid-stay</span>' : ''}
+    </div>
+    <table class="day-table">
+      <thead><tr>
+        <th>Property</th><th>Type</th><th>Guest</th>
+        <th>Arrival</th><th>Departure</th><th>Nights</th>
+        <th>Guests</th><th>Cleaners</th><th>Hours</th><th>Notes</th>
+      </tr></thead>
+      <tbody>`;
+    
+    for (const j of jobs) {
+      const cls = (j.cleanerIds||[]).map(cid => {
+        const cl = staff.find(s=>s.id===cid);
+        return cl ? `<span class="cleaner-tag">${cl.firstName}</span>` : '';
+      }).join('');
+      
+      // Calculate arrival from departure and nights (for checkout jobs)
+      let arrivalDate = '—', departureDate = '—';
+      if (j.type === 'checkout' && j.date && j.nights) {
+        const dep = new Date(j.date);
+        const arr = new Date(dep);
+        arr.setDate(arr.getDate() - j.nights);
+        arrivalDate = arr.toLocaleDateString('en-GB',{day:'numeric',month:'short'});
+        departureDate = dep.toLocaleDateString('en-GB',{day:'numeric',month:'short'});
+      } else if (j.type === 'midstay' && j.date && j.midStayDay) {
+        // midStayDay = days after arrival
+        const cleanDate = new Date(j.date);
+        const arr = new Date(cleanDate);
+        arr.setDate(arr.getDate() - j.midStayDay);
+        const dep = new Date(arr);
+        dep.setDate(dep.getDate() + (j.nights||0));
+        arrivalDate = arr.toLocaleDateString('en-GB',{day:'numeric',month:'short'});
+        departureDate = dep.toLocaleDateString('en-GB',{day:'numeric',month:'short'});
+      }
+      
+      // Infants check for babycot (we store in guestName if noted, or check via nights < 3 shorthand)
+      // Since we don't have infant count in jobs, add babycot column as manual note placeholder
+      const hasBabycot = (j.notes||'').toLowerCase().includes('infant') || 
+                         (j.notes||'').toLowerCase().includes('baby') ||
+                         (j.notes||'').toLowerCase().includes('cot');
+      
+      // Same day alert: if this is a checkout and there's also a new checkin (another booking arriving same day at same property)
+      const sameDayCheckIn = j.type === 'checkout' && cleaningJobs.some(other => 
+        other.id !== j.id && other.date === j.date && 
+        other.propertyName === j.propertyName && other.type === 'checkout'
+      );
+      
+      html += `<tr>
+        <td><strong>${j.propertyName||'—'}</strong>${j.zone?`<br><small style="color:#888">${j.zone}</small>`:''}</td>
+        <td>
+          <span class="${j.type==='checkout'?'badge-checkout':'badge-midstay'}">${j.type==='checkout'?'CHECKOUT':'MID-STAY'}</span>
+          ${hasBabycot?'<br><span class="badge-babycot">\u{1F6CF} BABYCOT</span>':''}
+        </td>
+        <td style="font-size:11px">${j.guestName||'—'}</td>
+        <td style="font-size:11px">${arrivalDate}</td>
+        <td style="font-size:11px">${departureDate}</td>
+        <td style="text-align:center">${j.nights||'—'}</td>
+        <td style="text-align:center">—<br><small style="color:#aaa;font-size:9px">add manually</small></td>
+        <td>${cls||'<span style="color:#e74c3c;font-size:10px">\u26A0 Unassigned</span>'}</td>
+        <td style="text-align:center;font-weight:700;color:#1a7a6e">${j.hours?j.hours+'h':'—'}</td>
+        <td style="font-size:11px;color:#666;max-width:120px">${j.notes||''}</td>
+      </tr>`;
+    }
+    html += '</tbody></table>';
+  }
+  html += '</div>';
+  
+  const w = window.open('','_blank');
+  w.document.write(`<html><head><title>Manager Schedule - ${monthName}</title><style>${styles}</style></head><body>${html}</body></html>`);
+  w.document.close();
+  setTimeout(()=>w.print(),500);
 }
 
 function printAllJobs() {
@@ -1387,7 +1545,7 @@ function showToast(msg, type='') {
   setTimeout(() => t.classList.remove('show'), 3000);
 }
 
-['staffModal','jobModal'].forEach(id => {
+['staffModal','jobModal','ciModal'].forEach(id => {
   document.getElementById(id).addEventListener('click', e => { if(e.target === e.currentTarget) closeModal(id); });
 });
 document.getElementById('confirmOverlay').addEventListener('click', e => { if(e.target === e.currentTarget) closeConfirm(); });
@@ -1433,6 +1591,299 @@ function _initSidebar() {
   obs.observe(document.body, {childList:true, subtree:true});
 }
 document.addEventListener('DOMContentLoaded', _initSidebar);
+
+
+
+// ══════════════════════════════════════════
+// CHECK-IN AGENT MODULE
+// ══════════════════════════════════════════
+
+let checkinJobs = JSON.parse(localStorage.getItem('zesty_checkin_jobs') || '[]');
+
+function saveCheckinLocal() {
+  localStorage.setItem('zesty_checkin_jobs', JSON.stringify(checkinJobs));
+}
+
+async function saveCheckinSupabase() {
+  saveCheckinLocal();
+  // Upsert to Supabase cleaning_jobs table with type=checkin/checkout_agent
+  const ts = new Date().toISOString();
+  const rows = checkinJobs.map(j => ({id: j.id, data: j, updated_at: ts}));
+  // Save in batches of 50
+  for (let i = 0; i < rows.length; i += 50) {
+    const batch = rows.slice(i, i+50);
+    await fetch(DB.url + '/rest/v1/checkin_jobs', {
+      method: 'POST',
+      headers: {...DB.headers, 'Prefer': 'resolution=merge-duplicates'},
+      body: JSON.stringify(batch)
+    }).catch(() => {});
+  }
+}
+
+// ── Render check-in page ──
+function renderCheckin() {
+  const monthVal = document.getElementById('ci-month')?.value || '';
+  const agentF = document.getElementById('ci-agent')?.value || '';
+
+  // Populate property datalist
+  const propList = document.getElementById('ci_propList');
+  if (propList) {
+    const props = [...new Set(cleaningJobs.map(j=>j.propertyName).filter(Boolean))].sort();
+    propList.innerHTML = props.map(p=>`<option value="${p}">`).join('');
+  }
+
+  // Populate agent filter
+  const agentSel = document.getElementById('ci-agent');
+  const agentModalSel = document.getElementById('ci_agent_sel');
+  const activeStaff = staff.filter(s => s.status !== 'Inactive');
+  if (agentSel) {
+    const cur = agentSel.value;
+    agentSel.innerHTML = '<option value="">All Agents</option>' +
+      activeStaff.map(s=>`<option value="${s.id}" ${s.id===cur?'selected':''}>${s.firstName} ${s.lastName}</option>`).join('');
+  }
+  if (agentModalSel) {
+    const cur = agentModalSel.value;
+    agentModalSel.innerHTML = '<option value="">-- Select Agent --</option>' +
+      activeStaff.map(s=>`<option value="${s.id}" ${s.id===cur?'selected':''}>${s.firstName} ${s.lastName}</option>`).join('');
+  }
+
+  let jobs = checkinJobs.filter(j =>
+    (!monthVal || (j.date||'').startsWith(monthVal)) &&
+    (!agentF || j.agentId === agentF)
+  ).sort((a,b) => (a.date||'') > (b.date||'') ? 1 : (a.date||'') < (b.date||'') ? -1 : 0);
+
+  // Detect same-day checkin/checkout from cleaning schedule
+  const checkoutDates = new Set(cleaningJobs
+    .filter(j => j.type==='checkout' && (!monthVal || j.date.startsWith(monthVal)))
+    .map(j => j.date + '|' + j.propertyName));
+
+  let sameDayCount = 0;
+  jobs.forEach(j => {
+    if (j.type === 'checkin') {
+      j._sameDay = checkoutDates.has(j.date + '|' + j.property);
+      if (j._sameDay) sameDayCount++;
+    }
+  });
+
+  // Stats
+  const setEl = (id,v) => { const el=document.getElementById(id); if(el) el.textContent=v; };
+  setEl('ci-stat-in', jobs.filter(j=>j.type==='checkin').length);
+  setEl('ci-stat-out', jobs.filter(j=>j.type==='checkout').length);
+  setEl('ci-stat-same', sameDayCount);
+  setEl('ci-stat-repeat', jobs.filter(j=>j.repeat==='yes').length);
+
+  const alertEl = document.getElementById('ci-same-day-alert');
+  if (alertEl) alertEl.style.display = sameDayCount > 0 ? '' : 'none';
+
+  const monthName = monthVal ? new Date(monthVal+'-01').toLocaleDateString('en-GB',{month:'long',year:'numeric'}) : 'All';
+  const titleEl = document.getElementById('ci-title');
+  if (titleEl) titleEl.textContent = 'Check-In Schedule — ' + monthName;
+
+  const tbody = document.getElementById('ci-tbody');
+  if (!tbody) return;
+
+  if (!jobs.length) {
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="10">No check-in jobs for this period.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = jobs.map(j => {
+    const agent = staff.find(s => s.id === j.agentId);
+    const agentName = agent ? agent.firstName + ' ' + agent.lastName : '<span style="color:var(--danger)">\u26A0 Unassigned</span>';
+    const typeBadge = j.type === 'checkin'
+      ? '<span style="background:#e0f5f1;color:#115950;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700">CHECK-IN</span>'
+      : '<span style="background:#fdebd0;color:#a04000;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700">CHECK-OUT</span>';
+    const sameDayBadge = j._sameDay ? ' <span style="background:#fff3cd;color:#856404;padding:1px 5px;border-radius:8px;font-size:10px;font-weight:700">\u26A0 SAME DAY CLEAN</span>' : '';
+    const repeatBadge = j.repeat === 'yes' ? ' <span style="color:var(--teal);font-size:11px">\u2605 Repeat</span>' : '';
+    return `<tr style="${j._sameDay ? 'background:#fffbe6' : ''}">
+      <td style="font-weight:600;font-size:12px">${formatDate(j.date)}</td>
+      <td style="font-size:12px">${j.property||'\u2014'}</td>
+      <td>${typeBadge}${sameDayBadge}</td>
+      <td style="font-size:12px">${j.guest||'\u2014'}${repeatBadge}</td>
+      <td style="font-size:12px">${j.time||'\u2014'}</td>
+      <td style="font-size:12px">${j.flight||'\u2014'}</td>
+      <td style="text-align:center">${j.repeat==='yes' ? '\u2605 Yes' : j.repeat==='no' ? 'No' : '?'}</td>
+      <td style="font-size:12px">${agentName}</td>
+      <td style="font-size:11px;color:var(--text-muted)">${j.notes||''}</td>
+      <td>
+        <div style="display:flex;gap:4px">
+          <button class="btn btn-teal btn-sm" onclick="openCheckinModal('${j.id}')">\u270F\uFE0F</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteCheckinJob('${j.id}')">\u{1F5D1}</button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function openCheckinModal(id) {
+  const j = id ? checkinJobs.find(x=>x.id===id) : null;
+  document.getElementById('ci_editId').value = id || '';
+  document.getElementById('ci_property').value = j?.property || '';
+  document.getElementById('ci_date').value = j?.date || new Date().toISOString().slice(0,10);
+  document.getElementById('ci_type').value = j?.type || 'checkin';
+  document.getElementById('ci_time').value = j?.time || '';
+  document.getElementById('ci_flight').value = j?.flight || '';
+  document.getElementById('ci_guest').value = j?.guest || '';
+  document.getElementById('ci_repeat').value = j?.repeat || 'no';
+  document.getElementById('ci_notes').value = j?.notes || '';
+  document.getElementById('ci_agent_sel').value = j?.agentId || '';
+  document.getElementById('ci_deleteBtn').style.display = id ? '' : 'none';
+  renderCheckin(); // populate agent dropdown
+  document.getElementById('ci_agent_sel').value = j?.agentId || '';
+  openModal('ciModal');
+}
+
+async function saveCheckinJob() {
+  const id = document.getElementById('ci_editId').value;
+  const job = {
+    id: id || 'ci_' + Date.now(),
+    property: document.getElementById('ci_property').value.trim(),
+    date: document.getElementById('ci_date').value,
+    type: document.getElementById('ci_type').value,
+    time: document.getElementById('ci_time').value,
+    flight: document.getElementById('ci_flight').value.trim(),
+    guest: document.getElementById('ci_guest').value.trim(),
+    repeat: document.getElementById('ci_repeat').value,
+    agentId: document.getElementById('ci_agent_sel').value,
+    notes: document.getElementById('ci_notes').value.trim(),
+  };
+  if (!job.property || !job.date) { showToast('Property and date required', 'error'); return; }
+  const idx = checkinJobs.findIndex(x=>x.id===job.id);
+  if (idx >= 0) checkinJobs[idx] = job;
+  else checkinJobs.push(job);
+  saveCheckinLocal();
+  closeModal('ciModal');
+  renderCheckin();
+  showToast('\u2713 Check-in job saved', 'success');
+}
+
+function deleteCheckinJob(id) {
+  const jobId = id || document.getElementById('ci_editId').value;
+  showConfirm('\u{1F5D1}\uFE0F', 'Delete Job?', 'Remove this check-in job?', 'btn-danger', 'Delete', () => {
+    checkinJobs = checkinJobs.filter(j=>j.id!==jobId);
+    saveCheckinLocal();
+    closeModal('ciModal');
+    renderCheckin();
+    showToast('Deleted', 'error');
+  });
+}
+
+// ── Import check-in jobs from cleaning schedule ──
+// Creates check-in and checkout jobs from cleaning_jobs for the current month
+function importCheckinFromSchedule() {
+  const monthVal = document.getElementById('ci-month')?.value || '';
+  if (!monthVal) { showToast('Select a month first', 'error'); return; }
+  
+  const monthCheckouts = cleaningJobs.filter(j => 
+    j.type === 'checkout' && j.date && j.date.startsWith(monthVal)
+  );
+  
+  let added = 0;
+  monthCheckouts.forEach(cj => {
+    // Check-out agent job (on checkout date)
+    const coId = 'ci_co_' + cj.id;
+    if (!checkinJobs.find(x=>x.id===coId)) {
+      checkinJobs.push({
+        id: coId, property: cj.propertyName, date: cj.date,
+        type: 'checkout', guest: cj.guestName || '', time: '',
+        flight: '', repeat: 'unknown', agentId: '', notes: '',
+        linkedCleanJobId: cj.id
+      });
+      added++;
+    }
+    // Check-in agent job — on same date (turnover day)
+    const ciId = 'ci_in_' + cj.id;
+    if (!checkinJobs.find(x=>x.id===ciId)) {
+      checkinJobs.push({
+        id: ciId, property: cj.propertyName, date: cj.date,
+        type: 'checkin', guest: '', time: '', flight: '',
+        repeat: 'unknown', agentId: '', notes: '',
+        linkedCleanJobId: cj.id
+      });
+      added++;
+    }
+  });
+  saveCheckinLocal();
+  renderCheckin();
+  showToast('\u26A1 Imported ' + added + ' check-in jobs from schedule', 'success');
+}
+
+function exportCheckinCSV() {
+  const monthVal = document.getElementById('ci-month')?.value || '';
+  const jobs = checkinJobs.filter(j => !monthVal || (j.date||'').startsWith(monthVal))
+    .sort((a,b) => (a.date||'')>(b.date||'')?1:-1);
+  const headers = ['Date','Property','Type','Guest','Time','Flight','Repeat','Agent','Notes'];
+  const rows = jobs.map(j => {
+    const agent = staff.find(s=>s.id===j.agentId);
+    return [j.date, j.property, j.type, j.guest, j.time, j.flight,
+            j.repeat, agent?agent.firstName+' '+agent.lastName:'', j.notes]
+      .map(v => `"${(v||'').toString().replace(/"/g,'""')}"`).join(',');
+  });
+  const csv = [headers.join(','), ...rows].join('\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8;'}));
+  a.download = 'checkin_schedule_' + (monthVal||'all') + '.csv';
+  a.click();
+  showToast('\u2713 Exported', 'success');
+}
+
+function printCheckinSchedule() {
+  const monthVal = document.getElementById('ci-month')?.value || '';
+  if (!monthVal) { showToast('Select a month first', 'error'); return; }
+  const jobs = checkinJobs.filter(j => j.date && j.date.startsWith(monthVal))
+    .sort((a,b) => (a.date||'')>(b.date||'')?1:-1);
+  const monthName = new Date(monthVal+'-01').toLocaleDateString('en-GB',{month:'long',year:'numeric'});
+
+  const checkoutDates = new Set(cleaningJobs
+    .filter(j=>j.type==='checkout'&&j.date&&j.date.startsWith(monthVal))
+    .map(j=>j.date+'|'+j.propertyName));
+
+  const rows = jobs.map(j => {
+    const agent = staff.find(s=>s.id===j.agentId);
+    const agentName = agent ? agent.firstName+' '+agent.lastName : '\u26A0 Unassigned';
+    const sameDay = j.type==='checkin' && checkoutDates.has(j.date+'|'+j.property);
+    return `<tr style="${sameDay?'background:#fffbe6':''}">
+      <td><strong>${formatDate(j.date)}</strong></td>
+      <td>${j.property||'\u2014'}</td>
+      <td><span style="padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700;background:${j.type==='checkin'?'#e0f5f1':'#fdebd0'};color:${j.type==='checkin'?'#115950':'#a04000'}">${j.type==='checkin'?'CHECK-IN':'CHECK-OUT'}</span>${sameDay?' <span style="background:#fff3cd;color:#856404;padding:1px 5px;border-radius:8px;font-size:9px;font-weight:700">SAME DAY CLEAN</span>':''}</td>
+      <td>${j.guest||'\u2014'}${j.repeat==='yes'?' \u2605':''}</td>
+      <td>${j.time||'\u2014'}</td>
+      <td>${j.flight||'\u2014'}</td>
+      <td>${agentName}</td>
+      <td style="font-size:11px;color:#666">${j.notes||''}</td>
+    </tr>`;
+  }).join('');
+
+  const w = window.open('','_blank');
+  w.document.write(`<html><head><title>Check-In Schedule ${monthName}</title><style>
+    body{font-family:'DM Sans',Arial,sans-serif;font-size:12px;color:#1e2a28;padding:24px}
+    h1{color:#115950;font-size:20px;margin-bottom:4px}
+    table{width:100%;border-collapse:collapse;margin-top:16px}
+    th{background:#115950;color:#fff;padding:7px 10px;text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.5px}
+    td{padding:8px 10px;border-bottom:1px solid #e8f0ef;vertical-align:top}
+    tr:nth-child(even) td{background:#f8fcfb}
+    @page{size:A4 landscape;margin:8mm}
+  </style></head><body>
+    <h1>Check-In Agent Schedule</h1>
+    <p style="color:#888;margin-bottom:16px">${monthName} &nbsp;&middot;&nbsp; Printed: ${new Date().toLocaleDateString('en-GB')}</p>
+    <table>
+      <thead><tr><th>Date</th><th>Property</th><th>Type</th><th>Guest</th><th>Time</th><th>Flight</th><th>Agent</th><th>Notes</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+  </body></html>`);
+  w.document.close();
+  setTimeout(()=>w.print(),400);
+}
+
+// Show checkin page init
+function initCheckinPage() {
+  const now = new Date();
+  const ciMonthEl = document.getElementById('ci-month');
+  if (ciMonthEl && !ciMonthEl.value) {
+    ciMonthEl.value = now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
+  }
+  renderCheckin();
+}
 
 
 init().catch(console.error);
@@ -1650,4 +2101,293 @@ function printHoursSheet() {
   // Load saved extra rows
   try { hoursExtra = JSON.parse(localStorage.getItem('zesty_hours_extra')||'[]'); } catch { hoursExtra=[]; }
 })();
+
+
+
+// ══════════════════════════════════════════════════════════
+// CHECK-IN AGENT MODULE
+// ══════════════════════════════════════════════════════════
+// checkinJobs - declared in new module below
+
+// Load/save checkin jobs (localStorage + Supabase via SyncStore)
+async function syncCheckinData() {
+  const r = await SyncStore.load('zesty_checkin_jobs', 'checkin_jobs');
+  if (r.data) checkinJobs = r.data;
+}
+
+async function saveCheckin() {
+  await SyncStore.saveAll('zesty_checkin_jobs', 'checkin_jobs', checkinJobs);
+}
+
+// Populate agent dropdown from staff
+function populateCiAgents() {
+  const agentSel = document.getElementById('ci_agent_sel');
+  const ciAgentFilter = document.getElementById('ci-agent');
+  const agents = staff.filter(s => s.status !== 'Inactive');
+  const opts = agents.map(s => `<option value="${s.id}">${s.firstName} ${s.lastName}</option>`).join('');
+  if (agentSel) agentSel.innerHTML = '<option value="">-- Select Agent --</option>' + opts;
+  if (ciAgentFilter) ciAgentFilter.innerHTML = '<option value="">All Agents</option>' + opts;
+}
+
+// Populate property datalist
+function populateCiProps() {
+  const dl = document.getElementById('ci_propList');
+  if (!dl) return;
+  const props = [...new Set(cleaningJobs.map(j => j.propertyName).filter(Boolean))].sort();
+  dl.innerHTML = props.map(p => `<option value="${p}">`).join('');
+}
+
+function renderCheckin() {
+  populateCiAgents();
+  populateCiProps();
+
+  const monthVal = document.getElementById('ci-month')?.value || '';
+  const agentF = document.getElementById('ci-agent')?.value || '';
+
+  const monthName = monthVal ? new Date(monthVal+'-01').toLocaleDateString('en-GB',{month:'long',year:'numeric'}) : 'All';
+  const titleEl = document.getElementById('ci-title');
+  if (titleEl) titleEl.textContent = 'Check-In Schedule — ' + monthName;
+
+  let jobs = checkinJobs.filter(j =>
+    (!monthVal || (j.date||'').startsWith(monthVal)) &&
+    (!agentF || j.agentId === agentF)
+  ).sort((a,b) => (a.date||'') > (b.date||'') ? 1 : (a.date||'') < (b.date||'') ? -1 : 0);
+
+  // Detect same-day checkout + checkin for SAME property
+  const sameDayMap = {};
+  jobs.forEach(j => {
+    const key = j.date + '|' + j.propertyName;
+    if (!sameDayMap[key]) sameDayMap[key] = [];
+    sameDayMap[key].push(j.type);
+  });
+  // Also check against cleaning checkout jobs
+  cleaningJobs.filter(j => j.type==='checkout' && (!monthVal || (j.date||'').startsWith(monthVal))).forEach(cj => {
+    const key = cj.date + '|' + cj.propertyName;
+    if (!sameDayMap[key]) sameDayMap[key] = [];
+    sameDayMap[key].push('cleaning_checkout');
+  });
+
+  const sameDayKeys = new Set(Object.keys(sameDayMap).filter(k => {
+    const types = sameDayMap[k];
+    return types.includes('checkin') && (types.includes('checkout') || types.includes('cleaning_checkout'));
+  }));
+
+  // Stats
+  const checkins = jobs.filter(j=>j.type==='checkin').length;
+  const checkouts = jobs.filter(j=>j.type==='checkout').length;
+  const sameDay = sameDayKeys.size;
+  const repeats = jobs.filter(j=>j.repeat==='yes').length;
+  document.getElementById('ci-stat-in').textContent = checkins;
+  document.getElementById('ci-stat-out').textContent = checkouts;
+  document.getElementById('ci-stat-same').textContent = sameDay;
+  document.getElementById('ci-stat-repeat').textContent = repeats;
+
+  const alertEl = document.getElementById('ci-same-day-alert');
+  if (alertEl) alertEl.style.display = sameDay > 0 ? '' : 'none';
+
+  const tbody = document.getElementById('ci-tbody');
+  if (!tbody) return;
+
+  if (!jobs.length) {
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="10">No check-in jobs for this period.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = jobs.map(j => {
+    const agent = staff.find(s => s.id === j.agentId);
+    const agentName = agent ? agent.firstName + ' ' + agent.lastName : '<span style="color:#e74c3c;font-size:11px">\u26a0 Unassigned</span>';
+    const key = j.date + '|' + j.propertyName;
+    const isSameDay = sameDayKeys.has(key);
+    const isRepeat = j.repeat === 'yes';
+    const typeBadge = j.type === 'checkin'
+      ? '<span style="background:#d5f5e3;color:#1e8449;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700">\u2192 CHECK-IN</span>'
+      : '<span style="background:#fdebd0;color:#a04000;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700">\u2190 CHECK-OUT</span>';
+
+    return `<tr style="${isSameDay ? 'background:#fffbe6;' : ''}">
+      <td style="font-weight:600;font-size:12px">${formatDate(j.date||'')}${isSameDay ? ' <span title="Same-day turnover" style="color:#e67e22;font-size:14px">\u26a0\ufe0f</span>' : ''}</td>
+      <td style="font-size:12px">${j.propertyName||'\u2014'}</td>
+      <td>${typeBadge}</td>
+      <td style="font-size:12px">${j.guestName||'\u2014'}${isRepeat ? ' <span style="color:var(--teal);font-weight:700" title="Repeat guest">\u2605</span>' : ''}</td>
+      <td style="font-size:12px;font-weight:600">${j.time||'\u2014'}</td>
+      <td style="font-size:12px;color:var(--text-muted)">${j.flight||'\u2014'}</td>
+      <td style="text-align:center">${isRepeat ? '<span style="color:var(--teal);font-weight:700">\u2605 Yes</span>' : (j.repeat==='no' ? 'No' : '\u2014')}</td>
+      <td style="font-size:12px">${agentName}</td>
+      <td style="font-size:11px;color:var(--text-muted);max-width:120px">${j.notes||''}</td>
+      <td>
+        <div style="display:flex;gap:4px">
+          <button class="btn btn-teal btn-sm" onclick="openCheckinModal('${j.id}')">\u270f\ufe0f</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteCheckinJob('${j.id}')">\u{1f5d1}</button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function openCheckinModal(id) {
+  populateCiAgents();
+  populateCiProps();
+  const delBtn = document.getElementById('ci_deleteBtn');
+
+  if (!id) {
+    // New job
+    document.getElementById('ci_editId').value = '';
+    document.getElementById('ci_property').value = '';
+    document.getElementById('ci_date').value = document.getElementById('ci-month')?.value
+      ? document.getElementById('ci-month').value + '-01' : '';
+    document.getElementById('ci_type').value = 'checkin';
+    document.getElementById('ci_time').value = '';
+    document.getElementById('ci_flight').value = '';
+    document.getElementById('ci_guest').value = '';
+    document.getElementById('ci_repeat').value = 'no';
+    document.getElementById('ci_agent_sel').value = '';
+    document.getElementById('ci_notes').value = '';
+    if (delBtn) delBtn.style.display = 'none';
+  } else {
+    const j = checkinJobs.find(x => x.id === id);
+    if (!j) return;
+    document.getElementById('ci_editId').value = id;
+    document.getElementById('ci_property').value = j.propertyName || '';
+    document.getElementById('ci_date').value = j.date || '';
+    document.getElementById('ci_type').value = j.type || 'checkin';
+    document.getElementById('ci_time').value = j.time || '';
+    document.getElementById('ci_flight').value = j.flight || '';
+    document.getElementById('ci_guest').value = j.guestName || '';
+    document.getElementById('ci_repeat').value = j.repeat || 'no';
+    document.getElementById('ci_agent_sel').value = j.agentId || '';
+    document.getElementById('ci_notes').value = j.notes || '';
+    if (delBtn) delBtn.style.display = '';
+  }
+  openModal('ciModal');
+}
+
+async function saveCheckinJob() {
+  const id = document.getElementById('ci_editId').value;
+  const job = {
+    id: id || 'ci_' + Date.now(),
+    propertyName: document.getElementById('ci_property').value.trim(),
+    date: document.getElementById('ci_date').value,
+    type: document.getElementById('ci_type').value,
+    time: document.getElementById('ci_time').value,
+    flight: document.getElementById('ci_flight').value.trim().toUpperCase(),
+    guestName: document.getElementById('ci_guest').value.trim(),
+    repeat: document.getElementById('ci_repeat').value,
+    agentId: document.getElementById('ci_agent_sel').value,
+    notes: document.getElementById('ci_notes').value.trim(),
+  };
+  if (!job.propertyName || !job.date) { showToast('Property and date required', 'error'); return; }
+
+  if (id) {
+    const idx = checkinJobs.findIndex(j => j.id === id);
+    if (idx >= 0) checkinJobs[idx] = job;
+    else checkinJobs.push(job);
+  } else {
+    checkinJobs.push(job);
+  }
+
+  await saveCheckin();
+  closeModal('ciModal');
+  renderCheckin();
+  showToast('\u2713 Check-in job saved', 'success');
+}
+
+async function deleteCheckinJob(id) {
+  const jobId = id || document.getElementById('ci_editId').value;
+  if (!jobId) return;
+  showConfirm('\u{1f5d1}\ufe0f', 'Delete Job?', 'Remove this check-in job?', 'btn-danger', 'Delete', async () => {
+    checkinJobs = checkinJobs.filter(j => j.id !== jobId);
+    await SyncStore.deleteOne('zesty_checkin_jobs', 'checkin_jobs', jobId, checkinJobs);
+    closeModal('ciModal');
+    renderCheckin();
+    showToast('Deleted', 'error');
+  });
+}
+
+function printCheckinSchedule() {
+  const monthVal = document.getElementById('ci-month')?.value || '';
+  if (!monthVal) { showToast('Select a month first', 'error'); return; }
+  const monthName = new Date(monthVal+'-01').toLocaleDateString('en-GB',{month:'long',year:'numeric'});
+
+  const jobs = checkinJobs
+    .filter(j => (j.date||'').startsWith(monthVal))
+    .sort((a,b) => (a.date+a.time||'') > (b.date+b.time||'') ? 1 : -1);
+
+  // Detect same-day turnovers
+  const checkoutDates = new Set(
+    cleaningJobs.filter(j=>j.type==='checkout'&&(j.date||'').startsWith(monthVal))
+      .map(j=>j.date+'|'+j.propertyName)
+  );
+
+  const styles = buildPrintStyles() + `
+    .ci-table { width:100%; border-collapse:collapse; font-size:12px; }
+    .ci-table th { background:#1a7a6e; color:#fff; padding:7px 10px; text-align:left; font-size:11px; }
+    .ci-table td { padding:8px 10px; border-bottom:1px solid #e8f0ef; }
+    .ci-table tr:nth-child(even) td { background:#f8f5f0; }
+    .same-day-row td { background:#fffbe6 !important; }
+    .repeat-star { color:#1a7a6e; font-weight:700; }
+    @page { size:A4 landscape; margin:10mm; }
+  `;
+
+  const rows = jobs.map(j => {
+    const agent = staff.find(s=>s.id===j.agentId);
+    const isSame = checkoutDates.has(j.date+'|'+j.propertyName);
+    const isRepeat = j.repeat==='yes';
+    return `<tr class="${isSame?'same-day-row':''}">
+      <td><strong>${formatDate(j.date)}</strong></td>
+      <td>${j.time||'\u2014'}</td>
+      <td>${j.propertyName||'\u2014'}</td>
+      <td>${j.type==='checkin'?'\u2192 Check-In':'\u2190 Check-Out'}</td>
+      <td>${j.guestName||'\u2014'}${isRepeat?' <strong class="repeat-star">\u2605 Repeat</strong>':''}</td>
+      <td>${j.flight||'\u2014'}</td>
+      <td>${agent?agent.firstName+' '+agent.lastName:'\u26a0 Unassigned'}</td>
+      <td>${isSame?'<strong style="color:#e67e22">\u26a0 Same-day cleaning</strong>':''}</td>
+      <td style="font-size:11px;color:#666">${j.notes||''}</td>
+    </tr>`;
+  }).join('');
+
+  const html = `
+    <div style="font-family:Arial,sans-serif;padding:20px">
+      <div style="display:flex;justify-content:space-between;margin-bottom:20px;padding-bottom:12px;border-bottom:3px solid #1a7a6e">
+        <div>
+          <div style="font-size:22px;font-weight:700;color:#1a7a6e">Check-In Agent Schedule</div>
+          <div style="color:#666;margin-top:4px">${monthName} \u00b7 ${jobs.length} jobs</div>
+        </div>
+        <div style="text-align:right;font-size:12px;color:#888">
+          Zesty Rentals<br>Printed: ${new Date().toLocaleDateString('en-GB')}
+        </div>
+      </div>
+      <table class="ci-table">
+        <thead><tr>
+          <th>Date</th><th>Time</th><th>Property</th><th>Type</th>
+          <th>Guest</th><th>Flight</th><th>Agent</th><th>Alert</th><th>Notes</th>
+        </tr></thead>
+        <tbody>${rows||'<tr><td colspan="9" style="text-align:center;padding:20px;color:#999">No jobs</td></tr>'}</tbody>
+      </table>
+    </div>`;
+
+  const w = window.open('','_blank');
+  w.document.write(`<html><head><title>Check-In Schedule ${monthName}</title><style>${styles}</style></head><body>${html}</body></html>`);
+  w.document.close();
+  setTimeout(()=>w.print(),500);
+}
+
+function exportCheckinCSV() {
+  const monthVal = document.getElementById('ci-month')?.value || '';
+  const jobs = checkinJobs.filter(j=>!monthVal||(j.date||'').startsWith(monthVal))
+    .sort((a,b)=>(a.date||'')>(b.date||'')?1:-1);
+  const headers = ['Date','Time','Property','Type','Guest','Flight','Repeat','Agent','Notes'];
+  const rows = jobs.map(j=>{
+    const agent=staff.find(s=>s.id===j.agentId);
+    return [j.date,j.time,j.propertyName,j.type,j.guestName,j.flight,j.repeat,
+            agent?agent.firstName+' '+agent.lastName:'Unassigned',j.notes]
+      .map(v=>`"${(v||'').toString().replace(/"/g,'""')}"`).join(',');
+  });
+  const csv='\ufeff'+[headers.join(','),...rows].join('\n');
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8;'}));
+  a.download=`checkin_schedule_${monthVal||'all'}.csv`;
+  a.click();
+  showToast('\u2713 Exported', 'success');
+}
+
+// Check-in page initialization - called by existing showPage in cleaning-logic.js
 

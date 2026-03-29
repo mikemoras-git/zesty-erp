@@ -319,6 +319,14 @@ tr.task-row:hover{background:#f0faf8}
         <div class="fg"><label>Completion Date</label><input type="date" id="m_completionDate"></div>
       </div>
       <div class="fg"><label>Comments</label><textarea id="m_comments" placeholder="Any notes or comments..."></textarea></div>
+      <div class="fg" style="grid-column:span 2">
+        <label>Subtasks</label>
+        <div id="m_subtasks" style="border:1px solid var(--border);border-radius:8px;padding:8px;background:var(--cream);min-height:36px"></div>
+        <div style="display:flex;gap:6px;margin-top:6px">
+          <input type="text" id="m_subtask_input" placeholder="Add a subtask..." style="flex:1;padding:7px 10px;border:1px solid var(--border);border-radius:7px;font-family:'DM Sans',sans-serif;font-size:13px">
+          <button type="button" class="btn btn-outline btn-sm" onclick="addSubtask()">+ Add</button>
+        </div>
+      </div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-danger btn-sm" id="m_deleteBtn" onclick="deleteTask()" style="display:none">Delete Task</button>
@@ -612,7 +620,8 @@ function renderTable() {
     const overdue = isOverdue(t);
     return `<tr class="task-row" onclick="openEdit('${t.id}')">
       <td style="color:var(--text-muted);font-size:12px">${t.taskNum||''}</td>
-      <td><div style="max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500">${t.description||'—'}</div></td>
+      <td><div style="max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500">${t.description||'—'}</div>
+      ${t.subtasks&&t.subtasks.length?`<div style="font-size:10px;color:var(--text-muted);margin-top:2px">${t.subtasks.filter(s=>s.done).length}/${t.subtasks.length} subtasks</div>`:''}</td>
       <td><span class="badge b-assign">${t.assignedTo||'—'}</span></td>
       <td>${t.priority?`<span class="badge ${pBadge}">${t.priority}</span>`:'—'}</td>
       <td>${t.location?`<span class="badge b-loc">${t.location}</span>`:'—'}</td>
@@ -667,6 +676,10 @@ function clearFilters() {
 function openAdd() {
   editingId = null;
   document.getElementById('modalTitle').textContent = 'New Task';
+  _editingSubtasks = [];
+  renderSubtasks();
+  _editingSubtasks = [];
+  renderSubtasks();
   document.getElementById('m_deleteBtn').style.display = 'none';
   document.getElementById('m_desc').value = '';
   document.getElementById('m_assignee').value = '';
@@ -685,6 +698,10 @@ function openEdit(id) {
   if(!t) return;
   editingId = id;
   document.getElementById('modalTitle').textContent = 'Edit Task';
+  _editingSubtasks = [...(t.subtasks || [])];
+  renderSubtasks();
+  _editingSubtasks = [...(t.subtasks || [])];
+  renderSubtasks();
   document.getElementById('m_deleteBtn').style.display = 'inline-flex';
   document.getElementById('m_desc').value = t.description||'';
   document.getElementById('m_assignee').value = t.assignedTo||'';
@@ -709,6 +726,7 @@ async function saveTask() {
     taskNum: editingId ? (tasks.find(x=>x.id===editingId)||{}).taskNum : (tasks.length ? Math.max(...tasks.map(x=>parseInt(x.taskNum)||0))+1 : 1),
     description: desc,
     assignedTo: assignee,
+    subtasks: [..._editingSubtasks],
     location: document.getElementById('m_location').value,
     priority: document.getElementById('m_priority').value,
     status: document.getElementById('m_status').value,
@@ -775,6 +793,48 @@ function showToast(msg,type){
 
 document.getElementById('taskModal').addEventListener('click',function(e){if(e.target===this)closeModal()});
 document.addEventListener('DOMContentLoaded', init);
+
+// ── SUBTASKS ──
+let _editingSubtasks = [];
+
+function renderSubtasks() {
+  const container = document.getElementById('m_subtasks');
+  if (!container) return;
+  if (!_editingSubtasks.length) {
+    container.innerHTML = '<span style="color:var(--text-muted);font-size:12px;font-style:italic">No subtasks yet</span>';
+    return;
+  }
+  container.innerHTML = _editingSubtasks.map((st, i) => `
+    <div style="display:flex;align-items:center;gap:8px;padding:5px 4px;border-bottom:1px solid var(--border)">
+      <input type="checkbox" ${st.done?'checked':''} onchange="_subtaskToggle(${i})" style="cursor:pointer;accent-color:var(--teal)">
+      <span style="${st.done?'text-decoration:line-through;color:var(--text-muted)':''};font-size:13px;flex:1">${st.text}</span>
+      <button onclick="_subtaskDel(${i})" style="background:none;border:none;color:var(--danger);cursor:pointer;font-size:14px;padding:0 4px">&times;</button>
+    </div>`).join('');
+}
+
+function addSubtask() {
+  const inp = document.getElementById('m_subtask_input');
+  if (!inp || !inp.value.trim()) return;
+  _editingSubtasks.push({text: inp.value.trim(), done: false});
+  inp.value = '';
+  renderSubtasks();
+}
+
+function _subtaskToggle(i) {
+  _editingSubtasks[i].done = !_editingSubtasks[i].done;
+  renderSubtasks();
+}
+
+function _subtaskDel(i) {
+  _editingSubtasks.splice(i, 1);
+  renderSubtasks();
+}
+
+// Also allow Enter key in subtask input
+document.addEventListener('DOMContentLoaded', () => {
+  const inp = document.getElementById('m_subtask_input');
+  if (inp) inp.addEventListener('keydown', e => { if(e.key==='Enter'){e.preventDefault();addSubtask();} });
+});
 
 </script>
 <script src="erp-nav.js"></script>

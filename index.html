@@ -331,7 +331,7 @@ body {
     <!-- Properties by type -->
     <div class="card">
       <div class="card-title">Properties</div>
-      <div class="card-sub">By type</div>
+      <div class="card-sub">By category</div>
       <div class="bar-chart" id="props-bars">
         <div style="color:rgba(255,255,255,.25);font-size:12px">No properties data</div>
       </div>
@@ -516,15 +516,30 @@ async function loadAll(){
   const tProg=tasks.filter(t=>t.status==='In Progress').length;
   const tDone=tasks.filter(t=>t.status==='Done'||t.status==='Completed').length;
   const maxT=Math.max(tOpen,tProg,tDone,1);
-  document.getElementById('tasks-bars').innerHTML=[['Open',tOpen,'#e74c3c'],['In Progress',tProg,'#e67e22'],['Done',tDone,'#27ae60']]
-    .map(([l,v,c])=>bar(l,v,maxT,c)).join('')||'<div style="color:rgba(255,255,255,.25);font-size:12px">No tasks data</div>';
+  // Only show Open and In Progress - not Done
+  const maxTActive = Math.max(tOpen, tProg, 1);
+  document.getElementById('tasks-bars').innerHTML=[['Open',tOpen,'#e74c3c'],['In Progress',tProg,'#e67e22']]
+    .map(([l,v,col])=>bar(l,v,maxTActive,col)).join('')||'<div style="color:rgba(255,255,255,.25);font-size:12px">No tasks data</div>';
+  // Active count and avg aging
+  const activeTasks = tasks.filter(t=>t.status==='Open'||t.status==='In Progress');
+  const now_ms = Date.now();
+  const avgAge = activeTasks.length ? Math.round(activeTasks.reduce((sum,t)=>{
+    const d = t.dateAssigned ? new Date(t.dateAssigned).getTime() : now_ms;
+    return sum + (now_ms - d) / 86400000;
+  },0) / activeTasks.length) : 0;
+  const activeEl = document.getElementById('tasks-active-count');
+  const ageEl = document.getElementById('tasks-avg-age');
+  if(activeEl) activeEl.textContent = activeTasks.length;
+  if(ageEl) ageEl.textContent = avgAge > 0 ? avgAge + ' days' : '—';
 
   /* Props by type */
   const ptypes={};
-  props.forEach(p=>{const t=p.type||'Other';ptypes[t]=(ptypes[t]||0)+1;});
+  props.forEach(p=>{const t=p.category||p.type||'Uncategorised';ptypes[t]=(ptypes[t]||0)+1;});
   const maxP=Math.max(...Object.values(ptypes),1);
   document.getElementById('props-bars').innerHTML=Object.entries(ptypes).sort(([,a],[,b])=>b-a).slice(0,6)
     .map(([k,v],i)=>bar(k,v,maxP,CHART_COLORS[i%CHART_COLORS.length])).join('')||'<div style="color:rgba(255,255,255,.25);font-size:12px">No properties data</div>';
+  const propTotalEl=document.getElementById('props-total');
+  if(propTotalEl) propTotalEl.textContent=props.length||'—';
 
   /* Ticket stats */
   const tkOpen=tickets.filter(t=>t.status==='open').length;

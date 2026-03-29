@@ -136,13 +136,14 @@
     <div class="page-actions">
       <div class="sync-status"><span class="sync-dot" id="syncDot"></span><span>Connected</span></div>
       <button class="btn btn-teal no-print" onclick="window.print()">🖨 Print / PDF</button>
+      <button class="btn btn-primary no-print" id="finaliseBtn" onclick="finaliseStatement()" style="display:none">✓ Finalise &amp; Record</button>
     </div>
   </div>
 
   <div class="report-subnav">
     <button class="report-tab active" onclick="showTab('owner',this)">📄 Owner Statement</button>
     <button class="report-tab" onclick="showTab('occupancy',this)">📊 Occupancy</button>
-    <!-- Future tabs go here -->
+    <button class="report-tab" onclick="showTab('history',this)">💼 Statement History</button>
   </div>
 
   <!-- ═══ OWNER STATEMENT ═══ -->
@@ -181,6 +182,47 @@
 
 </div>
 <script src="erp-base.js"></script>
+
+  <!-- ═══ STATEMENT HISTORY ═══ -->
+  <div class="report-panel" id="panel-history">
+    <div class="filter-bar" style="flex-wrap:wrap;gap:10px;margin-bottom:18px">
+      <select id="h-owner" onchange="loadHistory()" style="min-width:200px">
+        <option value="">All Owners</option>
+      </select>
+      <select id="h-year" onchange="loadHistory()">
+        <option value="">All Years</option>
+      </select>
+      <div style="margin-left:auto;font-size:12px;color:var(--text-muted)" id="h-summary-line"></div>
+    </div>
+
+    <!-- Earnings Summary Cards -->
+    <div class="stats-bar" id="h-stats" style="margin-bottom:20px">
+      <div class="stat-card"><div class="stat-label">Total Statements</div><div class="stat-value" id="h-total-stmts">—</div></div>
+      <div class="stat-card"><div class="stat-label">Zesty Earnings</div><div class="stat-value" id="h-zesty-total">—</div></div>
+      <div class="stat-card"><div class="stat-label">Paid</div><div class="stat-value" id="h-paid-total" style="color:var(--teal)">—</div></div>
+      <div class="stat-card"><div class="stat-label">Outstanding</div><div class="stat-value" id="h-outstanding" style="color:var(--danger)">—</div></div>
+    </div>
+
+    <div class="table-wrap">
+      <div class="table-header">
+        <h3>Finalised Statements</h3>
+        <div style="font-size:12px;color:var(--text-muted)">Click a row to download the statement</div>
+      </div>
+      <div style="overflow-x:auto">
+        <table>
+          <thead><tr>
+            <th>Period</th><th>Owner / Property</th><th>Bookings</th>
+            <th>Total Rent</th><th>OTA Comm</th><th>Zesty Comm</th>
+            <th>Net Income</th><th>Finalised</th><th>Status</th><th>Actions</th>
+          </tr></thead>
+          <tbody id="h-tbody">
+            <tr class="empty-row"><td colspan="10">No finalised statements yet.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
 <script>
 let properties=[],owners=[],jobs=[],cleanJobs=[];
 
@@ -290,33 +332,37 @@ function generateOwner(){
   // Bookings
   const allB=getCSVBookings();
   const bookings=allB.filter(r=>{
-    // Lodgify: Booked = confirmed, skip Declined/Cancelled
-    if(r.Status==='Declined'||r.Status==='Cancelled'||r.Status==='')return false;
+    // Only confirmed bookings (Status=Booked). Skip Open enquiries, Declined, Cancelled.
+    if(r.Status!=='Booked') return false;
     if(!matchProp(r,prop))return false;
     return new Date(r.DateArrival)<=mEnd&&new Date(r.DateDeparture)>=mStart;
   });
 
-  let tRent=0,tOTA=0,tRec=0,tRecbl=0,tZesty=0,tNet=0;
+  let tRent=0,tOTA=0,tTaxFees=0,tRec=0,tZesty=0,tNet=0;
   const bySource={};
   const bRows=bookings.map((r,i)=>{
     const nights=parseInt(r.Nights)||0;
     const guests=parseInt(r.People||r.Guests||0);
-    // Lodgify CSV: TotalAmount = total booking value
-    const rent=parseFloat(r.TotalAmount||r.TotalRent||r['Total Rent']||r.GrossAmount||0);
-    // OTA commission: platform fee (host pays to OTA)
+    // Lodgify CSV columns per spec:
+    // Total Rent = RoomRatesTotal - PromotionsTotal
+    const roomRates=parseFloat(r.RoomRatesTotal||r.TotalAmount||0);
+    const promotions=parseFloat(r.PromotionsTotal||0);
+    const rent=parseFloat((roomRates-promotions).toFixed(2));
+    // Taxes and Fees = FeesTotal + TaxesTotal
+    const taxesFees=parseFloat(((parseFloat(r.FeesTotal||0))+(parseFloat(r.TaxesTotal||0))).toFixed(2));
+    // OTA Comm = (Total Rent - Taxes and Fees) * platFeeRate
+    const otaBase=Math.max(0,rent-taxesFees);
     const otaRate=getCommRate(prop,r.Source);
-    const ota=parseFloat((rent*otaRate/100).toFixed(2));
-    // Received = TotalAmount - OTA (what owner actually receives)
-    // Use CSV AmountPaid if available, otherwise calculate
-    const rec=parseFloat(r.AmountPaid||0)||(rent-ota);
-    const recbl=parseFloat(r.BalanceDue||0);
-    const netRent=rent-ota;
-    // Zesty commission applied to net rent (after OTA deduction)
-    const zesty=parseFloat((netRent*mgmt/100).toFixed(2));
-    // Net income = what owner keeps = netRent - zesty commission
-    const netInc=netRent-zesty;
+    const ota=parseFloat((otaBase*otaRate/100).toFixed(2));
+    // Received = Total Rent - OTA Comm
+    const rec=parseFloat((rent-ota).toFixed(2));
+    // Zesty Comm = (Total Rent - OTA Comm - Taxes and Fees) * mgmt%
+    const netBase=Math.max(0,rent-ota-taxesFees);
+    const zesty=parseFloat((netBase*mgmt/100).toFixed(2));
+    // Net Income = Total Rent - OTA Comm - Taxes and Fees - Zesty Comm
+    const netInc=parseFloat((rent-ota-taxesFees-zesty).toFixed(2));
     const daily=nights>0?rent/nights:0;
-    tRent+=rent;tOTA+=ota;tRec+=rec;tRecbl+=recbl;tZesty+=zesty;tNet+=netInc;
+    tRent+=rent;tOTA+=ota;tTaxFees+=taxesFees;tRec+=rec;tZesty+=zesty;tNet+=netInc;
     bySource[r.Source||'Other']=(bySource[r.Source||'Other']||0)+rent;
     return`<tr>
       <td style="color:var(--text-muted);font-size:11px">${i+1}</td>
@@ -330,8 +376,8 @@ function generateOwner(){
       <td style="text-align:right;font-size:12px">${daily>0?eur(daily):'—'}</td>
       <td style="text-align:right;font-weight:600">${eur(rent)}</td>
       <td style="text-align:right;color:var(--danger);font-size:12px">${ota>0?eur(ota):'—'}</td>
-      <td style="text-align:right;color:var(--info);font-size:12px">${rec>0?eur(rec):'—'}</td>
-      <td style="text-align:right;font-size:12px">${recbl>0?eur(recbl):'—'}</td>
+      <td style="text-align:right;color:var(--info);font-size:12px">${taxesFees>0?eur(taxesFees):'—'}</td>
+      <td style="text-align:right;font-size:12px">${rec>0?eur(rec):'—'}</td>
       <td style="text-align:right;color:var(--text-muted);font-size:12px">${eur(zesty)}</td>
       <td style="text-align:right;font-weight:700;color:var(--teal-dark)">${eur(netInc)}</td>
     </tr>`;
@@ -395,6 +441,11 @@ function generateOwner(){
 
   const payable=tNet-tJobs;
 
+  // Store totals for Finalise button
+  window._lastReportTotals = {tRent,tOTA,tTaxFees,tRec,tZesty,tNet,bookingCount:bookings.length};
+  // Show finalise button
+  const _fb = document.getElementById('finaliseBtn');
+  if (_fb) { _fb.style.display=''; _fb.textContent='\u2713 Finalise & Record'; _fb.style.background=''; _fb.disabled=false; }
   document.getElementById('owner-out').innerHTML=`
   <div class="rpt-wrap">
     <div class="rpt-section" style="background:linear-gradient(135deg,var(--teal-dark),var(--teal));color:#fff;padding:26px 28px">
@@ -420,7 +471,7 @@ function generateOwner(){
       <div style="overflow-x:auto" class="rpt-scroll-wrap"><table class="rpt-table">
         <thead><tr><th>#</th><th>Guest</th><th>Booked</th><th>Check-in</th><th>Check-out</th>
           <th>Nts</th><th>Gst</th><th>Source</th><th>Daily Avg</th><th>Total Rent</th>
-          <th>OTA Comm</th><th>Received</th><th>Receivable</th>
+          <th>Taxes&amp;Fees</th><th>OTA Comm</th><th>Received</th>
           <th>Zesty Comm</th><th>Net Income</th>
         </tr></thead>
         <tbody>${bRows}</tbody>
@@ -457,8 +508,9 @@ function generateOwner(){
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px">
         <div>
           <div class="sum-row"><span class="sum-label">Total Rent</span><span class="sum-val">${eur(tRent)}</span></div>
+          <div class="sum-row"><span class="sum-label">Taxes &amp; Fees</span><span class="sum-val" style="color:var(--text-muted)">− ${eur(tTaxFees)}</span></div>
           <div class="sum-row"><span class="sum-label">OTA Commissions</span><span class="sum-val" style="color:var(--danger)">− ${eur(tOTA)}</span></div>
-          <div class="sum-row"><span class="sum-label">Net Rent</span><span class="sum-val">${eur(tRent-tOTA)}</span></div>
+          <div class="sum-row"><span class="sum-label">Net (after OTA &amp; Fees)</span><span class="sum-val">${eur(tRent-tOTA-tTaxFees)}</span></div>
           <div class="sum-row"><span class="sum-label">Zesty Management (${pct(mgmt)})</span><span class="sum-val" style="color:var(--teal)">+ ${eur(tZesty)}</span></div>
           <div class="sum-row subtotal"><span>Net Income (owner keeps)</span><span style="color:var(--success)">${eur(tNet)}</span></div>
           ${propJobs.length>0?`<div class="sum-row"><span class="sum-label">Job Orders (charged)</span><span class="sum-val" style="color:var(--teal)">+ ${eur(tJobs)}</span></div>`:''}
@@ -474,6 +526,14 @@ function generateOwner(){
             <div class="sum-row"><span class="sum-label">Occupancy</span><strong style="color:var(--teal)">${occ}%</strong></div>
           </div>
         </div>
+      </div>
+    </div>
+    
+    <!-- Notes section -->
+    <div class="rpt-section">
+      <div class="rpt-section-title" style="margin-bottom:8px">Notes</div>
+      <div style="min-height:80px;border:1px dashed #ccc;border-radius:8px;padding:12px;color:var(--text-muted);font-size:12px;line-height:1.6">
+        <span style="color:#ccc;font-style:italic">Add notes here...</span>
       </div>
     </div>
   </div>`;
@@ -529,6 +589,14 @@ function generateOccupancy(){
         <tbody>${rows}</tbody>
       </table>`}
     </div>
+    
+    <!-- Notes section -->
+    <div class="rpt-section">
+      <div class="rpt-section-title" style="margin-bottom:8px">Notes</div>
+      <div style="min-height:80px;border:1px dashed #ccc;border-radius:8px;padding:12px;color:var(--text-muted);font-size:12px;line-height:1.6">
+        <span style="color:#ccc;font-style:italic">Add notes here...</span>
+      </div>
+    </div>
   </div>`;
 }
 
@@ -552,6 +620,149 @@ function showToast(msg, type) {
 }
 
 </script>
-<script src="erp-nav.js"></script>
+<script src="erp-nav.js">
+
+// ── FINALISATION + STATEMENT HISTORY ──
+const SB_URL='https://whuytfjwdjjepayeiohj.supabase.co';
+const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndodXl0Zmp3ZGpqZXBheWVpb2hqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIyODQxMzQsImV4cCI6MjA4Nzg2MDEzNH0.pTDAqw_Cnzc9D3tJU-tU7Ch5qpapKmteiqI_ooSCufY';
+const SB_H={'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json','Prefer':'resolution=merge-duplicates'};
+
+// Show finalise button after report generates
+document.addEventListener('DOMContentLoaded', () => {
+  const origFn = window.generateReport;
+  if (origFn) window.generateReport = function(...args) {
+    origFn.apply(this, args);
+    setTimeout(() => {
+      const btn = document.getElementById('finaliseBtn');
+      const out = document.getElementById('rpt-output');
+      if (btn) btn.style.display = out && out.innerHTML.trim().length > 100 ? '' : 'none';
+    }, 200);
+  };
+  loadHistoryFilters();
+  loadHistory();
+});
+
+async function finaliseStatement() {
+  const propSel = document.getElementById('s-prop');
+  const monthSel = document.getElementById('s-month');
+  if (!propSel?.value || !monthSel?.value) { alert('Generate a report first.'); return; }
+  const propName = propSel.options[propSel.selectedIndex]?.text || propSel.value;
+  const monthVal = monthSel.value;
+  const totals = window._lastReportTotals || {};
+  const stmt = {
+    id: 'stmt_' + Date.now(),
+    propertyId: propSel.value,
+    propertyName: propName,
+    period: monthVal,
+    bookingCount: totals.bookingCount || 0,
+    tRent: totals.tRent || 0,
+    tOTA: totals.tOTA || 0,
+    tTaxFees: totals.tTaxFees || 0,
+    tZesty: totals.tZesty || 0,
+    tNet: totals.tNet || 0,
+    finalisedAt: new Date().toISOString(),
+    status: 'finalised',
+    paid: false
+  };
+
+  // Save locally always (Supabase table may not exist yet)
+  const all = JSON.parse(localStorage.getItem('zesty_statements') || '[]');
+  all.unshift(stmt);
+  localStorage.setItem('zesty_statements', JSON.stringify(all));
+
+  // Try Supabase too (owner_statements table)
+  try {
+    await fetch(SB_URL+'/rest/v1/owner_statements', {
+      method:'POST', headers:SB_H,
+      body: JSON.stringify({id:stmt.id, data:stmt, updated_at:stmt.finalisedAt})
+    });
+  } catch {}
+
+  const btn = document.getElementById('finaliseBtn');
+  if (btn) { btn.textContent = '\u2713 Finalised'; btn.style.background='#27ae60'; btn.disabled=true; }
+  showToastR('Statement recorded', 'success');
+  loadHistory();
+}
+
+function showToastR(msg, type='') {
+  let t = document.getElementById('toast');
+  if (!t) { t=document.createElement('div'); t.id='toast'; t.className='toast'; document.body.appendChild(t); }
+  t.textContent=msg; t.className='toast '+type+' show';
+  setTimeout(()=>t.classList.remove('show'),3000);
+}
+
+function getAllStatements() {
+  return JSON.parse(localStorage.getItem('zesty_statements') || '[]');
+}
+
+function loadHistoryFilters() {
+  const stmts = getAllStatements();
+  const ownerSel = document.getElementById('h-owner');
+  const yrSel = document.getElementById('h-year');
+  if (ownerSel) {
+    const owners = [...new Set(stmts.map(s=>s.propertyName).filter(Boolean))].sort();
+    ownerSel.innerHTML = '<option value="">All Properties</option>' + owners.map(o=>`<option>${o}</option>`).join('');
+  }
+  if (yrSel) {
+    const yrs = [...new Set(stmts.map(s=>(s.period||'').substring(0,4)).filter(Boolean))].sort().reverse();
+    yrSel.innerHTML = '<option value="">All Years</option>' + yrs.map(y=>`<option>${y}</option>`).join('');
+  }
+}
+
+function loadHistory() {
+  const stmts = getAllStatements();
+  const ownerF = document.getElementById('h-owner')?.value || '';
+  const yearF = document.getElementById('h-year')?.value || '';
+  const filtered = stmts.filter(s =>
+    (!ownerF || s.propertyName===ownerF) &&
+    (!yearF || (s.period||'').startsWith(yearF))
+  );
+  const eur = n => '\u20AC'+(parseFloat(n)||0).toFixed(2);
+  const totalZ = filtered.reduce((s,st)=>s+(st.tZesty||0),0);
+  const paidZ = filtered.filter(s=>s.paid).reduce((s,st)=>s+(st.tZesty||0),0);
+  const setEl = (id,v) => { const el=document.getElementById(id); if(el) el.textContent=v; };
+  setEl('h-total-stmts', filtered.length);
+  setEl('h-zesty-total', eur(totalZ));
+  setEl('h-paid-total', eur(paidZ));
+  setEl('h-outstanding', eur(totalZ-paidZ));
+  loadHistoryFilters();
+  const tbody = document.getElementById('h-tbody');
+  if (!tbody) return;
+  if (!filtered.length) { tbody.innerHTML='<tr class="empty-row"><td colspan="10">No finalised statements yet.</td></tr>'; return; }
+  tbody.innerHTML = filtered.map(s=>`
+    <tr>
+      <td style="font-weight:600">${s.period||'\u2014'}</td>
+      <td>${s.propertyName||'\u2014'}</td>
+      <td style="text-align:center">${s.bookingCount||0}</td>
+      <td style="text-align:right">${eur(s.tRent)}</td>
+      <td style="text-align:right;color:var(--danger)">${eur(s.tOTA)}</td>
+      <td style="text-align:right;color:var(--teal);font-weight:700">${eur(s.tZesty)}</td>
+      <td style="text-align:right">${eur(s.tNet)}</td>
+      <td style="font-size:11px;color:var(--text-muted)">${s.finalisedAt?new Date(s.finalisedAt).toLocaleDateString('en-GB'):'\u2014'}</td>
+      <td><span style="padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;background:${s.paid?'#e0f5f1':'#fff3cd'};color:${s.paid?'#115950':'#856404'}">${s.paid?'\u2713 Paid':'Pending'}</span></td>
+      <td><div style="display:flex;gap:4px">
+        <button class="btn btn-teal btn-sm" onclick="togglePaid('${s.id}')">${s.paid?'Unpaid':'\u2713 Paid'}</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteStatement('${s.id}')">\u{1F5D1}</button>
+      </div></td>
+    </tr>`).join('');
+}
+
+function togglePaid(id) {
+  const all = getAllStatements();
+  const s = all.find(x=>x.id===id);
+  if (!s) return;
+  s.paid = !s.paid;
+  localStorage.setItem('zesty_statements', JSON.stringify(all));
+  loadHistory();
+}
+
+function deleteStatement(id) {
+  if (!confirm('Delete this statement record?')) return;
+  const all = getAllStatements().filter(x=>x.id!==id);
+  localStorage.setItem('zesty_statements', JSON.stringify(all));
+  loadHistory();
+}
+
+</script>
 </body>
 </html>
