@@ -559,8 +559,7 @@ body.erp-layout {
     <button onclick="showPage('import')" style="padding:8px 18px;border-radius:8px;border:1px solid var(--border);background:#fff;color:var(--text-muted);font-size:13px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif">📥 Import CSV</button>
     <button onclick="showPage('hours')" style="padding:8px 18px;border-radius:8px;border:1px solid var(--border);background:#fff;color:var(--text-muted);font-size:13px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif">⏱ Hours</button>
   
-    <button onclick="showPage('checkin')" style="padding:8px 18px;border-radius:8px;border:1px solid var(--border);background:#fff;color:var(--text-muted);font-size:13px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif">&#128273; Check-In</button>
-    <a href="tickets.html" style="padding:8px 18px;border-radius:8px;border:1px solid var(--border);background:#fff;color:var(--text-muted);font-size:13px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;text-decoration:none">&#9672; Tickets</a></div>
+    <button onclick="showPage('checkin')" style="padding:8px 18px;border-radius:8px;border:1px solid var(--border);background:#fff;color:var(--text-muted);font-size:13px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif">&#128273; Check-In</button></div>
   <div class="stats-bar">
     <div class="stat-card"><div class="stat-label">Total Staff</div><div class="stat-value" id="s-total">0</div></div>
     <div class="stat-card"><div class="stat-label">Active</div><div class="stat-value" id="s-active">0</div></div>
@@ -601,6 +600,26 @@ body.erp-layout {
       <tbody id="staffTable"></tbody>
     </table>
   </div>
+
+  <!-- Check-In Agents -->
+  <div id="agentSection" style="margin-top:28px">
+    <div class="table-wrap">
+      <div class="table-header">
+        <h3>&#128273; Check-In Agents</h3>
+        <button class="btn btn-teal btn-sm" onclick="openStaffModal()">+ Add Agent</button>
+      </div>
+      <div style="overflow-x:auto">
+        <table>
+          <thead><tr>
+            <th>Name</th><th>Phone</th><th>Zones</th><th>Hourly Rate</th>
+            <th>Transport</th><th>Car</th><th>License</th><th>Insurance</th>
+            <th>Status</th><th>Actions</th>
+          </tr></thead>
+          <tbody id="agentTable"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- ==================== SCHEDULE PAGE ==================== -->
@@ -612,8 +631,7 @@ body.erp-layout {
     <button onclick="showPage('import')" style="padding:8px 18px;border-radius:8px;border:1px solid var(--border);background:#fff;color:var(--text-muted);font-size:13px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif">📥 Import CSV</button>
     <button onclick="showPage('hours')" style="padding:8px 18px;border-radius:8px;border:1px solid var(--border);background:#fff;color:var(--text-muted);font-size:13px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif">⏱ Hours</button>
   
-    <button onclick="showPage('checkin')" style="padding:8px 18px;border-radius:8px;border:1px solid var(--border);background:#fff;color:var(--text-muted);font-size:13px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif">&#128273; Check-In</button>
-    <a href="tickets.html" style="padding:8px 18px;border-radius:8px;border:1px solid var(--border);background:#fff;color:var(--text-muted);font-size:13px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;text-decoration:none">&#9672; Tickets</a></div>
+    <button onclick="showPage('checkin')" style="padding:8px 18px;border-radius:8px;border:1px solid var(--border);background:#fff;color:var(--text-muted);font-size:13px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif">&#128273; Check-In</button></div>
   <div class="toolbar">
     <input type="month" id="calMonth" onchange="renderCalendar()">
     <select id="calCleaner" onchange="renderCalendar()">
@@ -634,7 +652,8 @@ body.erp-layout {
     </select>
     <div style="margin-left:auto;display:flex;gap:8px">
       <button class="btn btn-print no-print" onclick="printSchedule()">🖨 Print Schedule</button>
-      <button class="btn btn-outline no-print" onclick="printManagerSummary()" style="background:#1a7a6e;color:#fff;border-color:#1a7a6e">📋 Manager Summary</button>
+      <button class="btn btn-outline no-print" onclick="printManagerSummary()" style="background:#1a7a6e;color:#fff;border-color:#1a7a6e">📋 Manager PDF</button>
+      <button class="btn btn-outline no-print" onclick="exportManagerExcel()" style="background:#217346;color:#fff;border-color:#217346">📊 Manager Excel</button>
       <button class="btn btn-teal no-print" onclick="exportScheduleCSV()">⬇ Export CSV</button>
     </div>
   </div>
@@ -673,8 +692,7 @@ body.erp-layout {
     <button onclick="showPage('import')" style="padding:8px 18px;border-radius:8px;border:1px solid var(--border);background:#fff;color:var(--text-muted);font-size:13px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif">📥 Import CSV</button>
     <button onclick="showPage('hours')" style="padding:8px 18px;border-radius:8px;border:1px solid var(--border);background:#fff;color:var(--text-muted);font-size:13px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif">⏱ Hours</button>
   
-    <button onclick="showPage('checkin')" style="padding:8px 18px;border-radius:8px;border:1px solid var(--border);background:#fff;color:var(--text-muted);font-size:13px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif">&#128273; Check-In</button>
-    <a href="tickets.html" style="padding:8px 18px;border-radius:8px;border:1px solid var(--border);background:#fff;color:var(--text-muted);font-size:13px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;text-decoration:none">&#9672; Tickets</a></div>
+    <button onclick="showPage('checkin')" style="padding:8px 18px;border-radius:8px;border:1px solid var(--border);background:#fff;color:var(--text-muted);font-size:13px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif">&#128273; Check-In</button></div>
   <div class="import-panel">
     <h3>📥 Import Bookings from Lodgify</h3>
     <p>Export your bookings from Lodgify as CSV and drop the file below. The system will automatically create checkout cleaning jobs and calculate mid-stay cleans based on each property's schedule.</p>
@@ -746,8 +764,7 @@ body.erp-layout {
     <button onclick="showPage('import')" style="padding:8px 18px;border-radius:8px;border:1px solid var(--border);background:#fff;color:var(--text-muted);font-size:13px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif">📥 Import CSV</button>
     <button onclick="showPage('hours')" style="padding:8px 18px;border-radius:8px;border:1px solid var(--border);background:#fff;color:var(--text-muted);font-size:13px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif">⏱ Hours</button>
   
-    <button onclick="showPage('checkin')" style="padding:8px 18px;border-radius:8px;border:1px solid var(--border);background:#fff;color:var(--text-muted);font-size:13px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif">&#128273; Check-In</button>
-    <a href="tickets.html" style="padding:8px 18px;border-radius:8px;border:1px solid var(--border);background:#fff;color:var(--text-muted);font-size:13px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;text-decoration:none">&#9672; Tickets</a></div>
+    <button onclick="showPage('checkin')" style="padding:8px 18px;border-radius:8px;border:1px solid var(--border);background:#fff;color:var(--text-muted);font-size:13px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif">&#128273; Check-In</button></div>
   <div class="stats-bar">
     <div class="stat-card"><div class="stat-label">Total Jobs</div><div class="stat-value" id="j-total">0</div></div>
     <div class="stat-card"><div class="stat-label">This Month</div><div class="stat-value" id="j-month">0</div></div>
@@ -818,6 +835,9 @@ body.erp-layout {
       <div class="form-grid">
         <div class="form-group"><label>First Name *</label><input type="text" id="s_firstName" placeholder="First name"></div>
         <div class="form-group"><label>Last Name *</label><input type="text" id="s_lastName" placeholder="Last name"></div>
+        <div class="form-group"><label>Role</label>
+          <select id="s_role"><option value="cleaner">Cleaner</option><option value="checkin_agent">Check-In Agent</option><option value="both">Both</option></select>
+        </div>
         <div class="form-group"><label>Status</label>
           <select id="s_status"><option value="Active">Active</option><option value="Inactive">Inactive</option></select>
         </div>
@@ -937,7 +957,6 @@ body.erp-layout {
     <button onclick="showPage('import')" style="padding:8px 18px;border-radius:8px;border:1px solid var(--border);background:#fff;color:var(--text-muted);font-size:13px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif">&#128229; Import CSV</button>
     <button onclick="showPage('hours')" style="padding:8px 18px;border-radius:8px;border:1px solid var(--border);background:#fff;color:var(--text-muted);font-size:13px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif">&#9201; Hours</button>
     <button onclick="showPage('checkin')" style="padding:8px 18px;border-radius:8px;border:2px solid var(--teal);background:var(--teal);color:#fff;font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif">&#128273; Check-In</button>
-    <a href="tickets.html" style="padding:8px 18px;border-radius:8px;border:1px solid var(--border);background:#fff;color:var(--text-muted);font-size:13px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;text-decoration:none">&#9672; Tickets</a>
   </div>
 
   <!-- Toolbar -->

@@ -373,6 +373,78 @@ async function checkAllTables() {
     </div>`;
 }
 </script>
-<script src="erp-nav.js"></script>
+<script src="erp-nav.js">
+// ── LEAVE ENTITLEMENTS ──
+const ENT_PWD = 'Zesty2025!'; // same as delete password
+
+function unlockEntitlements() {
+  const pwd = document.getElementById('ent-pwd')?.value || '';
+  const msg = document.getElementById('ent-msg');
+  if (pwd !== ENT_PWD) {
+    if (msg) msg.textContent = 'Incorrect password.';
+    return;
+  }
+  if (msg) msg.textContent = '';
+  document.getElementById('ent-pwd').value = '';
+  document.getElementById('entitlementsSection').style.display = '';
+  renderEntitlements();
+}
+
+function renderEntitlements() {
+  // Load staff from localStorage
+  const staffData = JSON.parse(localStorage.getItem('zesty_staff') || '[]');
+  const entData = JSON.parse(localStorage.getItem('zesty_entitlements') || '{}');
+  const curYear = new Date().getFullYear();
+
+  const tbody = document.getElementById('ent-tbody');
+  if (!tbody) return;
+
+  if (!staffData.length) {
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="7">No staff found. Add staff in the Cleaning module first.</td></tr>';
+    return;
+  }
+
+  let totalEnt = 0, totalUsed = 0;
+
+  tbody.innerHTML = staffData.filter(s => s.status !== 'Inactive').map(s => {
+    const ent = entData[s.id] || {};
+    const annual = ent.annual || 0;
+    const used = ent.used || 0;
+    const remaining = annual - used;
+    totalEnt += annual;
+    totalUsed += used;
+    return `<tr>
+      <td><strong>${s.firstName} ${s.lastName}</strong></td>
+      <td><span style="font-size:11px;background:${s.role==='checkin_agent'?'#e8f4f8':'#e0f5f1'};color:${s.role==='checkin_agent'?'#1a5276':'#115950'};padding:2px 7px;border-radius:8px">${s.role==='checkin_agent'?'Check-In Agent':'Cleaner'}</span></td>
+      <td><input type="number" min="0" max="60" value="${annual}" id="ent_annual_${s.id}"
+        style="width:70px;padding:6px;border:1px solid var(--border);border-radius:7px;text-align:center;font-family:'DM Sans',sans-serif"></td>
+      <td><input type="number" min="0" value="${used}" id="ent_used_${s.id}"
+        style="width:70px;padding:6px;border:1px solid var(--border);border-radius:7px;text-align:center;font-family:'DM Sans',sans-serif"></td>
+      <td><span style="font-weight:700;color:${remaining<5?'var(--danger)':remaining<10?'var(--gold)':'var(--teal)'}">${remaining >= 0 ? remaining : 0} days</span></td>
+      <td><input type="text" value="${ent.notes||''}" id="ent_notes_${s.id}" placeholder="Notes..."
+        style="width:100%;padding:6px;border:1px solid var(--border);border-radius:7px;font-family:'DM Sans',sans-serif;font-size:12px"></td>
+      <td><button class="btn btn-teal btn-sm" onclick="saveEntitlement('${s.id}')">\u2713 Save</button></td>
+    </tr>`;
+  }).join('');
+
+  const activeCount = staffData.filter(s=>s.status!=='Inactive').length;
+  const setEl = (id,v) => { const el=document.getElementById(id); if(el) el.textContent=v; };
+  setEl('ent-total', activeCount);
+  setEl('ent-avg', activeCount ? Math.round(totalEnt/activeCount) + ' days' : '—');
+  setEl('ent-used', totalUsed + ' days');
+}
+
+function saveEntitlement(staffId) {
+  const annual = parseFloat(document.getElementById('ent_annual_'+staffId)?.value) || 0;
+  const used = parseFloat(document.getElementById('ent_used_'+staffId)?.value) || 0;
+  const notes = document.getElementById('ent_notes_'+staffId)?.value || '';
+  const all = JSON.parse(localStorage.getItem('zesty_entitlements') || '{}');
+  all[staffId] = { annual, used, notes, updatedAt: new Date().toISOString() };
+  localStorage.setItem('zesty_entitlements', JSON.stringify(all));
+  renderEntitlements();
+  const toast = document.getElementById('toast');
+  if (toast) { toast.textContent = '\u2713 Entitlement saved'; toast.className='toast success show'; setTimeout(()=>toast.classList.remove('show'),2500); }
+}
+</script>
 </body>
 </html>

@@ -223,6 +223,36 @@
     </div>
   </div>
 
+
+  <!-- ═══ PERIOD REPORT ═══ -->
+  <div class="report-panel" id="panel-period">
+    <div class="filter-bar" style="flex-wrap:wrap;gap:10px;margin-bottom:18px">
+      <select id="p-prop" style="min-width:200px" onchange="">
+        <option value="">All Properties</option>
+      </select>
+      <select id="p-preset" onchange="applyPeriodPreset()">
+        <option value="">Custom Range</option>
+        <option value="ytd">Year to Date (YTD)</option>
+        <option value="lastyear">Last Full Year</option>
+        <option value="q1">Q1 (Jan–Mar)</option>
+        <option value="q2">Q2 (Apr–Jun)</option>
+        <option value="q3">Q3 (Jul–Sep)</option>
+        <option value="q4">Q4 (Oct–Dec)</option>
+        <option value="summer">Summer (May–Oct)</option>
+        <option value="last30">Last 30 Days</option>
+        <option value="last90">Last 90 Days</option>
+      </select>
+      <div style="display:flex;align-items:center;gap:6px">
+        <label style="font-size:12px;color:var(--text-muted)">From</label>
+        <input type="date" id="p-from" style="padding:6px 10px;border:1px solid var(--border);border-radius:7px;font-family:'DM Sans',sans-serif">
+        <label style="font-size:12px;color:var(--text-muted)">To</label>
+        <input type="date" id="p-to" style="padding:6px 10px;border:1px solid var(--border);border-radius:7px;font-family:'DM Sans',sans-serif">
+      </div>
+      <button class="btn btn-teal" onclick="generatePeriodReport()">Generate Report</button>
+      <button class="btn btn-print no-print" onclick="window.print()">🖨 Print</button>
+    </div>
+    <div id="period-out"></div>
+  </div>
 <script>
 let properties=[],owners=[],jobs=[],cleanJobs=[];
 
@@ -320,6 +350,16 @@ function generateOwner(){
   const propId=document.getElementById('s-prop').value;
   const month=document.getElementById('s-month').value;
   if(!propId||!month){showToast('Select property and month','error');return;}
+  // Check CSV data exists
+  const rawCSV = JSON.parse(localStorage.getItem('zesty_raw_lodgify_csv')||'null');
+  if(!rawCSV||!rawCSV.text){
+    document.getElementById('owner-out').innerHTML=`<div style="padding:40px;text-align:center;color:var(--text-muted)">
+      <div style="font-size:36px;margin-bottom:12px">&#128196;</div>
+      <div style="font-size:16px;font-weight:600;margin-bottom:8px">No booking data found</div>
+      <div style="font-size:13px">Upload your Lodgify CSV on the <a href="index.html" style="color:var(--teal)">Dashboard</a> first, then return here to generate reports.</div>
+    </div>`;
+    return;
+  }
   const prop=properties.find(p=>p.id===propId);
   if(!prop)return;
   const owner=owners.find(o=>o.id===prop.owner||o.id===prop.ownerId);
@@ -762,6 +802,162 @@ function deleteStatement(id) {
   localStorage.setItem('zesty_statements', JSON.stringify(all));
   loadHistory();
 }
+
+
+
+// ── PERIOD REPORT ──
+function applyPeriodPreset() {
+  const preset = document.getElementById('p-preset')?.value || '';
+  const now = new Date();
+  const yr = now.getFullYear();
+  let from, to;
+  switch(preset) {
+    case 'ytd':   from=`${yr}-01-01`; to=now.toISOString().slice(0,10); break;
+    case 'lastyear': from=`${yr-1}-01-01`; to=`${yr-1}-12-31`; break;
+    case 'q1':    from=`${yr}-01-01`; to=`${yr}-03-31`; break;
+    case 'q2':    from=`${yr}-04-01`; to=`${yr}-06-30`; break;
+    case 'q3':    from=`${yr}-07-01`; to=`${yr}-09-30`; break;
+    case 'q4':    from=`${yr}-10-01`; to=`${yr}-12-31`; break;
+    case 'summer':from=`${yr}-05-01`; to=`${yr}-10-31`; break;
+    case 'last30':{ const d=new Date(); d.setDate(d.getDate()-30); from=d.toISOString().slice(0,10); to=now.toISOString().slice(0,10); break; }
+    case 'last90':{ const d=new Date(); d.setDate(d.getDate()-90); from=d.toISOString().slice(0,10); to=now.toISOString().slice(0,10); break; }
+    default: return;
+  }
+  document.getElementById('p-from').value = from;
+  document.getElementById('p-to').value = to;
+}
+
+// Populate p-prop on tab switch
+function initPeriodTab() {
+  const sel = document.getElementById('p-prop');
+  if (!sel) return;
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">All Properties</option>' +
+    properties.filter(p=>!p.archived).sort((a,b)=>(a.shortName||'').localeCompare(b.shortName||''))
+    .map(p=>`<option value="${p.id}" ${p.id===cur?'selected':''}>${p.shortName||p.propertyName}</option>`).join('');
+  // Default: YTD
+  if (!document.getElementById('p-from')?.value) applyPeriodPreset.call({}, 'ytd') || (() => {
+    document.getElementById('p-preset').value='ytd'; applyPeriodPreset();
+  })();
+}
+
+function generatePeriodReport() {
+  const fromVal = document.getElementById('p-from')?.value || '';
+  const toVal = document.getElementById('p-to')?.value || '';
+  const propId = document.getElementById('p-prop')?.value || '';
+  if (!fromVal || !toVal) { showToastR('Select a date range first', 'error'); return; }
+
+  const fromDt = new Date(fromVal);
+  const toDt = new Date(toVal);
+  const allB = getCSVBookings();
+  const eur = n => '\u20AC'+(parseFloat(n)||0).toFixed(2);
+
+  // Filter bookings in range - booked only
+  const bookings = allB.filter(r => {
+    if (r.Status !== 'Booked') return false;
+    const arr = new Date(r.DateArrival);
+    const dep = new Date(r.DateDeparture);
+    if (dep < fromDt || arr > toDt) return false;
+    if (propId) {
+      const prop = properties.find(p=>p.id===propId);
+      if (prop && !matchProp(r,prop)) return false;
+    }
+    return true;
+  });
+
+  // Group by property
+  const byProp = {};
+  bookings.forEach(r => {
+    const key = r.HouseInternalName || r.HouseName || 'Unknown';
+    if (!byProp[key]) byProp[key] = [];
+    byProp[key].push(r);
+  });
+
+  // Totals per property
+  let grandRent=0, grandOTA=0, grandFees=0, grandZesty=0, grandNet=0, grandNights=0, grandBookings=0;
+
+  const propRows = Object.entries(byProp).sort(([a],[b])=>a.localeCompare(b)).map(([name, rows]) => {
+    const prop = properties.find(p => matchProp(rows[0], p));
+    const mgmt = parseFloat(prop?.maintenance||prop?.ownerCommission||0);
+    let tRent=0, tOTA=0, tFees=0, tZesty=0, tNet=0, tNights=0;
+    rows.forEach(r => {
+      const roomRates = parseFloat(r.RoomRatesTotal||r.TotalAmount||0);
+      const promos = parseFloat(r.PromotionsTotal||0);
+      const rent = roomRates - promos;
+      const fees = parseFloat(r.FeesTotal||0) + parseFloat(r.TaxesTotal||0);
+      const otaRate = getCommRate(prop, r.Source);
+      const ota = parseFloat(((rent-fees)*otaRate/100).toFixed(2));
+      const zesty = parseFloat((Math.max(0,rent-ota-fees)*mgmt/100).toFixed(2));
+      const net = parseFloat((rent-ota-fees-zesty).toFixed(2));
+      tRent+=rent; tOTA+=ota; tFees+=fees; tZesty+=zesty; tNet+=net;
+      tNights+=parseInt(r.Nights)||0;
+    });
+    grandRent+=tRent; grandOTA+=tOTA; grandFees+=tFees; grandZesty+=tZesty; grandNet+=tNet;
+    grandNights+=tNights; grandBookings+=rows.length;
+    return `<tr>
+      <td style="font-weight:500">${name}</td>
+      <td style="text-align:center">${rows.length}</td>
+      <td style="text-align:center">${tNights}</td>
+      <td style="text-align:right">${eur(tRent)}</td>
+      <td style="text-align:right;color:var(--danger)">${eur(tOTA)}</td>
+      <td style="text-align:right;color:var(--text-muted)">${eur(tFees)}</td>
+      <td style="text-align:right;color:var(--teal);font-weight:600">${eur(tZesty)}</td>
+      <td style="text-align:right;font-weight:700">${eur(tNet)}</td>
+    </tr>`;
+  }).join('');
+
+  const presetLabel = document.getElementById('p-preset')?.selectedOptions?.[0]?.text || 'Custom';
+  const periodLabel = `${fromVal} to ${toVal}`;
+
+  document.getElementById('period-out').innerHTML = `
+    <div class="rpt-wrap">
+      <div class="rpt-section">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px">
+          <div>
+            <div style="font-size:20px;font-weight:700;color:var(--teal-dark)">${presetLabel}</div>
+            <div style="font-size:13px;color:var(--text-muted);margin-top:4px">${periodLabel}</div>
+          </div>
+          <div style="text-align:right;font-size:12px;color:var(--text-muted)">
+            <div>${grandBookings} bookings &nbsp;|&nbsp; ${grandNights} nights</div>
+          </div>
+        </div>
+        <!-- Summary cards -->
+        <div class="stats-bar" style="margin-bottom:20px">
+          <div class="stat-card"><div class="stat-label">Total Rent</div><div class="stat-value">${eur(grandRent)}</div></div>
+          <div class="stat-card"><div class="stat-label">OTA Commissions</div><div class="stat-value" style="color:var(--danger)">${eur(grandOTA)}</div></div>
+          <div class="stat-card"><div class="stat-label">Taxes &amp; Fees</div><div class="stat-value" style="color:var(--text-muted)">${eur(grandFees)}</div></div>
+          <div class="stat-card"><div class="stat-label">Zesty Earnings</div><div class="stat-value" style="color:var(--teal)">${eur(grandZesty)}</div></div>
+          <div class="stat-card"><div class="stat-label">Net to Owners</div><div class="stat-value" style="font-weight:700">${eur(grandNet)}</div></div>
+        </div>
+        <!-- By property table -->
+        <table>
+          <thead><tr>
+            <th>Property</th><th style="text-align:center">Bookings</th><th style="text-align:center">Nights</th>
+            <th style="text-align:right">Total Rent</th><th style="text-align:right">OTA Comm</th>
+            <th style="text-align:right">Taxes&amp;Fees</th><th style="text-align:right">Zesty Comm</th>
+            <th style="text-align:right">Net Income</th>
+          </tr></thead>
+          <tbody>${propRows||'<tr class="empty-row"><td colspan="8">No bookings found for this period. Upload CSV on Dashboard first.</td></tr>'}</tbody>
+          <tfoot><tr style="font-weight:700;background:var(--cream)">
+            <td>TOTAL</td><td style="text-align:center">${grandBookings}</td><td style="text-align:center">${grandNights}</td>
+            <td style="text-align:right">${eur(grandRent)}</td>
+            <td style="text-align:right;color:var(--danger)">${eur(grandOTA)}</td>
+            <td style="text-align:right">${eur(grandFees)}</td>
+            <td style="text-align:right;color:var(--teal)">${eur(grandZesty)}</td>
+            <td style="text-align:right">${eur(grandNet)}</td>
+          </tr></tfoot>
+        </table>
+      </div>
+    </div>`;
+}
+
+// Patch showTab to init period tab
+const _origShowTab = showTab;
+window.showTab = function(name, el) {
+  _origShowTab(name, el);
+  if (name === 'period') initPeriodTab();
+  if (name === 'history') { loadHistoryFilters(); loadHistory(); }
+};
 
 </script>
 </body>
