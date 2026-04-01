@@ -355,12 +355,17 @@ function updateStaffStats() {
   document.getElementById('s-pay').textContent = '\u20AC' + pay.toFixed(0);
 }
 
-function openAddStaff() {
-  document.getElementById('staffModalTitle').textContent = 'Add Cleaner';
+function openAddStaff(defaultRole) {
+  document.getElementById('staffModalTitle').textContent = defaultRole === 'checkin_agent' ? 'Add Check-In Agent' : 'Add Cleaner';
+  const roleElNew = document.getElementById('s_role'); if(roleElNew) roleElNew.value = defaultRole || 'cleaner';
   document.getElementById('s_editId').value = '';
   clearStaffForm();
+  // Re-set role after clearStaffForm resets it
+  const roleElNew2 = document.getElementById('s_role'); if(roleElNew2) roleElNew2.value = defaultRole || 'cleaner';
   openModal('staffModal');
 }
+// Alias so buttons can call either name
+function openStaffModal(defaultRole) { openAddStaff(defaultRole); }
 
 function editStaff(id) {
   const s = staff.find(x => x.id === id);
@@ -370,6 +375,7 @@ function editStaff(id) {
   document.getElementById('s_firstName').value = s.firstName||'';
   document.getElementById('s_lastName').value = s.lastName||'';
   document.getElementById('s_status').value = s.status||'Active';
+  const _re = document.getElementById('s_role'); if(_re) _re.value = s.role||'cleaner';
   document.getElementById('s_phone').value = s.phone||'';
   document.getElementById('s_email').value = s.email||'';
   document.getElementById('s_birthdate').value = s.birthdate||'';

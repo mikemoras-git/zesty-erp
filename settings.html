@@ -212,6 +212,57 @@ create policy if not exists "anon_all" on laundry_pricelists for all using (true
     <button class="btn btn-outline btn-sm" style="margin-top:8px" onclick="checkAllTables()">🔍 Check All Tables</button>
   </div>
 
+  <!-- LEAVE ENTITLEMENTS -->
+  <div class="settings-section" id="ent-lock">
+    <h2>&#128274; Leave Entitlements</h2>
+    <p>Manage annual leave allowances per employee. Password protected.</p>
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+      <input type="password" id="ent-pwd" placeholder="Enter password to unlock..."
+        style="padding:8px 12px;border:1px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;min-width:240px"
+        onkeydown="if(event.key==='Enter') unlockEntitlements()">
+      <button class="btn btn-primary" onclick="unlockEntitlements()">&#128275; Unlock</button>
+    </div>
+    <div id="ent-msg" style="margin-top:8px;font-size:12px;color:var(--danger)"></div>
+  </div>
+
+  <div class="settings-section" id="entitlementsSection" style="display:none">
+    <h2>&#128197; Leave Entitlements — Staff</h2>
+
+    <div style="display:flex;gap:16px;margin-bottom:16px;flex-wrap:wrap">
+      <div style="background:var(--cream);border:1px solid var(--border);border-radius:10px;padding:12px 20px;text-align:center">
+        <div style="font-size:11px;text-transform:uppercase;color:var(--text-muted);letter-spacing:1px">Staff</div>
+        <div style="font-size:28px;font-weight:700;color:var(--teal-dark)" id="ent-total">—</div>
+      </div>
+      <div style="background:var(--cream);border:1px solid var(--border);border-radius:10px;padding:12px 20px;text-align:center">
+        <div style="font-size:11px;text-transform:uppercase;color:var(--text-muted);letter-spacing:1px">Avg Entitlement</div>
+        <div style="font-size:28px;font-weight:700;color:var(--teal-dark)" id="ent-avg">—</div>
+      </div>
+      <div style="background:var(--cream);border:1px solid var(--border);border-radius:10px;padding:12px 20px;text-align:center">
+        <div style="font-size:11px;text-transform:uppercase;color:var(--text-muted);letter-spacing:1px">Total Days Used</div>
+        <div style="font-size:28px;font-weight:700;color:var(--gold-dim)" id="ent-used">—</div>
+      </div>
+    </div>
+
+    <div style="overflow-x:auto">
+      <table style="width:100%;border-collapse:collapse">
+        <thead>
+          <tr style="background:var(--teal-dark);color:#fff">
+            <th style="padding:10px 12px;text-align:left;font-weight:500">Employee</th>
+            <th style="padding:10px 12px;text-align:left;font-weight:500">Role</th>
+            <th style="padding:10px 12px;text-align:center;font-weight:500">Annual Days</th>
+            <th style="padding:10px 12px;text-align:center;font-weight:500">Used This Year</th>
+            <th style="padding:10px 12px;text-align:center;font-weight:500">Remaining</th>
+            <th style="padding:10px 12px;text-align:left;font-weight:500">Notes</th>
+            <th style="padding:10px 12px;text-align:center;font-weight:500">Save</th>
+          </tr>
+        </thead>
+        <tbody id="ent-tbody">
+          <tr><td colspan="7" style="padding:20px;text-align:center;color:var(--text-muted)">Unlock to view entitlements</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
   <!-- DATA MANAGEMENT -->
   <div class="settings-section">
     <h2>Data Management</h2>
