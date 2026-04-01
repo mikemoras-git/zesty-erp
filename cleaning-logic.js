@@ -1335,6 +1335,45 @@ function printSchedule() {
 }
 
 
+
+// Remove cleaning jobs for properties that have no cleaning fee set
+async function removeNoFeeJobs() {
+  // Refresh property cache from Supabase first
+  try {
+    const freshProps = await SyncStore.load('zesty_properties', 'properties');
+    if (freshProps.data && freshProps.data.length > 0) window._propCache = freshProps.data;
+  } catch(e) {}
+
+  const toRemove = cleaningJobs.filter(j => {
+    if (!j.propertyName && !j.propertyId) return false;
+    return !getPropertyHasCleaning(j.propertyId || j.propertyName);
+  });
+
+  if (!toRemove.length) {
+    showToast('No jobs found for no-fee properties', 'success');
+    return;
+  }
+
+  // List affected properties
+  const propNames = [...new Set(toRemove.map(j => j.propertyName))].sort().join(', ');
+  showConfirm('🗑️', 'Remove No-Fee Property Jobs?',
+    `Remove ${toRemove.length} jobs for: ${propNames}?`,
+    'btn-danger', 'Remove All',
+    async () => {
+      const removeIds = new Set(toRemove.map(j => j.id));
+      cleaningJobs = cleaningJobs.filter(j => !removeIds.has(j.id));
+      // Delete from Supabase
+      for (const j of toRemove) {
+        await SyncStore.deleteOne('zesty_cleaning_jobs', 'cleaning_jobs', j.id, cleaningJobs);
+      }
+      // Clear localStorage too
+      localStorage.setItem('zesty_cleaning_jobs', JSON.stringify(cleaningJobs));
+      renderCalendar(); renderJobs(); updateJobStats();
+      showToast(`✓ Removed ${toRemove.length} jobs for ${[...new Set(toRemove.map(j=>j.propertyName))].length} properties`, 'success');
+    }
+  );
+}
+
 function exportManagerExcel() {
   const monthVal = document.getElementById('calMonth')?.value || '';
   if (!monthVal) { showToast('Select a month first', 'error'); return; }
