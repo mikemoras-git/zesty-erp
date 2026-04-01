@@ -316,6 +316,10 @@ function renderStaff() {
       </tr>`;
     };
     
+    // Split by role: cleaners vs check-in agents
+    const cleaners = filtered.filter(s => !s.role || s.role === 'cleaner' || s.role === 'both');
+    const agents = filtered.filter(s => s.role === 'checkin_agent' || s.role === 'both');
+    
     // Cleaners table
     const cleanerRows = cleaners.map(makeRow).join('');
     tbody.innerHTML = cleanerRows || `<tr><td colspan="10" style="color:var(--text-muted);text-align:center;padding:20px">No cleaners found.</td></tr>`;
@@ -1269,12 +1273,7 @@ function printSchedule() {
     const clJobs = monthJobs.filter(j => (j.cleanerIds||[]).includes(cl.id));
     if (clJobs.length === 0 && !cleanerFilter) return;
     const totalHours = clJobs.reduce((sum,j) => sum + (j.hours||0), 0);
-    const totalPay = clJobs.reduce((sum,j) => {
-      const base = (cl.hourlyRate||0) * (j.hours||0);
-      const tr = cl.hasCar === 'Yes' ? (j.propertyTransport||0) : 0;
-      return sum + base + tr;
-    }, 0);
-    const totalTransport = cl.hasCar === 'Yes' ? clJobs.reduce((sum,j) => sum + (j.propertyTransport||0), 0) : 0;
+
 
     printContent += `
       <div class="print-page">
@@ -1282,11 +1281,11 @@ function printSchedule() {
         <div class="print-header">
           <div>
             <div class="print-name">${cl.firstName} ${cl.lastName}</div>
-            <div class="print-sub">${monthName} \u00B7 ${(cl.zones||[]).join(', ') || 'All zones'} \u00B7 \u20AC${cl.hourlyRate||0}/hr${cl.hasCar==='Yes' ? ' \u00B7 \u{1F697} Car' : ''}</div>
+            <div class="print-sub">${monthName} \u00B7 ${(cl.zones||[]).join(', ') || 'All zones'}${cl.hasCar==='Yes' ? ' \u00B7 \u{1F697} Car' : ''}</div>
           </div>
           <div class="print-summary">
             <div class="big">${clJobs.length} jobs</div>
-            <div class="small">${totalHours.toFixed(1)}h \u00B7 \u20AC${totalPay.toFixed(2)} total${totalTransport > 0 ? ' (incl. \u20AC'+totalTransport.toFixed(2)+' transport)' : ''}</div>
+            <div class="small">${totalHours.toFixed(1)}h total</div>
           </div>
         </div>
         <div class="col-headers">
@@ -1294,9 +1293,6 @@ function printSchedule() {
         </div>
         ${clJobs.length === 0 ? '<p style="padding:20px;color:#999">No jobs assigned this month.</p>' :
           clJobs.map(j => {
-            const base = (cl.hourlyRate||0) * (j.hours||0);
-            const tr = cl.hasCar === 'Yes' ? (j.propertyTransport||0) : 0;
-            const jobPay = base + tr;
             const coworkers = (j.cleanerIds||[]).filter(cid => cid !== cl.id).map(cid => {
               const c2 = staff.find(s => s.id === cid);
               return c2 ? `<span class="coworker-tag">${c2.firstName} ${c2.lastName}</span>` : '';
@@ -1306,7 +1302,6 @@ function printSchedule() {
             const _arrStr = _arrDt ? _arrDt.toLocaleDateString('en-GB',{day:'numeric',month:'short'}) : '\u2014';
             const _depStr = j.type==='checkout' && _depDt ? _depDt.toLocaleDateString('en-GB',{day:'numeric',month:'short'}) : '\u2014';
             const _babycot = (j.notes||'').toLowerCase().match(/infant|baby|cot/);
-            const _payNoTransport = (cl.hourlyRate||0)*(j.hours||0);
             return `<div class="print-job-row">
               <div><strong>${formatDate(j.date)}</strong></div>
               <div>${j.propertyName}${j.zone ? '<br><span style="font-size:10px;color:#888">'+j.zone+'</span>' : ''}</div>
@@ -1321,8 +1316,8 @@ function printSchedule() {
           }).join('')
         }
         <div class="totals-row">
-          <div class="total-item"><div class="total-label">Hours Pay</div><div class="total-val">\u20AC${totalPay.toFixed(2)}</div></div>
-          <div class="total-item"><div class="total-label">Total</div><div class="total-val">\u20AC${totalPay.toFixed(2)}</div></div>
+          <div class="total-item"><div class="total-label">Total Jobs</div><div class="total-val">${clJobs.length}</div></div>
+          <div class="total-item"><div class="total-label">Total Hours</div><div class="total-val">${totalHours.toFixed(1)}h</div></div>
         </div>
       </div>`;
   });
@@ -2015,214 +2010,188 @@ showDbStatus(true);
 let hoursExtra = []; // extra manual cleaning rows
 
 function renderHoursSheet() {
-  const monthVal = document.getElementById('hoursMonth').value;
-  if (!monthVal) return;
+  const monthVal = document.getElementById('hoursMonth')?.value || '';
+  if (!monthVal) { 
+    // Set to current calMonth
+    const cm = document.getElementById('calMonth')?.value;
+    if (cm) { document.getElementById('hoursMonth').value = cm; renderHoursSheet(); }
+    return; 
+  }
   const [yr, mo] = monthVal.split('-');
   const monthName = new Date(yr, parseInt(mo)-1, 1).toLocaleDateString('en-GB',{month:'long',year:'numeric'});
-  document.getElementById('hoursTableTitle').textContent = 'Hours Sheet \u2014 ' + monthName;
-  document.getElementById('hoursPropFilter').innerHTML = '<option value="">All Properties</option>' +
-    [...new Set(cleaningJobs.filter(j=>j.date.startsWith(monthVal)).map(j=>j.propertyName).filter(Boolean))].sort()
-    .map(p=>`<option value="${p}">${p}</option>`).join('');
+  const titleEl = document.getElementById('hoursTableTitle');
+  if (titleEl) titleEl.textContent = 'Hours Sheet — ' + monthName;
 
-  const propF = document.getElementById('hoursPropFilter').value;
-  // Check-in jobs for hours tab
-  const ciJobsForHours = checkinJobs
-    .filter(j => j.date && j.date.startsWith(monthVal) && (!propF || j.property===propF))
-    .map(j => ({...j, propertyName: j.property, type: j.type==='checkin'?'checkin_service':'checkout_service', _isCheckin: true}));
+  // Only cleaning jobs (checkout/midstay) for this month
+  const monthJobs = cleaningJobs.filter(j =>
+    j.date && j.date.startsWith(monthVal) &&
+    (j.type === 'checkout' || j.type === 'midstay')
+  ).sort((a,b) => (a.date||'') > (b.date||'') ? 1 : -1);
 
-  const monthJobs = [
-    // Cleaning jobs (checkout/midstay)
-    ...cleaningJobs.filter(j => 
-      j.date && j.date.startsWith(monthVal) && 
-      (j.type === 'checkout' || j.type === 'midstay') &&
-      (!propF || j.propertyName===propF)
-    ),
-    // Check-in/out agent jobs
-    ...ciJobsForHours,
-    ...hoursExtra.filter(j => (j.date||'').startsWith(monthVal) && (!propF || j.propertyName===propF))
-  ].sort((a,b) => (a.date||'') > (b.date||'') ? 1 : -1);
+  // Active cleaners only (role=cleaner or both or no role)
+  const activeStaff = staff.filter(s => s.status !== 'Inactive' && 
+    (!s.role || s.role === 'cleaner' || s.role === 'both'));
 
-  const activeStaff = staff.filter(s => s.status !== 'Inactive');
-  if (!activeStaff.length) {
-    document.getElementById('hoursBody').innerHTML = '<tr class="empty-row"><td colspan="10">No active staff found.</td></tr>';
-    return;
+  // Populate property filter
+  const propFilter = document.getElementById('hoursPropFilter');
+  if (propFilter) {
+    const cur = propFilter.value;
+    propFilter.innerHTML = '<option value="">All Properties</option>' +
+      [...new Set(monthJobs.map(j=>j.propertyName).filter(Boolean))].sort()
+        .map(p=>`<option value="${p}" ${p===cur?'selected':''}>${p}</option>`).join('');
   }
+  const propF = propFilter?.value || '';
+  const filteredJobs = propF ? monthJobs.filter(j=>j.propertyName===propF) : monthJobs;
 
-  // Header: Date | Property | Type | Guest | [cleaner cols...] | Total Hours | Transport | Total Pay
-  const staffCols = activeStaff.map(s => `<th style="min-width:80px;text-align:center">${s.firstName}<br><span style="font-size:10px;color:var(--text-muted)">${s.hourlyRate?'\u20AC'+s.hourlyRate+'/h':''}</span></th>`).join('');
-  document.getElementById('hoursHead').innerHTML = `<tr>
-    <th onclick="sortHours('date')">Date \u2195</th><th>Property</th><th>Type</th><th>Guest</th>
+  // Build table header: Date | Property | Type | Guest | [cleaner cols] | Total Hrs | Notes
+  const staffCols = activeStaff.map(s =>
+    `<th style="min-width:80px;text-align:center">${s.firstName}<br><span style="font-size:10px;color:var(--text-muted)">€${s.hourlyRate||0}/h</span></th>`
+  ).join('');
+
+  const thead = document.getElementById('hoursHead');
+  if (thead) thead.innerHTML = `<tr>
+    <th style="width:90px">Date</th>
+    <th>Property</th>
+    <th style="width:80px">Type</th>
+    <th style="width:120px">Guest</th>
     ${staffCols}
-    <th style="text-align:right">Hours</th><th style="text-align:right">Transport</th><th style="text-align:right">Total Pay</th><th></th>
+    <th style="text-align:right;width:70px">Tot. Hrs</th>
+    <th style="text-align:right;width:70px">Tot. Pay</th>
+    <th style="width:100px">Notes</th>
   </tr>`;
 
-  let totalHours=0, totalLabour=0, totalTransport=0, staffTotals={};
+  // Totals
+  let totalHours = 0, totalPay = 0;
+  const staffTotals = {};
   activeStaff.forEach(s => staffTotals[s.id] = {hours:0, pay:0});
 
-  const rows = monthJobs.map((j, idx) => {
+  const rows = filteredJobs.map((j, jIdx) => {
     const assignedIds = j.cleanerIds || [];
-    let rowHours = 0, rowPay = 0, rowTransport = j.propertyTransport||0;
-    // For check-in jobs: show fixed-fee checkbox per agent, not hours per cleaner
-    const isCheckinJob = j._isCheckin;
-    const staffInputs = activeStaff.map(s => {
-      // Only show check-in agents for check-in jobs, only cleaners for cleaning jobs
-      const sRole = s.role || 'cleaner';
-      const isRelevant = isCheckinJob 
-        ? (sRole === 'checkin_agent' || sRole === 'both') 
-        : (sRole === 'cleaner' || sRole === 'both');
-      if (!isRelevant) return '<td style="text-align:center;color:#ddd;font-size:10px">—</td>';
-      
-      if (isCheckinJob) {
-        // Fixed fee: checkbox done/not + fee amount
-        const done = j.checkinDone?.[s.id] || false;
-        const fee = j.checkinFee?.[s.id] || s.checkinFee || '';
-        if (done) rowPay += parseFloat(fee)||0;
-        if (done) { staffTotals[s.id].hours += 1; staffTotals[s.id].pay += parseFloat(fee)||0; }
-        return `<td style="text-align:center;padding:4px 6px">
-          <input type="checkbox" ${done?'checked':''} data-job="${idx}" data-staff="${s.id}" data-type="checkin"
-            onchange="onCheckinDone(this)" style="cursor:pointer;accent-color:var(--teal)">
-          <input type="number" step="0.5" min="0" value="${fee}" data-job="${idx}" data-staff="${s.id}" data-type="fee"
-            oninput="onCheckinFee(this)" placeholder="€" style="width:50px;padding:3px;border:1px solid var(--border);border-radius:5px;text-align:center;font-size:11px;margin-top:2px;display:block;margin:2px auto 0">
-        </td>`;
+    let rowHours = 0, rowPay = 0;
+
+    const staffCells = activeStaff.map(s => {
+      // Get hours: from cleanerHours if set, else if assigned use job hours, else empty
+      const savedHrs = j.cleanerHours?.[s.id];
+      const hrs = savedHrs !== undefined ? savedHrs : (assignedIds.includes(s.id) && j.hours ? j.hours : '');
+      const hrsNum = parseFloat(hrs) || 0;
+      const pay = hrsNum * (s.hourlyRate || 0);
+      if (hrsNum > 0) {
+        rowHours += hrsNum;
+        rowPay += pay;
+        staffTotals[s.id].hours += hrsNum;
+        staffTotals[s.id].pay += pay;
       }
-      const isAssigned = assignedIds.includes(s.id);
-      const hrs = j.cleanerHours ? (j.cleanerHours[s.id] || '') : (isAssigned && j.hours ? j.hours : '');
-      const pay = hrs ? (parseFloat(hrs)*(s.hourlyRate||0) + (s.hasCar==='Yes'?rowTransport:0)) : 0;
-      if (hrs) { rowHours += parseFloat(hrs)||0; rowPay += pay; staffTotals[s.id].hours += parseFloat(hrs)||0; staffTotals[s.id].pay += pay; }
-      return `<td style="text-align:center;padding:4px 6px">
-        <input type="number" step="0.5" min="0" max="24" value="${hrs}" data-job="${idx}" data-staff="${s.id}"
-          oninput="onHoursInput(this)" style="width:60px;padding:5px;border:1px solid var(--border);border-radius:5px;text-align:center;font-size:13px;font-family:'DM Sans',sans-serif">
+      return `<td style="text-align:center;padding:4px">
+        <input type="number" min="0" max="24" step="0.5" value="${hrs}"
+          data-jobid="${j.id}" data-staffid="${s.id}"
+          onchange="onHoursChange(this)"
+          style="width:58px;padding:5px;border:1px solid var(--border);border-radius:6px;
+                 text-align:center;font-size:13px;font-family:'DM Sans',sans-serif;
+                 background:${hrsNum>0?'#e0f5f1':'#fff'}">
       </td>`;
     }).join('');
-    totalHours += rowHours; totalLabour += rowPay; totalTransport += rowTransport;
-    const isExtra = j._extra;
-    return `<tr data-idx="${idx}" style="${isExtra?'background:#fffbe6':''}">
-      <td style="font-size:12px">${formatDate(j.date)}</td>
-      <td>${j.propertyName||'\u2014'}${isExtra?'<span style="font-size:10px;margin-left:4px;color:var(--gold-dim)">+extra</span>':''}</td>
-      <td><span style="font-size:11px;font-weight:600;padding:2px 6px;border-radius:8px;background:${j.type==='checkout'?'#fdebd0':'#fdf6e3'};color:${j.type==='checkout'?'#a04000':'#8e6b23'}">${j.type==='checkout'?'Checkout':'Mid-Stay'}</span></td>
-      <td style="font-size:12px;color:var(--text-muted)">${j.guestName||'\u2014'}</td>
-      ${staffInputs}
-      <td style="text-align:right;font-weight:600" id="row-hrs-${idx}">${rowHours||'\u2014'}</td>
-      <td style="text-align:right;font-size:12px;color:var(--text-muted)">${rowTransport>0?'\u20AC'+rowTransport:'-'}</td>
-      <td style="text-align:right;font-weight:600;color:var(--teal)">${rowPay>0?'\u20AC'+rowPay.toFixed(0):'-'}</td>
-      <td>${isExtra?`<button onclick="removeExtra(${idx})" style="background:none;border:none;color:var(--danger);cursor:pointer;font-size:14px">\u2715</button>`:''}</td>
+
+    totalHours += rowHours;
+    totalPay += rowPay;
+
+    const typeBadge = j.type==='checkout'
+      ? `<span style="background:#fdebd0;color:#a04000;padding:1px 6px;border-radius:8px;font-size:10px;font-weight:700">CHECKOUT</span>`
+      : `<span style="background:#fdf6e3;color:#8e6b23;padding:1px 6px;border-radius:8px;font-size:10px;font-weight:700">MID-STAY</span>`;
+
+    const infants = j.infants > 0 ? ` <span style="background:#ffcccc;color:#c0392b;padding:0 4px;border-radius:5px;font-size:9px">INF</span>` : '';
+
+    return `<tr style="border-bottom:1px solid var(--border)">
+      <td style="font-size:12px;white-space:nowrap">${formatDate(j.date)}</td>
+      <td style="font-size:12px">${j.propertyName||'—'}</td>
+      <td>${typeBadge}</td>
+      <td style="font-size:11px;color:var(--text-muted)">${j.guestName||'—'}${infants}</td>
+      ${staffCells}
+      <td style="text-align:right;font-weight:700;color:var(--teal)">${rowHours>0?rowHours+'h':'—'}</td>
+      <td style="text-align:right;font-size:12px;color:var(--teal-dark)">${rowPay>0?'€'+rowPay.toFixed(0):'—'}</td>
+      <td style="font-size:11px;color:var(--text-muted)">${j.notes||''}</td>
     </tr>`;
   }).join('');
 
-  // Staff totals footer
-  const staffFooter = activeStaff.map(s => `<td style="text-align:center;font-weight:700;color:var(--teal)">
-    ${staffTotals[s.id].hours>0?staffTotals[s.id].hours+'h':'\u2014'}<br>
-    <span style="font-size:11px;color:var(--text-muted)">${staffTotals[s.id].pay>0?'\u20AC'+staffTotals[s.id].pay.toFixed(0):''}</span>
-  </td>`).join('');
+  const tbody = document.getElementById('hoursBody');
+  if (tbody) tbody.innerHTML = rows || `<tr class="empty-row"><td colspan="${4+activeStaff.length+3}">No cleaning jobs found for this period.</td></tr>`;
 
-  document.getElementById('hoursBody').innerHTML = rows || '<tr class="empty-row"><td colspan="20">No cleaning jobs for this period</td></tr>';
-  document.getElementById('hoursFoot').innerHTML = `<tr style="background:var(--cream);font-weight:700">
-    <td colspan="4">TOTAL</td>${staffFooter}
+  // Footer totals per staff
+  const staffFootCells = activeStaff.map(s => `<td style="text-align:center;font-weight:700;color:var(--teal)">
+    ${staffTotals[s.id].hours>0?staffTotals[s.id].hours+'h':'—'}<br>
+    <span style="font-size:11px">${staffTotals[s.id].pay>0?'€'+staffTotals[s.id].pay.toFixed(0):''}</span>
+  </td>`).join('');
+  const tfoot = document.getElementById('hoursFoot');
+  if (tfoot) tfoot.innerHTML = `<tr style="background:var(--cream);font-weight:700">
+    <td colspan="4">TOTAL</td>
+    ${staffFootCells}
     <td style="text-align:right">${totalHours}h</td>
-    <td style="text-align:right">\u20AC${totalTransport.toFixed(0)}</td>
-    <td style="text-align:right;color:var(--teal-dark)">\u20AC${(totalLabour).toFixed(0)}</td>
+    <td style="text-align:right;color:var(--teal-dark)">€${totalPay.toFixed(0)}</td>
     <td></td>
   </tr>`;
 
-  // Stats
-  document.getElementById('h-total').textContent = monthJobs.length;
-  document.getElementById('h-hours').textContent = totalHours + 'h';
-  document.getElementById('h-labour').textContent = '\u20AC' + totalLabour.toFixed(0);
-  document.getElementById('h-transport').textContent = '\u20AC' + totalTransport.toFixed(0);
-  document.getElementById('h-cost').textContent = '\u20AC' + (totalLabour + totalTransport).toFixed(0);
+  // Summary stats
+  const setEl=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
+  setEl('h-total', filteredJobs.length);
+  setEl('h-hours', totalHours+'h');
+  setEl('h-labour', '€'+totalPay.toFixed(0));
+  setEl('h-transport', '€'+filteredJobs.reduce((s,j)=>{
+    const cls=(j.cleanerIds||[]).map(cid=>staff.find(x=>x.id===cid)).filter(Boolean);
+    return s+cls.filter(cl=>cl.hasCar==='Yes').length*(j.propertyTransport||0);
+  },0).toFixed(0));
+  setEl('h-cost', '€'+(totalPay).toFixed(0));
 
-  // Store current job list for saving
-  window._currentHoursJobs = monthJobs;
+  window._currentHoursJobs = filteredJobs;
 }
 
-function onCheckinDone(checkbox) {
-  const idx = parseInt(checkbox.dataset.job);
-  const staffId = checkbox.dataset.staff;
-  const job = window._currentHoursJobs?.[idx];
-  if (!job) return;
-  if (!job.checkinDone) job.checkinDone = {};
-  job.checkinDone[staffId] = checkbox.checked;
-  // Update in checkinJobs array
-  const ci = checkinJobs.findIndex(j => j.id === job.id);
-  if (ci >= 0) checkinJobs[ci] = {...checkinJobs[ci], checkinDone: job.checkinDone};
-  saveCheckinLocal();
-  renderHoursSheet();
-}
-
-function onCheckinFee(input) {
-  const idx = parseInt(input.dataset.job);
-  const staffId = input.dataset.staff;
-  const fee = parseFloat(input.value) || 0;
-  const job = window._currentHoursJobs?.[idx];
-  if (!job) return;
-  if (!job.checkinFee) job.checkinFee = {};
-  job.checkinFee[staffId] = fee;
-  const ci = checkinJobs.findIndex(j => j.id === job.id);
-  if (ci >= 0) checkinJobs[ci] = {...checkinJobs[ci], checkinFee: job.checkinFee};
-  saveCheckinLocal();
-}
-
-function onHoursInput(input) {
-  const idx = parseInt(input.dataset.job);
-  const staffId = input.dataset.staff;
+async function onHoursChange(input) {
+  const jobId = input.dataset.jobid;
+  const staffId = input.dataset.staffid;
   const hrs = parseFloat(input.value) || 0;
-  const job = window._currentHoursJobs[idx];
+  const job = cleaningJobs.find(j => j.id === jobId);
   if (!job) return;
   if (!job.cleanerHours) job.cleanerHours = {};
-  job.cleanerHours[staffId] = hrs;
-  // Update the job in cleaningJobs or hoursExtra
-  const cjIdx = cleaningJobs.findIndex(j => j.id === job.id);
-  if (cjIdx >= 0) cleaningJobs[cjIdx].cleanerHours = job.cleanerHours;
-  // Recalculate row totals live
-  renderHoursSheet();
-}
-
-function addHoursRow() {
-  const monthVal = document.getElementById('hoursMonth').value;
-  const date = monthVal ? monthVal + '-01' : new Date().toISOString().slice(0,10);
-  hoursExtra.push({ id: 'extra_' + Date.now(), date, propertyName: '', type: 'checkout', guestName: '', cleanerIds: [], cleanerHours: {}, propertyTransport: 0, _extra: true });
-  renderHoursSheet();
-}
-
-function removeExtra(idx) {
-  const job = window._currentHoursJobs[idx];
-  if (job && job._extra) {
-    hoursExtra = hoursExtra.filter(j => j.id !== job.id);
-    renderHoursSheet();
-  }
+  job.cleanerHours[staffId] = hrs || undefined; // remove if 0
+  if (hrs === 0) delete job.cleanerHours[staffId];
+  // Highlight
+  input.style.background = hrs > 0 ? '#e0f5f1' : '#fff';
+  // Auto-save after short delay
+  clearTimeout(window._hoursSaveTimer);
+  window._hoursSaveTimer = setTimeout(() => saveHoursSheet(), 1500);
 }
 
 async function saveHoursSheet() {
   const monthVal = document.getElementById('hoursMonth')?.value || '';
   const msg = document.getElementById('hoursSavedMsg');
-  if (msg) { msg.textContent = 'Saving\u2026'; }
-  
-  // Save cleanerHours back to cleaningJobs in Supabase
+  if (msg) msg.textContent = 'Saving…';
   await SyncStore.saveAll('zesty_cleaning_jobs', 'cleaning_jobs', cleaningJobs);
-  
-  // Save extra rows to localStorage
-  localStorage.setItem('zesty_hours_extra', JSON.stringify(hoursExtra));
-  
-  // Save a monthly snapshot to localStorage (one per month, updatable)
+  // Save monthly snapshot
   if (monthVal && window._currentHoursJobs) {
     const snapshot = {
       month: monthVal,
       savedAt: new Date().toISOString(),
       jobs: window._currentHoursJobs.map(j => ({
-        id: j.id, date: j.date, propertyName: j.propertyName, type: j.type,
-        guestName: j.guestName, cleanerIds: j.cleanerIds, cleanerHours: j.cleanerHours,
-        hours: j.hours, propertyTransport: j.propertyTransport
+        id:j.id, date:j.date, propertyName:j.propertyName, type:j.type,
+        guestName:j.guestName, cleanerIds:j.cleanerIds, cleanerHours:j.cleanerHours||{},
+        hours:j.hours, propertyTransport:j.propertyTransport,
+        guests:j.guests, adults:j.adults, children:j.children, infants:j.infants
       }))
     };
-    const allSnapshots = JSON.parse(localStorage.getItem('zesty_hours_snapshots') || '{}');
-    allSnapshots[monthVal] = snapshot; // overwrite same month
-    localStorage.setItem('zesty_hours_snapshots', JSON.stringify(allSnapshots));
+    const all = JSON.parse(localStorage.getItem('zesty_hours_snapshots')||'{}');
+    all[monthVal] = snapshot;
+    localStorage.setItem('zesty_hours_snapshots', JSON.stringify(all));
   }
-
-  if (msg) { msg.textContent = '\u2713 Saved ' + new Date().toLocaleTimeString('en-GB'); }
-  setTimeout(() => { if(msg) msg.textContent = ''; }, 3000);
-  showToast('\u2713 Hours sheet saved', 'success');
+  if (msg) { msg.textContent = '✓ Saved ' + new Date().toLocaleTimeString('en-GB'); setTimeout(()=>{if(msg)msg.textContent='';},3000); }
+  showToast('✓ Hours saved', 'success');
 }
+
+function addHoursRow() {
+  const monthVal = document.getElementById('hoursMonth')?.value || '';
+  const date = monthVal ? monthVal + '-01' : new Date().toISOString().slice(0,10);
+  if (!window.hoursExtra) window.hoursExtra = [];
+  // Add a placeholder job for manual entry
+  showToast('Use the Jobs tab to add manual cleaning entries', 'info');
+}
+
 
 function exportHoursCSV() {
   const monthVal = document.getElementById('hoursMonth').value;
