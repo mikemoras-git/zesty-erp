@@ -1745,8 +1745,28 @@ function renderCheckin() {
   }
   if (agentModalSel) {
     const cur = agentModalSel.value;
+    // Load from HR employees module (zesty_employees key) - all active staff available as agents
+    const hrEmployees = JSON.parse(localStorage.getItem('zesty_employees') || '[]')
+      .filter(e => (e.status||'Active') === 'Active');
+    // Also include cleaning staff with checkin_agent role
+    const cleaningAgents = staff.filter(s => s.status !== 'Inactive' && 
+      (s.role === 'checkin_agent' || s.role === 'both'));
+    // Build combined list - HR employees first, then cleaning agents not already listed
+    const agentList = [...hrEmployees.map(e => ({
+      id: 'hr_' + (e.id||e.firstName+e.lastName),
+      firstName: e.firstName || '', lastName: e.lastName || '',
+      dept: e.department || ''
+    }))];
+    cleaningAgents.forEach(a => {
+      if (!agentList.find(x => x.firstName===a.firstName && x.lastName===a.lastName))
+        agentList.push({id: a.id, firstName: a.firstName, lastName: a.lastName, dept: 'Cleaning'});
+    });
+    // If empty, show all cleaning staff as fallback
+    if (!agentList.length) {
+      staff.filter(s=>s.status!=='Inactive').forEach(s => agentList.push({id:s.id, firstName:s.firstName, lastName:s.lastName, dept:'Cleaning'}));
+    }
     agentModalSel.innerHTML = '<option value="">-- Select Agent --</option>' +
-      activeStaff.map(s=>`<option value="${s.id}" ${s.id===cur?'selected':''}>${s.firstName} ${s.lastName}</option>`).join('');
+      agentList.map(s=>`<option value="${s.id}" ${s.id===cur?'selected':''}>${s.firstName} ${s.lastName}${s.dept?' ('+s.dept+')':''}</option>`).join('');
   }
 
   let jobs = checkinJobs.filter(j =>

@@ -847,6 +847,14 @@ body.erp-layout {
 
 <div class="toast" id="toast"></div>
 </div><!-- /erp-main -->
+
+<!-- Ticket FAB -->
+<a href="tickets.html" id="z-ticket-fab" title="Tickets"
+  style="position:fixed;bottom:22px;right:22px;width:44px;height:44px;border-radius:50%;
+  background:#e8c87a;color:#0f4a42;border:none;font-size:20px;cursor:pointer;z-index:800;
+  box-shadow:0 4px 20px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;
+  text-decoration:none;line-height:1">&#9672;</a>
+
 </body>
 </html>
 <script>
@@ -1658,7 +1666,15 @@ function printItems(lang){
     });
     html+=`</table>`;
   });
-  html+=`</body></html>`;
+  html+=`
+<!-- Ticket FAB -->
+<a href="tickets.html" id="z-ticket-fab" title="Tickets"
+  style="position:fixed;bottom:22px;right:22px;width:44px;height:44px;border-radius:50%;
+  background:#e8c87a;color:#0f4a42;border:none;font-size:20px;cursor:pointer;z-index:800;
+  box-shadow:0 4px 20px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;
+  text-decoration:none;line-height:1">&#9672;</a>
+
+</body></html>`;
   const w=window.open('','_blank');w.document.write(html);w.document.close();w.print();
 }
 
@@ -1679,7 +1695,15 @@ function printSeasonCheck(){
     const status=sc.status==='ok'?'✓ OK':sc.status==='attention'?'⚠ Attention':'—';
     html+=`<tr><td>${j.job}<br><span style="color:#6b7e7b">${j.jobEn}</span></td><td>${status}</td><td>${sc.comment||''}</td></tr>`;
   });
-  html+=`</table></body></html>`;
+  html+=`</table>
+<!-- Ticket FAB -->
+<a href="tickets.html" id="z-ticket-fab" title="Tickets"
+  style="position:fixed;bottom:22px;right:22px;width:44px;height:44px;border-radius:50%;
+  background:#e8c87a;color:#0f4a42;border:none;font-size:20px;cursor:pointer;z-index:800;
+  box-shadow:0 4px 20px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;
+  text-decoration:none;line-height:1">&#9672;</a>
+
+</body></html>`;
   const w=window.open('','_blank');w.document.write(html);w.document.close();w.print();
 }
 
