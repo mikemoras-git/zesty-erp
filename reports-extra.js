@@ -179,114 +179,134 @@ function initPeriodTab() {
 
 function generatePeriodReport() {
   const fromVal = document.getElementById('p-from')?.value || '';
-  const toVal = document.getElementById('p-to')?.value || '';
-  const propId = document.getElementById('p-prop')?.value || '';
-  if (!fromVal || !toVal) { showToastR('Select a date range first', 'error'); return; }
+  const toVal   = document.getElementById('p-to')?.value || '';
+  const propId  = document.getElementById('p-prop')?.value || '';
+  const out     = document.getElementById('period-out');
+  if (!fromVal || !toVal) { showToastR && showToastR('Select a date range first','error'); if(out) out.innerHTML='<p style="color:var(--danger);padding:20px">Please select a date range.</p>'; return; }
 
   const fromDt = new Date(fromVal);
-  const toDt = new Date(toVal);
-  const allB = getCSVBookings();
-  const eur = n => '\u20AC'+(parseFloat(n)||0).toFixed(2);
+  const toDt   = new Date(toVal + 'T23:59:59');
+  const allB   = getCSVBookings ? getCSVBookings() : [];
+  const eur    = n => '\u20AC' + (parseFloat(n)||0).toFixed(2);
+  const pct    = n => (parseFloat(n)||0).toFixed(1) + '%';
 
-  // Filter bookings in range - booked only
+  // Filter bookings in range (by check-in date), status Booked
   const bookings = allB.filter(r => {
     if (r.Status !== 'Booked') return false;
     const arr = new Date(r.DateArrival);
-    const dep = new Date(r.DateDeparture);
-    if (dep < fromDt || arr > toDt) return false;
+    if (arr < fromDt || arr > toDt) return false;
     if (propId) {
-      const prop = properties.find(p=>p.id===propId);
-      if (prop && !matchProp(r,prop)) return false;
+      const prop = properties.find(p => p.id === propId);
+      if (prop && !matchProp(r, prop)) return false;
     }
     return true;
   });
 
-  // Group by property
+  // Totals by property
   const byProp = {};
+  let grandRent=0, grandTax=0, grandOTA=0, grandRec=0, grandZesty=0, grandNet=0, grandNights=0;
+
   bookings.forEach(r => {
-    const key = r.HouseInternalName || r.HouseName || 'Unknown';
-    if (!byProp[key]) byProp[key] = [];
-    byProp[key].push(r);
+    const prop = properties.find(p => matchProp(r,p));
+    const key  = prop?.shortName || prop?.propertyName || r.HouseInternalName || r.HouseName || 'Unknown';
+    const mgmt = parseFloat(prop?.maintenance || prop?.ownerCommission || 0);
+    const rent     = parseFloat(r.RoomRatesTotal||0) - parseFloat(r.PromotionsTotal||0);
+    const taxFees  = parseFloat(r.FeesTotal||0) + parseFloat(r.TaxesTotal||0);
+    const otaRate  = getCommRate ? getCommRate(prop, r.Source) : 0;
+    const ota      = parseFloat(((rent-taxFees)*otaRate/100).toFixed(2));
+    const received = parseFloat((rent-taxFees-ota).toFixed(2));
+    const zesty    = parseFloat((Math.max(0,received)*mgmt/100).toFixed(2));
+    const net      = parseFloat((received-zesty).toFixed(2));
+    const nights   = parseInt(r.Nights)||0;
+
+    if (!byProp[key]) byProp[key] = {bookings:0, nights:0, rent:0, tax:0, ota:0, received:0, zesty:0, net:0};
+    byProp[key].bookings++; byProp[key].nights+=nights;
+    byProp[key].rent+=rent; byProp[key].tax+=taxFees; byProp[key].ota+=ota;
+    byProp[key].received+=received; byProp[key].zesty+=zesty; byProp[key].net+=net;
+    grandRent+=rent; grandTax+=taxFees; grandOTA+=ota;
+    grandRec+=received; grandZesty+=zesty; grandNet+=net; grandNights+=nights;
   });
 
-  // Totals per property
-  let grandRent=0, grandOTA=0, grandFees=0, grandZesty=0, grandNet=0, grandNights=0, grandBookings=0;
+  const presetLabel = document.getElementById('p-preset')?.selectedOptions?.[0]?.text || 'Custom Period';
+  const totalBookings = bookings.length;
 
-  const propRows = Object.entries(byProp).sort(([a],[b])=>a.localeCompare(b)).map(([name, rows]) => {
-    const prop = properties.find(p => matchProp(rows[0], p));
-    const mgmt = parseFloat(prop?.maintenance||prop?.ownerCommission||0);
-    let tRent=0, tOTA=0, tFees=0, tZesty=0, tNet=0, tNights=0;
-    rows.forEach(r => {
-      const roomRates = parseFloat(r.RoomRatesTotal||r.TotalAmount||0);
-      const promos = parseFloat(r.PromotionsTotal||0);
-      const rent = roomRates - promos;
-      const fees = parseFloat(r.FeesTotal||0) + parseFloat(r.TaxesTotal||0);
-      const otaRate = getCommRate(prop, r.Source);
-      const ota = parseFloat(((rent-fees)*otaRate/100).toFixed(2));
-      const received = parseFloat((rent-fees-ota).toFixed(2));
-      const zesty = parseFloat((Math.max(0,received)*mgmt/100).toFixed(2));
-      const net = parseFloat((received-zesty).toFixed(2));
-      tRent+=rent; tOTA+=ota; tFees+=fees; tZesty+=zesty; tNet+=net;
-      tNights+=parseInt(r.Nights)||0;
-    });
-    grandRent+=tRent; grandOTA+=tOTA; grandFees+=tFees; grandZesty+=tZesty; grandNet+=tNet;
-    grandNights+=tNights; grandBookings+=rows.length;
-    return `<tr>
-      <td style="font-weight:500">${name}</td>
-      <td style="text-align:center">${rows.length}</td>
-      <td style="text-align:center">${tNights}</td>
-      <td style="text-align:right">${eur(tRent)}</td>
-      <td style="text-align:right;color:var(--danger)">${eur(tOTA)}</td>
-      <td style="text-align:right;color:var(--text-muted)">${eur(tFees)}</td>
-      <td style="text-align:right;color:var(--teal);font-weight:600">${eur(tZesty)}</td>
-      <td style="text-align:right;font-weight:700">${eur(tNet)}</td>
-    </tr>`;
-  }).join('');
+  // Build property rows
+  const propRows = Object.entries(byProp).sort((a,b)=>b[1].net-a[1].net).map(([name,d]) => `
+    <tr style="border-bottom:1px solid var(--border)">
+      <td style="padding:9px 12px;font-weight:500">${name}</td>
+      <td style="text-align:center;padding:9px 8px">${d.bookings}</td>
+      <td style="text-align:center;padding:9px 8px">${d.nights}</td>
+      <td style="text-align:right;padding:9px 10px">${eur(d.rent)}</td>
+      <td style="text-align:right;padding:9px 10px;color:var(--text-muted)">${eur(d.tax)}</td>
+      <td style="text-align:right;padding:9px 10px;color:var(--danger)">${d.ota>0?eur(d.ota):'—'}</td>
+      <td style="text-align:right;padding:9px 10px">${eur(d.received)}</td>
+      <td style="text-align:right;padding:9px 10px;color:var(--teal)">${eur(d.zesty)}</td>
+      <td style="text-align:right;padding:9px 10px;font-weight:700;color:var(--teal-dark)">${eur(d.net)}</td>
+    </tr>`).join('');
 
-  const presetLabel = document.getElementById('p-preset')?.selectedOptions?.[0]?.text || 'Custom';
-  const periodLabel = `${fromVal} to ${toVal}`;
-
-  document.getElementById('period-out').innerHTML = `
-    <div class="rpt-wrap">
-      <div class="rpt-section">
-        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px">
-          <div>
-            <div style="font-size:20px;font-weight:700;color:var(--teal-dark)">${presetLabel}</div>
-            <div style="font-size:13px;color:var(--text-muted);margin-top:4px">${periodLabel}</div>
-          </div>
-          <div style="text-align:right;font-size:12px;color:var(--text-muted)">
-            <div>${grandBookings} bookings &nbsp;|&nbsp; ${grandNights} nights</div>
-          </div>
+  if (!out) return;
+  out.innerHTML = `
+    <div class="rpt-wrap" style="padding:24px">
+      <!-- Header -->
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;flex-wrap:wrap;gap:12px">
+        <div>
+          <div style="font-size:22px;font-weight:700;color:var(--teal-dark);font-family:'Cormorant Garamond',serif">${presetLabel}</div>
+          <div style="font-size:13px;color:var(--text-muted);margin-top:4px">${fromVal} → ${toVal} &nbsp;|&nbsp; ${totalBookings} bookings &nbsp;|&nbsp; ${grandNights} nights</div>
         </div>
-        <!-- Summary cards -->
-        <div class="stats-bar" style="margin-bottom:20px">
-          <div class="stat-card"><div class="stat-label">Total Rent</div><div class="stat-value">${eur(grandRent)}</div></div>
-          <div class="stat-card"><div class="stat-label">OTA Commissions</div><div class="stat-value" style="color:var(--danger)">${eur(grandOTA)}</div></div>
-          <div class="stat-card"><div class="stat-label">Taxes &amp; Fees</div><div class="stat-value" style="color:var(--text-muted)">${eur(grandFees)}</div></div>
-          <div class="stat-card"><div class="stat-label">Zesty Earnings</div><div class="stat-value" style="color:var(--teal)">${eur(grandZesty)}</div></div>
-          <div class="stat-card"><div class="stat-label">Net to Owners</div><div class="stat-value" style="font-weight:700">${eur(grandNet)}</div></div>
-        </div>
-        <!-- By property table -->
-        <table>
-          <thead><tr>
-            <th>Property</th><th style="text-align:center">Bookings</th><th style="text-align:center">Nights</th>
-            <th style="text-align:right">Total Rent</th><th style="text-align:right">OTA Comm</th>
-            <th style="text-align:right">Taxes&amp;Fees</th><th style="text-align:right">Zesty Comm</th>
-            <th style="text-align:right">Net Income</th>
-          </tr></thead>
-          <tbody>${propRows||'<tr class="empty-row"><td colspan="8">No bookings found for this period. Upload CSV on Dashboard first.</td></tr>'}</tbody>
-          <tfoot><tr style="font-weight:700;background:var(--cream)">
-            <td>TOTAL</td><td style="text-align:center">${grandBookings}</td><td style="text-align:center">${grandNights}</td>
-            <td style="text-align:right">${eur(grandRent)}</td>
-            <td style="text-align:right;color:var(--danger)">${eur(grandOTA)}</td>
-            <td style="text-align:right">${eur(grandFees)}</td>
-            <td style="text-align:right;color:var(--teal)">${eur(grandZesty)}</td>
-            <td style="text-align:right">${eur(grandNet)}</td>
-          </tr></tfoot>
+        <button onclick="window.print()" class="btn btn-print no-print" style="padding:7px 16px">🖨 Print</button>
+      </div>
+
+      <!-- Summary cards -->
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin-bottom:24px">
+        ${[
+          ['Total Rent','var(--teal-dark)',eur(grandRent)],
+          ['Taxes & Fees','var(--text-muted)',eur(grandTax)],
+          ['OTA Commissions','var(--danger)',eur(grandOTA)],
+          ['Received by Owner','var(--info)',eur(grandRec)],
+          ['Zesty Commission','var(--teal)',eur(grandZesty)],
+          ['Net to Owners','#1a5276',eur(grandNet)],
+        ].map(([label,color,val])=>`
+          <div style="background:var(--cream);border:1px solid var(--border);border-radius:10px;padding:12px 16px;text-align:center">
+            <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);margin-bottom:4px">${label}</div>
+            <div style="font-size:20px;font-weight:700;color:${color}">${val}</div>
+          </div>`).join('')}
+      </div>
+
+      <!-- By property table -->
+      <div style="overflow-x:auto">
+        <table style="width:100%;border-collapse:collapse;font-size:13px">
+          <thead>
+            <tr style="background:var(--teal-dark);color:#fff">
+              <th style="padding:10px 12px;text-align:left">Property</th>
+              <th style="padding:10px 8px;text-align:center">Bkgs</th>
+              <th style="padding:10px 8px;text-align:center">Nights</th>
+              <th style="padding:10px 10px;text-align:right">Total Rent</th>
+              <th style="padding:10px 10px;text-align:right">Taxes&amp;Fees</th>
+              <th style="padding:10px 10px;text-align:right">OTA Comm</th>
+              <th style="padding:10px 10px;text-align:right">Received</th>
+              <th style="padding:10px 10px;text-align:right">Zesty Comm</th>
+              <th style="padding:10px 10px;text-align:right">Net Income</th>
+            </tr>
+          </thead>
+          <tbody>${propRows || '<tr><td colspan="9" style="padding:20px;text-align:center;color:var(--text-muted)">No bookings found for this period. Upload your Lodgify CSV on the Dashboard first.</td></tr>'}</tbody>
+          <tfoot>
+            <tr style="background:var(--cream);font-weight:700;border-top:2px solid var(--teal-dark)">
+              <td style="padding:10px 12px">TOTAL</td>
+              <td style="text-align:center;padding:10px 8px">${totalBookings}</td>
+              <td style="text-align:center;padding:10px 8px">${grandNights}</td>
+              <td style="text-align:right;padding:10px 10px">${eur(grandRent)}</td>
+              <td style="text-align:right;padding:10px 10px;color:var(--text-muted)">${eur(grandTax)}</td>
+              <td style="text-align:right;padding:10px 10px;color:var(--danger)">${eur(grandOTA)}</td>
+              <td style="text-align:right;padding:10px 10px">${eur(grandRec)}</td>
+              <td style="text-align:right;padding:10px 10px;color:var(--teal)">${eur(grandZesty)}</td>
+              <td style="text-align:right;padding:10px 10px;color:var(--teal-dark);font-size:15px">${eur(grandNet)}</td>
+            </tr>
+          </tfoot>
         </table>
       </div>
     </div>`;
 }
+
 
 // Patch showTab to init period tab
 const _origShowTab = showTab;

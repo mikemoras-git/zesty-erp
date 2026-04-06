@@ -159,8 +159,8 @@ function generateOwner(){
       <td><span class="src-badge ${srcClass(r.Source)}">${r.Source||'—'}</span></td>
       <td style="text-align:right;font-size:12px">${daily>0?eur(daily):'—'}</td>
       <td style="text-align:right;font-weight:600">${eur(rent)}</td>
-      <td style="text-align:right;color:var(--danger);font-size:12px">${ota>0?eur(ota):'—'}</td>
       <td style="text-align:right;color:var(--info);font-size:12px">${taxesFees>0?eur(taxesFees):'—'}</td>
+      <td style="text-align:right;color:var(--danger);font-size:12px">${ota>0?eur(ota):'—'}</td>
       <td style="text-align:right;font-size:12px">${rec>0?eur(rec):'—'}</td>
       <td style="text-align:right;color:var(--text-muted);font-size:12px">${eur(zesty)}</td>
       <td style="text-align:right;font-weight:700;color:var(--teal-dark)">${eur(netInc)}</td>
