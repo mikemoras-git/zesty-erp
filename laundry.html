@@ -669,10 +669,49 @@ function generateProposal() {
 
 <style>
 @media print {
-  body > *:not(#ledger-overlay) { display: none !important; }
-  #ledger-overlay { position:static !important; background:none !important; padding:0 !important; display:block !important; }
-  #ledger-overlay > div { box-shadow:none !important; max-width:100% !important; }
+  /* Hide everything except ledger card */
+  body > *:not(#ledger-overlay) { display:none !important; }
+  #ledger-overlay {
+    position:static !important;
+    display:block !important;
+    background:none !important;
+    padding:0 !important;
+    overflow:visible !important;
+  }
+  #ledger-overlay > div {
+    box-shadow:none !important;
+    border:none !important;
+    max-width:100% !important;
+    padding:10px 0 !important;
+  }
+  /* Hide close/print buttons */
   button { display:none !important; }
+  /* Compact header */
+  #ledger-name { font-size:18px !important; margin-bottom:2px !important; }
+  #ledger-meta { font-size:11px !important; }
+  /* Compact summary cards — one row */
+  #ledger-overlay > div > div:nth-child(2) {
+    display:grid !important;
+    grid-template-columns:repeat(5,1fr) !important;
+    gap:6px !important;
+    margin-bottom:12px !important;
+  }
+  #ledger-overlay > div > div:nth-child(2) > div {
+    padding:6px 8px !important;
+    border-radius:6px !important;
+  }
+  #ledger-overlay > div > div:nth-child(2) > div > div:first-child {
+    font-size:8px !important;
+  }
+  #ledger-overlay > div > div:nth-child(2) > div > div:last-child {
+    font-size:14px !important;
+  }
+  /* Table compact */
+  #ledger-card table { font-size:11px !important; width:100% !important; }
+  #ledger-card th, #ledger-card td { padding:5px 8px !important; }
+  /* Units breakdown */
+  #ledger-units-breakdown { flex-wrap:wrap !important; gap:4px !important; font-size:11px !important; }
+  @page { margin:10mm; size:A4 portrait; }
 }
 </style>
 
@@ -762,10 +801,49 @@ function generateProposal() {
 
 <style>
 @media print {
-  body > *:not(#ledger-overlay) { display: none !important; }
-  #ledger-overlay { position:static !important; background:none !important; padding:0 !important; display:block !important; }
-  #ledger-overlay > div { box-shadow:none !important; max-width:100% !important; }
+  /* Hide everything except ledger card */
+  body > *:not(#ledger-overlay) { display:none !important; }
+  #ledger-overlay {
+    position:static !important;
+    display:block !important;
+    background:none !important;
+    padding:0 !important;
+    overflow:visible !important;
+  }
+  #ledger-overlay > div {
+    box-shadow:none !important;
+    border:none !important;
+    max-width:100% !important;
+    padding:10px 0 !important;
+  }
+  /* Hide close/print buttons */
   button { display:none !important; }
+  /* Compact header */
+  #ledger-name { font-size:18px !important; margin-bottom:2px !important; }
+  #ledger-meta { font-size:11px !important; }
+  /* Compact summary cards — one row */
+  #ledger-overlay > div > div:nth-child(2) {
+    display:grid !important;
+    grid-template-columns:repeat(5,1fr) !important;
+    gap:6px !important;
+    margin-bottom:12px !important;
+  }
+  #ledger-overlay > div > div:nth-child(2) > div {
+    padding:6px 8px !important;
+    border-radius:6px !important;
+  }
+  #ledger-overlay > div > div:nth-child(2) > div > div:first-child {
+    font-size:8px !important;
+  }
+  #ledger-overlay > div > div:nth-child(2) > div > div:last-child {
+    font-size:14px !important;
+  }
+  /* Table compact */
+  #ledger-card table { font-size:11px !important; width:100% !important; }
+  #ledger-card th, #ledger-card td { padding:5px 8px !important; }
+  /* Units breakdown */
+  #ledger-units-breakdown { flex-wrap:wrap !important; gap:4px !important; font-size:11px !important; }
+  @page { margin:10mm; size:A4 portrait; }
 }
 </style>
 

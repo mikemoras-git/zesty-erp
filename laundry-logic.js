@@ -590,83 +590,120 @@ function viewCustomerLedger(custId) {
   const cust = customers.find(c => c.id === custId);
   if (!cust) return;
   const pl = pricelists.find(p => p.id === cust.pricelistId);
-  const custOrders = orders.filter(o => o.customerId === custId).sort((a,b) => (a.date||'') > (b.date||'') ? 1 : -1);
-  const custReceipts = receipts.filter(r => r.customerId === custId).sort((a,b) => (a.date||'') > (b.date||'') ? 1 : -1);
+
+  // Helper: calculate order total from items × pricelist
+  function calcOrderTotal(o) {
+    let total = 0;
+    Object.entries(o.items || {}).forEach(([code, qty]) => {
+      total += qty * (pl?.prices?.[code] || 0);
+    });
+    return parseFloat(total.toFixed(2));
+  }
+
+  const custOrders   = orders.filter(o => o.customerId === custId).sort((a,b)=>(a.date||'')>(b.date||'')?1:-1);
+  const custReceipts = receipts.filter(r => r.customerId === custId).sort((a,b)=>(a.date||'')>(b.date||'')?1:-1);
 
   // Set header
   document.getElementById('ledger-name').textContent = cust.name;
-  document.getElementById('ledger-meta').textContent = 
-    (cust.phone||'') + (cust.email ? ' · ' + cust.email : '') + (pl ? ' · ' + pl.name : '');
+  document.getElementById('ledger-meta').textContent =
+    [cust.phone, cust.email, pl ? pl.nameEn || pl.name : ''].filter(Boolean).join(' · ');
 
-  // Calculate totals
-  const totalCharged = custOrders.reduce((s,o) => s + (parseFloat(o.totalAmount)||0), 0);
+  // Totals
+  const totalCharged  = custOrders.reduce((s,o) => s + calcOrderTotal(o), 0);
   const totalReceived = custReceipts.reduce((s,r) => s + (parseFloat(r.grossAmount)||0), 0);
-  const balance = totalCharged - totalReceived;
+  const balance       = parseFloat((totalCharged - totalReceived).toFixed(2));
 
-  // Total units per item
+  // Units per item
   const unitsByItem = {};
   let totalUnits = 0;
   custOrders.forEach(o => {
-    Object.entries(o.items || {}).forEach(([code, qty]) => {
-      unitsByItem[code] = (unitsByItem[code] || 0) + qty;
+    Object.entries(o.items||{}).forEach(([code,qty]) => {
+      unitsByItem[code] = (unitsByItem[code]||0) + qty;
       totalUnits += qty;
     });
   });
 
   // Summary cards
-  document.getElementById('ledger-order-count').textContent = custOrders.length;
-  document.getElementById('ledger-total-charged').textContent = '€' + totalCharged.toFixed(2);
-  document.getElementById('ledger-total-received').textContent = '€' + totalReceived.toFixed(2);
+  const setEl = (id,v) => { const el=document.getElementById(id); if(el) el.textContent=v; };
+  setEl('ledger-order-count',   custOrders.length);
+  setEl('ledger-total-charged', '€' + totalCharged.toFixed(2));
+  setEl('ledger-total-received','€' + totalReceived.toFixed(2));
   const balEl = document.getElementById('ledger-balance');
-  balEl.textContent = '€' + Math.abs(balance).toFixed(2) + (balance > 0 ? ' DR' : balance < 0 ? ' CR' : '');
-  balEl.style.color = balance > 0 ? '#c0392b' : balance < 0 ? '#27ae60' : '#0f4a42';
-  document.getElementById('ledger-total-units').textContent = totalUnits;
+  if (balEl) {
+    balEl.textContent = '€' + Math.abs(balance).toFixed(2) + (balance>0?' DR':balance<0?' CR':'');
+    balEl.style.color = balance>0?'#c0392b':balance<0?'#27ae60':'#0f4a42';
+  }
+  setEl('ledger-total-units', totalUnits);
 
-  // Build ledger rows - merge orders and receipts, sort by date
+  // Build ledger entries — orders + receipts sorted by date
   const entries = [
-    ...custOrders.map(o => ({date: o.date, type: 'order', ref: o.orderId || o.id.substring(0,8), 
-      desc: 'Order — ' + Object.entries(o.items||{}).map(([k,v])=>v+'×'+k).join(', '),
-      units: Object.values(o.items||{}).reduce((s,v)=>s+v,0),
-      charge: parseFloat(o.totalAmount)||0, receipt: 0})),
-    ...custReceipts.map(r => ({date: r.date, type: 'receipt', ref: r.receiptId || r.id.substring(0,8),
-      desc: 'Receipt' + (r.notes ? ' — ' + r.notes : ''),
-      units: 0, charge: 0, receipt: parseFloat(r.grossAmount)||0})),
-  ].sort((a,b) => (a.date||'') > (b.date||'') ? 1 : -1);
+    ...custOrders.map(o => {
+      const charge = calcOrderTotal(o);
+      const units  = Object.values(o.items||{}).reduce((s,v)=>s+v, 0);
+      return {date:o.date, type:'order', ref:o.orderId||o.id.substring(0,8),
+              desc:'Laundry order', units, charge, receipt:0};
+    }),
+    ...custReceipts.map(r => ({
+      date:r.date, type:'receipt', ref:r.receiptId||r.id.substring(0,8),
+      desc:'Receipt' + (r.notes?' — '+r.notes:''),
+      units:0, charge:0, receipt:parseFloat(r.grossAmount)||0
+    })),
+  ].sort((a,b)=>(a.date||'')>(b.date||'')?1:-1);
 
+  // Running balance
   let runBal = 0;
-  const rows = entries.map((e, i) => {
-    runBal += e.charge - e.receipt;
+  const eur = n => '€' + parseFloat(n).toFixed(2);
+
+  // Brought Forward row (always show, even if 0)
+  const bfRow = `<tr style="border-bottom:1px solid #ddd;background:#f8f9fa;font-style:italic">
+    <td style="padding:8px 12px;font-size:12px"></td>
+    <td style="padding:8px 12px;font-size:11px;color:#888"></td>
+    <td style="padding:8px 12px;font-size:12px;color:#666">Brought Forward</td>
+    <td style="text-align:right;padding:8px 10px;font-size:12px">—</td>
+    <td style="text-align:right;padding:8px 10px;font-size:12px;color:#ccc">—</td>
+    <td style="text-align:right;padding:8px 10px;font-size:12px;color:#ccc">—</td>
+    <td style="text-align:right;padding:8px 10px;font-size:12px;font-weight:600">€0.00</td>
+  </tr>`;
+
+  const rows = entries.map(e => {
+    runBal = parseFloat((runBal + e.charge - e.receipt).toFixed(2));
     const isReceipt = e.type === 'receipt';
     return `<tr style="border-bottom:1px solid #eee;${isReceipt?'background:#f0fff8':''}">
       <td style="padding:8px 12px;font-size:12px;white-space:nowrap">${e.date||'—'}</td>
       <td style="padding:8px 12px;font-size:11px;color:#888">${e.ref}</td>
       <td style="padding:8px 12px;font-size:12px">${e.desc}</td>
-      <td style="padding:8px 12px;text-align:right;font-size:12px">${e.units||'—'}</td>
-      <td style="padding:8px 12px;text-align:right;font-size:12px${e.charge?';font-weight:600':';color:#ccc'}">${e.charge?'€'+e.charge.toFixed(2):'—'}</td>
-      <td style="padding:8px 12px;text-align:right;font-size:12px;color:#27ae60${e.receipt?';font-weight:600':''}">${e.receipt?'€'+e.receipt.toFixed(2):'—'}</td>
-      <td style="padding:8px 12px;text-align:right;font-size:12px;font-weight:600;color:${runBal>0?'#c0392b':runBal<0?'#27ae60':'#888'}">€${Math.abs(runBal).toFixed(2)}${runBal>0?' DR':runBal<0?' CR':''}</td>
+      <td style="text-align:right;padding:8px 10px;font-size:12px">${e.units||'—'}</td>
+      <td style="text-align:right;padding:8px 10px;font-size:12px;font-weight:${e.charge?'600':'400'};color:${e.charge?'inherit':'#ccc'}">${e.charge?eur(e.charge):'—'}</td>
+      <td style="text-align:right;padding:8px 10px;font-size:12px;color:${e.receipt?'#27ae60':'#ccc'};font-weight:${e.receipt?'600':'400'}">${e.receipt?eur(e.receipt):'—'}</td>
+      <td style="text-align:right;padding:8px 10px;font-size:12px;font-weight:600;color:${runBal>0?'#c0392b':runBal<0?'#27ae60':'#888'}">${eur(Math.abs(runBal))}${runBal>0?' DR':runBal<0?' CR':''}</td>
     </tr>`;
   }).join('');
 
-  document.getElementById('ledger-tbody').innerHTML = rows || '<tr><td colspan="7" style="padding:20px;text-align:center;color:#aaa">No transactions</td></tr>';
-  document.getElementById('ledger-tfoot').innerHTML = `<tr style="background:#0f4a42;color:#fff;font-weight:700">
+  const tbody = document.getElementById('ledger-tbody');
+  const tfoot = document.getElementById('ledger-tfoot');
+  if (tbody) tbody.innerHTML = bfRow + (rows || '<tr><td colspan="7" style="padding:20px;text-align:center;color:#aaa">No transactions yet</td></tr>');
+  if (tfoot) tfoot.innerHTML = `<tr style="background:#0f4a42;color:#fff;font-weight:700">
     <td colspan="3" style="padding:10px 12px">TOTAL</td>
-    <td style="padding:10px 12px;text-align:right">${totalUnits}</td>
-    <td style="padding:10px 12px;text-align:right">€${totalCharged.toFixed(2)}</td>
-    <td style="padding:10px 12px;text-align:right">€${totalReceived.toFixed(2)}</td>
-    <td style="padding:10px 12px;text-align:right">€${Math.abs(balance).toFixed(2)}${balance>0?' DR':balance<0?' CR':''}</td>
+    <td style="text-align:right;padding:10px">${totalUnits}</td>
+    <td style="text-align:right;padding:10px">${eur(totalCharged)}</td>
+    <td style="text-align:right;padding:10px">${eur(totalReceived)}</td>
+    <td style="text-align:right;padding:10px">${eur(Math.abs(balance))}${balance>0?' DR':balance<0?' CR':''}</td>
   </tr>`;
 
   // Units breakdown
-  document.getElementById('ledger-units-breakdown').innerHTML = Object.entries(unitsByItem)
-    .sort((a,b) => b[1]-a[1])
-    .map(([code, qty]) => `<div style="background:#f5f0f9;border:1px solid #c9b0e0;border-radius:8px;padding:6px 14px;font-size:13px">
-      <strong>${qty}</strong> × <span style="color:#6c3483">${code}</span>
-    </div>`).join('') || '<span style="color:#aaa;font-size:12px">No items</span>';
+  const breakdownEl = document.getElementById('ledger-units-breakdown');
+  if (breakdownEl) {
+    breakdownEl.innerHTML = Object.entries(unitsByItem)
+      .sort((a,b)=>b[1]-a[1])
+      .map(([code,qty])=>`<div style="background:#f5f0f9;border:1px solid #c9b0e0;border-radius:8px;padding:5px 12px;font-size:13px">
+        <strong>${qty}</strong> × <span style="color:#6c3483">${code}</span>
+      </div>`).join('') || '<span style="color:#aaa;font-size:12px">No items</span>';
+  }
 
   document.getElementById('ledger-overlay').style.display = 'block';
   window._currentLedgerCustId = custId;
 }
+
 
 function printLedger() {
   window.print();
