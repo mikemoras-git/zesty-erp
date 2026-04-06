@@ -2092,12 +2092,9 @@ function renderHoursSheet() {
 
   // Build table header: Date | Property | Type | Guest | [cleaner cols] | Total Hrs | Notes
   const staffCols = activeStaff.map(s => {
-    const chargeR = s.chargeRate || s.hourlyRate || 0;
     const costR = s.hourlyRate || 0;
-    const margin = chargeR - costR;
-    return `<th style="min-width:90px;text-align:center">${s.firstName}<br>
-      <span style="font-size:9px;color:var(--text-muted)">cost €${costR}/h</span><br>
-      <span style="font-size:9px;color:var(--teal)">charge €${chargeR}/h</span>${margin>0?`<br><span style="font-size:9px;color:#27ae60">+€${margin} margin</span>`:''}
+    return `<th style="min-width:85px;text-align:center;font-size:12px">${s.firstName}<br>
+      <span style="font-size:9px;color:var(--text-muted)">€${costR}/h</span>
     </th>`;
   }).join('');
 
@@ -2106,13 +2103,13 @@ function renderHoursSheet() {
     <th style="width:90px">Date</th>
     <th>Property</th>
     <th style="width:80px">Type</th>
-    <th style="width:120px">Guest</th>
+    <th style="width:110px">Guest</th>
     ${staffCols}
-    <th style="text-align:right;width:70px">Hrs</th>
-    <th style="text-align:right;width:70px">Cost</th>
-    <th style="text-align:right;width:70px">Charge</th>
-    <th style="text-align:right;width:70px;color:#27ae60">Profit</th>
-    <th style="width:100px">Notes</th>
+    <th style="text-align:right;width:60px">Hrs</th>
+    <th style="text-align:right;width:65px;color:var(--danger)">Cost</th>
+    <th style="text-align:right;width:65px;color:var(--teal-dark)">Charge</th>
+    <th style="text-align:right;width:65px;color:#27ae60">Profit</th>
+    <th style="width:80px">Notes</th>
   </tr>`;
 
   // Totals
@@ -2130,14 +2127,11 @@ function renderHoursSheet() {
       const hrs = savedHrs !== undefined ? savedHrs : (assignedIds.includes(s.id) && j.hours ? j.hours : '');
       const hrsNum = parseFloat(hrs) || 0;
       const pay = hrsNum * (s.hourlyRate || 0);
-      const charge = hrsNum * (s.chargeRate || s.hourlyRate || 0);
       if (hrsNum > 0) {
         rowHours += hrsNum;
         rowPay += pay;
-        rowCharge += charge;
         staffTotals[s.id].hours += hrsNum;
         staffTotals[s.id].pay += pay;
-        staffTotals[s.id].charge = (staffTotals[s.id].charge||0) + charge;
       }
       return `<td style="text-align:center;padding:4px">
         <input type="number" min="0" max="24" step="0.5" value="${hrs}"
@@ -2149,6 +2143,11 @@ function renderHoursSheet() {
       </td>`;
     }).join('');
 
+    // Charge from property cleaningFee (flat fee per job)
+    const propData = _findPropByName(j.propertyName) || _findProp(j.propertyId);
+    rowCharge = parseFloat(propData?.cleaningFee || propData?.transportCharge || 0);
+    // If multiple cleaners share job, charge is still the flat property fee
+    
     totalHours += rowHours;
     totalPay += rowPay;
     totalCharge += rowCharge;
@@ -2255,7 +2254,9 @@ function removeExtraHoursRow(jobId) {
   renderHoursSheet();
 }
 
-function addHoursRow() {
+function addHoursRow() { addManualHoursJob(); }
+
+function addManualHoursJob() {
   const monthVal = document.getElementById('hoursMonth')?.value || '';
   if (!monthVal) { showToast('Select a month first', 'error'); return; }
   const date = monthVal + '-01';
@@ -2263,15 +2264,17 @@ function addHoursRow() {
   const extraJob = {
     id: 'extra_' + Date.now(),
     date, propertyName: '', type: 'checkout',
-    guestName: '', cleanerIds: [], cleanerHours: {},
+    guestName: 'Manual entry', cleanerIds: [], cleanerHours: {},
     hours: null, propertyTransport: 0, notes: '',
     _extra: true, _editable: true
   };
-  // Add to cleaningJobs temporarily (will save on saveHoursSheet)
   cleaningJobs.push(extraJob);
   window._hoursExtra.push(extraJob.id);
   renderHoursSheet();
-  showToast('Extra row added — fill in details and save', 'info');
+  // Scroll to bottom so new row is visible
+  const tbody = document.getElementById('hoursBody');
+  if (tbody) tbody.lastElementChild?.scrollIntoView({behavior:'smooth', block:'center'});
+  showToast('Manual job added — fill in date, property and hours', 'info');
 }
 
 
