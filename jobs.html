@@ -807,7 +807,7 @@ async function init() {
   const rj = await SyncStore.load('zesty_jobs', 'jobs');
   showDbStatus(!rj.fromCache);
   jobs = rj.data || [];
-  renderTable(); updateStats();
+  renderTable(); renderRecurring(); updateStats();
 
   // Poll every 30s
   startPoll('jobs', 'zesty_jobs', 30000, rows => {
@@ -996,7 +996,9 @@ function populateFilters() {
   const roo = document.getElementById('rpt_owner');
 
   fp.innerHTML = '<option value="">All Properties</option>' + props.map(p=>`<option>${p}</option>`).join('');
+  const _savedOwner = fo.value;
   fo.innerHTML = '<option value="">All Owners</option>' + owners.map(o=>`<option>${o}</option>`).join('');
+  if(_savedOwner) fo.value = _savedOwner;
   ft.innerHTML = '<option value="">All Types</option>' + types.map(t=>`<option>${t}</option>`).join('');
   rop.innerHTML = '<option value="">— All Properties —</option>' + props.map(p=>`<option>${p}</option>`).join('');
   roo.innerHTML = '<option value="">— All Owners —</option>' + owners.map(o=>`<option>${o}</option>`).join('');

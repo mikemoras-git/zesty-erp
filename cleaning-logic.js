@@ -381,6 +381,7 @@ function editStaff(id) {
   document.getElementById('s_birthdate').value = s.birthdate||'';
   document.getElementById('s_address').value = s.address||'';
   document.getElementById('s_hourlyRate').value = s.hourlyRate||'';
+  const crEl = document.getElementById('s_chargeRate'); if(crEl) crEl.value = s.chargeRate||'';
   document.getElementById('s_transportCost').value = s.transportCost||'';
   document.getElementById('s_hasCar').value = s.hasCar||'';
   document.getElementById('s_carDetails').value = s.carDetails||'';
@@ -427,6 +428,7 @@ async function saveStaff() {
     address: document.getElementById('s_address').value.trim(),
     zones,
     hourlyRate: parseFloat(document.getElementById('s_hourlyRate').value)||null,
+    chargeRate: parseFloat(document.getElementById('s_chargeRate')?.value)||null,
     transportCost: parseFloat(document.getElementById('s_transportCost').value)||null,
     hasCar: document.getElementById('s_hasCar').value,
     carDetails: document.getElementById('s_carDetails').value.trim(),
@@ -2089,9 +2091,15 @@ function renderHoursSheet() {
   const filteredJobs = propF ? monthJobs.filter(j=>j.propertyName===propF) : monthJobs;
 
   // Build table header: Date | Property | Type | Guest | [cleaner cols] | Total Hrs | Notes
-  const staffCols = activeStaff.map(s =>
-    `<th style="min-width:80px;text-align:center">${s.firstName}<br><span style="font-size:10px;color:var(--text-muted)">€${s.hourlyRate||0}/h</span></th>`
-  ).join('');
+  const staffCols = activeStaff.map(s => {
+    const chargeR = s.chargeRate || s.hourlyRate || 0;
+    const costR = s.hourlyRate || 0;
+    const margin = chargeR - costR;
+    return `<th style="min-width:90px;text-align:center">${s.firstName}<br>
+      <span style="font-size:9px;color:var(--text-muted)">cost €${costR}/h</span><br>
+      <span style="font-size:9px;color:var(--teal)">charge €${chargeR}/h</span>${margin>0?`<br><span style="font-size:9px;color:#27ae60">+€${margin} margin</span>`:''}
+    </th>`;
+  }).join('');
 
   const thead = document.getElementById('hoursHead');
   if (thead) thead.innerHTML = `<tr>
@@ -2100,19 +2108,21 @@ function renderHoursSheet() {
     <th style="width:80px">Type</th>
     <th style="width:120px">Guest</th>
     ${staffCols}
-    <th style="text-align:right;width:70px">Tot. Hrs</th>
-    <th style="text-align:right;width:70px">Tot. Pay</th>
+    <th style="text-align:right;width:70px">Hrs</th>
+    <th style="text-align:right;width:70px">Cost</th>
+    <th style="text-align:right;width:70px">Charge</th>
+    <th style="text-align:right;width:70px;color:#27ae60">Profit</th>
     <th style="width:100px">Notes</th>
   </tr>`;
 
   // Totals
-  let totalHours = 0, totalPay = 0;
+  let totalHours = 0, totalPay = 0, totalCharge = 0;
   const staffTotals = {};
   activeStaff.forEach(s => staffTotals[s.id] = {hours:0, pay:0});
 
   const rows = filteredJobs.map((j, jIdx) => {
     const assignedIds = j.cleanerIds || [];
-    let rowHours = 0, rowPay = 0;
+    let rowHours = 0, rowPay = 0, rowCharge = 0;
 
     const staffCells = activeStaff.map(s => {
       // Get hours: from cleanerHours if set, else if assigned use job hours, else empty
@@ -2120,11 +2130,14 @@ function renderHoursSheet() {
       const hrs = savedHrs !== undefined ? savedHrs : (assignedIds.includes(s.id) && j.hours ? j.hours : '');
       const hrsNum = parseFloat(hrs) || 0;
       const pay = hrsNum * (s.hourlyRate || 0);
+      const charge = hrsNum * (s.chargeRate || s.hourlyRate || 0);
       if (hrsNum > 0) {
         rowHours += hrsNum;
         rowPay += pay;
+        rowCharge += charge;
         staffTotals[s.id].hours += hrsNum;
         staffTotals[s.id].pay += pay;
+        staffTotals[s.id].charge = (staffTotals[s.id].charge||0) + charge;
       }
       return `<td style="text-align:center;padding:4px">
         <input type="number" min="0" max="24" step="0.5" value="${hrs}"
@@ -2138,6 +2151,7 @@ function renderHoursSheet() {
 
     totalHours += rowHours;
     totalPay += rowPay;
+    totalCharge += rowCharge;
 
     const typeBadge = j.type==='checkout'
       ? `<span style="background:#fdebd0;color:#a04000;padding:1px 6px;border-radius:8px;font-size:10px;font-weight:700">CHECKOUT</span>`
@@ -2229,12 +2243,35 @@ async function saveHoursSheet() {
   showToast('✓ Hours saved', 'success');
 }
 
+
+function updateExtraJob(jobId, field, value) {
+  const idx = cleaningJobs.findIndex(j => j.id === jobId);
+  if (idx >= 0) cleaningJobs[idx][field] = value;
+}
+
+function removeExtraHoursRow(jobId) {
+  cleaningJobs = cleaningJobs.filter(j => j.id !== jobId);
+  if (window._hoursExtra) window._hoursExtra = window._hoursExtra.filter(id => id !== jobId);
+  renderHoursSheet();
+}
+
 function addHoursRow() {
   const monthVal = document.getElementById('hoursMonth')?.value || '';
-  const date = monthVal ? monthVal + '-01' : new Date().toISOString().slice(0,10);
-  if (!window.hoursExtra) window.hoursExtra = [];
-  // Add a placeholder job for manual entry
-  showToast('Use the Jobs tab to add manual cleaning entries', 'info');
+  if (!monthVal) { showToast('Select a month first', 'error'); return; }
+  const date = monthVal + '-01';
+  if (!window._hoursExtra) window._hoursExtra = [];
+  const extraJob = {
+    id: 'extra_' + Date.now(),
+    date, propertyName: '', type: 'checkout',
+    guestName: '', cleanerIds: [], cleanerHours: {},
+    hours: null, propertyTransport: 0, notes: '',
+    _extra: true, _editable: true
+  };
+  // Add to cleaningJobs temporarily (will save on saveHoursSheet)
+  cleaningJobs.push(extraJob);
+  window._hoursExtra.push(extraJob.id);
+  renderHoursSheet();
+  showToast('Extra row added — fill in details and save', 'info');
 }
 
 

@@ -162,6 +162,8 @@
         <span>Gross: <strong id="rec-total-gross">—</strong></span>
         <span>Charges: <strong id="rec-total-charges">—</strong></span>
         <span>Net: <strong id="rec-total-net" style="color:var(--success)">—</strong></span>
+        <span id="rec-fwd-wrap" style="display:none">Fwd Balance: <strong id="rec-fwd-bal" style="color:var(--gold-dim)">—</strong></span>
+        <span id="rec-total-wrap" style="display:none">Total incl. Fwd: <strong id="rec-grand" style="color:var(--teal)">—</strong></span>
       </div>
     </div>
   </div>
@@ -171,8 +173,20 @@
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px">
       <div></div>
       <div style="display:flex;gap:10px">
-        <button class="btn btn-outline btn-sm" onclick="showPLCompare()">Compare</button>
+        <button class="btn btn-outline btn-sm" onclick="showPLCompare()">🔍 Compare</button>
+        <button class="btn btn-outline btn-sm" onclick="openExportHistory()">📋 Proposal History</button>
+        <button class="btn btn-teal btn-sm" onclick="openProposalModal()">📄 New Proposal</button>
         <button class="btn btn-primary" onclick="openPricelistModal()">+ New Pricelist</button>
+      </div>
+    </div>
+    <!-- Proposal History -->
+    <div id="proposal-history-section" style="display:none;margin-bottom:20px">
+      <div class="table-wrap">
+        <div class="table-header"><h3>Proposal History</h3><button class="btn btn-outline btn-sm" onclick="document.getElementById('proposal-history-section').style.display='none'">Close</button></div>
+        <table>
+          <thead><tr><th>Ref</th><th>Client</th><th>Pricelist</th><th>Date</th><th>Valid Until</th><th>Exported At</th></tr></thead>
+          <tbody id="proposal-history-tbody"></tbody>
+        </table>
       </div>
     </div>
     <div class="pl-grid" id="pl-grid"></div>
@@ -189,7 +203,6 @@
       <input type="date" id="rpt-to" placeholder="To">
       <button class="btn btn-teal" onclick="generateReport()">Generate Report</button>
       <div class="filter-spacer"></div>
-      <button class="btn btn-outline btn-sm" onclick="openProposalModal()">📄 Pricelist Proposal</button>
     </div>
     <div id="rpt-output"></div>
   </div>
@@ -213,7 +226,18 @@
         <div class="form-group"><label>Default Pricelist</label><select id="cm-pricelist"><option value="">— Select —</option></select></div>
         <div class="form-group form-span-2"><label>Address</label><input id="cm-address" placeholder="Address"></div>
         <div class="form-group"><label>Tax Number</label><input id="cm-tax" placeholder="AFM"></div>
+        <div class="form-group"><label>Forward Balance (€)</label>
+          <input type="number" id="cm-forwardBalance" step="0.01" placeholder="0.00" title="Balance carried forward from previous period">
+        </div>
         <div class="form-group"><label>Payment Terms</label><input id="cm-terms" placeholder="e.g. 30 days"></div>
+        <div class="form-group"><label>Payment Method</label>
+          <select id="cm-payMethod">
+            <option value="">— Select —</option>
+            <option value="Τιμολόγιο">Τιμολόγιο</option>
+            <option value="Απόδειξη">Απόδειξη</option>
+            <option value="Μετρητά">Μετρητά</option>
+          </select>
+        </div>
         <div class="form-group form-span-2"><label>Notes</label><textarea id="cm-notes" rows="2" placeholder="Notes…"></textarea></div>
       </div>
     </div>
@@ -421,6 +445,7 @@ async function init() {
   ]);
   customers = cRes.data;
   orders = oRes.data;
+  fixDuplicateOrderIds();
   receipts = rRes.data;
   pricelists = plRes.data;
 
@@ -463,11 +488,35 @@ function iname(item) { return lang === 'en' ? item.en : item.gr; }
 function eur(n) { return '€' + fmtNum(n); }
 function today() { return new Date().toISOString().slice(0, 10); }
 function nextId(prefix, arr) {
+  // Use the display ID field (orderId/receiptId/id) to find max number
+  const idField = prefix === 'ORD-' ? 'orderId' : prefix === 'REC-' ? 'receiptId' : 'id';
   const nums = arr.map(x => {
-    const m = (x.id || '').match(/(\d+)$/);
+    const val = x[idField] || x.id || '';
+    const m = val.match(/(\d+)$/);
     return m ? parseInt(m[1]) : 0;
   });
   return prefix + String(Math.max(0, ...nums) + 1).padStart(3, '0');
+}
+
+// Fix existing orders that have duplicate ORD-939 etc
+function fixDuplicateOrderIds() {
+  const seen = new Set();
+  let changed = false;
+  orders.sort((a,b)=>(a.date||'').localeCompare(b.date||'') || (a.id||'').localeCompare(b.id||''));
+  let counter = 1;
+  orders.forEach(o => {
+    if (!o.orderId || seen.has(o.orderId)) {
+      o.orderId = 'ORD-' + String(counter).padStart(3, '0');
+      changed = true;
+    }
+    seen.add(o.orderId);
+    const num = parseInt((o.orderId||'').replace('ORD-','')) || 0;
+    if (num >= counter) counter = num + 1;
+  });
+  if (changed) {
+    SyncStore.saveAll('zesty_laundry_orders', 'laundry_orders', orders);
+    console.log('Fixed duplicate order IDs');
+  }
 }
 function calcOrderTotal(order) {
   const pl = pricelists.find(p => p.id === order.pricelistId);
@@ -575,8 +624,10 @@ function renderCustomers() {
       <td style="font-size:12px">${c.phone || '—'}</td>
       <td style="font-size:12px">${c.email || '—'}</td>
       <td>${pl ? `<span class="badge b-individual">${pl.id} ${pl.name}</span>` : '—'}</td>
+      <td style="font-size:12px">${c.payMethod || '—'}</td>
       <td style="text-align:center">${oCount}</td>
       <td><div class="table-actions">
+        <button class="btn btn-outline btn-xs" onclick="viewCustomerLedger('${c.id}')" title="View ledger" style="background:#e8f4f8;color:#1a5276;border-color:#aed6f1">📋 View</button>
         <button class="btn btn-teal btn-xs" onclick="editCustomer('${c.id}')">✏️</button>
         <button class="btn btn-danger btn-xs" onclick="confirmDeleteCustomer('${c.id}')">🗑</button>
       </div></td>
@@ -648,9 +699,21 @@ function renderReceipts() {
   const totalGross = list.reduce((s, r) => s + (parseFloat(r.grossAmount) || 0), 0);
   const totalCharges = list.reduce((s, r) => s + (parseFloat(r.charges) || 0), 0);
   const totalNet = totalGross - totalCharges;
+  // Forward balance for filtered customer
+  const fCustId = document.getElementById('rec-cust')?.value || '';
+  const fwdCust = fCustId ? customers.find(c => c.id === fCustId) : null;
+  const fwdBalance = fwdCust ? (parseFloat(fwdCust.forwardBalance) || 0) : 0;
   document.getElementById('rec-total-gross').textContent = eur(totalGross);
   document.getElementById('rec-total-charges').textContent = eur(totalCharges);
   document.getElementById('rec-total-net').textContent = eur(totalNet);
+  const fwdWrap = document.getElementById('rec-fwd-wrap');
+  const totWrap = document.getElementById('rec-total-wrap');
+  if (fwdBalance && fwdWrap && totWrap) {
+    fwdWrap.style.display = '';
+    totWrap.style.display = '';
+    document.getElementById('rec-fwd-bal').textContent = eur(fwdBalance);
+    document.getElementById('rec-grand').textContent = eur(totalNet + fwdBalance);
+  } else if(fwdWrap) { fwdWrap.style.display='none'; if(totWrap)totWrap.style.display='none'; }
 
   const tbody = document.getElementById('rec-body');
   if (!list.length) { tbody.innerHTML = '<tr class="empty-row"><td colspan="8"><div class="empty-icon">💰</div><p>No receipts</p></td></tr>'; return; }
@@ -733,6 +796,8 @@ function editCustomer(id) {
     const el = document.getElementById('cm-' + f); if (el) el.value = c[f] || '';
   });
   document.getElementById('cm-pricelist').value = c.pricelistId || '';
+  const pmEl = document.getElementById('cm-payMethod'); if(pmEl) pmEl.value = c.payMethod || '';
+  const fbEl = document.getElementById('cm-forwardBalance'); if(fbEl) fbEl.value = c.forwardBalance || '';
   openModal('custModal');
 }
 async function saveCustomer() {
@@ -744,6 +809,8 @@ async function saveCustomer() {
     record[f] = document.getElementById('cm-' + f)?.value || '';
   });
   record.pricelistId = document.getElementById('cm-pricelist').value;
+  record.payMethod = document.getElementById('cm-payMethod')?.value || '';
+  record.forwardBalance = parseFloat(document.getElementById('cm-forwardBalance')?.value) || 0;
   const existing = customers.find(c => c.id === id);
   if (existing) Object.assign(existing, record); else customers.push(record);
   closeModal('custModal');
@@ -911,7 +978,172 @@ function printOrderById(id) {
   <table><thead><tr><th>Item (GR)</th><th>Item (EN)</th><th style="text-align:center">Qty</th><th style="text-align:right">Price</th><th style="text-align:right">Subtotal</th></tr></thead><tbody>${rows}</tbody>
   <tfoot><tr class="total-row"><td colspan="4" style="padding:10px 12px;font-weight:700;font-size:14px;color:#0a3330">TOTAL</td><td style="padding:10px 12px;text-align:right;font-weight:700;font-size:16px;color:#1a7a6e">€${total.toFixed(2)}</td></tr></tfoot></table>
   ${o.notes ? `<div style="margin-top:16px;padding:10px 14px;background:#fffbe6;border-radius:8px;font-size:13px;color:#6b7e7b">Notes: ${o.notes}</div>` : ''}
-  </div></body></html>`;
+  </div>
+<!-- ══ CUSTOMER LEDGER MODAL ══ -->
+<div id="ledger-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:900;overflow-y:auto;padding:20px;box-sizing:border-box">
+  <div style="background:#fff;border-radius:16px;max-width:900px;margin:0 auto;padding:28px;box-shadow:0 20px 60px rgba(0,0,0,0.3);font-family:'DM Sans',sans-serif">
+    <!-- Header -->
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px">
+      <div>
+        <h2 id="ledger-name" style="font-family:'Cormorant Garamond',serif;font-size:24px;color:#0f4a42;margin:0 0 4px"></h2>
+        <div id="ledger-meta" style="font-size:12px;color:#888"></div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button onclick="printLedger()" style="padding:7px 14px;border-radius:8px;border:1px solid #1a7a6e;background:#fff;color:#1a7a6e;cursor:pointer;font-size:12px">🖨 Print</button>
+        <button onclick="document.getElementById('ledger-overlay').style.display='none'" style="padding:7px 14px;border-radius:8px;border:none;background:#f0f4f3;color:#555;cursor:pointer;font-size:13px">✕ Close</button>
+      </div>
+    </div>
+
+    <!-- Summary cards -->
+    <div style="display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap">
+      <div style="flex:1;min-width:130px;background:#f0f9f7;border:1px solid #a9d9d0;border-radius:10px;padding:12px 16px;text-align:center">
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:#888;margin-bottom:4px">Orders</div>
+        <div id="ledger-order-count" style="font-size:24px;font-weight:700;color:#0f4a42">0</div>
+      </div>
+      <div style="flex:1;min-width:130px;background:#f0f9f7;border:1px solid #a9d9d0;border-radius:10px;padding:12px 16px;text-align:center">
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:#888;margin-bottom:4px">Total Charged</div>
+        <div id="ledger-total-charged" style="font-size:24px;font-weight:700;color:#0f4a42">€0</div>
+      </div>
+      <div style="flex:1;min-width:130px;background:#f0f9f7;border:1px solid #a9d9d0;border-radius:10px;padding:12px 16px;text-align:center">
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:#888;margin-bottom:4px">Receipts</div>
+        <div id="ledger-total-received" style="font-size:24px;font-weight:700;color:#27ae60">€0</div>
+      </div>
+      <div style="flex:1;min-width:130px;background:#fef9f0;border:1px solid #f0d9a0;border-radius:10px;padding:12px 16px;text-align:center">
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:#888;margin-bottom:4px">Balance</div>
+        <div id="ledger-balance" style="font-size:24px;font-weight:700;color:#c0392b">€0</div>
+      </div>
+      <div style="flex:1;min-width:130px;background:#f5f0f9;border:1px solid #c9b0e0;border-radius:10px;padding:12px 16px;text-align:center">
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:#888;margin-bottom:4px">Total Units</div>
+        <div id="ledger-total-units" style="font-size:24px;font-weight:700;color:#6c3483">0</div>
+      </div>
+    </div>
+
+    <!-- Ledger card (printable) -->
+    <div id="ledger-card">
+      <!-- Brought forward -->
+      <table style="width:100%;border-collapse:collapse;margin-bottom:20px;font-size:13px">
+        <thead>
+          <tr style="background:#0f4a42;color:#fff">
+            <th style="padding:10px 12px;text-align:left">Date</th>
+            <th style="padding:10px 12px;text-align:left">Ref</th>
+            <th style="padding:10px 12px;text-align:left">Description</th>
+            <th style="padding:10px 12px;text-align:right">Units</th>
+            <th style="padding:10px 12px;text-align:right">Charge (€)</th>
+            <th style="padding:10px 12px;text-align:right">Receipt (€)</th>
+            <th style="padding:10px 12px;text-align:right">Balance (€)</th>
+          </tr>
+        </thead>
+        <tbody id="ledger-tbody"></tbody>
+        <tfoot id="ledger-tfoot"></tfoot>
+      </table>
+    </div>
+
+    <!-- Units breakdown -->
+    <div style="margin-top:20px">
+      <h4 style="font-size:14px;color:#0f4a42;margin-bottom:10px">📦 Units by Item</h4>
+      <div id="ledger-units-breakdown" style="display:flex;flex-wrap:wrap;gap:8px"></div>
+    </div>
+  </div>
+</div>
+
+<style>
+@media print {
+  body > *:not(#ledger-overlay) { display: none !important; }
+  #ledger-overlay { position:static !important; background:none !important; padding:0 !important; display:block !important; }
+  #ledger-overlay > div { box-shadow:none !important; max-width:100% !important; }
+  button { display:none !important; }
+}
+</style>
+
+<script>
+function viewCustomerLedger(custId) {
+  const cust = customers.find(c => c.id === custId);
+  if (!cust) return;
+  const pl = pricelists.find(p => p.id === cust.pricelistId);
+  const custOrders = orders.filter(o => o.customerId === custId).sort((a,b) => (a.date||'') > (b.date||'') ? 1 : -1);
+  const custReceipts = receipts.filter(r => r.customerId === custId).sort((a,b) => (a.date||'') > (b.date||'') ? 1 : -1);
+
+  // Set header
+  document.getElementById('ledger-name').textContent = cust.name;
+  document.getElementById('ledger-meta').textContent = 
+    (cust.phone||'') + (cust.email ? ' · ' + cust.email : '') + (pl ? ' · ' + pl.name : '');
+
+  // Calculate totals
+  const totalCharged = custOrders.reduce((s,o) => s + (parseFloat(o.totalAmount)||0), 0);
+  const totalReceived = custReceipts.reduce((s,r) => s + (parseFloat(r.grossAmount)||0), 0);
+  const balance = totalCharged - totalReceived;
+
+  // Total units per item
+  const unitsByItem = {};
+  let totalUnits = 0;
+  custOrders.forEach(o => {
+    Object.entries(o.items || {}).forEach(([code, qty]) => {
+      unitsByItem[code] = (unitsByItem[code] || 0) + qty;
+      totalUnits += qty;
+    });
+  });
+
+  // Summary cards
+  document.getElementById('ledger-order-count').textContent = custOrders.length;
+  document.getElementById('ledger-total-charged').textContent = '€' + totalCharged.toFixed(2);
+  document.getElementById('ledger-total-received').textContent = '€' + totalReceived.toFixed(2);
+  const balEl = document.getElementById('ledger-balance');
+  balEl.textContent = '€' + Math.abs(balance).toFixed(2) + (balance > 0 ? ' DR' : balance < 0 ? ' CR' : '');
+  balEl.style.color = balance > 0 ? '#c0392b' : balance < 0 ? '#27ae60' : '#0f4a42';
+  document.getElementById('ledger-total-units').textContent = totalUnits;
+
+  // Build ledger rows - merge orders and receipts, sort by date
+  const entries = [
+    ...custOrders.map(o => ({date: o.date, type: 'order', ref: o.orderId || o.id.substring(0,8), 
+      desc: 'Order — ' + Object.entries(o.items||{}).map(([k,v])=>v+'×'+k).join(', '),
+      units: Object.values(o.items||{}).reduce((s,v)=>s+v,0),
+      charge: parseFloat(o.totalAmount)||0, receipt: 0})),
+    ...custReceipts.map(r => ({date: r.date, type: 'receipt', ref: r.receiptId || r.id.substring(0,8),
+      desc: 'Receipt' + (r.notes ? ' — ' + r.notes : ''),
+      units: 0, charge: 0, receipt: parseFloat(r.grossAmount)||0})),
+  ].sort((a,b) => (a.date||'') > (b.date||'') ? 1 : -1);
+
+  let runBal = 0;
+  const rows = entries.map((e, i) => {
+    runBal += e.charge - e.receipt;
+    const isReceipt = e.type === 'receipt';
+    return `<tr style="border-bottom:1px solid #eee;${isReceipt?'background:#f0fff8':''}">
+      <td style="padding:8px 12px;font-size:12px;white-space:nowrap">${e.date||'—'}</td>
+      <td style="padding:8px 12px;font-size:11px;color:#888">${e.ref}</td>
+      <td style="padding:8px 12px;font-size:12px">${e.desc}</td>
+      <td style="padding:8px 12px;text-align:right;font-size:12px">${e.units||'—'}</td>
+      <td style="padding:8px 12px;text-align:right;font-size:12px${e.charge?';font-weight:600':';color:#ccc'}">${e.charge?'€'+e.charge.toFixed(2):'—'}</td>
+      <td style="padding:8px 12px;text-align:right;font-size:12px;color:#27ae60${e.receipt?';font-weight:600':''}">${e.receipt?'€'+e.receipt.toFixed(2):'—'}</td>
+      <td style="padding:8px 12px;text-align:right;font-size:12px;font-weight:600;color:${runBal>0?'#c0392b':runBal<0?'#27ae60':'#888'}">€${Math.abs(runBal).toFixed(2)}${runBal>0?' DR':runBal<0?' CR':''}</td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('ledger-tbody').innerHTML = rows || '<tr><td colspan="7" style="padding:20px;text-align:center;color:#aaa">No transactions</td></tr>';
+  document.getElementById('ledger-tfoot').innerHTML = `<tr style="background:#0f4a42;color:#fff;font-weight:700">
+    <td colspan="3" style="padding:10px 12px">TOTAL</td>
+    <td style="padding:10px 12px;text-align:right">${totalUnits}</td>
+    <td style="padding:10px 12px;text-align:right">€${totalCharged.toFixed(2)}</td>
+    <td style="padding:10px 12px;text-align:right">€${totalReceived.toFixed(2)}</td>
+    <td style="padding:10px 12px;text-align:right">€${Math.abs(balance).toFixed(2)}${balance>0?' DR':balance<0?' CR':''}</td>
+  </tr>`;
+
+  // Units breakdown
+  document.getElementById('ledger-units-breakdown').innerHTML = Object.entries(unitsByItem)
+    .sort((a,b) => b[1]-a[1])
+    .map(([code, qty]) => `<div style="background:#f5f0f9;border:1px solid #c9b0e0;border-radius:8px;padding:6px 14px;font-size:13px">
+      <strong>${qty}</strong> × <span style="color:#6c3483">${code}</span>
+    </div>`).join('') || '<span style="color:#aaa;font-size:12px">No items</span>';
+
+  document.getElementById('ledger-overlay').style.display = 'block';
+  window._currentLedgerCustId = custId;
+}
+
+function printLedger() {
+  window.print();
+}
+</script>
+
+</body></html>`;
   const w = window.open('', '_blank');
   w.document.write(html);
   w.document.close();
@@ -1086,6 +1318,26 @@ function generateReport() {
 }
 
 /* ══ PROPOSAL ══ */
+function openExportHistory() {
+  const section = document.getElementById('proposal-history-section');
+  if (!section) return;
+  section.style.display = section.style.display === 'none' ? '' : 'none';
+  // Populate table
+  const history = JSON.parse(localStorage.getItem('zesty_proposal_history') || '[]');
+  const tbody = document.getElementById('proposal-history-tbody');
+  if (!tbody) return;
+  tbody.innerHTML = !history.length
+    ? '<tr class="empty-row"><td colspan="6">No proposals generated yet</td></tr>'
+    : history.map(h => `<tr>
+        <td style="font-family:monospace;font-size:11px;color:var(--teal)">${h.id||'—'}</td>
+        <td>${h.clientName||'—'}</td>
+        <td>${h.plName||'—'}</td>
+        <td>${h.date||'—'}</td>
+        <td>${h.valid||'—'}</td>
+        <td style="font-size:11px;color:var(--text-muted)">${h.exportedAt ? new Date(h.exportedAt).toLocaleDateString('el-GR') : '—'}</td>
+      </tr>`).join('');
+}
+
 function openProposalModal() {
   document.getElementById('prop-date').value = today();
   const valid = new Date(); valid.setDate(valid.getDate() + 30);
@@ -1114,7 +1366,177 @@ function generateProposal() {
   ${note ? `<div class="note">💬 ${note}</div>` : ''}
   <table><thead><tr><th>Item (GR)</th><th>Item (EN)</th><th style="text-align:right">Unit Price</th></tr></thead><tbody>${itemRows}</tbody></table>
   <div style="margin-top:24px;padding:16px;background:#f8f5f0;border-radius:8px;font-size:12px;color:#6b7e7b;line-height:1.6">Prices are valid for the period indicated above. For questions, please contact us.</div>
-  </div></body></html>`;
+  </div>
+<!-- ══ CUSTOMER LEDGER MODAL ══ -->
+<div id="ledger-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:900;overflow-y:auto;padding:20px;box-sizing:border-box">
+  <div style="background:#fff;border-radius:16px;max-width:900px;margin:0 auto;padding:28px;box-shadow:0 20px 60px rgba(0,0,0,0.3);font-family:'DM Sans',sans-serif">
+    <!-- Header -->
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px">
+      <div>
+        <h2 id="ledger-name" style="font-family:'Cormorant Garamond',serif;font-size:24px;color:#0f4a42;margin:0 0 4px"></h2>
+        <div id="ledger-meta" style="font-size:12px;color:#888"></div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button onclick="printLedger()" style="padding:7px 14px;border-radius:8px;border:1px solid #1a7a6e;background:#fff;color:#1a7a6e;cursor:pointer;font-size:12px">🖨 Print</button>
+        <button onclick="document.getElementById('ledger-overlay').style.display='none'" style="padding:7px 14px;border-radius:8px;border:none;background:#f0f4f3;color:#555;cursor:pointer;font-size:13px">✕ Close</button>
+      </div>
+    </div>
+
+    <!-- Summary cards -->
+    <div style="display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap">
+      <div style="flex:1;min-width:130px;background:#f0f9f7;border:1px solid #a9d9d0;border-radius:10px;padding:12px 16px;text-align:center">
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:#888;margin-bottom:4px">Orders</div>
+        <div id="ledger-order-count" style="font-size:24px;font-weight:700;color:#0f4a42">0</div>
+      </div>
+      <div style="flex:1;min-width:130px;background:#f0f9f7;border:1px solid #a9d9d0;border-radius:10px;padding:12px 16px;text-align:center">
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:#888;margin-bottom:4px">Total Charged</div>
+        <div id="ledger-total-charged" style="font-size:24px;font-weight:700;color:#0f4a42">€0</div>
+      </div>
+      <div style="flex:1;min-width:130px;background:#f0f9f7;border:1px solid #a9d9d0;border-radius:10px;padding:12px 16px;text-align:center">
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:#888;margin-bottom:4px">Receipts</div>
+        <div id="ledger-total-received" style="font-size:24px;font-weight:700;color:#27ae60">€0</div>
+      </div>
+      <div style="flex:1;min-width:130px;background:#fef9f0;border:1px solid #f0d9a0;border-radius:10px;padding:12px 16px;text-align:center">
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:#888;margin-bottom:4px">Balance</div>
+        <div id="ledger-balance" style="font-size:24px;font-weight:700;color:#c0392b">€0</div>
+      </div>
+      <div style="flex:1;min-width:130px;background:#f5f0f9;border:1px solid #c9b0e0;border-radius:10px;padding:12px 16px;text-align:center">
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:#888;margin-bottom:4px">Total Units</div>
+        <div id="ledger-total-units" style="font-size:24px;font-weight:700;color:#6c3483">0</div>
+      </div>
+    </div>
+
+    <!-- Ledger card (printable) -->
+    <div id="ledger-card">
+      <!-- Brought forward -->
+      <table style="width:100%;border-collapse:collapse;margin-bottom:20px;font-size:13px">
+        <thead>
+          <tr style="background:#0f4a42;color:#fff">
+            <th style="padding:10px 12px;text-align:left">Date</th>
+            <th style="padding:10px 12px;text-align:left">Ref</th>
+            <th style="padding:10px 12px;text-align:left">Description</th>
+            <th style="padding:10px 12px;text-align:right">Units</th>
+            <th style="padding:10px 12px;text-align:right">Charge (€)</th>
+            <th style="padding:10px 12px;text-align:right">Receipt (€)</th>
+            <th style="padding:10px 12px;text-align:right">Balance (€)</th>
+          </tr>
+        </thead>
+        <tbody id="ledger-tbody"></tbody>
+        <tfoot id="ledger-tfoot"></tfoot>
+      </table>
+    </div>
+
+    <!-- Units breakdown -->
+    <div style="margin-top:20px">
+      <h4 style="font-size:14px;color:#0f4a42;margin-bottom:10px">📦 Units by Item</h4>
+      <div id="ledger-units-breakdown" style="display:flex;flex-wrap:wrap;gap:8px"></div>
+    </div>
+  </div>
+</div>
+
+<style>
+@media print {
+  body > *:not(#ledger-overlay) { display: none !important; }
+  #ledger-overlay { position:static !important; background:none !important; padding:0 !important; display:block !important; }
+  #ledger-overlay > div { box-shadow:none !important; max-width:100% !important; }
+  button { display:none !important; }
+}
+</style>
+
+<script>
+function viewCustomerLedger(custId) {
+  const cust = customers.find(c => c.id === custId);
+  if (!cust) return;
+  const pl = pricelists.find(p => p.id === cust.pricelistId);
+  const custOrders = orders.filter(o => o.customerId === custId).sort((a,b) => (a.date||'') > (b.date||'') ? 1 : -1);
+  const custReceipts = receipts.filter(r => r.customerId === custId).sort((a,b) => (a.date||'') > (b.date||'') ? 1 : -1);
+
+  // Set header
+  document.getElementById('ledger-name').textContent = cust.name;
+  document.getElementById('ledger-meta').textContent = 
+    (cust.phone||'') + (cust.email ? ' · ' + cust.email : '') + (pl ? ' · ' + pl.name : '');
+
+  // Calculate totals
+  const totalCharged = custOrders.reduce((s,o) => s + (parseFloat(o.totalAmount)||0), 0);
+  const totalReceived = custReceipts.reduce((s,r) => s + (parseFloat(r.grossAmount)||0), 0);
+  const balance = totalCharged - totalReceived;
+
+  // Total units per item
+  const unitsByItem = {};
+  let totalUnits = 0;
+  custOrders.forEach(o => {
+    Object.entries(o.items || {}).forEach(([code, qty]) => {
+      unitsByItem[code] = (unitsByItem[code] || 0) + qty;
+      totalUnits += qty;
+    });
+  });
+
+  // Summary cards
+  document.getElementById('ledger-order-count').textContent = custOrders.length;
+  document.getElementById('ledger-total-charged').textContent = '€' + totalCharged.toFixed(2);
+  document.getElementById('ledger-total-received').textContent = '€' + totalReceived.toFixed(2);
+  const balEl = document.getElementById('ledger-balance');
+  balEl.textContent = '€' + Math.abs(balance).toFixed(2) + (balance > 0 ? ' DR' : balance < 0 ? ' CR' : '');
+  balEl.style.color = balance > 0 ? '#c0392b' : balance < 0 ? '#27ae60' : '#0f4a42';
+  document.getElementById('ledger-total-units').textContent = totalUnits;
+
+  // Build ledger rows - merge orders and receipts, sort by date
+  const entries = [
+    ...custOrders.map(o => ({date: o.date, type: 'order', ref: o.orderId || o.id.substring(0,8), 
+      desc: 'Order — ' + Object.entries(o.items||{}).map(([k,v])=>v+'×'+k).join(', '),
+      units: Object.values(o.items||{}).reduce((s,v)=>s+v,0),
+      charge: parseFloat(o.totalAmount)||0, receipt: 0})),
+    ...custReceipts.map(r => ({date: r.date, type: 'receipt', ref: r.receiptId || r.id.substring(0,8),
+      desc: 'Receipt' + (r.notes ? ' — ' + r.notes : ''),
+      units: 0, charge: 0, receipt: parseFloat(r.grossAmount)||0})),
+  ].sort((a,b) => (a.date||'') > (b.date||'') ? 1 : -1);
+
+  let runBal = 0;
+  const rows = entries.map((e, i) => {
+    runBal += e.charge - e.receipt;
+    const isReceipt = e.type === 'receipt';
+    return `<tr style="border-bottom:1px solid #eee;${isReceipt?'background:#f0fff8':''}">
+      <td style="padding:8px 12px;font-size:12px;white-space:nowrap">${e.date||'—'}</td>
+      <td style="padding:8px 12px;font-size:11px;color:#888">${e.ref}</td>
+      <td style="padding:8px 12px;font-size:12px">${e.desc}</td>
+      <td style="padding:8px 12px;text-align:right;font-size:12px">${e.units||'—'}</td>
+      <td style="padding:8px 12px;text-align:right;font-size:12px${e.charge?';font-weight:600':';color:#ccc'}">${e.charge?'€'+e.charge.toFixed(2):'—'}</td>
+      <td style="padding:8px 12px;text-align:right;font-size:12px;color:#27ae60${e.receipt?';font-weight:600':''}">${e.receipt?'€'+e.receipt.toFixed(2):'—'}</td>
+      <td style="padding:8px 12px;text-align:right;font-size:12px;font-weight:600;color:${runBal>0?'#c0392b':runBal<0?'#27ae60':'#888'}">€${Math.abs(runBal).toFixed(2)}${runBal>0?' DR':runBal<0?' CR':''}</td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('ledger-tbody').innerHTML = rows || '<tr><td colspan="7" style="padding:20px;text-align:center;color:#aaa">No transactions</td></tr>';
+  document.getElementById('ledger-tfoot').innerHTML = `<tr style="background:#0f4a42;color:#fff;font-weight:700">
+    <td colspan="3" style="padding:10px 12px">TOTAL</td>
+    <td style="padding:10px 12px;text-align:right">${totalUnits}</td>
+    <td style="padding:10px 12px;text-align:right">€${totalCharged.toFixed(2)}</td>
+    <td style="padding:10px 12px;text-align:right">€${totalReceived.toFixed(2)}</td>
+    <td style="padding:10px 12px;text-align:right">€${Math.abs(balance).toFixed(2)}${balance>0?' DR':balance<0?' CR':''}</td>
+  </tr>`;
+
+  // Units breakdown
+  document.getElementById('ledger-units-breakdown').innerHTML = Object.entries(unitsByItem)
+    .sort((a,b) => b[1]-a[1])
+    .map(([code, qty]) => `<div style="background:#f5f0f9;border:1px solid #c9b0e0;border-radius:8px;padding:6px 14px;font-size:13px">
+      <strong>${qty}</strong> × <span style="color:#6c3483">${code}</span>
+    </div>`).join('') || '<span style="color:#aaa;font-size:12px">No items</span>';
+
+  document.getElementById('ledger-overlay').style.display = 'block';
+  window._currentLedgerCustId = custId;
+}
+
+function printLedger() {
+  window.print();
+}
+</script>
+
+</body></html>`;
+  // Save to history
+  const _hist = JSON.parse(localStorage.getItem('zesty_proposal_history') || '[]');
+  _hist.unshift({ id: 'PROP-' + Date.now(), clientName: client.name, plName: pl.name, plId: plId, date, valid, exportedAt: new Date().toISOString() });
+  if (_hist.length > 200) _hist.length = 200;
+  localStorage.setItem('zesty_proposal_history', JSON.stringify(_hist));
   closeModal('proposalModal');
   const w = window.open('', '_blank');
   w.document.write(html);
@@ -1123,5 +1545,170 @@ function generateProposal() {
 }
 </script>
 <script src="erp-nav.js"></script>
+
+<!-- ══ CUSTOMER LEDGER MODAL ══ -->
+<div id="ledger-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:900;overflow-y:auto;padding:20px;box-sizing:border-box">
+  <div style="background:#fff;border-radius:16px;max-width:900px;margin:0 auto;padding:28px;box-shadow:0 20px 60px rgba(0,0,0,0.3);font-family:'DM Sans',sans-serif">
+    <!-- Header -->
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px">
+      <div>
+        <h2 id="ledger-name" style="font-family:'Cormorant Garamond',serif;font-size:24px;color:#0f4a42;margin:0 0 4px"></h2>
+        <div id="ledger-meta" style="font-size:12px;color:#888"></div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button onclick="printLedger()" style="padding:7px 14px;border-radius:8px;border:1px solid #1a7a6e;background:#fff;color:#1a7a6e;cursor:pointer;font-size:12px">🖨 Print</button>
+        <button onclick="document.getElementById('ledger-overlay').style.display='none'" style="padding:7px 14px;border-radius:8px;border:none;background:#f0f4f3;color:#555;cursor:pointer;font-size:13px">✕ Close</button>
+      </div>
+    </div>
+
+    <!-- Summary cards -->
+    <div style="display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap">
+      <div style="flex:1;min-width:130px;background:#f0f9f7;border:1px solid #a9d9d0;border-radius:10px;padding:12px 16px;text-align:center">
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:#888;margin-bottom:4px">Orders</div>
+        <div id="ledger-order-count" style="font-size:24px;font-weight:700;color:#0f4a42">0</div>
+      </div>
+      <div style="flex:1;min-width:130px;background:#f0f9f7;border:1px solid #a9d9d0;border-radius:10px;padding:12px 16px;text-align:center">
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:#888;margin-bottom:4px">Total Charged</div>
+        <div id="ledger-total-charged" style="font-size:24px;font-weight:700;color:#0f4a42">€0</div>
+      </div>
+      <div style="flex:1;min-width:130px;background:#f0f9f7;border:1px solid #a9d9d0;border-radius:10px;padding:12px 16px;text-align:center">
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:#888;margin-bottom:4px">Receipts</div>
+        <div id="ledger-total-received" style="font-size:24px;font-weight:700;color:#27ae60">€0</div>
+      </div>
+      <div style="flex:1;min-width:130px;background:#fef9f0;border:1px solid #f0d9a0;border-radius:10px;padding:12px 16px;text-align:center">
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:#888;margin-bottom:4px">Balance</div>
+        <div id="ledger-balance" style="font-size:24px;font-weight:700;color:#c0392b">€0</div>
+      </div>
+      <div style="flex:1;min-width:130px;background:#f5f0f9;border:1px solid #c9b0e0;border-radius:10px;padding:12px 16px;text-align:center">
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:#888;margin-bottom:4px">Total Units</div>
+        <div id="ledger-total-units" style="font-size:24px;font-weight:700;color:#6c3483">0</div>
+      </div>
+    </div>
+
+    <!-- Ledger card (printable) -->
+    <div id="ledger-card">
+      <!-- Brought forward -->
+      <table style="width:100%;border-collapse:collapse;margin-bottom:20px;font-size:13px">
+        <thead>
+          <tr style="background:#0f4a42;color:#fff">
+            <th style="padding:10px 12px;text-align:left">Date</th>
+            <th style="padding:10px 12px;text-align:left">Ref</th>
+            <th style="padding:10px 12px;text-align:left">Description</th>
+            <th style="padding:10px 12px;text-align:right">Units</th>
+            <th style="padding:10px 12px;text-align:right">Charge (€)</th>
+            <th style="padding:10px 12px;text-align:right">Receipt (€)</th>
+            <th style="padding:10px 12px;text-align:right">Balance (€)</th>
+          </tr>
+        </thead>
+        <tbody id="ledger-tbody"></tbody>
+        <tfoot id="ledger-tfoot"></tfoot>
+      </table>
+    </div>
+
+    <!-- Units breakdown -->
+    <div style="margin-top:20px">
+      <h4 style="font-size:14px;color:#0f4a42;margin-bottom:10px">📦 Units by Item</h4>
+      <div id="ledger-units-breakdown" style="display:flex;flex-wrap:wrap;gap:8px"></div>
+    </div>
+  </div>
+</div>
+
+<style>
+@media print {
+  body > *:not(#ledger-overlay) { display: none !important; }
+  #ledger-overlay { position:static !important; background:none !important; padding:0 !important; display:block !important; }
+  #ledger-overlay > div { box-shadow:none !important; max-width:100% !important; }
+  button { display:none !important; }
+}
+</style>
+
+<script>
+function viewCustomerLedger(custId) {
+  const cust = customers.find(c => c.id === custId);
+  if (!cust) return;
+  const pl = pricelists.find(p => p.id === cust.pricelistId);
+  const custOrders = orders.filter(o => o.customerId === custId).sort((a,b) => (a.date||'') > (b.date||'') ? 1 : -1);
+  const custReceipts = receipts.filter(r => r.customerId === custId).sort((a,b) => (a.date||'') > (b.date||'') ? 1 : -1);
+
+  // Set header
+  document.getElementById('ledger-name').textContent = cust.name;
+  document.getElementById('ledger-meta').textContent = 
+    (cust.phone||'') + (cust.email ? ' · ' + cust.email : '') + (pl ? ' · ' + pl.name : '');
+
+  // Calculate totals
+  const totalCharged = custOrders.reduce((s,o) => s + (parseFloat(o.totalAmount)||0), 0);
+  const totalReceived = custReceipts.reduce((s,r) => s + (parseFloat(r.grossAmount)||0), 0);
+  const balance = totalCharged - totalReceived;
+
+  // Total units per item
+  const unitsByItem = {};
+  let totalUnits = 0;
+  custOrders.forEach(o => {
+    Object.entries(o.items || {}).forEach(([code, qty]) => {
+      unitsByItem[code] = (unitsByItem[code] || 0) + qty;
+      totalUnits += qty;
+    });
+  });
+
+  // Summary cards
+  document.getElementById('ledger-order-count').textContent = custOrders.length;
+  document.getElementById('ledger-total-charged').textContent = '€' + totalCharged.toFixed(2);
+  document.getElementById('ledger-total-received').textContent = '€' + totalReceived.toFixed(2);
+  const balEl = document.getElementById('ledger-balance');
+  balEl.textContent = '€' + Math.abs(balance).toFixed(2) + (balance > 0 ? ' DR' : balance < 0 ? ' CR' : '');
+  balEl.style.color = balance > 0 ? '#c0392b' : balance < 0 ? '#27ae60' : '#0f4a42';
+  document.getElementById('ledger-total-units').textContent = totalUnits;
+
+  // Build ledger rows - merge orders and receipts, sort by date
+  const entries = [
+    ...custOrders.map(o => ({date: o.date, type: 'order', ref: o.orderId || o.id.substring(0,8), 
+      desc: 'Order — ' + Object.entries(o.items||{}).map(([k,v])=>v+'×'+k).join(', '),
+      units: Object.values(o.items||{}).reduce((s,v)=>s+v,0),
+      charge: parseFloat(o.totalAmount)||0, receipt: 0})),
+    ...custReceipts.map(r => ({date: r.date, type: 'receipt', ref: r.receiptId || r.id.substring(0,8),
+      desc: 'Receipt' + (r.notes ? ' — ' + r.notes : ''),
+      units: 0, charge: 0, receipt: parseFloat(r.grossAmount)||0})),
+  ].sort((a,b) => (a.date||'') > (b.date||'') ? 1 : -1);
+
+  let runBal = 0;
+  const rows = entries.map((e, i) => {
+    runBal += e.charge - e.receipt;
+    const isReceipt = e.type === 'receipt';
+    return `<tr style="border-bottom:1px solid #eee;${isReceipt?'background:#f0fff8':''}">
+      <td style="padding:8px 12px;font-size:12px;white-space:nowrap">${e.date||'—'}</td>
+      <td style="padding:8px 12px;font-size:11px;color:#888">${e.ref}</td>
+      <td style="padding:8px 12px;font-size:12px">${e.desc}</td>
+      <td style="padding:8px 12px;text-align:right;font-size:12px">${e.units||'—'}</td>
+      <td style="padding:8px 12px;text-align:right;font-size:12px${e.charge?';font-weight:600':';color:#ccc'}">${e.charge?'€'+e.charge.toFixed(2):'—'}</td>
+      <td style="padding:8px 12px;text-align:right;font-size:12px;color:#27ae60${e.receipt?';font-weight:600':''}">${e.receipt?'€'+e.receipt.toFixed(2):'—'}</td>
+      <td style="padding:8px 12px;text-align:right;font-size:12px;font-weight:600;color:${runBal>0?'#c0392b':runBal<0?'#27ae60':'#888'}">€${Math.abs(runBal).toFixed(2)}${runBal>0?' DR':runBal<0?' CR':''}</td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('ledger-tbody').innerHTML = rows || '<tr><td colspan="7" style="padding:20px;text-align:center;color:#aaa">No transactions</td></tr>';
+  document.getElementById('ledger-tfoot').innerHTML = `<tr style="background:#0f4a42;color:#fff;font-weight:700">
+    <td colspan="3" style="padding:10px 12px">TOTAL</td>
+    <td style="padding:10px 12px;text-align:right">${totalUnits}</td>
+    <td style="padding:10px 12px;text-align:right">€${totalCharged.toFixed(2)}</td>
+    <td style="padding:10px 12px;text-align:right">€${totalReceived.toFixed(2)}</td>
+    <td style="padding:10px 12px;text-align:right">€${Math.abs(balance).toFixed(2)}${balance>0?' DR':balance<0?' CR':''}</td>
+  </tr>`;
+
+  // Units breakdown
+  document.getElementById('ledger-units-breakdown').innerHTML = Object.entries(unitsByItem)
+    .sort((a,b) => b[1]-a[1])
+    .map(([code, qty]) => `<div style="background:#f5f0f9;border:1px solid #c9b0e0;border-radius:8px;padding:6px 14px;font-size:13px">
+      <strong>${qty}</strong> × <span style="color:#6c3483">${code}</span>
+    </div>`).join('') || '<span style="color:#aaa;font-size:12px">No items</span>';
+
+  document.getElementById('ledger-overlay').style.display = 'block';
+  window._currentLedgerCustId = custId;
+}
+
+function printLedger() {
+  window.print();
+}
+</script>
+
 </body>
 </html>
