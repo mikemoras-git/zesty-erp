@@ -154,9 +154,9 @@
       <div class="table-header"><h3 id="rec-count">Receipts</h3></div>
       <table>
         <thead><tr>
-          <th>Receipt ID</th><th>Customer</th><th>Date</th><th>Gross Amount</th><th>Charges</th><th>Net Received</th><th>Notes</th><th style="width:80px"></th>
+          <th>Receipt ID</th><th>Customer</th><th>Date</th><th>Gross Amount</th><th>Charges</th><th>Net Received</th><th>Notes</th><th>Method</th><th style="width:80px"></th>
         </tr></thead>
-        <tbody id="rec-body"><tr class="empty-row"><td colspan="8"><div class="empty-icon">💰</div><p>No receipts yet</p></td></tr></tbody>
+        <tbody id="rec-body"><tr class="empty-row"><td colspan="9"><div class="empty-icon">💰</div><p>No receipts yet</p></td></tr></tbody>
       </table>
       <div style="padding:12px 18px;border-top:1px solid var(--border);display:flex;gap:20px;font-size:13px">
         <span>Gross: <strong id="rec-total-gross">—</strong></span>
@@ -314,7 +314,15 @@
         <div class="form-group"><label>Gross Amount (€) *</label><input type="number" id="rm-gross" step="0.01" min="0" placeholder="0.00" oninput="calcReceiptNet()"></div>
         <div class="form-group"><label>Bank / Other Charges (€)</label><input type="number" id="rm-charges" step="0.01" min="0" value="0" placeholder="0.00" oninput="calcReceiptNet()"></div>
         <div class="form-group"><label>Net Received (€)</label><input type="number" id="rm-net" step="0.01" readonly style="background:#f0faf8;font-weight:600;color:var(--success)"></div>
-        <div class="form-group form-span-2"><label>Notes</label><textarea id="rm-notes" rows="2" placeholder="e.g. Bank transfer ref…"></textarea></div>
+        <div class="form-group"><label>Payment Method</label>
+        <select id="rm-pay-method" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px">
+          <option value="">— Select method —</option>
+          <option value="cash">💵 Cash</option>
+          <option value="bank_deposit">🏦 Bank Deposit</option>
+          <option value="bank_check">🖊 Bank Check</option>
+        </select>
+      </div>
+      <div class="form-group form-span-2"><label>Notes</label><textarea id="rm-notes" rows="2" placeholder="e.g. Bank transfer ref…"></textarea></div>
       </div>
     </div>
     <div class="modal-footer">

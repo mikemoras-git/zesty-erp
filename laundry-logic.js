@@ -354,6 +354,7 @@ function renderReceipts() {
       <td style="text-align:right;color:var(--danger)">${charges > 0 ? eur(charges) : '—'}</td>
       <td style="text-align:right;font-weight:700;color:var(--success)">${eur(net)}</td>
       <td style="font-size:12px;color:var(--text-muted)">${r.notes || ''}</td>
+      <td style="font-size:11px">${r.payMethod === 'cash' ? '💵 Cash' : r.payMethod === 'bank_deposit' ? '🏦 Deposit' : r.payMethod === 'bank_check' ? '🖊 Check' : '—'}</td>
       <td><div class="table-actions">
         <button class="btn btn-teal btn-xs" onclick="editReceipt('${r.id}')">✏️</button>
         <button class="btn btn-danger btn-xs" onclick="confirmDeleteReceipt('${r.id}')">🗑</button>
@@ -586,6 +587,61 @@ function printOrder() {
   if (id) printOrderById(id);
 }
 
+// ── Date formatter ─────────────────────────────────────────────────────
+function fmtDate(d) {
+  if (!d) return '—';
+  try {
+    const dt = new Date(d);
+    return dt.toLocaleDateString('en-GB', {day:'numeric', month:'short', year:'numeric'});
+  } catch { return d; }
+}
+
+// ── Edit Receipt ────────────────────────────────────────────────────────
+function editReceipt(id) {
+  const r = receipts.find(x => x.id === id);
+  if (!r) return;
+  document.getElementById('rec-modal-title').textContent = 'Edit Receipt';
+  const delBtn = document.getElementById('rm-del-btn');
+  if (delBtn) delBtn.style.display = '';
+  document.getElementById('rm-id').value       = r.id;
+  document.getElementById('rm-receipt-id').value = r.receiptId || '';
+  document.getElementById('rm-date').value     = r.date || '';
+  document.getElementById('rm-gross').value    = r.grossAmount || '';
+  document.getElementById('rm-charges').value  = r.charges || '';
+  document.getElementById('rm-notes').value    = r.notes || '';
+  calcReceiptNet();
+  // Set payment method
+  const payEl = document.getElementById('rm-pay-method');
+  if (payEl) payEl.value = r.payMethod || '';
+  // Set customer dropdown
+  const custSel = document.getElementById('rm-cust');
+  if (custSel) {
+    custSel.innerHTML = '<option value="">— Select Customer —</option>' +
+      customers.filter(c => c.status !== 'inactive')
+        .sort((a,b) => (a.name||'').localeCompare(b.name||''))
+        .map(c => `<option value="${c.id}"${c.id===r.customerId?' selected':''}>${c.name}</option>`).join('');
+  }
+  openModal('receiptModal');
+}
+
+// ── Confirm Delete Receipt ──────────────────────────────────────────────
+function confirmDeleteReceipt(id) {
+  const r = receipts.find(x => x.id === id);
+  if (!r) return;
+  const cust = customers.find(c => c.id === r.customerId);
+  showConfirm('🗑️', 'Delete Receipt?',
+    `Delete receipt ${r.receiptId || r.id.slice(0,8)} for ${cust?.name || 'unknown'}? This cannot be undone.`,
+    'btn-danger', 'Delete',
+    async () => {
+      receipts = receipts.filter(x => x.id !== id);
+      await SyncStore.saveAll('zesty_laundry_receipts', 'laundry_receipts', receipts);
+      renderReceipts();
+      renderDashboard();
+      showToast('Receipt deleted', 'error');
+    }
+  );
+}
+
 function viewCustomerLedger(custId) {
   const cust = customers.find(c => c.id === custId);
   if (!cust) return;
@@ -712,11 +768,36 @@ function printLedger() {
 }
 
 // ══ RECEIPT FUNCTIONS ══════════════════════════════════════════════════
+
+function editReceipt(id) {
+  openReceiptModal(id);
+}
+
+function confirmDeleteReceipt(id) {
+  const r = receipts.find(x => x.id === id);
+  const label = r ? (r.receiptId || id) + ' — €' + (r.grossAmount || 0) : id;
+  showConfirm('\uD83D\uDDD1', 'Delete Receipt?',
+    'Delete ' + label + '? This cannot be undone.',
+    'btn-danger', 'Delete',
+    async () => {
+      receipts = receipts.filter(x => x.id !== id);
+      await SyncStore.saveAll('zesty_laundry_receipts', 'laundry_receipts', receipts);
+      closeModal('receiptModal');
+      renderReceipts();
+      renderDashboard();
+      showToast('Receipt deleted', 'error');
+    }
+  );
+}
+
 function openReceiptModal(id) {
   const isEdit = !!id;
   document.getElementById('rec-modal-title').textContent = isEdit ? 'Edit Receipt' : 'Add Receipt';
   const delBtn = document.getElementById('rm-del-btn');
-  if (delBtn) delBtn.style.display = isEdit ? '' : 'none';
+  if (delBtn) {
+    delBtn.style.display = isEdit ? '' : 'none';
+    delBtn.onclick = isEdit ? () => confirmDeleteReceipt(id) : null;
+  }
 
   if (isEdit) {
     const r = receipts.find(x => x.id === id);
@@ -728,6 +809,7 @@ function openReceiptModal(id) {
     document.getElementById('rm-gross').value = r.grossAmount || '';
     document.getElementById('rm-charges').value = r.charges || '';
     document.getElementById('rm-notes').value = r.notes || '';
+    const pmEl = document.getElementById('rm-payMethod'); if(pmEl) pmEl.value = r.paymentMethod || '';
     calcReceiptNet();
   } else {
     document.getElementById('rm-id').value = '';
@@ -737,6 +819,7 @@ function openReceiptModal(id) {
     document.getElementById('rm-gross').value = '';
     document.getElementById('rm-charges').value = '';
     document.getElementById('rm-notes').value = '';
+    const pmElNew = document.getElementById('rm-payMethod'); if(pmElNew) pmElNew.value = '';
     const netEl = document.getElementById('rm-net');
     if (netEl) netEl.value = '';
   }
@@ -777,6 +860,7 @@ async function saveReceipt() {
     grossAmount: gross,
     charges: parseFloat(document.getElementById('rm-charges')?.value) || 0,
     notes: document.getElementById('rm-notes')?.value || '',
+    payMethod: document.getElementById('rm-pay-method')?.value || '',
   };
   const existing = receipts.find(r => r.id === id);
   if (existing) Object.assign(existing, record);
