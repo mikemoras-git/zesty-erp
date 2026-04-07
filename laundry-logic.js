@@ -152,7 +152,7 @@ function calcOrderTotal(order) {
 
 /* ── POPULATE SELECTS ── */
 function populateSelects() {
-  const custOpts = customers.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+  const custOpts = customers.map(c => `\u003Coption value="${c.id}">${c.name}</option>`).join('');
   const plOpts = pricelists.filter(p => p.status === 'active').map(p => `<option value="${p.id}">${p.id} — ${p.name}</option>`).join('');
 
   ['ord-cust', 'rec-cust', 'rpt-cust'].forEach(id => {
@@ -731,7 +731,7 @@ function openReceiptModal(id) {
     calcReceiptNet();
   } else {
     document.getElementById('rm-id').value = '';
-    document.getElementById('rm-receipt-id').value = nextId('REC');
+    document.getElementById('rm-receipt-id').value = nextId('REC-', receipts);
     document.getElementById('rm-cust').value = '';
     document.getElementById('rm-date').value = today();
     document.getElementById('rm-gross').value = '';
@@ -768,10 +768,10 @@ async function saveReceipt() {
     showToast('Customer, date and amount are required', 'error');
     return;
   }
-  const id = document.getElementById('rm-id')?.value || nextId('rec');
+  const id = document.getElementById('rm-id')?.value || nextId('REC-', receipts);
   const record = {
     id,
-    receiptId: document.getElementById('rm-receipt-id')?.value || nextId('REC'),
+    receiptId: document.getElementById('rm-receipt-id')?.value || nextId('REC-', receipts),
     customerId: custId,
     date,
     grossAmount: gross,
@@ -812,7 +812,7 @@ function openPricelistModal(id) {
     document.getElementById('pl-name-gr').value = pl.name || '';
     document.getElementById('pl-name-en').value = pl.nameEn || '';
   } else {
-    document.getElementById('pl-id').value = nextId('PL');
+    document.getElementById('pl-id').value = nextId('PL-', pricelists);
     document.getElementById('pl-name-gr').value = '';
     document.getElementById('pl-name-en').value = '';
   }
