@@ -373,6 +373,27 @@
   </div>
 </div>
 
+<script src="https://alcdn.msauth.net/browser/2.38.0/js/msal-browser.min.js"></script>
+<script>
+    (function(){
+      const _msalConfig={auth:{clientId:'0938023f-cbbf-45f1-a71d-b18c95745ea6',authority:'https://login.microsoftonline.com/9c30b606-6648-4777-a623-64867e43e54f',redirectUri:'https://kissamosrealestate.com/wp-content/erp/index.html'},cache:{cacheLocation:'sessionStorage',storeAuthStateInCookie:false}};
+      const _msal=new msal.PublicClientApplication(_msalConfig);
+      const _loginRequest={scopes:['openid','profile','User.Read']};
+      const _isMobile=/iPhone|iPad|iPod|Android|Mobile/i.test(navigator.userAgent);
+      async function _ensureLogin(){
+        await _msal.initialize();
+        try{const rr=await _msal.handleRedirectPromise();if(rr&&rr.account){_msal.setActiveAccount(rr.account);window._erpUserName=rr.account.name||rr.account.username;_showUserBadge(window._erpUserName);document.documentElement.style.visibility='visible';return;}}catch(e){}
+        const accounts=_msal.getAllAccounts();
+        if(accounts.length>0){_msal.setActiveAccount(accounts[0]);window._erpUserName=accounts[0].name||accounts[0].username;_showUserBadge(window._erpUserName);document.documentElement.style.visibility='visible';return;}
+        if(_isMobile){try{const r=await _msal.loginPopup(_loginRequest);if(r&&r.account){window._erpUserName=r.account.name||r.account.username;_showUserBadge(window._erpUserName);}document.documentElement.style.visibility='visible';}catch(e){if(e.errorCode!=='user_cancelled'){sessionStorage.setItem('msal_return_url',window.location.href);await _msal.loginRedirect(_loginRequest);}else{document.documentElement.style.visibility='visible';}}}
+        else{sessionStorage.setItem('msal_return_url',window.location.href);await _msal.loginRedirect(_loginRequest);}
+      }
+      function _showUserBadge(name){window._erpUserName=name;const zu=document.getElementById('zsUser');if(zu){zu.innerHTML='<span>&#128100; '+name+'</span><button onclick="window._azureLogout&&window._azureLogout()" style="background:transparent;border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.5);font-size:10px;padding:2px 7px;border-radius:4px;cursor:pointer;font-family:DM Sans,sans-serif;margin-left:4px">Sign out</button>';}}
+      window._azureLogout=function(){sessionStorage.removeItem('msal_return_url');const a=_msal.getAllAccounts();if(a.length>0){_msal.logoutRedirect({account:a[0]});}};
+      document.documentElement.style.visibility='hidden';
+      _ensureLogin().catch(function(){document.documentElement.style.visibility='visible';});
+    })();
+    </script>
 <script src="erp-base.js"></script>
 <script src="laundry-logic.js"></script>
 

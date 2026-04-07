@@ -164,21 +164,33 @@ body {
 <script src="https://alcdn.msauth.net/browser/2.38.0/js/msal-browser.min.js"></script>
 <script>
 (function(){
-  const cfg={auth:{clientId:'0938023f-cbbf-45f1-a71d-b18c95745ea6',authority:'https://login.microsoftonline.com/9c30b606-6648-4777-a623-64867e43e54f',redirectUri:window.location.href.split('#')[0].split('?')[0]},cache:{cacheLocation:'sessionStorage',storeAuthStateInCookie:false}};
-  const app=new msal.PublicClientApplication(cfg);
-  (async()=>{
-    await app.initialize();
-    try{ const r=await app.handleRedirectPromise(); if(r&&r.account) window._erpUserName=r.account.name||r.account.username; }catch(e){}
-    const accs=app.getAllAccounts();
-    if(!accs.length){ await app.loginRedirect({scopes:['User.Read']}); return; }
-    const acc=accs[0];
-    window._erpUserName=acc.name||acc.username;
-    window._azureLogout=()=>app.logoutRedirect({account:acc});
-    const badge=document.createElement('div');
-    badge.id='_azure_badge';
-    badge.innerHTML='<span>👤 '+acc.name+'</span>';
-    document.body.appendChild(badge);
-  })();
+  // Try MSAL auth but never block dashboard from loading
+  function tryMsal() {
+    try {
+      const cfg={auth:{clientId:'0938023f-cbbf-45f1-a71d-b18c95745ea6',authority:'https://login.microsoftonline.com/9c30b606-6648-4777-a623-64867e43e54f',redirectUri:window.location.href.split('#')[0].split('?')[0]},cache:{cacheLocation:'sessionStorage',storeAuthStateInCookie:false}};
+      const app=new msal.PublicClientApplication(cfg);
+      (async()=>{
+        await app.initialize();
+        try{ const r=await app.handleRedirectPromise(); if(r&&r.account) window._erpUserName=r.account.name||r.account.username; }catch(e){}
+        const accs=app.getAllAccounts();
+        if(accs.length){
+          const acc=accs[0];
+          window._erpUserName=acc.name||acc.username;
+          window._azureLogout=()=>app.logoutRedirect({account:acc});
+          const badge=document.createElement('div');
+          badge.id='_azure_badge';
+          badge.innerHTML='<span>👤 '+acc.name+'</span>';
+          document.body.appendChild(badge);
+        }
+        // Do NOT redirect — dashboard loads for everyone
+      })();
+    } catch(e) {
+      // MSAL unavailable — continue without auth
+      console.warn('MSAL not available:', e.message);
+    }
+  }
+  if(typeof msal !== 'undefined') tryMsal();
+  else window.addEventListener('load', function(){ if(typeof msal !== 'undefined') tryMsal(); });
 })();
 </script>
 </head>
@@ -601,6 +613,7 @@ function csvFileSelected(file) {
 })();
 </script>
 
+<script src="erp-base.js"></script>
 <script src="erp-nav.js"></script>
 </body>
 </html>

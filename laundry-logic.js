@@ -651,18 +651,20 @@ function viewCustomerLedger(custId) {
   ].sort((a,b)=>(a.date||'')>(b.date||'')?1:-1);
 
   // Running balance
-  let runBal = 0;
   const eur = n => '€' + parseFloat(n).toFixed(2);
 
-  // Brought Forward row (always show, even if 0)
+  // Brought Forward = customer.forwardBalance (set in Edit Customer modal)
+  const bfAmt = parseFloat(cust.forwardBalance) || 0;
+  let runBal = bfAmt; // start running balance from brought forward
+  const bfColor = bfAmt > 0 ? '#c0392b' : bfAmt < 0 ? '#27ae60' : '#888';
   const bfRow = `<tr style="border-bottom:1px solid #ddd;background:#f8f9fa;font-style:italic">
     <td style="padding:8px 12px;font-size:12px"></td>
     <td style="padding:8px 12px;font-size:11px;color:#888"></td>
-    <td style="padding:8px 12px;font-size:12px;color:#666">Brought Forward</td>
+    <td style="padding:8px 12px;font-size:12px;color:#666"><strong>Brought Forward</strong></td>
     <td style="text-align:right;padding:8px 10px;font-size:12px">—</td>
     <td style="text-align:right;padding:8px 10px;font-size:12px;color:#ccc">—</td>
     <td style="text-align:right;padding:8px 10px;font-size:12px;color:#ccc">—</td>
-    <td style="text-align:right;padding:8px 10px;font-size:12px;font-weight:600">€0.00</td>
+    <td style="text-align:right;padding:8px 10px;font-size:13px;font-weight:700;color:${bfColor}">€${Math.abs(bfAmt).toFixed(2)}${bfAmt>0?' DR':bfAmt<0?' CR':''}</td>
   </tr>`;
 
   const rows = entries.map(e => {
@@ -707,4 +709,191 @@ function viewCustomerLedger(custId) {
 
 function printLedger() {
   window.print();
+}
+
+// ══ RECEIPT FUNCTIONS ══════════════════════════════════════════════════
+function openReceiptModal(id) {
+  const isEdit = !!id;
+  document.getElementById('rec-modal-title').textContent = isEdit ? 'Edit Receipt' : 'Add Receipt';
+  const delBtn = document.getElementById('rm-del-btn');
+  if (delBtn) delBtn.style.display = isEdit ? '' : 'none';
+
+  if (isEdit) {
+    const r = receipts.find(x => x.id === id);
+    if (!r) return;
+    document.getElementById('rm-id').value = r.id;
+    document.getElementById('rm-receipt-id').value = r.receiptId || '';
+    document.getElementById('rm-cust').value = r.customerId || '';
+    document.getElementById('rm-date').value = r.date || '';
+    document.getElementById('rm-gross').value = r.grossAmount || '';
+    document.getElementById('rm-charges').value = r.charges || '';
+    document.getElementById('rm-notes').value = r.notes || '';
+    calcReceiptNet();
+  } else {
+    document.getElementById('rm-id').value = '';
+    document.getElementById('rm-receipt-id').value = nextId('REC');
+    document.getElementById('rm-cust').value = '';
+    document.getElementById('rm-date').value = today();
+    document.getElementById('rm-gross').value = '';
+    document.getElementById('rm-charges').value = '';
+    document.getElementById('rm-notes').value = '';
+    const netEl = document.getElementById('rm-net');
+    if (netEl) netEl.value = '';
+  }
+
+  // Populate customer dropdown
+  const custSel = document.getElementById('rm-cust');
+  if (custSel) {
+    custSel.innerHTML = '<option value="">— Select Customer —</option>' +
+      customers.filter(c => c.status !== 'inactive').sort((a,b)=>(a.name||'').localeCompare(b.name||''))
+        .map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+    if (isEdit) custSel.value = receipts.find(x => x.id === id)?.customerId || '';
+  }
+
+  openModal('receiptModal');
+}
+
+function calcReceiptNet() {
+  const gross = parseFloat(document.getElementById('rm-gross')?.value) || 0;
+  const charges = parseFloat(document.getElementById('rm-charges')?.value) || 0;
+  const netEl = document.getElementById('rm-net');
+  if (netEl) netEl.value = (gross - charges).toFixed(2);
+}
+
+async function saveReceipt() {
+  const custId = document.getElementById('rm-cust')?.value;
+  const date   = document.getElementById('rm-date')?.value;
+  const gross  = parseFloat(document.getElementById('rm-gross')?.value);
+  if (!custId || !date || isNaN(gross)) {
+    showToast('Customer, date and amount are required', 'error');
+    return;
+  }
+  const id = document.getElementById('rm-id')?.value || nextId('rec');
+  const record = {
+    id,
+    receiptId: document.getElementById('rm-receipt-id')?.value || nextId('REC'),
+    customerId: custId,
+    date,
+    grossAmount: gross,
+    charges: parseFloat(document.getElementById('rm-charges')?.value) || 0,
+    notes: document.getElementById('rm-notes')?.value || '',
+  };
+  const existing = receipts.find(r => r.id === id);
+  if (existing) Object.assign(existing, record);
+  else receipts.push(record);
+  await SyncStore.saveAll('zesty_laundry_receipts', 'laundry_receipts', receipts);
+  closeModal('receiptModal');
+  renderReceipts();
+  renderDashboard();
+  showToast('\u2713 Receipt saved', 'success');
+}
+
+async function deleteReceipt() {
+  const id = document.getElementById('rm-id')?.value;
+  if (!id) return;
+  showConfirm('\uD83D\uDDD1', 'Delete Receipt?', 'This cannot be undone.', 'btn-danger', 'Delete', async () => {
+    receipts = receipts.filter(r => r.id !== id);
+    await SyncStore.saveAll('zesty_laundry_receipts', 'laundry_receipts', receipts);
+    closeModal('receiptModal');
+    renderReceipts();
+    renderDashboard();
+    showToast('Receipt deleted', 'error');
+  });
+}
+
+// ══ PRICELIST FUNCTIONS ═════════════════════════════════════════════════
+function openPricelistModal(id) {
+  const isEdit = !!id;
+  document.getElementById('pl-modal-title').textContent = isEdit ? 'Edit Pricelist' : 'New Pricelist';
+  if (isEdit) {
+    const pl = pricelists.find(p => p.id === id);
+    if (!pl) return;
+    document.getElementById('pl-id').value = pl.id;
+    document.getElementById('pl-name-gr').value = pl.name || '';
+    document.getElementById('pl-name-en').value = pl.nameEn || '';
+  } else {
+    document.getElementById('pl-id').value = nextId('PL');
+    document.getElementById('pl-name-gr').value = '';
+    document.getElementById('pl-name-en').value = '';
+  }
+  // Render price inputs
+  const tbody = document.getElementById('pl-items-tbody');
+  if (tbody) {
+    const pl = isEdit ? pricelists.find(p => p.id === id) : null;
+    const allCodes = pricelists.length ? Object.keys(pricelists[0].prices || {}) : [];
+    tbody.innerHTML = allCodes.map(code => `<tr>
+      <td style="padding:4px 8px;font-size:12px;font-weight:500">${code}</td>
+      <td style="padding:4px 8px">
+        <input type="number" step="0.01" min="0" data-code="${code}" value="${pl?.prices?.[code] || ''}"
+          style="width:80px;padding:4px;border:1px solid #ddd;border-radius:5px;text-align:right">
+      </td>
+    </tr>`).join('');
+  }
+  openModal('plModal');
+}
+
+async function savePricelist() {
+  const id   = document.getElementById('pl-id')?.value;
+  const name = document.getElementById('pl-name-gr')?.value?.trim();
+  const nameEn = document.getElementById('pl-name-en')?.value?.trim();
+  if (!id || !name) { showToast('ID and name are required', 'error'); return; }
+  const prices = {};
+  document.querySelectorAll('#pl-items-tbody input[data-code]').forEach(inp => {
+    const v = parseFloat(inp.value);
+    if (!isNaN(v)) prices[inp.dataset.code] = v;
+  });
+  const record = { id, name, nameEn, prices, status: 'active' };
+  const existing = pricelists.find(p => p.id === id);
+  if (existing) Object.assign(existing, record);
+  else pricelists.push(record);
+  await SyncStore.saveAll('zesty_laundry_pricelists', 'laundry_pricelists', pricelists);
+  closeModal('plModal');
+  renderPricelists();
+  showToast('\u2713 Pricelist saved', 'success');
+}
+
+// ══ REPORT / PROPOSAL STUBS ════════════════════════════════════════════
+function openProposalModal() {
+  showToast('Proposal module coming soon', 'info');
+}
+function generateProposal() {
+  showToast('Proposal module coming soon', 'info');
+}
+function openExportHistory() {
+  showToast('Export history coming soon', 'info');
+}
+function generateReport() {
+  const year = document.getElementById('rpt-year')?.value || new Date().getFullYear();
+  // Simple summary - totals by customer for the year
+  const yearStr = String(year);
+  const yearOrders = orders.filter(o => (o.date||'').startsWith(yearStr));
+  const yearReceipts = receipts.filter(r => (r.date||'').startsWith(yearStr));
+  const out = document.getElementById('report-output') || document.getElementById('rpt-output');
+  if (!out) return;
+  let html = `<table style="width:100%;border-collapse:collapse;font-size:13px">
+    <thead><tr style="background:#0f4a42;color:#fff">
+      <th style="padding:8px">Customer</th>
+      <th style="text-align:right;padding:8px">Orders</th>
+      <th style="text-align:right;padding:8px">Charged</th>
+      <th style="text-align:right;padding:8px">Received</th>
+      <th style="text-align:right;padding:8px">Balance</th>
+    </tr></thead><tbody>`;
+  customers.forEach(c => {
+    const pl = pricelists.find(p=>p.id===c.pricelistId);
+    const cOrds = yearOrders.filter(o=>o.customerId===c.id);
+    const cRecs = yearReceipts.filter(r=>r.customerId===c.id);
+    if (!cOrds.length && !cRecs.length) return;
+    const charged  = cOrds.reduce((s,o)=>s+calcOrderTotal(o,pl),0);
+    const received = cRecs.reduce((s,r)=>s+(parseFloat(r.grossAmount)||0),0);
+    const bal = charged - received;
+    html += `<tr style="border-bottom:1px solid #eee">
+      <td style="padding:7px">${c.name}</td>
+      <td style="text-align:right;padding:7px">${cOrds.length}</td>
+      <td style="text-align:right;padding:7px">\u20AC${charged.toFixed(2)}</td>
+      <td style="text-align:right;padding:7px;color:#27ae60">\u20AC${received.toFixed(2)}</td>
+      <td style="text-align:right;padding:7px;font-weight:700;color:${bal>0?'#c0392b':'#27ae60'}">\u20AC${Math.abs(bal).toFixed(2)}${bal>0?' DR':bal<0?' CR':''}</td>
+    </tr>`;
+  });
+  html += '</tbody></table>';
+  out.innerHTML = html;
 }
