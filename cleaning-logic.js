@@ -222,7 +222,6 @@ async function runAutoImport() {
   showToast('Upload your Lodgify CSV file below to generate cleaning jobs', 'info');
 }
 
-
 async function save() {
   // Save staff and jobs to Supabase
   await SyncStore.saveAll('zesty_staff', 'cleaning_staff', staff);
@@ -259,12 +258,6 @@ function showPage(name) {
     if (hm && cm && !hm.value && cm.value) hm.value = cm.value;
     renderHoursSheet();
   }
-  if (name === 'checkin') {
-    const ciM = document.getElementById('ci-month');
-    const calM = document.getElementById('calMonth');
-    if (ciM && !ciM.value && calM?.value) ciM.value = calM.value;
-    if (typeof syncCheckinData === 'function') syncCheckinData().then(()=>renderCheckin());
-  }
 }
 // Alias so sidebar buttons work
 function showTab(name) { showPage(name); }
@@ -287,8 +280,7 @@ function renderStaff() {
       const colorIdx = staff.indexOf(s);
       const zones = (s.zones||[]).map(z => `<span class="zone-tag zone-${z.replace(' ','-')}">${z}</span>`).join('');
       const statusBadge = `<span class="badge badge-${s.status === 'Active' ? 'active' : 'inactive'}">${s.status||'Active'}</span>`;
-      const roleBadge = s.role === 'checkin_agent' ? '<span style="background:#e8f4f8;color:#1a5276;padding:1px 6px;border-radius:8px;font-size:10px;font-weight:700">CHECK-IN</span>' :
-                        s.role === 'both' ? '<span style="background:#fdf6e3;color:#7d6608;padding:1px 6px;border-radius:8px;font-size:10px;font-weight:700">BOTH</span>' : '';
+      const roleBadge = s.role === 'both' ? '<span style="background:#fdf6e3;color:#7d6608;padding:1px 6px;border-radius:8px;font-size:10px;font-weight:700">BOTH</span>' : '';
       return `<tr>
         <td>
           <div style="display:flex;align-items:center;gap:10px">
@@ -316,23 +308,14 @@ function renderStaff() {
       </tr>`;
     };
     
-    // Split by role: cleaners vs check-in agents
-    const cleaners = filtered.filter(s => !s.role || s.role === 'cleaner' || s.role === 'both');
-    const agents = filtered.filter(s => s.role === 'checkin_agent' || s.role === 'both');
+    // Show all active staff as cleaners (no agent role distinction)
+    const cleaners = filtered;
     
     // Cleaners table
     const cleanerRows = cleaners.map(makeRow).join('');
     tbody.innerHTML = cleanerRows || `<tr><td colspan="10" style="color:var(--text-muted);text-align:center;padding:20px">No cleaners found.</td></tr>`;
     
-    // Check-in agents table (separate section below)
-    const agentTbody = document.getElementById('agentTable');
-    const agentSection = document.getElementById('agentSection');
-    if (agentTbody) {
-      agentTbody.innerHTML = agents.map(makeRow).join('') || 
-        `<tr><td colspan="10" style="color:var(--text-muted);text-align:center;padding:12px">No check-in agents yet. Add staff with role "Check-In Agent".</td></tr>`;
-    }
-    if (agentSection) agentSection.style.display = '';
-  }
+      }
   updateStaffStats();
 }
 
@@ -356,7 +339,7 @@ function updateStaffStats() {
 }
 
 function openAddStaff(defaultRole) {
-  document.getElementById('staffModalTitle').textContent = defaultRole === 'checkin_agent' ? 'Add Check-In Agent' : 'Add Cleaner';
+  document.getElementById('staffModalTitle').textContent = 'Add Cleaner';
   const roleElNew = document.getElementById('s_role'); if(roleElNew) roleElNew.value = defaultRole || 'cleaner';
   document.getElementById('s_editId').value = '';
   clearStaffForm();
@@ -364,8 +347,6 @@ function openAddStaff(defaultRole) {
   const roleElNew2 = document.getElementById('s_role'); if(roleElNew2) roleElNew2.value = defaultRole || 'cleaner';
   openModal('staffModal');
 }
-// Alias so buttons can call either name
-function openStaffModal(defaultRole) { openAddStaff(defaultRole); }
 
 function editStaff(id) {
   const s = staff.find(x => x.id === id);
@@ -375,7 +356,7 @@ function editStaff(id) {
   document.getElementById('s_firstName').value = s.firstName||'';
   document.getElementById('s_lastName').value = s.lastName||'';
   document.getElementById('s_status').value = s.status||'Active';
-  const _re = document.getElementById('s_role'); if(_re) _re.value = s.role||'cleaner';
+
   document.getElementById('s_phone').value = s.phone||'';
   document.getElementById('s_email').value = s.email||'';
   document.getElementById('s_birthdate').value = s.birthdate||'';
@@ -420,7 +401,7 @@ async function saveStaff() {
   const zones = [...document.querySelectorAll('.zone-check.selected')].map(el => el.dataset.zone);
   const data = {
     firstName, lastName,
-    role: document.getElementById('s_role')?.value || 'cleaner',
+
     status: document.getElementById('s_status').value,
     phone: document.getElementById('s_phone').value.trim(),
     email: document.getElementById('s_email').value.trim(),
@@ -608,6 +589,262 @@ function getCleanDays(type, nights) {
   return days;
 }
 
+// ══ HOURS SHEET ════════════════════════════════════════════════════════════
+function renderHoursSheet() {
+  const monthVal = document.getElementById('hoursMonth')?.value || '';
+  if (!monthVal) {
+    const cm = document.getElementById('calMonth')?.value;
+    if (cm) { document.getElementById('hoursMonth').value = cm; renderHoursSheet(); }
+    return;
+  }
+  const [yr, mo] = monthVal.split('-');
+  const monthName = new Date(yr, parseInt(mo)-1, 1).toLocaleDateString('en-GB',{month:'long',year:'numeric'});
+  const titleEl = document.getElementById('hoursTableTitle');
+  if (titleEl) titleEl.textContent = 'Hours Sheet — ' + monthName;
+
+  // Only cleaning jobs (checkout/midstay) for this month
+  const monthJobs = cleaningJobs.filter(j =>
+    j.date && j.date.startsWith(monthVal) &&
+    (j.type === 'checkout' || j.type === 'midstay')
+  ).sort((a,b) => (a.date||'') > (b.date||'') ? 1 : -1);
+
+  // Active cleaners only (role=cleaner or both, or no role set)
+  const activeStaff = staff.filter(s => s.status !== 'Inactive' &&
+    (!s.role || s.role === 'cleaner' || s.role === 'both'));
+
+  // Populate property filter
+  const propFilter = document.getElementById('hoursPropFilter');
+  if (propFilter) {
+    const cur = propFilter.value;
+    propFilter.innerHTML = '<option value="">All Properties</option>' +
+      [...new Set(monthJobs.map(j=>j.propertyName).filter(Boolean))].sort()
+        .map(p=>`<option value="${p}" ${p===cur?'selected':''}>${p}</option>`).join('');
+  }
+  const propF = propFilter?.value || '';
+  const filteredJobs = propF ? monthJobs.filter(j=>j.propertyName===propF) : monthJobs;
+
+  // Table header: Date | Property | Type | Guest | [cleaner cols] | Tot.Hrs | Tot.Pay | Notes
+  const staffCols = activeStaff.map(s =>
+    `<th style="min-width:80px;text-align:center">${s.firstName}<br>
+     <span style="font-size:10px;color:var(--text-muted)">€${s.hourlyRate||0}/h</span></th>`
+  ).join('');
+
+  const thead = document.getElementById('hoursHead');
+  if (thead) thead.innerHTML = `<tr>
+    <th style="width:90px">Date</th>
+    <th>Property</th>
+    <th style="width:80px">Type</th>
+    <th style="width:130px">Guest</th>
+    ${staffCols}
+    <th style="text-align:right;width:70px">Hrs</th>
+    <th style="text-align:right;width:80px">Pay</th>
+    <th style="text-align:right;width:80px">Charge</th>
+    <th style="width:90px">Notes</th>
+    <th style="width:40px"></th>
+  </tr>`;
+
+  let totalHours=0, totalPay=0, totalCharge=0;
+  const staffTotals = {};
+  activeStaff.forEach(s => staffTotals[s.id] = {hours:0, pay:0});
+
+  const rows = filteredJobs.map((j) => {
+    const assignedIds = j.cleanerIds || [];
+    let rowHours=0, rowPay=0;
+
+    const staffCells = activeStaff.map(s => {
+      const savedHrs = j.cleanerHours?.[s.id];
+      const hrs = savedHrs !== undefined ? savedHrs :
+                  (assignedIds.includes(s.id) && j.hours ? j.hours : '');
+      const hrsNum = parseFloat(hrs) || 0;
+      const pay = hrsNum * (parseFloat(s.hourlyRate)||0);
+      if (hrsNum > 0) {
+        rowHours += hrsNum; rowPay += pay;
+        staffTotals[s.id].hours += hrsNum; staffTotals[s.id].pay += pay;
+      }
+      return `<td style="text-align:center;padding:4px">
+        <input type="number" min="0" max="24" step="0.5" value="${hrs}"
+          data-jobid="${j.id}" data-staffid="${s.id}"
+          onchange="onHoursChange(this)"
+          style="width:58px;padding:5px;border:1px solid var(--border);border-radius:6px;
+                 text-align:center;font-size:13px;background:${hrsNum>0?'#e0f5f1':'#fff'}">
+      </td>`;
+    }).join('');
+
+    // Property charge from properties module
+    const prop = (typeof properties !== 'undefined' ? properties : [])
+      .find(p => (p.shortName||p.propertyName||'').toLowerCase().includes((j.propertyName||'').toLowerCase().split(' ')[0]));
+    const rowCharge = parseFloat(prop?.cleaningFee||0);
+    const margin = rowCharge - rowPay;
+
+    totalHours += rowHours; totalPay += rowPay; totalCharge += rowCharge;
+
+    const typeBadge = j.type==='checkout'
+      ? `<span style="background:#fdebd0;color:#a04000;padding:1px 6px;border-radius:8px;font-size:10px;font-weight:700">CHECKOUT</span>`
+      : `<span style="background:#fdf6e3;color:#8e6b23;padding:1px 6px;border-radius:8px;font-size:10px;font-weight:700">MID-STAY</span>`;
+    const infants = j.infants>0 ? ` <span style="background:#ffcccc;color:#c0392b;padding:0 4px;border-radius:5px;font-size:9px">INF</span>` : '';
+
+    return `<tr style="border-bottom:1px solid var(--border)">
+      <td style="font-size:12px;white-space:nowrap">${j.date||'—'}</td>
+      <td style="font-size:12px">${j.propertyName||'—'}</td>
+      <td>${typeBadge}</td>
+      <td style="font-size:11px;color:var(--text-muted)">${j.guestName||'—'}${infants}</td>
+      ${staffCells}
+      <td style="text-align:right;font-weight:700;color:var(--teal)">${rowHours>0?rowHours+'h':'—'}</td>
+      <td style="text-align:right;font-size:12px;color:var(--danger)">${rowPay>0?'€'+rowPay.toFixed(0):'—'}</td>
+      <td style="text-align:right;font-size:12px;font-weight:600;color:${margin>=0?'var(--teal-dark)':'var(--danger)'}">${rowCharge>0?'€'+rowCharge.toFixed(0):'—'}</td>
+      <td style="font-size:11px;color:var(--text-muted)">${j.notes||''}</td>
+      <td style="text-align:center;padding:4px">
+        <button onclick="editManualHoursJob('${j.id}')" title="Edit" style="background:none;border:none;cursor:pointer;font-size:14px;padding:2px 5px;border-radius:6px" onmouseenter="this.style.background='#f0f0f0'" onmouseleave="this.style.background='none'">✏️</button>
+      </td>
+    </tr>`;
+  }).join('');
+
+  const tbody = document.getElementById('hoursBody');
+  if (tbody) tbody.innerHTML = rows ||
+    `<tr class="empty-row"><td colspan="${4+activeStaff.length+5}">No cleaning jobs for this period.</td></tr>`;
+
+  const staffFootCells = activeStaff.map(s => `<td style="text-align:center;font-weight:700;color:var(--teal)">
+    ${staffTotals[s.id].hours>0?staffTotals[s.id].hours+'h':'—'}<br>
+    <span style="font-size:11px">${staffTotals[s.id].pay>0?'€'+staffTotals[s.id].pay.toFixed(0):''}</span>
+  </td>`).join('');
+  const tfoot = document.getElementById('hoursFoot');
+  if (tfoot) tfoot.innerHTML = `<tr style="background:var(--cream);font-weight:700">
+    <td colspan="4">TOTAL</td>
+    ${staffFootCells}
+    <td style="text-align:right">${totalHours}h</td>
+    <td style="text-align:right;color:var(--danger)">€${totalPay.toFixed(0)}</td>
+    <td style="text-align:right;color:var(--teal-dark)">€${totalCharge.toFixed(0)}</td>
+    <td></td>
+  </tr>`;
+
+  const setEl=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
+  setEl('h-total', filteredJobs.length);
+  setEl('h-hours', totalHours+'h');
+  setEl('h-labour', '€'+totalPay.toFixed(0));
+  setEl('h-charge', '€'+totalCharge.toFixed(0));
+  setEl('h-margin', '€'+(totalCharge-totalPay).toFixed(0));
+  window._currentHoursJobs = filteredJobs;
+}
+
+async function onHoursChange(input) {
+  const jobId = input.dataset.jobid;
+  const staffId = input.dataset.staffid;
+  const hrs = parseFloat(input.value) || 0;
+  const job = cleaningJobs.find(j => j.id === jobId);
+  if (!job) return;
+  if (!job.cleanerHours) job.cleanerHours = {};
+  if (hrs === 0) delete job.cleanerHours[staffId];
+  else job.cleanerHours[staffId] = hrs;
+  input.style.background = hrs > 0 ? '#e0f5f1' : '#fff';
+  clearTimeout(window._hoursSaveTimer);
+  window._hoursSaveTimer = setTimeout(() => saveHoursSheet(), 1500);
+}
+
+async function saveHoursSheet() {
+  const msg = document.getElementById('hoursSavedMsg');
+  if (msg) msg.textContent = 'Saving…';
+  await SyncStore.saveAll('zesty_cleaning_jobs', 'cleaning_jobs', cleaningJobs);
+  if (msg) {
+    msg.textContent = '✓ Saved ' + new Date().toLocaleTimeString('en-GB');
+    setTimeout(()=>{ if(msg) msg.textContent=''; }, 3000);
+  }
+  showToast('✓ Hours saved', 'success');
+}
+
+function addManualHoursJob() {
+  // Populate property dropdown
+  const propSel = document.getElementById('mj-property');
+  if (propSel) {
+    const propList = (typeof properties !== 'undefined' ? properties : [])
+      .filter(p => !p.archived)
+      .sort((a,b) => (a.shortName||a.propertyName||'').localeCompare(b.shortName||b.propertyName||''));
+    propSel.innerHTML = '<option value="">— Select property —</option>' +
+      propList.map(p => `<option value="${p.shortName||p.propertyName}">${p.shortName||p.propertyName}</option>`).join('');
+  }
+  // Set default date to first of current hours month
+  const monthVal = document.getElementById('hoursMonth')?.value || '';
+  const dateEl = document.getElementById('mj-date');
+  if (dateEl) dateEl.value = monthVal ? monthVal + '-01' : today();
+  // Reset fields
+  document.getElementById('mj-type').value = 'checkout';
+  document.getElementById('mj-guest').value = '';
+  document.getElementById('mj-hours').value = '';
+  document.getElementById('mj-notes').value = '';
+  document.getElementById('mj-id').value = '';
+  document.getElementById('mj-modal-title').textContent = 'Add Manual Job';
+  openModal('manualJobModal');
+}
+
+function editManualHoursJob(id) {
+  const j = cleaningJobs.find(x => x.id === id);
+  if (!j) return;
+  // Populate property dropdown
+  const propSel = document.getElementById('mj-property');
+  if (propSel) {
+    const propList = (typeof properties !== 'undefined' ? properties : [])
+      .filter(p => !p.archived)
+      .sort((a,b) => (a.shortName||a.propertyName||'').localeCompare(b.shortName||b.propertyName||''));
+    propSel.innerHTML = '<option value="">— Select property —</option>' +
+      propList.map(p => `<option value="${p.shortName||p.propertyName}"${(p.shortName||p.propertyName)===j.propertyName?' selected':''}>${p.shortName||p.propertyName}</option>`).join('');
+  }
+  document.getElementById('mj-id').value       = j.id;
+  document.getElementById('mj-date').value     = j.date || '';
+  document.getElementById('mj-type').value     = j.type || 'checkout';
+  document.getElementById('mj-guest').value    = j.guestName || '';
+  document.getElementById('mj-hours').value    = j.hours || '';
+  document.getElementById('mj-notes').value    = j.notes || '';
+  document.getElementById('mj-modal-title').textContent = 'Edit Job';
+  openModal('manualJobModal');
+}
+
+async function saveManualJob() {
+  const propName = document.getElementById('mj-property')?.value?.trim();
+  const date     = document.getElementById('mj-date')?.value;
+  if (!propName || !date) { showToast('Property and date are required', 'error'); return; }
+
+  const existingId = document.getElementById('mj-id')?.value;
+  const id = existingId || 'manual_' + Date.now();
+
+  const prop = (typeof properties !== 'undefined' ? properties : [])
+    .find(p => (p.shortName||p.propertyName) === propName);
+
+  const job = {
+    id, date,
+    type:              document.getElementById('mj-type')?.value || 'checkout',
+    propertyName:      propName,
+    propertyId:        prop?.id || '',
+    propertyTransport: parseFloat(prop?.transport || 0),
+    guestName:         document.getElementById('mj-guest')?.value || 'Manual entry',
+    hours:             parseFloat(document.getElementById('mj-hours')?.value) || 0,
+    notes:             document.getElementById('mj-notes')?.value || '',
+    cleanerIds:        existingId ? (cleaningJobs.find(j=>j.id===existingId)?.cleanerIds || []) : [],
+    cleanerHours:      existingId ? (cleaningJobs.find(j=>j.id===existingId)?.cleanerHours || {}) : {},
+    source:            'manual',
+  };
+
+  const idx = cleaningJobs.findIndex(j => j.id === id);
+  if (idx >= 0) cleaningJobs[idx] = {...cleaningJobs[idx], ...job};
+  else cleaningJobs.push(job);
+
+  await SyncStore.saveAll('zesty_cleaning_jobs', 'cleaning_jobs', cleaningJobs);
+  closeModal('manualJobModal');
+  renderHoursSheet();
+  showToast('\u2713 Job saved', 'success');
+}
+
+async function deleteManualJob(id) {
+  showConfirm('\uD83D\uDDD1', 'Delete Job?', 'Remove this manual job from the hours sheet?',
+    'btn-danger', 'Delete', async () => {
+      cleaningJobs = cleaningJobs.filter(j => j.id !== id);
+      await SyncStore.saveAll('zesty_cleaning_jobs', 'cleaning_jobs', cleaningJobs);
+      closeModal('manualJobModal');
+      renderHoursSheet();
+      showToast('Job removed', 'error');
+    }
+  );
+}
+
+
 async function confirmImport() {
   // Refresh property cache from Supabase before importing
   // This ensures new properties added since last visit are included
@@ -709,40 +946,6 @@ async function confirmImport() {
       localStorage.setItem('zesty_last_clean_import', JSON.stringify(importRec));
       updateCleanImportStatus();
       await save();
-      
-      // Also auto-import check-in/out agent jobs from same CSV
-      let ciCreated = 0;
-      allRows.forEach(r => {
-        const propName = r.HouseInternalName || r.HouseName || '';
-        const bookingId = r.Id;
-        const coId = 'ci_co_' + bookingId;
-        const ciId = 'ci_in_' + bookingId;
-        if (!checkinJobs.find(x => x.id === coId)) {
-          checkinJobs.push({ id: coId, property: propName, date: r.DateDeparture, type: 'checkout',
-            guest: r.Name||'', time:'', flight:'', repeat:'unknown', agentId:'', notes:'',
-            guests: parseInt(r.People||0)||null, adults: parseInt(r.Adults||0)||null,
-            children: parseInt(r.Children||0)||null, infants: parseInt(r.Infants||0)||null,
-            nights: parseInt(r.Nights)||0 });
-          ciCreated++;
-        }
-        if (!checkinJobs.find(x => x.id === ciId)) {
-          checkinJobs.push({ id: ciId, property: propName, date: r.DateArrival, type: 'checkin',
-            guest: r.Name||'', time:'', flight:'', repeat:'unknown', agentId:'', notes:'',
-            guests: parseInt(r.People||0)||null, adults: parseInt(r.Adults||0)||null,
-            children: parseInt(r.Children||0)||null, infants: parseInt(r.Infants||0)||null,
-            nights: parseInt(r.Nights)||0 });
-          ciCreated++;
-        }
-      });
-      // Remove check-in jobs for cancelled bookings
-      const cancelledIds2 = new Set(
-        importPreviewData.filter(r => r.Status === 'Declined' || r.Status === 'Cancelled').map(r => r.Id)
-      );
-      checkinJobs = checkinJobs.filter(j => {
-        const bid = j.id.replace(/^ci_(co|in)_/, '');
-        return !cancelledIds2.has(bid);
-      });
-      saveCheckinLocal();
       
       renderCalendar();
       renderJobs();
@@ -1282,7 +1485,6 @@ function printSchedule() {
     if (clJobs.length === 0 && !cleanerFilter) return;
     const totalHours = clJobs.reduce((sum,j) => sum + (j.hours||0), 0);
 
-
     printContent += `
       <div class="print-page">
         <div class="print-logo">Zesty Rentals \u2014 Cleaning Schedule</div>
@@ -1335,8 +1537,6 @@ function printSchedule() {
   w.document.close();
   setTimeout(() => w.print(), 600);
 }
-
-
 
 // Remove cleaning jobs for properties that have no cleaning fee set
 async function removeNoFeeJobs() {
@@ -1689,11 +1889,10 @@ function showToast(msg, type='') {
   setTimeout(() => t.classList.remove('show'), 3000);
 }
 
-['staffModal','jobModal','ciModal'].forEach(id => {
+['staffModal','jobModal'].forEach(id => {
   document.getElementById(id).addEventListener('click', e => { if(e.target === e.currentTarget) closeModal(id); });
 });
 document.getElementById('confirmOverlay').addEventListener('click', e => { if(e.target === e.currentTarget) closeConfirm(); });
-
 
 // \u2500\u2500 SIDEBAR NAVIGATION \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 function _initSidebar() {
@@ -1736,890 +1935,6 @@ function _initSidebar() {
 }
 document.addEventListener('DOMContentLoaded', _initSidebar);
 
-
-
-// ══════════════════════════════════════════
-// CHECK-IN AGENT MODULE
-// ══════════════════════════════════════════
-
-let checkinJobs = JSON.parse(localStorage.getItem('zesty_checkin_jobs') || '[]');
-
-function saveCheckinLocal() {
-  localStorage.setItem('zesty_checkin_jobs', JSON.stringify(checkinJobs));
-}
-
-async function saveCheckinSupabase() {
-  saveCheckinLocal();
-  // Upsert to Supabase cleaning_jobs table with type=checkin/checkout_agent
-  const ts = new Date().toISOString();
-  const rows = checkinJobs.map(j => ({id: j.id, data: j, updated_at: ts}));
-  // Save in batches of 50
-  for (let i = 0; i < rows.length; i += 50) {
-    const batch = rows.slice(i, i+50);
-    await fetch(DB.url + '/rest/v1/checkin_jobs', {
-      method: 'POST',
-      headers: {...DB.headers, 'Prefer': 'resolution=merge-duplicates'},
-      body: JSON.stringify(batch)
-    }).catch(() => {});
-  }
-}
-
-// ── Render check-in page ──
-function renderCheckin() {
-  const monthVal = document.getElementById('ci-month')?.value || '';
-  const agentF = document.getElementById('ci-agent')?.value || '';
-
-  // Populate property datalist
-  const propList = document.getElementById('ci_propList');
-  if (propList) {
-    const props = [...new Set(cleaningJobs.map(j=>j.propertyName).filter(Boolean))].sort();
-    propList.innerHTML = props.map(p=>`<option value="${p}">`).join('');
-  }
-
-  // Populate agent filter
-  const agentSel = document.getElementById('ci-agent');
-  const agentModalSel = document.getElementById('ci_agent_sel');
-  const activeStaff = staff.filter(s => s.status !== 'Inactive');
-  if (agentSel) {
-    const cur = agentSel.value;
-    agentSel.innerHTML = '<option value="">All Agents</option>' +
-      activeStaff.map(s=>`<option value="${s.id}" ${s.id===cur?'selected':''}>${s.firstName} ${s.lastName}</option>`).join('');
-  }
-  if (agentModalSel) {
-    const cur = agentModalSel.value;
-    // Load from HR employees module (zesty_employees key) - all active staff available as agents
-    const hrEmployees = JSON.parse(localStorage.getItem('zesty_employees') || '[]')
-      .filter(e => (e.status||'Active') === 'Active');
-    // Also include cleaning staff with checkin_agent role
-    const cleaningAgents = staff.filter(s => s.status !== 'Inactive' && 
-      (s.role === 'checkin_agent' || s.role === 'both'));
-    // Build combined list - HR employees first, then cleaning agents not already listed
-    const agentList = [...hrEmployees.map(e => ({
-      id: 'hr_' + (e.id||e.firstName+e.lastName),
-      firstName: e.firstName || '', lastName: e.lastName || '',
-      dept: e.department || ''
-    }))];
-    cleaningAgents.forEach(a => {
-      if (!agentList.find(x => x.firstName===a.firstName && x.lastName===a.lastName))
-        agentList.push({id: a.id, firstName: a.firstName, lastName: a.lastName, dept: 'Cleaning'});
-    });
-    // If empty, show all cleaning staff as fallback
-    if (!agentList.length) {
-      staff.filter(s=>s.status!=='Inactive').forEach(s => agentList.push({id:s.id, firstName:s.firstName, lastName:s.lastName, dept:'Cleaning'}));
-    }
-    agentModalSel.innerHTML = '<option value="">-- Select Agent --</option>' +
-      agentList.map(s=>`<option value="${s.id}" ${s.id===cur?'selected':''}>${s.firstName} ${s.lastName}${s.dept?' ('+s.dept+')':''}</option>`).join('');
-  }
-
-  let jobs = checkinJobs.filter(j =>
-    (!monthVal || (j.date||'').startsWith(monthVal)) &&
-    (!agentF || j.agentId === agentF)
-  ).sort((a,b) => (a.date||'') > (b.date||'') ? 1 : (a.date||'') < (b.date||'') ? -1 : 0);
-
-  // Detect same-day checkin/checkout from cleaning schedule
-  const checkoutDates = new Set(cleaningJobs
-    .filter(j => j.type==='checkout' && (!monthVal || j.date.startsWith(monthVal)))
-    .map(j => j.date + '|' + j.propertyName));
-
-  let sameDayCount = 0;
-  jobs.forEach(j => {
-    if (j.type === 'checkin') {
-      j._sameDay = checkoutDates.has(j.date + '|' + j.property);
-      if (j._sameDay) sameDayCount++;
-    }
-  });
-
-  // Stats
-  const setEl = (id,v) => { const el=document.getElementById(id); if(el) el.textContent=v; };
-  setEl('ci-stat-in', jobs.filter(j=>j.type==='checkin').length);
-  setEl('ci-stat-out', jobs.filter(j=>j.type==='checkout').length);
-  setEl('ci-stat-same', sameDayCount);
-  setEl('ci-stat-repeat', jobs.filter(j=>j.repeat==='yes').length);
-
-  const alertEl = document.getElementById('ci-same-day-alert');
-  if (alertEl) alertEl.style.display = sameDayCount > 0 ? '' : 'none';
-
-  const monthName = monthVal ? new Date(monthVal+'-01').toLocaleDateString('en-GB',{month:'long',year:'numeric'}) : 'All';
-  const titleEl = document.getElementById('ci-title');
-  if (titleEl) titleEl.textContent = 'Check-In Schedule — ' + monthName;
-
-  const tbody = document.getElementById('ci-tbody');
-  if (!tbody) return;
-
-  if (!jobs.length) {
-    tbody.innerHTML = '<tr class="empty-row"><td colspan="10">No check-in jobs for this period.</td></tr>';
-    return;
-  }
-
-  tbody.innerHTML = jobs.map(j => {
-    const agent = staff.find(s => s.id === j.agentId);
-    const agentName = agent ? agent.firstName + ' ' + agent.lastName : '<span style="color:var(--danger)">\u26A0 Unassigned</span>';
-    const typeBadge = j.type === 'checkin'
-      ? '<span style="background:#e0f5f1;color:#115950;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700">CHECK-IN</span>'
-      : '<span style="background:#fdebd0;color:#a04000;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700">CHECK-OUT</span>';
-    const sameDayBadge = j._sameDay ? ' <span style="background:#fff3cd;color:#856404;padding:1px 5px;border-radius:8px;font-size:10px;font-weight:700">\u26A0 SAME DAY CLEAN</span>' : '';
-    const repeatBadge = j.repeat === 'yes' ? ' <span style="color:var(--teal);font-size:11px">\u2605 Repeat</span>' : '';
-    return `<tr style="${j._sameDay ? 'background:#fffbe6' : ''}">
-      <td style="font-weight:600;font-size:12px">${formatDate(j.date)}</td>
-      <td style="font-size:12px">${j.property||'\u2014'}</td>
-      <td>${typeBadge}${sameDayBadge}</td>
-      <td style="font-size:12px">${j.guest||'\u2014'}${repeatBadge}</td>
-      <td style="font-size:12px">${j.time||'\u2014'}</td>
-      <td style="font-size:12px">${j.flight||'\u2014'}</td>
-      <td style="text-align:center">${j.repeat==='yes' ? '\u2605 Yes' : j.repeat==='no' ? 'No' : '?'}</td>
-      <td style="font-size:12px">${agentName}</td>
-      <td style="font-size:11px;color:var(--text-muted)">${j.notes||''}</td>
-      <td>
-        <div style="display:flex;gap:4px">
-          <button class="btn btn-teal btn-sm" onclick="openCheckinModal('${j.id}')">\u270F\uFE0F</button>
-          <button class="btn btn-danger btn-sm" onclick="deleteCheckinJob('${j.id}')">\u{1F5D1}</button>
-        </div>
-      </td>
-    </tr>`;
-  }).join('');
-}
-
-function openCheckinModal(id) {
-  const j = id ? checkinJobs.find(x=>x.id===id) : null;
-  document.getElementById('ci_editId').value = id || '';
-  document.getElementById('ci_property').value = j?.property || '';
-  document.getElementById('ci_date').value = j?.date || new Date().toISOString().slice(0,10);
-  document.getElementById('ci_type').value = j?.type || 'checkin';
-  document.getElementById('ci_time').value = j?.time || '';
-  document.getElementById('ci_flight').value = j?.flight || '';
-  document.getElementById('ci_guest').value = j?.guest || '';
-  document.getElementById('ci_repeat').value = j?.repeat || 'no';
-  document.getElementById('ci_notes').value = j?.notes || '';
-  document.getElementById('ci_agent_sel').value = j?.agentId || '';
-  document.getElementById('ci_deleteBtn').style.display = id ? '' : 'none';
-  renderCheckin(); // populate agent dropdown
-  document.getElementById('ci_agent_sel').value = j?.agentId || '';
-  openModal('ciModal');
-}
-
-async function saveCheckinJob() {
-  const id = document.getElementById('ci_editId').value;
-  const job = {
-    id: id || 'ci_' + Date.now(),
-    property: document.getElementById('ci_property').value.trim(),
-    date: document.getElementById('ci_date').value,
-    type: document.getElementById('ci_type').value,
-    time: document.getElementById('ci_time').value,
-    flight: document.getElementById('ci_flight').value.trim(),
-    guest: document.getElementById('ci_guest').value.trim(),
-    repeat: document.getElementById('ci_repeat').value,
-    agentId: document.getElementById('ci_agent_sel').value,
-    notes: document.getElementById('ci_notes').value.trim(),
-  };
-  if (!job.property || !job.date) { showToast('Property and date required', 'error'); return; }
-  const idx = checkinJobs.findIndex(x=>x.id===job.id);
-  if (idx >= 0) checkinJobs[idx] = job;
-  else checkinJobs.push(job);
-  saveCheckinLocal();
-  closeModal('ciModal');
-  renderCheckin();
-  showToast('\u2713 Check-in job saved', 'success');
-}
-
-function deleteCheckinJob(id) {
-  const jobId = id || document.getElementById('ci_editId').value;
-  showConfirm('\u{1F5D1}\uFE0F', 'Delete Job?', 'Remove this check-in job?', 'btn-danger', 'Delete', () => {
-    checkinJobs = checkinJobs.filter(j=>j.id!==jobId);
-    saveCheckinLocal();
-    closeModal('ciModal');
-    renderCheckin();
-    showToast('Deleted', 'error');
-  });
-}
-
-// ── Import check-in jobs from cleaning schedule ──
-// Creates check-in and checkout jobs from cleaning_jobs for the current month
-function importCheckinFromSchedule() {
-  const monthVal = document.getElementById('ci-month')?.value || '';
-  if (!monthVal) { showToast('Select a month first', 'error'); return; }
-  
-  const monthCheckouts = cleaningJobs.filter(j => 
-    j.type === 'checkout' && j.date && j.date.startsWith(monthVal)
-  );
-  
-  let added = 0;
-  monthCheckouts.forEach(cj => {
-    // Check-out agent job (on checkout date)
-    const coId = 'ci_co_' + cj.id;
-    if (!checkinJobs.find(x=>x.id===coId)) {
-      checkinJobs.push({
-        id: coId, property: cj.propertyName, date: cj.date,
-        type: 'checkout', guest: cj.guestName || '', time: '',
-        flight: '', repeat: 'unknown', agentId: '', notes: '',
-        linkedCleanJobId: cj.id
-      });
-      added++;
-    }
-    // Check-in agent job — on same date (turnover day)
-    const ciId = 'ci_in_' + cj.id;
-    if (!checkinJobs.find(x=>x.id===ciId)) {
-      checkinJobs.push({
-        id: ciId, property: cj.propertyName, date: cj.date,
-        type: 'checkin', guest: '', time: '', flight: '',
-        repeat: 'unknown', agentId: '', notes: '',
-        linkedCleanJobId: cj.id
-      });
-      added++;
-    }
-  });
-  saveCheckinLocal();
-  renderCheckin();
-  showToast('\u26A1 Imported ' + added + ' check-in jobs from schedule', 'success');
-}
-
-function exportCheckinCSV() {
-  const monthVal = document.getElementById('ci-month')?.value || '';
-  const jobs = checkinJobs.filter(j => !monthVal || (j.date||'').startsWith(monthVal))
-    .sort((a,b) => (a.date||'')>(b.date||'')?1:-1);
-  const headers = ['Date','Property','Type','Guest','Time','Flight','Repeat','Agent','Notes'];
-  const rows = jobs.map(j => {
-    const agent = staff.find(s=>s.id===j.agentId);
-    return [j.date, j.property, j.type, j.guest, j.time, j.flight,
-            j.repeat, agent?agent.firstName+' '+agent.lastName:'', j.notes]
-      .map(v => `"${(v||'').toString().replace(/"/g,'""')}"`).join(',');
-  });
-  const csv = [headers.join(','), ...rows].join('\n');
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8;'}));
-  a.download = 'checkin_schedule_' + (monthVal||'all') + '.csv';
-  a.click();
-  showToast('\u2713 Exported', 'success');
-}
-
-function printCheckinSchedule() {
-  const monthVal = document.getElementById('ci-month')?.value || '';
-  if (!monthVal) { showToast('Select a month first', 'error'); return; }
-  const jobs = checkinJobs.filter(j => j.date && j.date.startsWith(monthVal))
-    .sort((a,b) => (a.date||'')>(b.date||'')?1:-1);
-  const monthName = new Date(monthVal+'-01').toLocaleDateString('en-GB',{month:'long',year:'numeric'});
-
-  const checkoutDates = new Set(cleaningJobs
-    .filter(j=>j.type==='checkout'&&j.date&&j.date.startsWith(monthVal))
-    .map(j=>j.date+'|'+j.propertyName));
-
-  const rows = jobs.map(j => {
-    const agent = staff.find(s=>s.id===j.agentId);
-    const agentName = agent ? agent.firstName+' '+agent.lastName : '\u26A0 Unassigned';
-    const sameDay = j.type==='checkin' && checkoutDates.has(j.date+'|'+j.property);
-    return `<tr style="${sameDay?'background:#fffbe6':''}">
-      <td><strong>${formatDate(j.date)}</strong></td>
-      <td>${j.property||'\u2014'}</td>
-      <td><span style="padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700;background:${j.type==='checkin'?'#e0f5f1':'#fdebd0'};color:${j.type==='checkin'?'#115950':'#a04000'}">${j.type==='checkin'?'CHECK-IN':'CHECK-OUT'}</span>${sameDay?' <span style="background:#fff3cd;color:#856404;padding:1px 5px;border-radius:8px;font-size:9px;font-weight:700">SAME DAY CLEAN</span>':''}</td>
-      <td>${j.guest||'\u2014'}${j.repeat==='yes'?' \u2605':''}</td>
-      <td>${j.time||'\u2014'}</td>
-      <td>${j.flight||'\u2014'}</td>
-      <td>${agentName}</td>
-      <td style="font-size:11px;color:#666">${j.notes||''}</td>
-    </tr>`;
-  }).join('');
-
-  const w = window.open('','_blank');
-  w.document.write(`<html><head><title>Check-In Schedule ${monthName}</title><style>
-    body{font-family:'DM Sans',Arial,sans-serif;font-size:12px;color:#1e2a28;padding:24px}
-    h1{color:#115950;font-size:20px;margin-bottom:4px}
-    table{width:100%;border-collapse:collapse;margin-top:16px}
-    th{background:#115950;color:#fff;padding:7px 10px;text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.5px}
-    td{padding:8px 10px;border-bottom:1px solid #e8f0ef;vertical-align:top}
-    tr:nth-child(even) td{background:#f8fcfb}
-    @page{size:A4 landscape;margin:8mm}
-  </style></head><body>
-    <h1>Check-In Agent Schedule</h1>
-    <p style="color:#888;margin-bottom:16px">${monthName} &nbsp;&middot;&nbsp; Printed: ${new Date().toLocaleDateString('en-GB')}</p>
-    <table>
-      <thead><tr><th>Date</th><th>Property</th><th>Type</th><th>Guest</th><th>Time</th><th>Flight</th><th>Agent</th><th>Notes</th></tr></thead>
-      <tbody>${rows}</tbody>
-    </table>
-  </body></html>`);
-  w.document.close();
-  setTimeout(()=>w.print(),400);
-}
-
-// Show checkin page init
-function initCheckinPage() {
-  const now = new Date();
-  const ciMonthEl = document.getElementById('ci-month');
-  if (ciMonthEl && !ciMonthEl.value) {
-    ciMonthEl.value = now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
-  }
-  renderCheckin();
-}
-
-
 init().catch(console.error);
 showDbStatus(true);
-
-// \u2500\u2500 HOURS SHEET \u2500\u2500
-let hoursExtra = []; // extra manual cleaning rows
-
-function renderHoursSheet() {
-  const monthVal = document.getElementById('hoursMonth')?.value || '';
-  if (!monthVal) { 
-    // Set to current calMonth
-    const cm = document.getElementById('calMonth')?.value;
-    if (cm) { document.getElementById('hoursMonth').value = cm; renderHoursSheet(); }
-    return; 
-  }
-  const [yr, mo] = monthVal.split('-');
-  const monthName = new Date(yr, parseInt(mo)-1, 1).toLocaleDateString('en-GB',{month:'long',year:'numeric'});
-  const titleEl = document.getElementById('hoursTableTitle');
-  if (titleEl) titleEl.textContent = 'Hours Sheet — ' + monthName;
-
-  // Only cleaning jobs (checkout/midstay) for this month
-  const monthJobs = cleaningJobs.filter(j =>
-    j.date && j.date.startsWith(monthVal) &&
-    (j.type === 'checkout' || j.type === 'midstay')
-  ).sort((a,b) => (a.date||'') > (b.date||'') ? 1 : -1);
-
-  // Active cleaners only (role=cleaner or both or no role)
-  const activeStaff = staff.filter(s => s.status !== 'Inactive' && 
-    (!s.role || s.role === 'cleaner' || s.role === 'both'));
-
-  // Populate property filter
-  const propFilter = document.getElementById('hoursPropFilter');
-  if (propFilter) {
-    const cur = propFilter.value;
-    propFilter.innerHTML = '<option value="">All Properties</option>' +
-      [...new Set(monthJobs.map(j=>j.propertyName).filter(Boolean))].sort()
-        .map(p=>`<option value="${p}" ${p===cur?'selected':''}>${p}</option>`).join('');
-  }
-  const propF = propFilter?.value || '';
-  const filteredJobs = propF ? monthJobs.filter(j=>j.propertyName===propF) : monthJobs;
-
-  // Build table header: Date | Property | Type | Guest | [cleaner cols] | Total Hrs | Notes
-  const staffCols = activeStaff.map(s => {
-    const costR = s.hourlyRate || 0;
-    return `<th style="min-width:85px;text-align:center;font-size:12px">${s.firstName}<br>
-      <span style="font-size:9px;color:var(--text-muted)">€${costR}/h</span>
-    </th>`;
-  }).join('');
-
-  const thead = document.getElementById('hoursHead');
-  if (thead) thead.innerHTML = `<tr>
-    <th style="width:90px">Date</th>
-    <th>Property</th>
-    <th style="width:80px">Type</th>
-    <th style="width:110px">Guest</th>
-    ${staffCols}
-    <th style="text-align:right;width:60px">Hrs</th>
-    <th style="text-align:right;width:65px;color:var(--danger)">Cost</th>
-    <th style="text-align:right;width:65px;color:var(--teal-dark)">Charge</th>
-    <th style="text-align:right;width:65px;color:#27ae60">Profit</th>
-    <th style="width:80px">Notes</th>
-  </tr>`;
-
-  // Totals
-  let totalHours = 0, totalPay = 0, totalCharge = 0;
-  const staffTotals = {};
-  activeStaff.forEach(s => staffTotals[s.id] = {hours:0, pay:0});
-
-  const rows = filteredJobs.map((j, jIdx) => {
-    const assignedIds = j.cleanerIds || [];
-    let rowHours = 0, rowPay = 0, rowCharge = 0;
-
-    const staffCells = activeStaff.map(s => {
-      // Get hours: from cleanerHours if set, else if assigned use job hours, else empty
-      const savedHrs = j.cleanerHours?.[s.id];
-      const hrs = savedHrs !== undefined ? savedHrs : (assignedIds.includes(s.id) && j.hours ? j.hours : '');
-      const hrsNum = parseFloat(hrs) || 0;
-      const pay = hrsNum * (s.hourlyRate || 0);
-      if (hrsNum > 0) {
-        rowHours += hrsNum;
-        rowPay += pay;
-        staffTotals[s.id].hours += hrsNum;
-        staffTotals[s.id].pay += pay;
-      }
-      return `<td style="text-align:center;padding:4px">
-        <input type="number" min="0" max="24" step="0.5" value="${hrs}"
-          data-jobid="${j.id}" data-staffid="${s.id}"
-          onchange="onHoursChange(this)"
-          style="width:58px;padding:5px;border:1px solid var(--border);border-radius:6px;
-                 text-align:center;font-size:13px;font-family:'DM Sans',sans-serif;
-                 background:${hrsNum>0?'#e0f5f1':'#fff'}">
-      </td>`;
-    }).join('');
-
-    // Charge from property cleaningFee (flat fee per job)
-    const propData = _findPropByName(j.propertyName) || _findProp(j.propertyId);
-    rowCharge = parseFloat(propData?.cleaningFee || propData?.transportCharge || 0);
-    // If multiple cleaners share job, charge is still the flat property fee
-    
-    totalHours += rowHours;
-    totalPay += rowPay;
-    totalCharge += rowCharge;
-
-    const typeBadge = j.type==='checkout'
-      ? `<span style="background:#fdebd0;color:#a04000;padding:1px 6px;border-radius:8px;font-size:10px;font-weight:700">CHECKOUT</span>`
-      : `<span style="background:#fdf6e3;color:#8e6b23;padding:1px 6px;border-radius:8px;font-size:10px;font-weight:700">MID-STAY</span>`;
-
-    const infants = j.infants > 0 ? ` <span style="background:#ffcccc;color:#c0392b;padding:0 4px;border-radius:5px;font-size:9px">INF</span>` : '';
-
-    return `<tr style="border-bottom:1px solid var(--border)">
-      <td style="font-size:12px;white-space:nowrap">${formatDate(j.date)}</td>
-      <td style="font-size:12px">${j.propertyName||'—'}</td>
-      <td>${typeBadge}</td>
-      <td style="font-size:11px;color:var(--text-muted)">${j.guestName||'—'}${infants}</td>
-      ${staffCells}
-      <td style="text-align:right;font-weight:700;color:var(--teal)">${rowHours>0?rowHours+'h':'—'}</td>
-      <td style="text-align:right;font-size:12px;color:var(--teal-dark)">${rowPay>0?'€'+rowPay.toFixed(0):'—'}</td>
-      <td style="font-size:11px;color:var(--text-muted)">${j.notes||''}</td>
-    </tr>`;
-  }).join('');
-
-  const tbody = document.getElementById('hoursBody');
-  if (tbody) tbody.innerHTML = rows || `<tr class="empty-row"><td colspan="${4+activeStaff.length+3}">No cleaning jobs found for this period.</td></tr>`;
-
-  // Footer totals per staff
-  const staffFootCells = activeStaff.map(s => `<td style="text-align:center;font-weight:700;color:var(--teal)">
-    ${staffTotals[s.id].hours>0?staffTotals[s.id].hours+'h':'—'}<br>
-    <span style="font-size:11px">${staffTotals[s.id].pay>0?'€'+staffTotals[s.id].pay.toFixed(0):''}</span>
-  </td>`).join('');
-  const tfoot = document.getElementById('hoursFoot');
-  if (tfoot) tfoot.innerHTML = `<tr style="background:var(--cream);font-weight:700">
-    <td colspan="4">TOTAL</td>
-    ${staffFootCells}
-    <td style="text-align:right">${totalHours}h</td>
-    <td style="text-align:right;color:var(--teal-dark)">€${totalPay.toFixed(0)}</td>
-    <td></td>
-  </tr>`;
-
-  // Summary stats
-  const setEl=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
-  setEl('h-total', filteredJobs.length);
-  setEl('h-hours', totalHours+'h');
-  setEl('h-labour', '€'+totalPay.toFixed(0));
-  setEl('h-transport', '€'+filteredJobs.reduce((s,j)=>{
-    const cls=(j.cleanerIds||[]).map(cid=>staff.find(x=>x.id===cid)).filter(Boolean);
-    return s+cls.filter(cl=>cl.hasCar==='Yes').length*(j.propertyTransport||0);
-  },0).toFixed(0));
-  setEl('h-cost', '€'+(totalPay).toFixed(0));
-
-  window._currentHoursJobs = filteredJobs;
-}
-
-async function onHoursChange(input) {
-  const jobId = input.dataset.jobid;
-  const staffId = input.dataset.staffid;
-  const hrs = parseFloat(input.value) || 0;
-  const job = cleaningJobs.find(j => j.id === jobId);
-  if (!job) return;
-  if (!job.cleanerHours) job.cleanerHours = {};
-  job.cleanerHours[staffId] = hrs || undefined; // remove if 0
-  if (hrs === 0) delete job.cleanerHours[staffId];
-  // Highlight
-  input.style.background = hrs > 0 ? '#e0f5f1' : '#fff';
-  // Auto-save after short delay
-  clearTimeout(window._hoursSaveTimer);
-  window._hoursSaveTimer = setTimeout(() => saveHoursSheet(), 1500);
-}
-
-async function saveHoursSheet() {
-  const monthVal = document.getElementById('hoursMonth')?.value || '';
-  const msg = document.getElementById('hoursSavedMsg');
-  if (msg) msg.textContent = 'Saving…';
-  await SyncStore.saveAll('zesty_cleaning_jobs', 'cleaning_jobs', cleaningJobs);
-  // Save monthly snapshot
-  if (monthVal && window._currentHoursJobs) {
-    const snapshot = {
-      month: monthVal,
-      savedAt: new Date().toISOString(),
-      jobs: window._currentHoursJobs.map(j => ({
-        id:j.id, date:j.date, propertyName:j.propertyName, type:j.type,
-        guestName:j.guestName, cleanerIds:j.cleanerIds, cleanerHours:j.cleanerHours||{},
-        hours:j.hours, propertyTransport:j.propertyTransport,
-        guests:j.guests, adults:j.adults, children:j.children, infants:j.infants
-      }))
-    };
-    const all = JSON.parse(localStorage.getItem('zesty_hours_snapshots')||'{}');
-    all[monthVal] = snapshot;
-    localStorage.setItem('zesty_hours_snapshots', JSON.stringify(all));
-  }
-  if (msg) { msg.textContent = '✓ Saved ' + new Date().toLocaleTimeString('en-GB'); setTimeout(()=>{if(msg)msg.textContent='';},3000); }
-  showToast('✓ Hours saved', 'success');
-}
-
-
-function updateExtraJob(jobId, field, value) {
-  const idx = cleaningJobs.findIndex(j => j.id === jobId);
-  if (idx >= 0) cleaningJobs[idx][field] = value;
-}
-
-function removeExtraHoursRow(jobId) {
-  cleaningJobs = cleaningJobs.filter(j => j.id !== jobId);
-  if (window._hoursExtra) window._hoursExtra = window._hoursExtra.filter(id => id !== jobId);
-  renderHoursSheet();
-}
-
-function addHoursRow() { addManualHoursJob(); }
-
-function addManualHoursJob() {
-  const monthVal = document.getElementById('hoursMonth')?.value || '';
-  if (!monthVal) { showToast('Select a month first', 'error'); return; }
-  const date = monthVal + '-01';
-  if (!window._hoursExtra) window._hoursExtra = [];
-  const extraJob = {
-    id: 'extra_' + Date.now(),
-    date, propertyName: '', type: 'checkout',
-    guestName: 'Manual entry', cleanerIds: [], cleanerHours: {},
-    hours: null, propertyTransport: 0, notes: '',
-    _extra: true, _editable: true
-  };
-  cleaningJobs.push(extraJob);
-  window._hoursExtra.push(extraJob.id);
-  renderHoursSheet();
-  // Scroll to bottom so new row is visible
-  const tbody = document.getElementById('hoursBody');
-  if (tbody) tbody.lastElementChild?.scrollIntoView({behavior:'smooth', block:'center'});
-  showToast('Manual job added — fill in date, property and hours', 'info');
-}
-
-
-function exportHoursCSV() {
-  const monthVal = document.getElementById('hoursMonth').value;
-  const jobs = window._currentHoursJobs || [];
-  const activeStaff = staff.filter(s => s.status !== 'Inactive');
-  const headers = ['Date','Property','Type','Guest',...activeStaff.map(s=>s.firstName+' '+s.lastName),'Total Hours','Transport','Total Pay'];
-  const rows = jobs.map(j => {
-    const staffHrs = activeStaff.map(s => (j.cleanerHours&&j.cleanerHours[s.id]) || '');
-    const totalH = staffHrs.reduce((s,h)=>s+(parseFloat(h)||0),0);
-    const totalPay = activeStaff.reduce((sum,s,i) => {
-      const h = parseFloat(staffHrs[i])||0;
-      return sum + h*(s.hourlyRate||0) + (h>0&&s.hasCar==='Yes'?(j.propertyTransport||0):0);
-    }, 0);
-    return [j.date,j.propertyName||'',j.type,j.guestName||'',...staffHrs,totalH||'',j.propertyTransport||'',totalPay>0?totalPay.toFixed(2):''];
-  });
-  const csv = [headers,...rows].map(r=>r.map(v=>`"${(v||'').toString().replace(/"/g,'""')}"`).join(',')).join('');
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'}));
-  a.download = `hours_${monthVal}.csv`; a.click();
-}
-
-function printHoursSheet() {
-  const monthVal = document.getElementById('hoursMonth').value;
-  const jobs = window._currentHoursJobs || [];
-  const activeStaff = staff.filter(s => s.status !== 'Inactive');
-  const monthName = monthVal ? new Date(monthVal+'-01').toLocaleDateString('en-GB',{month:'long',year:'numeric'}) : '';
-  const staffCols = activeStaff.map(s=>`<th style="min-width:70px">${s.firstName}</th>`).join('');
-  const rows = jobs.map(j => {
-    const staffHrs = activeStaff.map(s => (j.cleanerHours&&j.cleanerHours[s.id]) ? `<strong>${j.cleanerHours[s.id]}h</strong>` : '\u2014');
-    const totalH = activeStaff.reduce((s,st) => s+(parseFloat(j.cleanerHours&&j.cleanerHours[st.id])||0),0);
-    return `<tr><td>${formatDate(j.date)}</td><td>${j.propertyName||'\u2014'}</td><td>${j.type==='checkout'?'Checkout':'Mid-Stay'}</td>${staffHrs.map(h=>`<td style="text-align:center">${h}</td>`).join('')}<td style="text-align:right;font-weight:700">${totalH||'\u2014'}</td></tr>`;
-  }).join('');
-  const w = window.open('','_blank');
-  w.document.write(`<html><head><title>Hours ${monthName}</title><style>
-    body{font-family:Arial,sans-serif;font-size:12px;color:#1e2a28}
-    table{width:100%;border-collapse:collapse}th,td{padding:6px 8px;border:1px solid #d4e0de;text-align:left}
-    th{background:#f0faf8;font-weight:700;font-size:11px;text-transform:uppercase}
-    h1{font-size:18px;color:#115950;margin-bottom:4px}
-    @page{margin:12mm}
-  </style></head><body>
-    <h1>Cleaning Hours \u2014 ${monthName}</h1>
-    <p style="color:#6b7e7b;margin-bottom:14px">Zesty Rentals</p>
-    <table><thead><tr><th>Date</th><th>Property</th><th>Type</th>${staffCols}<th style="text-align:right">Total</th></tr></thead>
-    <tbody>${rows}</tbody></table>
-  </body></html>`);
-  w.document.close(); setTimeout(()=>w.print(),400);
-}
-
-// Init hours tab
-(function(){
-  const now = new Date();
-  const el = document.getElementById('hoursMonth');
-  if(el) el.value = now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
-  // Load saved extra rows
-  try { hoursExtra = JSON.parse(localStorage.getItem('zesty_hours_extra')||'[]'); } catch { hoursExtra=[]; }
-})();
-
-
-
-// ══════════════════════════════════════════════════════════
-// CHECK-IN AGENT MODULE
-// ══════════════════════════════════════════════════════════
-// checkinJobs - declared in new module below
-
-// Load/save checkin jobs (localStorage + Supabase via SyncStore)
-async function syncCheckinData() {
-  const r = await SyncStore.load('zesty_checkin_jobs', 'checkin_jobs');
-  if (r.data) checkinJobs = r.data;
-}
-
-async function saveCheckin() {
-  await SyncStore.saveAll('zesty_checkin_jobs', 'checkin_jobs', checkinJobs);
-}
-
-// Populate agent dropdown from staff
-function populateCiAgents() {
-  const agentSel = document.getElementById('ci_agent_sel');
-  const ciAgentFilter = document.getElementById('ci-agent');
-  const agents = staff.filter(s => s.status !== 'Inactive');
-  const opts = agents.map(s => `<option value="${s.id}">${s.firstName} ${s.lastName}</option>`).join('');
-  if (agentSel) agentSel.innerHTML = '<option value="">-- Select Agent --</option>' + opts;
-  if (ciAgentFilter) ciAgentFilter.innerHTML = '<option value="">All Agents</option>' + opts;
-}
-
-// Populate property datalist
-function populateCiProps() {
-  const dl = document.getElementById('ci_propList');
-  if (!dl) return;
-  const props = [...new Set(cleaningJobs.map(j => j.propertyName).filter(Boolean))].sort();
-  dl.innerHTML = props.map(p => `<option value="${p}">`).join('');
-}
-
-function renderCheckin() {
-  populateCiAgents();
-  populateCiProps();
-
-  const monthVal = document.getElementById('ci-month')?.value || '';
-  const agentF = document.getElementById('ci-agent')?.value || '';
-
-  const monthName = monthVal ? new Date(monthVal+'-01').toLocaleDateString('en-GB',{month:'long',year:'numeric'}) : 'All';
-  const titleEl = document.getElementById('ci-title');
-  if (titleEl) titleEl.textContent = 'Check-In Schedule — ' + monthName;
-
-  let jobs = checkinJobs.filter(j =>
-    (!monthVal || (j.date||'').startsWith(monthVal)) &&
-    (!agentF || j.agentId === agentF)
-  ).sort((a,b) => (a.date||'') > (b.date||'') ? 1 : (a.date||'') < (b.date||'') ? -1 : 0);
-
-  // Detect same-day checkout + checkin for SAME property
-  const sameDayMap = {};
-  jobs.forEach(j => {
-    const key = j.date + '|' + j.propertyName;
-    if (!sameDayMap[key]) sameDayMap[key] = [];
-    sameDayMap[key].push(j.type);
-  });
-  // Also check against cleaning checkout jobs
-  cleaningJobs.filter(j => j.type==='checkout' && (!monthVal || (j.date||'').startsWith(monthVal))).forEach(cj => {
-    const key = cj.date + '|' + cj.propertyName;
-    if (!sameDayMap[key]) sameDayMap[key] = [];
-    sameDayMap[key].push('cleaning_checkout');
-  });
-
-  const sameDayKeys = new Set(Object.keys(sameDayMap).filter(k => {
-    const types = sameDayMap[k];
-    return types.includes('checkin') && (types.includes('checkout') || types.includes('cleaning_checkout'));
-  }));
-
-  // Stats
-  const checkins = jobs.filter(j=>j.type==='checkin').length;
-  const checkouts = jobs.filter(j=>j.type==='checkout').length;
-  const sameDay = sameDayKeys.size;
-  const repeats = jobs.filter(j=>j.repeat==='yes').length;
-  document.getElementById('ci-stat-in').textContent = checkins;
-  document.getElementById('ci-stat-out').textContent = checkouts;
-  document.getElementById('ci-stat-same').textContent = sameDay;
-  document.getElementById('ci-stat-repeat').textContent = repeats;
-
-  const alertEl = document.getElementById('ci-same-day-alert');
-  if (alertEl) alertEl.style.display = sameDay > 0 ? '' : 'none';
-
-  const tbody = document.getElementById('ci-tbody');
-  if (!tbody) return;
-
-  if (!jobs.length) {
-    tbody.innerHTML = '<tr class="empty-row"><td colspan="10">No check-in jobs for this period.</td></tr>';
-    return;
-  }
-
-  tbody.innerHTML = jobs.map(j => {
-    const agent = staff.find(s => s.id === j.agentId);
-    const agentName = agent ? agent.firstName + ' ' + agent.lastName : '<span style="color:#e74c3c;font-size:11px">\u26a0 Unassigned</span>';
-    const key = j.date + '|' + j.propertyName;
-    const isSameDay = sameDayKeys.has(key);
-    const isRepeat = j.repeat === 'yes';
-    const typeBadge = j.type === 'checkin'
-      ? '<span style="background:#d5f5e3;color:#1e8449;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700">\u2192 CHECK-IN</span>'
-      : '<span style="background:#fdebd0;color:#a04000;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700">\u2190 CHECK-OUT</span>';
-
-    return `<tr style="${isSameDay ? 'background:#fffbe6;' : ''}">
-      <td style="font-weight:600;font-size:12px">${formatDate(j.date||'')}${isSameDay ? ' <span title="Same-day turnover" style="color:#e67e22;font-size:14px">\u26a0\ufe0f</span>' : ''}</td>
-      <td style="font-size:12px">${j.propertyName||'\u2014'}</td>
-      <td>${typeBadge}</td>
-      <td style="font-size:12px">${j.guestName||'\u2014'}${isRepeat ? ' <span style="color:var(--teal);font-weight:700" title="Repeat guest">\u2605</span>' : ''}</td>
-      <td style="font-size:12px;font-weight:600">${j.time||'\u2014'}</td>
-      <td style="font-size:12px;color:var(--text-muted)">${j.flight||'\u2014'}</td>
-      <td style="text-align:center">${isRepeat ? '<span style="color:var(--teal);font-weight:700">\u2605 Yes</span>' : (j.repeat==='no' ? 'No' : '\u2014')}</td>
-      <td style="font-size:12px">${agentName}</td>
-      <td style="font-size:11px;color:var(--text-muted);max-width:120px">${j.notes||''}</td>
-      <td>
-        <div style="display:flex;gap:4px">
-          <button class="btn btn-teal btn-sm" onclick="openCheckinModal('${j.id}')">\u270f\ufe0f</button>
-          <button class="btn btn-danger btn-sm" onclick="deleteCheckinJob('${j.id}')">\u{1f5d1}</button>
-        </div>
-      </td>
-    </tr>`;
-  }).join('');
-}
-
-function openCheckinModal(id) {
-  populateCiAgents();
-  populateCiProps();
-  const delBtn = document.getElementById('ci_deleteBtn');
-
-  if (!id) {
-    // New job
-    document.getElementById('ci_editId').value = '';
-    document.getElementById('ci_property').value = '';
-    document.getElementById('ci_date').value = document.getElementById('ci-month')?.value
-      ? document.getElementById('ci-month').value + '-01' : '';
-    document.getElementById('ci_type').value = 'checkin';
-    document.getElementById('ci_time').value = '';
-    document.getElementById('ci_flight').value = '';
-    document.getElementById('ci_guest').value = '';
-    document.getElementById('ci_repeat').value = 'no';
-    document.getElementById('ci_agent_sel').value = '';
-    document.getElementById('ci_notes').value = '';
-    if (delBtn) delBtn.style.display = 'none';
-  } else {
-    const j = checkinJobs.find(x => x.id === id);
-    if (!j) return;
-    document.getElementById('ci_editId').value = id;
-    document.getElementById('ci_property').value = j.propertyName || '';
-    document.getElementById('ci_date').value = j.date || '';
-    document.getElementById('ci_type').value = j.type || 'checkin';
-    document.getElementById('ci_time').value = j.time || '';
-    document.getElementById('ci_flight').value = j.flight || '';
-    document.getElementById('ci_guest').value = j.guestName || '';
-    document.getElementById('ci_repeat').value = j.repeat || 'no';
-    document.getElementById('ci_agent_sel').value = j.agentId || '';
-    document.getElementById('ci_notes').value = j.notes || '';
-    if (delBtn) delBtn.style.display = '';
-  }
-  openModal('ciModal');
-}
-
-async function saveCheckinJob() {
-  const id = document.getElementById('ci_editId').value;
-  const job = {
-    id: id || 'ci_' + Date.now(),
-    propertyName: document.getElementById('ci_property').value.trim(),
-    date: document.getElementById('ci_date').value,
-    type: document.getElementById('ci_type').value,
-    time: document.getElementById('ci_time').value,
-    flight: document.getElementById('ci_flight').value.trim().toUpperCase(),
-    guestName: document.getElementById('ci_guest').value.trim(),
-    repeat: document.getElementById('ci_repeat').value,
-    agentId: document.getElementById('ci_agent_sel').value,
-    notes: document.getElementById('ci_notes').value.trim(),
-  };
-  if (!job.propertyName || !job.date) { showToast('Property and date required', 'error'); return; }
-
-  if (id) {
-    const idx = checkinJobs.findIndex(j => j.id === id);
-    if (idx >= 0) checkinJobs[idx] = job;
-    else checkinJobs.push(job);
-  } else {
-    checkinJobs.push(job);
-  }
-
-  await saveCheckin();
-  closeModal('ciModal');
-  renderCheckin();
-  showToast('\u2713 Check-in job saved', 'success');
-}
-
-async function deleteCheckinJob(id) {
-  const jobId = id || document.getElementById('ci_editId').value;
-  if (!jobId) return;
-  showConfirm('\u{1f5d1}\ufe0f', 'Delete Job?', 'Remove this check-in job?', 'btn-danger', 'Delete', async () => {
-    checkinJobs = checkinJobs.filter(j => j.id !== jobId);
-    await SyncStore.deleteOne('zesty_checkin_jobs', 'checkin_jobs', jobId, checkinJobs);
-    closeModal('ciModal');
-    renderCheckin();
-    showToast('Deleted', 'error');
-  });
-}
-
-function printCheckinSchedule() {
-  const monthVal = document.getElementById('ci-month')?.value || '';
-  if (!monthVal) { showToast('Select a month first', 'error'); return; }
-  const monthName = new Date(monthVal+'-01').toLocaleDateString('en-GB',{month:'long',year:'numeric'});
-
-  const jobs = checkinJobs
-    .filter(j => (j.date||'').startsWith(monthVal))
-    .sort((a,b) => (a.date+a.time||'') > (b.date+b.time||'') ? 1 : -1);
-
-  // Detect same-day turnovers
-  const checkoutDates = new Set(
-    cleaningJobs.filter(j=>j.type==='checkout'&&(j.date||'').startsWith(monthVal))
-      .map(j=>j.date+'|'+j.propertyName)
-  );
-
-  const styles = buildPrintStyles() + `
-    .ci-table { width:100%; border-collapse:collapse; font-size:12px; }
-    .ci-table th { background:#1a7a6e; color:#fff; padding:7px 10px; text-align:left; font-size:11px; }
-    .ci-table td { padding:8px 10px; border-bottom:1px solid #e8f0ef; }
-    .ci-table tr:nth-child(even) td { background:#f8f5f0; }
-    .same-day-row td { background:#fffbe6 !important; }
-    .repeat-star { color:#1a7a6e; font-weight:700; }
-    @page { size:A4 landscape; margin:10mm; }
-  `;
-
-  const rows = jobs.map(j => {
-    const agent = staff.find(s=>s.id===j.agentId);
-    const isSame = checkoutDates.has(j.date+'|'+j.propertyName);
-    const isRepeat = j.repeat==='yes';
-    return `<tr class="${isSame?'same-day-row':''}">
-      <td><strong>${formatDate(j.date)}</strong></td>
-      <td>${j.time||'\u2014'}</td>
-      <td>${j.propertyName||'\u2014'}</td>
-      <td>${j.type==='checkin'?'\u2192 Check-In':'\u2190 Check-Out'}</td>
-      <td>${j.guestName||'\u2014'}${isRepeat?' <strong class="repeat-star">\u2605 Repeat</strong>':''}</td>
-      <td>${j.flight||'\u2014'}</td>
-      <td>${agent?agent.firstName+' '+agent.lastName:'\u26a0 Unassigned'}</td>
-      <td>${isSame?'<strong style="color:#e67e22">\u26a0 Same-day cleaning</strong>':''}</td>
-      <td style="font-size:11px;color:#666">${j.notes||''}</td>
-    </tr>`;
-  }).join('');
-
-  const html = `
-    <div style="font-family:Arial,sans-serif;padding:20px">
-      <div style="display:flex;justify-content:space-between;margin-bottom:20px;padding-bottom:12px;border-bottom:3px solid #1a7a6e">
-        <div>
-          <div style="font-size:22px;font-weight:700;color:#1a7a6e">Check-In Agent Schedule</div>
-          <div style="color:#666;margin-top:4px">${monthName} \u00b7 ${jobs.length} jobs</div>
-        </div>
-        <div style="text-align:right;font-size:12px;color:#888">
-          Zesty Rentals<br>Printed: ${new Date().toLocaleDateString('en-GB')}
-        </div>
-      </div>
-      <table class="ci-table">
-        <thead><tr>
-          <th>Date</th><th>Time</th><th>Property</th><th>Type</th>
-          <th>Guest</th><th>Flight</th><th>Agent</th><th>Alert</th><th>Notes</th>
-        </tr></thead>
-        <tbody>${rows||'<tr><td colspan="9" style="text-align:center;padding:20px;color:#999">No jobs</td></tr>'}</tbody>
-      </table>
-    </div>`;
-
-  const w = window.open('','_blank');
-  w.document.write(`<html><head><title>Check-In Schedule ${monthName}</title><style>${styles}</style></head><body>${html}</body></html>`);
-  w.document.close();
-  setTimeout(()=>w.print(),500);
-}
-
-function exportCheckinCSV() {
-  const monthVal = document.getElementById('ci-month')?.value || '';
-  const jobs = checkinJobs.filter(j=>!monthVal||(j.date||'').startsWith(monthVal))
-    .sort((a,b)=>(a.date||'')>(b.date||'')?1:-1);
-  const headers = ['Date','Time','Property','Type','Guest','Flight','Repeat','Agent','Notes'];
-  const rows = jobs.map(j=>{
-    const agent=staff.find(s=>s.id===j.agentId);
-    return [j.date,j.time,j.propertyName,j.type,j.guestName,j.flight,j.repeat,
-            agent?agent.firstName+' '+agent.lastName:'Unassigned',j.notes]
-      .map(v=>`"${(v||'').toString().replace(/"/g,'""')}"`).join(',');
-  });
-  const csv='\ufeff'+[headers.join(','),...rows].join('\n');
-  const a=document.createElement('a');
-  a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8;'}));
-  a.download=`checkin_schedule_${monthVal||'all'}.csv`;
-  a.click();
-  showToast('\u2713 Exported', 'success');
-}
-
-// Check-in page initialization - called by existing showPage in cleaning-logic.js
 

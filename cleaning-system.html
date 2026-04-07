@@ -473,7 +473,6 @@ body.erp-layout {
   .stats-bar, .kpi-grid { grid-template-columns: repeat(2,1fr) !important; }
 }
 
-
 </style>
     <script src="https://alcdn.msauth.net/browser/2.38.0/js/msal-browser.min.js"></script>
     <script src="cleaning-auth.js"></script>
@@ -530,7 +529,6 @@ body.erp-layout {
     <div class="erp-topbar-title">🧹 Cleaning System</div>
     <div class="erp-topbar-actions"></div>
   </div>
-
 
 <div class="container">
 
@@ -599,25 +597,7 @@ body.erp-layout {
     </table>
   </div>
 
-  <!-- Check-In Agents -->
-  <div id="agentSection" style="margin-top:28px">
-    <div class="table-wrap">
-      <div class="table-header">
-        <h3>&#128273; Check-In Agents</h3>
-        <button class="btn btn-teal btn-sm" onclick="openStaffModal('checkin_agent')">+ Add Agent</button>
-      </div>
-      <div style="overflow-x:auto">
-        <table>
-          <thead><tr>
-            <th>Name</th><th>Phone</th><th>Zones</th><th>Hourly Rate</th>
-            <th>Transport</th><th>Car</th><th>License</th><th>Insurance</th>
-            <th>Status</th><th>Actions</th>
-          </tr></thead>
-          <tbody id="agentTable"></tbody>
-        </table>
-      </div>
-    </div>
-  </div>
+  
 </div>
 
 <!-- ==================== SCHEDULE PAGE ==================== -->
@@ -828,9 +808,7 @@ body.erp-layout {
       <div class="form-grid">
         <div class="form-group"><label>First Name *</label><input type="text" id="s_firstName" placeholder="First name"></div>
         <div class="form-group"><label>Last Name *</label><input type="text" id="s_lastName" placeholder="Last name"></div>
-        <div class="form-group"><label>Role</label>
-          <select id="s_role"><option value="cleaner">Cleaner</option><option value="checkin_agent">Check-In Agent</option><option value="both">Both</option></select>
-        </div>
+        
         <div class="form-group"><label>Status</label>
           <select id="s_status"><option value="Active">Active</option><option value="Inactive">Inactive</option></select>
         </div>
@@ -853,7 +831,7 @@ body.erp-layout {
       </div>
       <div class="form-grid form-grid-4">
         <div class="form-group"><label>Hourly Rate (€) <span style="font-size:10px;color:var(--text-muted)">staff cost</span></label><input type="number" id="s_hourlyRate" placeholder="0.00" step="0.01" min="0"></div>
-        <div class="form-group"><label>Charge Rate (€) <span style="font-size:10px;color:var(--text-muted)">billed to owner</span></label><input type="number" id="s_chargeRate" placeholder="0.00" step="0.01" min="0"></div>
+        
         <div class="form-group"><label>Transport Cost (€/trip)</label><input type="number" id="s_transportCost" placeholder="0.00" step="0.01" min="0"></div>
       </div>
 
@@ -940,8 +918,6 @@ body.erp-layout {
 
 <div class="toast" id="toast"></div>
 
-
-
 <!-- ==================== HOURS ==================== -->
 <div id="page-hours" class="page">
   <div style="display:flex;gap:6px;margin-bottom:22px;flex-wrap:wrap">
@@ -987,7 +963,6 @@ body.erp-layout {
     </div>
   </div>
 </div>
-
 
 <script src="cleaning-db.js"></script>
 <script src="cleaning-logic.js"></script>
@@ -1047,6 +1022,57 @@ function zCleanTicketSubmit() {
   alert('Ticket submitted!');
 }
 </script>
+
+
+<!-- ══ MANUAL JOB MODAL ══ -->
+<div class="modal-overlay" id="manualJobModal">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-header">
+      <h2 id="mj-modal-title">Add Manual Job</h2>
+      <button class="modal-close" onclick="closeModal('manualJobModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="mj-id">
+      <div class="form-grid">
+        <div class="form-group form-span-2">
+          <label>Property *</label>
+          <select id="mj-property" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px">
+            <option value="">— Select property —</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Date *</label>
+          <input type="date" id="mj-date">
+        </div>
+        <div class="form-group">
+          <label>Type</label>
+          <select id="mj-type" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px">
+            <option value="checkout">🏠 Checkout Clean</option>
+            <option value="midstay">🔄 Mid-Stay Clean</option>
+            <option value="deep">🧽 Deep Clean</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Guest Name</label>
+          <input type="text" id="mj-guest" placeholder="Guest or description">
+        </div>
+        <div class="form-group">
+          <label>Default Hours</label>
+          <input type="number" id="mj-hours" min="0" max="24" step="0.5" placeholder="e.g. 3">
+        </div>
+        <div class="form-group form-span-2">
+          <label>Notes</label>
+          <textarea id="mj-notes" rows="2" placeholder="Any notes..."></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-danger btn-sm" id="mj-del-btn" onclick="deleteManualJob(document.getElementById('mj-id').value)" style="margin-right:auto">🗑 Delete</button>
+      <button class="btn btn-outline" onclick="closeModal('manualJobModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveManualJob()">💾 Save Job</button>
+    </div>
+  </div>
+</div>
 
 </body>
 </html>
