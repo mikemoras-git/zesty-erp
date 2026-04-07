@@ -191,8 +191,23 @@ function generatePeriodReport() {
   const toDt   = new Date(toVal + 'T23:59:59');
   const allB   = getCSVBookings ? getCSVBookings() : [];
   const eur    = n => '\u20AC' + (parseFloat(n)||0).toFixed(2);
-  const fmtD   = d => { if(!d) return '\u2014'; try { return new Date(d).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}); } catch { return d; } };
-  const srcCls = s => { const sl=(s||'').toLowerCase(); return sl.includes('airbnb')?'src-airbnb':sl.includes('booking')?'src-booking':sl.includes('vrbo')||sl.includes('homeaway')?'src-vrbo':sl.includes('manual')||sl.includes('direct')?'src-direct':'src-other'; };
+  const fmtD   = d => {
+    if (!d) return '\u2014';
+    try { return new Date(d).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}); }
+    catch { return d; }
+  };
+  const srcCls = s => {
+    const sl = (s||'').toLowerCase();
+    return sl.includes('airbnb') ? 'src-airbnb' :
+           sl.includes('booking') ? 'src-booking' :
+           sl.includes('vrbo') || sl.includes('homeaway') ? 'src-vrbo' :
+           sl.includes('manual') || sl.includes('direct') ? 'src-direct' : 'src-other';
+  };
+
+  // Check if jobs and cleanJobs are loaded (from init() in reports-main.js)
+  const jobsData = typeof jobs !== 'undefined' ? jobs : JSON.parse(localStorage.getItem('zesty_jobs')||'[]');
+  const cleanData = typeof cleanJobs !== 'undefined' ? cleanJobs : JSON.parse(localStorage.getItem('zesty_cleaning_jobs')||'[]');
+  const staffC = JSON.parse(localStorage.getItem('zesty_staff')||'[]');
 
   // Filter bookings in range by check-in date, status Booked
   const allBookings = allB.filter(r => {
@@ -206,35 +221,23 @@ function generatePeriodReport() {
     ? allBookings.filter(r => { const p = properties.find(x => x.id === propId); return p && matchProp(r, p); })
     : allBookings;
 
-  // Get cleaning jobs for period
-  const cleaningJobs = JSON.parse(localStorage.getItem('zesty_cleaning_jobs') || '[]');
-  const periodCleanJobs = cleaningJobs.filter(j => {
-    const d = new Date(j.date||'');
-    return d >= fromDt && d <= toDt && (j.type === 'checkout' || j.type === 'midstay');
-  });
-
-  // Get job orders for period (from Supabase if available, else localStorage)
-  const jobOrders = JSON.parse(localStorage.getItem('zesty_jobs') || '[]');
-  const periodJobs = jobOrders.filter(j => {
-    const d = new Date(j.dateDue || j.dateCreated || '');
-    return d >= fromDt && d <= toDt && j.status === 'Completed';
-  });
-
-  // Get unique properties in the bookings
+  // Get unique properties that have bookings in this period
   const propsInPeriod = propId
     ? [properties.find(p => p.id === propId)].filter(Boolean)
-    : properties.filter(p => filteredBookings.some(r => matchProp(r, p)));
+    : properties.filter(p => !p.archived && filteredBookings.some(r => matchProp(r, p)));
 
   // Grand totals
   let grandRent=0, grandTax=0, grandOTA=0, grandRec=0, grandZesty=0, grandNet=0, grandNights=0;
-  let grandCleanCost=0, grandJobCost=0;
+  let grandCleanCost=0, grandJobCost=0, grandCleanSessions=0, grandJobCount=0;
 
   const presetLabel = document.getElementById('p-preset')?.selectedOptions?.[0]?.text || 'Custom Period';
+
   const sections = propsInPeriod.map(prop => {
     const mgmt = parseFloat(prop?.maintenance || prop?.ownerCommission || 0);
+
+    // Bookings for this property, sorted by arrival
     const propBookings = filteredBookings.filter(r => matchProp(r, prop))
       .sort((a,b) => (a.DateArrival||'') > (b.DateArrival||'') ? 1 : -1);
-
     if (!propBookings.length) return '';
 
     let tRent=0, tTax=0, tOTA=0, tRec=0, tZesty=0, tNet=0, tNights=0;
@@ -276,33 +279,57 @@ function generatePeriodReport() {
       </tr>`;
     }).join('');
 
-    // Cleaning cost for this property in period
-    const propCleanJobs = periodCleanJobs.filter(j => j.propertyName === (prop.shortName || prop.propertyName));
-    const cleanCost = propCleanJobs.reduce((s,j) => s + (parseFloat(j.cleaningFee) || parseFloat(prop.cleaningFee) || 0), 0);
+    // ── Cleaning sessions for this property in period ──
+    const propNameKey = (prop.shortName || '').toLowerCase().split(' ')[0];
+    const cleans = cleanData.filter(j => {
+      const cp = (j.propertyName||'').toLowerCase();
+      const d  = new Date(j.date||'');
+      return cp.includes(propNameKey) && d >= fromDt && d <= toDt &&
+             (j.type === 'checkout' || j.type === 'midstay');
+    });
+    const tCleanH = cleans.reduce((s,j) => s + (j.hours||0), 0);
+    // Cost = sum of cleaner hours × their rate
+    const cleanCost = cleans.reduce((s,j) => {
+      const cls = (j.cleanerIds||[]).map(id => staffC.find(st => st.id === id)).filter(Boolean);
+      return s + cls.reduce((cs, cl) => cs + (j.hours||0) * (parseFloat(cl.hourlyRate)||0), 0) +
+             (cls.filter(cl => cl.hasCar === 'Yes').length > 0 ? (parseFloat(j.propertyTransport)||0) : 0);
+    }, 0);
     grandCleanCost += cleanCost;
+    grandCleanSessions += cleans.length;
 
-    // Job orders cost for this property
-    const propJobs = periodJobs.filter(j => j.propertyName === (prop.shortName || prop.propertyName));
-    const jobCost  = propJobs.reduce((s,j) => s + (parseFloat(j.finalCharge||j.estimatedCost||0)), 0);
+    // ── Job orders for this property in period ──
+    const propJobs = jobsData.filter(j => {
+      if (j.status !== 'Completed' && j.status !== 'Paid') return false;
+      const matchesProp =
+        (prop.id && String(j.propertyId) === String(prop.id)) ||
+        (j.propertyName||'').toLowerCase().includes(propNameKey);
+      if (!matchesProp) return false;
+      const d = new Date(j.dateCompleted || j.dateStarted || '');
+      return d >= fromDt && d <= toDt;
+    });
+    const jobCostFn = typeof calcJobCharge === 'function' ? calcJobCharge :
+      j => (j.lineItems||[]).reduce((s,li) => s + (parseFloat(li.chargeAmount)||0), 0) + (parseFloat(j.zestyFee)||0) || parseFloat(j.finalCharge||0);
+    const jobCost = propJobs.reduce((s,j) => s + jobCostFn(j), 0);
     grandJobCost  += jobCost;
+    grandJobCount += propJobs.length;
 
     const owner = owners?.find(o => o.id === prop.owner);
 
     return `
-    <div class="rpt-section" style="margin-bottom:28px">
-      <!-- Property header -->
-      <div style="background:linear-gradient(135deg,var(--teal-dark),var(--teal));color:#fff;padding:14px 18px;border-radius:10px 10px 0 0;display:flex;justify-content:space-between;align-items:center">
+    <div class="rpt-section" style="margin-bottom:28px;page-break-inside:avoid">
+      <!-- Property header (same style as owner statement) -->
+      <div style="background:linear-gradient(135deg,var(--teal-dark),var(--teal));color:#fff;padding:14px 18px;border-radius:10px 10px 0 0;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
         <div>
           <div style="font-size:17px;font-weight:700;font-family:'Cormorant Garamond',serif">${prop.shortName||prop.propertyName}</div>
-          <div style="font-size:12px;opacity:.8;margin-top:2px">${owner?(owner.firstName||'')+' '+(owner.lastName||owner.companyName||''):''}${mgmt?' \u00B7 Management '+mgmt+'%':''}</div>
+          <div style="font-size:12px;opacity:.8;margin-top:2px">${owner ? (owner.firstName||'')+' '+(owner.lastName||owner.companyName||'') : ''}${mgmt?' \u00B7 Mgmt '+mgmt+'%':''}</div>
         </div>
-        <div style="text-align:right;font-size:13px">
-          <div>${propBookings.length} booking${propBookings.length!==1?'s':''} \u00B7 ${tNights} nights</div>
+        <div style="text-align:right;font-size:13px;opacity:.9">
+          ${propBookings.length} booking${propBookings.length!==1?'s':''} \u00B7 ${tNights} nights
         </div>
       </div>
 
-      <!-- Bookings table -->
-      <div class="rpt-scroll-wrap" style="overflow-x:auto">
+      <!-- Bookings table (identical to owner statement) -->
+      <div style="overflow-x:auto">
         <table class="rpt-table">
           <thead><tr>
             <th>#</th><th>Guest</th><th>Booked</th><th>Check-in</th><th>Check-out</th>
@@ -323,48 +350,64 @@ function generatePeriodReport() {
         </table>
       </div>
 
-      <!-- Expenses summary (cleaning + jobs — totals only) -->
-      ${(cleanCost > 0 || jobCost > 0) ? `
-      <div style="margin-top:8px;padding:10px 16px;background:#fafafa;border:1px solid var(--border);border-top:none;border-radius:0 0 8px 8px;display:flex;gap:24px;flex-wrap:wrap">
-        <div style="font-size:12px;font-weight:600;color:var(--text-muted);align-self:center">EXPENSES</div>
-        ${cleanCost>0?`<div style="font-size:12px">🧹 Cleaning (${propCleanJobs.length} sessions): <strong style="color:var(--danger)">${eur(cleanCost)}</strong></div>`:''}
-        ${jobCost>0?`<div style="font-size:12px">🔧 Job Orders (${propJobs.length}): <strong style="color:var(--danger)">${eur(jobCost)}</strong></div>`:''}
-        <div style="font-size:12px;margin-left:auto">Total Expenses: <strong style="color:var(--danger)">${eur(cleanCost+jobCost)}</strong></div>
+      <!-- Cleaning & Job Orders — total cost only, no detail -->
+      ${(cleans.length > 0 || propJobs.length > 0) ? `
+      <div style="margin-top:0;border:1px solid var(--border);border-top:none;border-radius:0 0 8px 8px;padding:10px 16px;background:#fafafa">
+        <div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Expenses</div>
+        <div style="display:flex;gap:24px;flex-wrap:wrap;align-items:center">
+          ${cleans.length > 0 ? `
+          <div style="font-size:13px">
+            🧹 <strong>Cleaning</strong> — ${cleans.length} session${cleans.length!==1?'s':''}${tCleanH>0?' ('+tCleanH+'h)':''}
+            <span style="margin-left:8px;font-weight:700;color:var(--danger)">${eur(cleanCost)}</span>
+          </div>` : ''}
+          ${propJobs.length > 0 ? `
+          <div style="font-size:13px">
+            🔧 <strong>Job Orders</strong> — ${propJobs.length} order${propJobs.length!==1?'s':''}
+            <span style="margin-left:8px;font-weight:700;color:var(--danger)">${eur(jobCost)}</span>
+          </div>` : ''}
+          ${(cleans.length > 0 && propJobs.length > 0) ? `
+          <div style="margin-left:auto;font-size:13px;font-weight:700">
+            Total Expenses: <span style="color:var(--danger)">${eur(cleanCost + jobCost)}</span>
+          </div>` : ''}
+        </div>
       </div>` : ''}
     </div>`;
   }).join('');
 
-  // Grand summary
+  // ── Grand summary ──
   const grandExpenses = grandCleanCost + grandJobCost;
-  const summaryHTML = `
-    <div class="rpt-section" style="background:var(--cream);margin-bottom:20px">
-      <div style="font-size:16px;font-weight:700;color:var(--teal-dark);font-family:'Cormorant Garamond',serif;margin-bottom:12px">
-        ${presetLabel} &nbsp;\u00B7&nbsp; <span style="font-size:13px;font-weight:400;color:var(--text-muted)">${fromVal} \u2192 ${toVal}</span>
-      </div>
-      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px">
-        ${[
-          ['Total Rent','var(--teal-dark)',eur(grandRent)],
-          ['Taxes & Fees','var(--info)',eur(grandTax)],
-          ['OTA Commissions','var(--danger)',eur(grandOTA)],
-          ['Received','inherit',eur(grandRec)],
-          ['Zesty Commission','var(--teal)',eur(grandZesty)],
-          ['Net to Owners','#1a5276',eur(grandNet)],
-          ['🧹 Cleaning','var(--danger)',eur(grandCleanCost)],
-          ['🔧 Job Orders','var(--danger)',eur(grandJobCost)],
-        ].map(([label,color,val])=>`
-          <div style="background:#fff;border:1px solid var(--border);border-radius:8px;padding:10px 14px;text-align:center">
-            <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);margin-bottom:3px">${label}</div>
-            <div style="font-size:18px;font-weight:700;color:${color}">${val}</div>
-          </div>`).join('')}
-      </div>
-      <div style="margin-top:10px;padding:8px 14px;background:#fff;border:1px solid var(--border);border-radius:8px;display:flex;justify-content:space-between;align-items:center">
-        <div style="font-size:13px;font-weight:600">${filteredBookings.length} bookings \u00B7 ${grandNights} nights \u00B7 ${propsInPeriod.length} propert${propsInPeriod.length!==1?'ies':'y'}</div>
-        <button onclick="window.print()" class="btn btn-print no-print" style="padding:6px 14px;font-size:12px">\uD83D\uDDA8 Print</button>
-      </div>
-    </div>`;
+  const summaryCards = [
+    ['Total Rent',       'var(--teal-dark)', eur(grandRent)],
+    ['Taxes & Fees',     'var(--info)',       eur(grandTax)],
+    ['OTA Commissions',  'var(--danger)',     eur(grandOTA)],
+    ['Received',         'inherit',           eur(grandRec)],
+    ['Zesty Commission', 'var(--teal)',        eur(grandZesty)],
+    ['Net to Owners',    '#1a5276',           eur(grandNet)],
+    ['🧹 Cleaning ('+ grandCleanSessions +')', 'var(--danger)', eur(grandCleanCost)],
+    ['🔧 Job Orders ('+grandJobCount+')', 'var(--danger)', eur(grandJobCost)],
+  ].map(([label,color,val]) => `
+    <div style="background:#fff;border:1px solid var(--border);border-radius:8px;padding:10px 14px;text-align:center">
+      <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);margin-bottom:3px">${label}</div>
+      <div style="font-size:18px;font-weight:700;color:${color}">${val}</div>
+    </div>`).join('');
 
   if (!out) return;
-  out.innerHTML = summaryHTML + `<div class="rpt-wrap">${sections || '<p style="padding:20px;color:var(--text-muted)">No bookings found. Upload your Lodgify CSV on the Dashboard first.</p>'}</div>`;
+  out.innerHTML = `
+    <div class="rpt-section" style="background:var(--cream);margin-bottom:20px">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+        <div>
+          <div style="font-size:20px;font-weight:700;color:var(--teal-dark);font-family:'Cormorant Garamond',serif">${presetLabel}</div>
+          <div style="font-size:13px;color:var(--text-muted);margin-top:2px">${fromVal} \u2192 ${toVal} &nbsp;\u00B7&nbsp; ${filteredBookings.length} bookings &nbsp;\u00B7&nbsp; ${grandNights} nights &nbsp;\u00B7&nbsp; ${propsInPeriod.length} propert${propsInPeriod.length!==1?'ies':'y'}</div>
+        </div>
+        <button onclick="window.print()" class="btn btn-print no-print" style="padding:7px 16px;font-size:12px">\uD83D\uDDA8 Print</button>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px">
+        ${summaryCards}
+      </div>
+    </div>
+    <div class="rpt-wrap">
+      ${sections || '<p style="padding:20px;color:var(--text-muted)">No bookings found for this period. Upload your Lodgify CSV on the Dashboard first.</p>'}
+    </div>`;
 }
 
 
