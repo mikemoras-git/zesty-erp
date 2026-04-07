@@ -93,6 +93,14 @@ async function init() {
     renderStaff(); updateStaffDropdowns(); updateStaffStats();
   });
 
+  // Refresh property list from Supabase so new properties show in dropdowns
+  try {
+    const freshProps = await SyncStore.load('zesty_properties', 'properties');
+    if (freshProps.data && freshProps.data.length > 0) {
+      window._propCache = freshProps.data;
+      localStorage.setItem('zesty_properties', JSON.stringify(freshProps.data));
+    }
+  } catch(e) { /* keep localStorage cache */ }
   checkAutoImport();
 }
 
@@ -755,7 +763,7 @@ function addManualHoursJob() {
   // Populate property dropdown
   const propSel = document.getElementById('mj-property');
   if (propSel) {
-    const propList = (typeof properties !== 'undefined' ? properties : [])
+    const propList = (window._propCache || JSON.parse(localStorage.getItem('zesty_properties')||'[]'))
       .filter(p => !p.archived)
       .sort((a,b) => (a.shortName||a.propertyName||'').localeCompare(b.shortName||b.propertyName||''));
     propSel.innerHTML = '<option value="">— Select property —</option>' +
@@ -781,7 +789,7 @@ function editManualHoursJob(id) {
   // Populate property dropdown
   const propSel = document.getElementById('mj-property');
   if (propSel) {
-    const propList = (typeof properties !== 'undefined' ? properties : [])
+    const propList = (window._propCache || JSON.parse(localStorage.getItem('zesty_properties')||'[]'))
       .filter(p => !p.archived)
       .sort((a,b) => (a.shortName||a.propertyName||'').localeCompare(b.shortName||b.propertyName||''));
     propSel.innerHTML = '<option value="">— Select property —</option>' +
@@ -805,7 +813,7 @@ async function saveManualJob() {
   const existingId = document.getElementById('mj-id')?.value;
   const id = existingId || 'manual_' + Date.now();
 
-  const prop = (typeof properties !== 'undefined' ? properties : [])
+  const prop = (window._propCache || JSON.parse(localStorage.getItem('zesty_properties')||'[]'))
     .find(p => (p.shortName||p.propertyName) === propName);
 
   const job = {
