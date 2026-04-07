@@ -182,129 +182,189 @@ function generatePeriodReport() {
   const toVal   = document.getElementById('p-to')?.value || '';
   const propId  = document.getElementById('p-prop')?.value || '';
   const out     = document.getElementById('period-out');
-  if (!fromVal || !toVal) { showToastR && showToastR('Select a date range first','error'); if(out) out.innerHTML='<p style="color:var(--danger);padding:20px">Please select a date range.</p>'; return; }
+  if (!fromVal || !toVal) {
+    if (out) out.innerHTML = '<p style="color:var(--danger);padding:20px">Please select a date range.</p>';
+    return;
+  }
 
   const fromDt = new Date(fromVal);
   const toDt   = new Date(toVal + 'T23:59:59');
   const allB   = getCSVBookings ? getCSVBookings() : [];
   const eur    = n => '\u20AC' + (parseFloat(n)||0).toFixed(2);
-  const pct    = n => (parseFloat(n)||0).toFixed(1) + '%';
+  const fmtD   = d => { if(!d) return '\u2014'; try { return new Date(d).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}); } catch { return d; } };
+  const srcCls = s => { const sl=(s||'').toLowerCase(); return sl.includes('airbnb')?'src-airbnb':sl.includes('booking')?'src-booking':sl.includes('vrbo')||sl.includes('homeaway')?'src-vrbo':sl.includes('manual')||sl.includes('direct')?'src-direct':'src-other'; };
 
-  // Filter bookings in range (by check-in date), status Booked
-  const bookings = allB.filter(r => {
+  // Filter bookings in range by check-in date, status Booked
+  const allBookings = allB.filter(r => {
     if (r.Status !== 'Booked') return false;
     const arr = new Date(r.DateArrival);
-    if (arr < fromDt || arr > toDt) return false;
-    if (propId) {
-      const prop = properties.find(p => p.id === propId);
-      if (prop && !matchProp(r, prop)) return false;
-    }
-    return true;
+    return arr >= fromDt && arr <= toDt;
   });
 
-  // Totals by property
-  const byProp = {};
+  // Filter by property if selected
+  const filteredBookings = propId
+    ? allBookings.filter(r => { const p = properties.find(x => x.id === propId); return p && matchProp(r, p); })
+    : allBookings;
+
+  // Get cleaning jobs for period
+  const cleaningJobs = JSON.parse(localStorage.getItem('zesty_cleaning_jobs') || '[]');
+  const periodCleanJobs = cleaningJobs.filter(j => {
+    const d = new Date(j.date||'');
+    return d >= fromDt && d <= toDt && (j.type === 'checkout' || j.type === 'midstay');
+  });
+
+  // Get job orders for period (from Supabase if available, else localStorage)
+  const jobOrders = JSON.parse(localStorage.getItem('zesty_jobs') || '[]');
+  const periodJobs = jobOrders.filter(j => {
+    const d = new Date(j.dateDue || j.dateCreated || '');
+    return d >= fromDt && d <= toDt && j.status === 'Completed';
+  });
+
+  // Get unique properties in the bookings
+  const propsInPeriod = propId
+    ? [properties.find(p => p.id === propId)].filter(Boolean)
+    : properties.filter(p => filteredBookings.some(r => matchProp(r, p)));
+
+  // Grand totals
   let grandRent=0, grandTax=0, grandOTA=0, grandRec=0, grandZesty=0, grandNet=0, grandNights=0;
-
-  bookings.forEach(r => {
-    const prop = properties.find(p => matchProp(r,p));
-    const key  = prop?.shortName || prop?.propertyName || r.HouseInternalName || r.HouseName || 'Unknown';
-    const mgmt = parseFloat(prop?.maintenance || prop?.ownerCommission || 0);
-    const rent     = parseFloat(r.RoomRatesTotal||0) - parseFloat(r.PromotionsTotal||0);
-    const taxFees  = parseFloat(r.FeesTotal||0) + parseFloat(r.TaxesTotal||0);
-    const otaRate  = getCommRate ? getCommRate(prop, r.Source) : 0;
-    const ota      = parseFloat(((rent-taxFees)*otaRate/100).toFixed(2));
-    const received = parseFloat((rent-taxFees-ota).toFixed(2));
-    const zesty    = parseFloat((Math.max(0,received)*mgmt/100).toFixed(2));
-    const net      = parseFloat((received-zesty).toFixed(2));
-    const nights   = parseInt(r.Nights)||0;
-
-    if (!byProp[key]) byProp[key] = {bookings:0, nights:0, rent:0, tax:0, ota:0, received:0, zesty:0, net:0};
-    byProp[key].bookings++; byProp[key].nights+=nights;
-    byProp[key].rent+=rent; byProp[key].tax+=taxFees; byProp[key].ota+=ota;
-    byProp[key].received+=received; byProp[key].zesty+=zesty; byProp[key].net+=net;
-    grandRent+=rent; grandTax+=taxFees; grandOTA+=ota;
-    grandRec+=received; grandZesty+=zesty; grandNet+=net; grandNights+=nights;
-  });
+  let grandCleanCost=0, grandJobCost=0;
 
   const presetLabel = document.getElementById('p-preset')?.selectedOptions?.[0]?.text || 'Custom Period';
-  const totalBookings = bookings.length;
+  const sections = propsInPeriod.map(prop => {
+    const mgmt = parseFloat(prop?.maintenance || prop?.ownerCommission || 0);
+    const propBookings = filteredBookings.filter(r => matchProp(r, prop))
+      .sort((a,b) => (a.DateArrival||'') > (b.DateArrival||'') ? 1 : -1);
 
-  // Build property rows
-  const propRows = Object.entries(byProp).sort((a,b)=>b[1].net-a[1].net).map(([name,d]) => `
-    <tr style="border-bottom:1px solid var(--border)">
-      <td style="padding:9px 12px;font-weight:500">${name}</td>
-      <td style="text-align:center;padding:9px 8px">${d.bookings}</td>
-      <td style="text-align:center;padding:9px 8px">${d.nights}</td>
-      <td style="text-align:right;padding:9px 10px">${eur(d.rent)}</td>
-      <td style="text-align:right;padding:9px 10px;color:var(--text-muted)">${eur(d.tax)}</td>
-      <td style="text-align:right;padding:9px 10px;color:var(--danger)">${d.ota>0?eur(d.ota):'—'}</td>
-      <td style="text-align:right;padding:9px 10px">${eur(d.received)}</td>
-      <td style="text-align:right;padding:9px 10px;color:var(--teal)">${eur(d.zesty)}</td>
-      <td style="text-align:right;padding:9px 10px;font-weight:700;color:var(--teal-dark)">${eur(d.net)}</td>
-    </tr>`).join('');
+    if (!propBookings.length) return '';
 
-  if (!out) return;
-  out.innerHTML = `
-    <div class="rpt-wrap" style="padding:24px">
-      <!-- Header -->
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;flex-wrap:wrap;gap:12px">
+    let tRent=0, tTax=0, tOTA=0, tRec=0, tZesty=0, tNet=0, tNights=0;
+
+    const bRows = propBookings.map((r, i) => {
+      const nights    = parseInt(r.Nights)||0;
+      const guests    = parseInt(r.People||r.Guests||0);
+      const roomRates = parseFloat(r.RoomRatesTotal||r.TotalAmount||0);
+      const promos    = parseFloat(r.PromotionsTotal||0);
+      const rent      = parseFloat((roomRates - promos).toFixed(2));
+      const taxesFees = parseFloat(((parseFloat(r.FeesTotal||0))+(parseFloat(r.TaxesTotal||0))).toFixed(2));
+      const otaBase   = Math.max(0, rent - taxesFees);
+      const otaRate   = getCommRate ? getCommRate(prop, r.Source) : 0;
+      const ota       = parseFloat((otaBase * otaRate / 100).toFixed(2));
+      const rec       = parseFloat((rent - taxesFees - ota).toFixed(2));
+      const zesty     = parseFloat((Math.max(0, rec) * mgmt / 100).toFixed(2));
+      const netInc    = parseFloat((rec - zesty).toFixed(2));
+      const daily     = nights > 0 ? rent / nights : 0;
+
+      tRent+=rent; tTax+=taxesFees; tOTA+=ota; tRec+=rec; tZesty+=zesty; tNet+=netInc; tNights+=nights;
+      grandRent+=rent; grandTax+=taxesFees; grandOTA+=ota; grandRec+=rec; grandZesty+=zesty; grandNet+=netInc; grandNights+=nights;
+
+      return `<tr>
+        <td style="color:var(--text-muted);font-size:11px">${i+1}</td>
+        <td><strong>${r.Name||'\u2014'}</strong>${r.CountryName||r.Origin?`<br><small style="color:var(--text-muted)">${r.CountryName||r.Origin}</small>`:''}</td>
+        <td style="font-size:11px;color:var(--text-muted)">${r.DateCreated||r.BookingDate||'\u2014'}</td>
+        <td style="font-size:12px">${fmtD(r.DateArrival)}</td>
+        <td style="font-size:12px">${fmtD(r.DateDeparture)}</td>
+        <td style="text-align:center">${nights}</td>
+        <td style="text-align:center">${guests||'\u2014'}</td>
+        <td><span class="src-badge ${srcCls(r.Source)}">${r.Source||'\u2014'}</span></td>
+        <td style="text-align:right;font-size:12px">${daily>0?eur(daily):'\u2014'}</td>
+        <td style="text-align:right;font-weight:600">${eur(rent)}</td>
+        <td style="text-align:right;color:var(--info);font-size:12px">${taxesFees>0?eur(taxesFees):'\u2014'}</td>
+        <td style="text-align:right;color:var(--danger);font-size:12px">${ota>0?eur(ota):'\u2014'}</td>
+        <td style="text-align:right;font-size:12px">${rec>0?eur(rec):'\u2014'}</td>
+        <td style="text-align:right;color:var(--text-muted);font-size:12px">${eur(zesty)}</td>
+        <td style="text-align:right;font-weight:700;color:var(--teal-dark)">${eur(netInc)}</td>
+      </tr>`;
+    }).join('');
+
+    // Cleaning cost for this property in period
+    const propCleanJobs = periodCleanJobs.filter(j => j.propertyName === (prop.shortName || prop.propertyName));
+    const cleanCost = propCleanJobs.reduce((s,j) => s + (parseFloat(j.cleaningFee) || parseFloat(prop.cleaningFee) || 0), 0);
+    grandCleanCost += cleanCost;
+
+    // Job orders cost for this property
+    const propJobs = periodJobs.filter(j => j.propertyName === (prop.shortName || prop.propertyName));
+    const jobCost  = propJobs.reduce((s,j) => s + (parseFloat(j.finalCharge||j.estimatedCost||0)), 0);
+    grandJobCost  += jobCost;
+
+    const owner = owners?.find(o => o.id === prop.owner);
+
+    return `
+    <div class="rpt-section" style="margin-bottom:28px">
+      <!-- Property header -->
+      <div style="background:linear-gradient(135deg,var(--teal-dark),var(--teal));color:#fff;padding:14px 18px;border-radius:10px 10px 0 0;display:flex;justify-content:space-between;align-items:center">
         <div>
-          <div style="font-size:22px;font-weight:700;color:var(--teal-dark);font-family:'Cormorant Garamond',serif">${presetLabel}</div>
-          <div style="font-size:13px;color:var(--text-muted);margin-top:4px">${fromVal} → ${toVal} &nbsp;|&nbsp; ${totalBookings} bookings &nbsp;|&nbsp; ${grandNights} nights</div>
+          <div style="font-size:17px;font-weight:700;font-family:'Cormorant Garamond',serif">${prop.shortName||prop.propertyName}</div>
+          <div style="font-size:12px;opacity:.8;margin-top:2px">${owner?(owner.firstName||'')+' '+(owner.lastName||owner.companyName||''):''}${mgmt?' \u00B7 Management '+mgmt+'%':''}</div>
         </div>
-        <button onclick="window.print()" class="btn btn-print no-print" style="padding:7px 16px">🖨 Print</button>
+        <div style="text-align:right;font-size:13px">
+          <div>${propBookings.length} booking${propBookings.length!==1?'s':''} \u00B7 ${tNights} nights</div>
+        </div>
       </div>
 
-      <!-- Summary cards -->
-      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin-bottom:24px">
-        ${[
-          ['Total Rent','var(--teal-dark)',eur(grandRent)],
-          ['Taxes & Fees','var(--text-muted)',eur(grandTax)],
-          ['OTA Commissions','var(--danger)',eur(grandOTA)],
-          ['Received by Owner','var(--info)',eur(grandRec)],
-          ['Zesty Commission','var(--teal)',eur(grandZesty)],
-          ['Net to Owners','#1a5276',eur(grandNet)],
-        ].map(([label,color,val])=>`
-          <div style="background:var(--cream);border:1px solid var(--border);border-radius:10px;padding:12px 16px;text-align:center">
-            <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);margin-bottom:4px">${label}</div>
-            <div style="font-size:20px;font-weight:700;color:${color}">${val}</div>
-          </div>`).join('')}
-      </div>
-
-      <!-- By property table -->
-      <div style="overflow-x:auto">
-        <table style="width:100%;border-collapse:collapse;font-size:13px">
-          <thead>
-            <tr style="background:var(--teal-dark);color:#fff">
-              <th style="padding:10px 12px;text-align:left">Property</th>
-              <th style="padding:10px 8px;text-align:center">Bkgs</th>
-              <th style="padding:10px 8px;text-align:center">Nights</th>
-              <th style="padding:10px 10px;text-align:right">Total Rent</th>
-              <th style="padding:10px 10px;text-align:right">Taxes&amp;Fees</th>
-              <th style="padding:10px 10px;text-align:right">OTA Comm</th>
-              <th style="padding:10px 10px;text-align:right">Received</th>
-              <th style="padding:10px 10px;text-align:right">Zesty Comm</th>
-              <th style="padding:10px 10px;text-align:right">Net Income</th>
-            </tr>
-          </thead>
-          <tbody>${propRows || '<tr><td colspan="9" style="padding:20px;text-align:center;color:var(--text-muted)">No bookings found for this period. Upload your Lodgify CSV on the Dashboard first.</td></tr>'}</tbody>
-          <tfoot>
-            <tr style="background:var(--cream);font-weight:700;border-top:2px solid var(--teal-dark)">
-              <td style="padding:10px 12px">TOTAL</td>
-              <td style="text-align:center;padding:10px 8px">${totalBookings}</td>
-              <td style="text-align:center;padding:10px 8px">${grandNights}</td>
-              <td style="text-align:right;padding:10px 10px">${eur(grandRent)}</td>
-              <td style="text-align:right;padding:10px 10px;color:var(--text-muted)">${eur(grandTax)}</td>
-              <td style="text-align:right;padding:10px 10px;color:var(--danger)">${eur(grandOTA)}</td>
-              <td style="text-align:right;padding:10px 10px">${eur(grandRec)}</td>
-              <td style="text-align:right;padding:10px 10px;color:var(--teal)">${eur(grandZesty)}</td>
-              <td style="text-align:right;padding:10px 10px;color:var(--teal-dark);font-size:15px">${eur(grandNet)}</td>
-            </tr>
-          </tfoot>
+      <!-- Bookings table -->
+      <div class="rpt-scroll-wrap" style="overflow-x:auto">
+        <table class="rpt-table">
+          <thead><tr>
+            <th>#</th><th>Guest</th><th>Booked</th><th>Check-in</th><th>Check-out</th>
+            <th>Nts</th><th>Gst</th><th>Source</th><th>Daily Avg</th><th>Total Rent</th>
+            <th>Taxes&amp;Fees</th><th>OTA Comm</th><th>Received</th>
+            <th>Zesty Comm</th><th>Net Income</th>
+          </tr></thead>
+          <tbody>${bRows}</tbody>
+          <tfoot><tr>
+            <td colspan="9" style="text-align:right;font-weight:700">TOTAL</td>
+            <td style="text-align:right;font-weight:700">${eur(tRent)}</td>
+            <td style="text-align:right;color:var(--info)">${eur(tTax)}</td>
+            <td style="text-align:right;color:var(--danger)">${eur(tOTA)}</td>
+            <td style="text-align:right">${eur(tRec)}</td>
+            <td style="text-align:right;color:var(--text-muted)">${eur(tZesty)}</td>
+            <td style="text-align:right;font-weight:700;color:var(--teal-dark);font-size:14px">${eur(tNet)}</td>
+          </tr></tfoot>
         </table>
       </div>
+
+      <!-- Expenses summary (cleaning + jobs — totals only) -->
+      ${(cleanCost > 0 || jobCost > 0) ? `
+      <div style="margin-top:8px;padding:10px 16px;background:#fafafa;border:1px solid var(--border);border-top:none;border-radius:0 0 8px 8px;display:flex;gap:24px;flex-wrap:wrap">
+        <div style="font-size:12px;font-weight:600;color:var(--text-muted);align-self:center">EXPENSES</div>
+        ${cleanCost>0?`<div style="font-size:12px">🧹 Cleaning (${propCleanJobs.length} sessions): <strong style="color:var(--danger)">${eur(cleanCost)}</strong></div>`:''}
+        ${jobCost>0?`<div style="font-size:12px">🔧 Job Orders (${propJobs.length}): <strong style="color:var(--danger)">${eur(jobCost)}</strong></div>`:''}
+        <div style="font-size:12px;margin-left:auto">Total Expenses: <strong style="color:var(--danger)">${eur(cleanCost+jobCost)}</strong></div>
+      </div>` : ''}
     </div>`;
+  }).join('');
+
+  // Grand summary
+  const grandExpenses = grandCleanCost + grandJobCost;
+  const summaryHTML = `
+    <div class="rpt-section" style="background:var(--cream);margin-bottom:20px">
+      <div style="font-size:16px;font-weight:700;color:var(--teal-dark);font-family:'Cormorant Garamond',serif;margin-bottom:12px">
+        ${presetLabel} &nbsp;\u00B7&nbsp; <span style="font-size:13px;font-weight:400;color:var(--text-muted)">${fromVal} \u2192 ${toVal}</span>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px">
+        ${[
+          ['Total Rent','var(--teal-dark)',eur(grandRent)],
+          ['Taxes & Fees','var(--info)',eur(grandTax)],
+          ['OTA Commissions','var(--danger)',eur(grandOTA)],
+          ['Received','inherit',eur(grandRec)],
+          ['Zesty Commission','var(--teal)',eur(grandZesty)],
+          ['Net to Owners','#1a5276',eur(grandNet)],
+          ['🧹 Cleaning','var(--danger)',eur(grandCleanCost)],
+          ['🔧 Job Orders','var(--danger)',eur(grandJobCost)],
+        ].map(([label,color,val])=>`
+          <div style="background:#fff;border:1px solid var(--border);border-radius:8px;padding:10px 14px;text-align:center">
+            <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);margin-bottom:3px">${label}</div>
+            <div style="font-size:18px;font-weight:700;color:${color}">${val}</div>
+          </div>`).join('')}
+      </div>
+      <div style="margin-top:10px;padding:8px 14px;background:#fff;border:1px solid var(--border);border-radius:8px;display:flex;justify-content:space-between;align-items:center">
+        <div style="font-size:13px;font-weight:600">${filteredBookings.length} bookings \u00B7 ${grandNights} nights \u00B7 ${propsInPeriod.length} propert${propsInPeriod.length!==1?'ies':'y'}</div>
+        <button onclick="window.print()" class="btn btn-print no-print" style="padding:6px 14px;font-size:12px">\uD83D\uDDA8 Print</button>
+      </div>
+    </div>`;
+
+  if (!out) return;
+  out.innerHTML = summaryHTML + `<div class="rpt-wrap">${sections || '<p style="padding:20px;color:var(--text-muted)">No bookings found. Upload your Lodgify CSV on the Dashboard first.</p>'}</div>`;
 }
 
 
