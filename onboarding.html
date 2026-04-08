@@ -494,7 +494,6 @@ body.erp-layout {
   .stats-bar, .kpi-grid { grid-template-columns: repeat(2,1fr) !important; }
 }
 
-
 </style>
     <script src="https://alcdn.msauth.net/browser/2.38.0/js/msal-browser.min.js"></script>
     <script>
@@ -561,7 +560,6 @@ body.erp-layout {
     <div class="erp-topbar-title">📋 Onboarding Pipeline</div>
     <div class="erp-topbar-actions"><button class="btn btn-outline btn-sm" onclick="openSettings&&openSettings()">⚙ Settings</button><button class="btn btn-primary btn-sm" onclick="newCase&&newCase()">+ New Onboarding</button></div>
   </div>
-
 
 <main>
   <div class="pipeline-header">
@@ -845,12 +843,6 @@ body.erp-layout {
 
 <div class="toast" id="toast"></div>
 </div><!-- /erp-main -->
-
-<!-- Ticket FAB -->
-<button id="z-ticket-fab" onclick="document.getElementById('z-onb-overlay').style.display='flex'" title="Submit a Ticket"
-  style="position:fixed;bottom:22px;right:22px;width:44px;height:44px;border-radius:50%;
-  background:#e8c87a;color:#0f4a42;border:none;font-size:20px;cursor:pointer;z-index:800;
-  box-shadow:0 4px 20px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center">&#127915;</button>
 
 <div id="z-onb-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:900;align-items:center;justify-content:center"
   onclick="if(event.target===this)this.style.display='none'">

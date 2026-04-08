@@ -968,61 +968,7 @@ body.erp-layout {
 <script src="cleaning-logic.js"></script>
 <script src="erp-nav.js"></script>
 
-<!-- Ticket FAB + Popup -->
-<button id="z-ticket-fab" onclick="document.getElementById('z-clea-ticket-overlay').style.display='flex'" title="Submit a Ticket"
-  style="position:fixed;bottom:22px;right:22px;width:44px;height:44px;border-radius:50%;
-  background:#e8c87a;color:#0f4a42;border:none;font-size:20px;cursor:pointer;z-index:800;
-  box-shadow:0 4px 20px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center">
-  &#127915;
-</button>
-
-<div id="z-clea-ticket-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:900;align-items:center;justify-content:center" onclick="if(event.target===this)this.style.display='none'">
-  <div style="background:#fff;border-radius:16px;padding:28px;width:460px;max-width:92vw;box-shadow:0 20px 60px rgba(0,0,0,0.3)">
-    <h2 style="font-family:'Cormorant Garamond',serif;font-size:22px;color:#0f4a42;margin:0 0 4px">Submit a Ticket</h2>
-    <div style="font-size:12px;color:#888;margin-bottom:16px">&#127915; tickets.html</div>
-    <div style="display:flex;gap:8px;margin-bottom:14px" id="z-clea-ticket-types">
-      <button onclick="zCleanTicketType(this,'bug')" class="z-ttype sel bug" style="flex:1;padding:8px;border-radius:8px;border:1px solid #c0392b;background:#fdf0ef;color:#c0392b;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:13px">🐛 Bug</button>
-      <button onclick="zCleanTicketType(this,'improvement')" class="z-ttype" style="flex:1;padding:8px;border-radius:8px;border:1px solid #ccc;background:#fff;color:#333;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:13px">⚡ Improvement</button>
-      <button onclick="zCleanTicketType(this,'idea')" class="z-ttype" style="flex:1;padding:8px;border-radius:8px;border:1px solid #ccc;background:#fff;color:#333;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:13px">💡 Idea</button>
-    </div>
-    <textarea id="z-clea-ticket-text" rows="4" placeholder="Describe the issue or idea..."
-      style="width:100%;padding:10px;border:1.5px solid #1a7a6e;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;resize:vertical;box-sizing:border-box"></textarea>
-    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:14px">
-      <button onclick="document.getElementById('z-clea-ticket-overlay').style.display='none'" style="padding:8px 18px;border-radius:8px;border:none;background:#f0f4f3;color:#6b7e7b;cursor:pointer;font-family:'DM Sans',sans-serif">Cancel</button>
-      <button onclick="zCleanTicketSubmit()" style="padding:8px 18px;border-radius:8px;border:none;background:#e8c87a;color:#0f4a42;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif">Submit</button>
-    </div>
-  </div>
 </div>
-
-<script>
-var _zCleanTicketType = 'bug';
-function zCleanTicketType(btn, type) {
-  _zCleanTicketType = type;
-  document.querySelectorAll('.z-ttype').forEach(b => {
-    b.style.borderColor = '#ccc'; b.style.background = '#fff'; b.style.color = '#333';
-  });
-  var colors = {bug:['#c0392b','#fdf0ef'], improvement:['#1a5276','#e8f4f8'], idea:['#27ae60','#eafaf1']};
-  var col = colors[type] || colors.bug;
-  btn.style.borderColor = col[0]; btn.style.background = col[1]; btn.style.color = col[0];
-}
-function zCleanTicketSubmit() {
-  var text = document.getElementById('z-clea-ticket-text').value.trim();
-  if (!text) return;
-  var tickets = JSON.parse(localStorage.getItem('zesty_tickets') || '[]');
-  tickets.push({id:'t_'+Date.now(), type:_zCleanTicketType, description:text, status:'Open',
-    source:'Cleaning', createdAt:new Date().toISOString()});
-  localStorage.setItem('zesty_tickets', JSON.stringify(tickets));
-  document.getElementById('z-clea-ticket-overlay').style.display = 'none';
-  document.getElementById('z-clea-ticket-text').value = '';
-  _zCleanTicketType = 'bug';
-  document.querySelectorAll('.z-ttype').forEach((b,i) => {
-    if(i===0){b.style.borderColor='#c0392b';b.style.background='#fdf0ef';b.style.color='#c0392b';}
-    else{b.style.borderColor='#ccc';b.style.background='#fff';b.style.color='#333';}
-  });
-  alert('Ticket submitted!');
-}
-</script>
-
 
 <!-- ══ MANUAL JOB MODAL ══ -->
 <div class="modal-overlay" id="manualJobModal">
