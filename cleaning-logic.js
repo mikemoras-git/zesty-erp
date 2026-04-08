@@ -165,7 +165,7 @@ function checkAutoImport() {
 
     // Pre-load into importPreviewData so confirmImport works immediately
     importPreviewData = rows;
-    const activeRows = rows.filter(r => r.Status === 'Booked' || r.Status === 'Open');
+    const activeRows = rows.filter(r => r.Status === 'Booked'); // Only confirmed bookings
 
     const banner = document.getElementById('autoImportBanner');
     const msg = document.getElementById('autoImportBannerMsg');
@@ -865,8 +865,9 @@ async function confirmImport() {
   
   const activeRows = importPreviewData.filter(r => r.Status === 'Booked');
   // Cancelled bookings that have existing jobs \u2014 remove them
+  // All non-Booked statuses: Declined, Cancelled, Open enquiries - remove their jobs
   const cancelledIds = new Set(
-    importPreviewData.filter(r => r.Status === 'Declined' || r.Status === 'Cancelled')
+    importPreviewData.filter(r => r.Status !== 'Booked')
       .map(r => r.Id)
   );
   const jobsToDelete = cleaningJobs.filter(j => j.bookingId && cancelledIds.has(j.bookingId));

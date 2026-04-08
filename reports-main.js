@@ -328,7 +328,7 @@ function generateOccupancy(){
   const from=document.getElementById('occ-from').value, to=document.getElementById('occ-to').value;
   if(!from||!to){showToast('Select date range','error');return;}
   const allB=getCSVBookings();
-  const inRange=allB.filter(r=>(r.Status==='Booked'||r.Status==='Open')&&r.DateDeparture>=from&&r.DateArrival<=to);
+  const inRange=allB.filter(r=>r.Status==='Booked'&&r.DateDeparture>=from&&r.DateArrival<=to); // Booked only
   const byProp={};
   inRange.forEach(r=>{
     const name=r.HouseInternalName||r.HouseName||'Unknown';
