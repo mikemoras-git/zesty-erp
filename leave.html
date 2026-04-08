@@ -1328,10 +1328,7 @@ document.addEventListener('DOMContentLoaded', init);
     tickets.unshift({id:'tkt_'+Date.now(),type:type,description:text,status:'Open',
       page:document.title||location.pathname,createdAt:new Date().toISOString()});
     localStorage.setItem('zesty_tickets',JSON.stringify(tickets));
-    // Also save to Supabase if SyncStore available
-    if(typeof SyncStore!=='undefined'){
-      try{SyncStore.saveAll('zesty_tickets','tickets',tickets);}catch(e){}
-    }
+    // Supabase save handled by tickets.html module
     zNavCloseTicket();
     document.getElementById('z-ticket-text').value='';
     window._zNavTicketType='bug';
