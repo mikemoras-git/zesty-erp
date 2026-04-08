@@ -1020,5 +1020,86 @@ body.erp-layout {
   </div>
 </div>
 
+
+<!-- ══ TICKET FAB + MODAL (matches erp-nav.js implementation) ══ -->
+<style>
+#z-ticket-fab{position:fixed;bottom:22px;right:22px;width:44px;height:44px;border-radius:50%;background:var(--gold,#c9a84c);color:#0f4a42;border:none;font-size:18px;cursor:pointer;z-index:800;box-shadow:0 4px 20px rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;transition:transform .18s,box-shadow .18s}
+#z-ticket-fab:hover{transform:scale(1.1);box-shadow:0 6px 28px rgba(0,0,0,.4)}
+#z-ticket-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:950;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
+#z-ticket-overlay.open{display:flex}
+#z-ticket-modal{background:#fff;border-radius:18px;padding:28px;width:90%;max-width:460px;font-family:'DM Sans',sans-serif;box-shadow:0 24px 70px rgba(0,0,0,.35);animation:z-modal-in .2s ease}
+@keyframes z-modal-in{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+#z-ticket-modal h2{font-family:'Cormorant Garamond',serif;font-size:22px;color:#0f4a42;margin-bottom:3px}
+.z-ticket-sub{font-size:12px;color:#888;margin-bottom:16px}
+.z-ticket-types{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+.z-ticket-type{padding:6px 14px;border-radius:20px;border:2px solid #ddd;background:#fff;cursor:pointer;font-size:13px;font-family:'DM Sans',sans-serif;transition:all .15s}
+.z-ticket-type.sel{border-color:#c0392b;background:#fdf0ef;color:#c0392b}
+.z-ticket-type.improvement.sel{border-color:#1a7a4a;background:#edfaf3;color:#1a7a4a}
+.z-ticket-type.idea.sel{border-color:#c9a84c;background:#fdfaee;color:#9a7c2b}
+#z-ticket-text{width:100%;min-height:90px;border:1px solid #ddd;border-radius:10px;padding:10px;font-family:'DM Sans',sans-serif;font-size:13px;resize:vertical;box-sizing:border-box}
+.z-ticket-footer{display:flex;justify-content:flex-end;gap:10px;margin-top:14px}
+.z-ticket-btn{padding:8px 20px;border-radius:8px;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600}
+.z-ticket-btn.cancel{background:#f0f0f0;color:#333}
+.z-ticket-btn.submit{background:#0f4a42;color:#fff}
+</style>
+<button id="z-ticket-fab" title="Report a bug or idea" onclick="zNavOpenTicket()">🎫</button>
+<div id="z-ticket-overlay" onclick="if(event.target===this)zNavCloseTicket()">
+  <div id="z-ticket-modal">
+    <h2>Submit a Ticket</h2>
+    <div class="z-ticket-sub" id="z-ticket-page-lbl"></div>
+    <div class="z-ticket-types">
+      <button class="z-ticket-type bug sel" onclick="zNavTicketType('bug',this)">🐛 Bug</button>
+      <button class="z-ticket-type improvement" onclick="zNavTicketType('improvement',this)">⚡ Improvement</button>
+      <button class="z-ticket-type idea" onclick="zNavTicketType('idea',this)">💡 Idea</button>
+    </div>
+    <textarea id="z-ticket-text" placeholder="Describe the issue or idea..."></textarea>
+    <div class="z-ticket-footer">
+      <button class="z-ticket-btn cancel" onclick="zNavCloseTicket()">Cancel</button>
+      <button class="z-ticket-btn submit" onclick="zNavSubmitTicket()">Submit</button>
+    </div>
+  </div>
+</div>
+<script>
+(function(){
+  function zNavOpenTicket(){
+    var lbl=document.getElementById('z-ticket-page-lbl');
+    if(lbl) lbl.textContent=document.title||window.location.pathname.split('/').pop();
+    document.getElementById('z-ticket-overlay').classList.add('open');
+    setTimeout(function(){var t=document.getElementById('z-ticket-text');if(t)t.focus();},200);
+  }
+  function zNavCloseTicket(){
+    document.getElementById('z-ticket-overlay').classList.remove('open');
+  }
+  function zNavTicketType(type,btn){
+    document.querySelectorAll('.z-ticket-type').forEach(function(b){b.classList.remove('sel');});
+    btn.classList.add('sel');
+    btn._type=type;
+    window._zNavTicketType=type;
+  }
+  function zNavSubmitTicket(){
+    var text=document.getElementById('z-ticket-text').value.trim();
+    if(!text){alert('Please describe the issue first.');return;}
+    var type=window._zNavTicketType||'bug';
+    var tickets=JSON.parse(localStorage.getItem('zesty_tickets')||'[]');
+    tickets.unshift({id:'tkt_'+Date.now(),type:type,description:text,status:'Open',
+      page:document.title||location.pathname,createdAt:new Date().toISOString()});
+    localStorage.setItem('zesty_tickets',JSON.stringify(tickets));
+    // Also save to Supabase if SyncStore available
+    if(typeof SyncStore!=='undefined'){
+      try{SyncStore.saveAll('zesty_tickets','tickets',tickets);}catch(e){}
+    }
+    zNavCloseTicket();
+    document.getElementById('z-ticket-text').value='';
+    window._zNavTicketType='bug';
+    document.querySelectorAll('.z-ticket-type').forEach(function(b,i){b.classList.toggle('sel',i===0);});
+    alert('\u2713 Ticket submitted!');
+  }
+  window.zNavOpenTicket=zNavOpenTicket;
+  window.zNavCloseTicket=zNavCloseTicket;
+  window.zNavTicketType=zNavTicketType;
+  window.zNavSubmitTicket=zNavSubmitTicket;
+  window._zNavTicketType='bug';
+})();
+</script>
 </body>
 </html>
