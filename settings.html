@@ -249,9 +249,10 @@ create policy if not exists "anon_all" on laundry_pricelists for all using (true
           <tr style="background:var(--teal-dark);color:#fff">
             <th style="padding:10px 12px;text-align:left;font-weight:500">Employee</th>
             <th style="padding:10px 12px;text-align:left;font-weight:500">Role</th>
-            <th style="padding:10px 12px;text-align:center;font-weight:500">Annual Days</th>
-            <th style="padding:10px 12px;text-align:center;font-weight:500">Used This Year</th>
-            <th style="padding:10px 12px;text-align:center;font-weight:500">Remaining</th>
+            <th style="padding:10px 12px;text-align:center;font-weight:500">Annual Leave Days</th>
+            <th style="padding:10px 12px;text-align:center;font-weight:500">Sick Leave Days</th>
+            <th style="padding:10px 12px;text-align:center;font-weight:500">Hourly Time Off (h)</th>
+            <th style="padding:10px 12px;text-align:center;font-weight:500">Remaining (Annual)</th>
             <th style="padding:10px 12px;text-align:left;font-weight:500">Notes</th>
             <th style="padding:10px 12px;text-align:center;font-weight:500">Save</th>
           </tr>
@@ -479,19 +480,23 @@ function renderEntitlements() {
         <span style="font-size:11px;background:#f0f4f3;color:var(--teal-dark);padding:2px 7px;border-radius:8px">${dept}${role ? (dept?', ':'')+role : ''}</span>
       </td>
       <td style="padding:10px 12px;text-align:center">
-        <input type="number" min="0" max="60" value="${annual}" id="ent_annual_${id}"
-          style="width:65px;padding:6px;border:1px solid var(--border);border-radius:7px;text-align:center;font-family:'DM Sans',sans-serif;font-size:13px">
+        <input type="number" min="0" max="60" value="${ent.annual||21}" id="ent_annual_${id}"
+          style="width:65px;padding:6px;border:1px solid var(--border);border-radius:7px;text-align:center;font-family:'DM Sans',sans-serif;font-size:13px" title="Annual leave days">
       </td>
       <td style="padding:10px 12px;text-align:center">
-        <input type="number" min="0" max="${annual||60}" value="${used}" id="ent_used_${id}"
-          style="width:65px;padding:6px;border:1px solid var(--border);border-radius:7px;text-align:center;font-family:'DM Sans',sans-serif;font-size:13px">
+        <input type="number" min="0" max="60" value="${ent.sick||7}" id="ent_sick_${id}"
+          style="width:65px;padding:6px;border:1px solid var(--border);border-radius:7px;text-align:center;font-family:'DM Sans',sans-serif;font-size:13px" title="Sick leave days">
       </td>
       <td style="padding:10px 12px;text-align:center">
-        <span style="font-weight:700;font-size:15px;color:${remainColor}">${remaining >= 0 ? remaining : 0}</span>
-        <span style="font-size:11px;color:var(--text-muted)"> days</span>
+        <input type="number" min="0" max="500" value="${ent.hourly||24}" id="ent_hourly_${id}"
+          style="width:65px;padding:6px;border:1px solid var(--border);border-radius:7px;text-align:center;font-family:'DM Sans',sans-serif;font-size:13px" title="Hourly time off (hours)">
+      </td>
+      <td style="padding:10px 12px;text-align:center">
+        <span style="font-weight:700;font-size:15px;color:${remainColor}">${ent.annual||21}</span>
+        <span style="font-size:11px;color:var(--text-muted)"> days total</span>
       </td>
       <td style="padding:10px 12px">
-        <input type="text" value="${ent.notes||''}" id="ent_notes_${id}" placeholder="e.g. 5 days carried over..."
+        <input type="text" value="${ent.notes||''}" id="ent_notes_${id}" placeholder="Notes..."
           style="width:100%;padding:6px;border:1px solid var(--border);border-radius:7px;font-family:'DM Sans',sans-serif;font-size:12px">
       </td>
       <td style="padding:10px 12px;text-align:center">
@@ -511,10 +516,11 @@ function renderEntitlements() {
 
 function saveEntitlement(staffId) {
   const annual = parseFloat(document.getElementById('ent_annual_'+staffId)?.value) || 0;
-  const used = parseFloat(document.getElementById('ent_used_'+staffId)?.value) || 0;
-  const notes = document.getElementById('ent_notes_'+staffId)?.value || '';
+  const sick   = parseFloat(document.getElementById('ent_sick_'+staffId)?.value) || 0;
+  const hourly = parseFloat(document.getElementById('ent_hourly_'+staffId)?.value) || 0;
+  const notes  = document.getElementById('ent_notes_'+staffId)?.value || '';
   const all = JSON.parse(localStorage.getItem('zesty_entitlements') || '{}');
-  all[staffId] = { annual, used, notes, updatedAt: new Date().toISOString() };
+  all[staffId] = { annual, sick, hourly, notes, updatedAt: new Date().toISOString() };
   localStorage.setItem('zesty_entitlements', JSON.stringify(all));
   renderEntitlements();
   const toast = document.getElementById('toast');

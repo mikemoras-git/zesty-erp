@@ -809,7 +809,7 @@ function openReceiptModal(id) {
     document.getElementById('rm-gross').value = r.grossAmount || '';
     document.getElementById('rm-charges').value = r.charges || '';
     document.getElementById('rm-notes').value = r.notes || '';
-    const pmEl = document.getElementById('rm-payMethod'); if(pmEl) pmEl.value = r.paymentMethod || '';
+    const pmEl = document.getElementById('rm-payMethod'); if(pmEl) pmEl.value = r.payMethod || '';
     calcReceiptNet();
   } else {
     document.getElementById('rm-id').value = '';
@@ -860,7 +860,7 @@ async function saveReceipt() {
     grossAmount: gross,
     charges: parseFloat(document.getElementById('rm-charges')?.value) || 0,
     notes: document.getElementById('rm-notes')?.value || '',
-    payMethod: document.getElementById('rm-pay-method')?.value || '',
+    payMethod: document.getElementById('rm-payMethod')?.value || '',
   };
   const existing = receipts.find(r => r.id === id);
   if (existing) Object.assign(existing, record);
