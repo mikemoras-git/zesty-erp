@@ -12,6 +12,32 @@ let confirmCb = null;
 // Cleaner colors
 const COLORS = ['#1a7a6e','#c9a84c','#e67e22','#8e44ad','#2471a3','#1e8449','#c0392b','#2c3e50'];
 
+
+// ── Modal helpers (cleaning module uses its own modal-overlay pattern) ──
+function openModal(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.style.display = 'flex';
+  el.style.alignItems = 'center';
+  el.style.justifyContent = 'center';
+  document.body.style.overflow = 'hidden';
+}
+function closeModal(id) {
+  const el = document.getElementById(id);
+  if (el) el.style.display = 'none';
+  // Only restore scroll if no other modals are open
+  const anyOpen = Array.from(document.querySelectorAll('.modal-overlay'))
+    .some(m => m.style.display === 'flex');
+  if (!anyOpen) document.body.style.overflow = '';
+}
+// Close modal when clicking the overlay background
+document.addEventListener('click', function(e) {
+  if (e.target && e.target.classList && e.target.classList.contains('modal-overlay')) {
+    closeModal(e.target.id);
+  }
+});
+
+
 function getColor(idx) { return COLORS[idx % COLORS.length]; }
 
 function getInitials(f, l) {
@@ -1586,10 +1612,12 @@ function printWeeklySchedule() {
     @media print { .wk2-page { page-break-after:always; } }
   `;
 
-  const w = window.open('', '_blank');
-  w.document.write('<html><head><title>Weekly Schedule '+monthName+'</title><style>'+styles+'</style></head><body>'+(printContent||'<p style="padding:40px">No jobs.</p>')+'</body></html>');
-  w.document.close();
-  setTimeout(() => w.print(), 600);
+  const _printHtml = ('<html><head><title>Weekly Schedule '+monthName+'</title><style>'+styles+'</style></head><body>'+(printContent||'<p style="padding:40px">No jobs.</p>')+'</body></html>');
+  const _blob=new Blob([_printHtml],{type:'text/html'});
+  const _url=URL.createObjectURL(_blob);
+  const w=window.open(_url,'_blank');
+  if(!w){showToast('Allow popups for this site to use Print','error');URL.revokeObjectURL(_url);return;}
+  setTimeout(()=>{w.print();URL.revokeObjectURL(_url);},600);
 }
 
 
@@ -1671,10 +1699,12 @@ function printSchedule() {
     </div>`;
   });
 
-  const w = window.open('', '_blank');
-  w.document.write('<html><head><title>Cleaning Schedule '+monthName+'</title><style>'+buildPrintStyles()+'</style></head><body>'+(printContent||'<p style="padding:40px;font-family:Arial">No jobs found.</p>')+'</body></html>');
-  w.document.close();
-  setTimeout(() => w.print(), 600);
+  const _printHtml = ('<html><head><title>Cleaning Schedule '+monthName+'</title><style>'+buildPrintStyles()+'</style></head><body>'+(printContent||'<p style="padding:40px;font-family:Arial">No jobs found.</p>')+'</body></html>');
+  const _blob=new Blob([_printHtml],{type:'text/html'});
+  const _url=URL.createObjectURL(_blob);
+  const w=window.open(_url,'_blank');
+  if(!w){showToast('Allow popups for this site to use Print','error');URL.revokeObjectURL(_url);return;}
+  setTimeout(()=>{w.print();URL.revokeObjectURL(_url);},600);
 }
 
 
@@ -1784,13 +1814,19 @@ function printAllJobs() {
     @page { margin:10mm; size:A4 landscape; }
   `;
 
-  const w = window.open('','_blank');
-  w.document.write('<html><head><title>Jobs '+monthLabel+'</title><style>'+styles+'</style></head><body>'+
+  const html = '<html><head><title>Jobs '+monthLabel+'</title><style>'+styles+'</style></head><body>'+
     '<h1>Cleaning Jobs</h1><div class="sub">'+monthLabel+' \u00B7 '+filtered.length+' jobs</div>'+
     '<table><thead><tr><th>Date</th><th>Property</th><th>Zone</th><th>Type</th><th>Nts</th><th>Assigned To</th><th>Hours</th><th>Transport</th><th>Notes</th></tr></thead>'+
-    '<tbody>'+rows+'</tbody></table></body></html>');
-  w.document.close();
-  setTimeout(()=>w.print(),400);
+    '<tbody>'+rows+'</tbody></table></body></html>';
+  const blob = new Blob([html], {type:'text/html'});
+  const url  = URL.createObjectURL(blob);
+  const w = window.open(url, '_blank');
+  if (!w) {
+    // Popup blocked - fallback: inject into iframe
+    showToast('Allow popups for this site to use Print PDF', 'error');
+    return;
+  }
+  setTimeout(() => { w.print(); URL.revokeObjectURL(url); }, 600);
 }
 
 init().catch(console.error);
