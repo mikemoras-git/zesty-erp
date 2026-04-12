@@ -772,7 +772,7 @@ function addManualHoursJob() {
   // Set default date to first of current hours month
   const monthVal = document.getElementById('hoursMonth')?.value || '';
   const dateEl = document.getElementById('mj-date');
-  if (dateEl) dateEl.value = monthVal ? monthVal + '-01' : today();
+  if (dateEl) dateEl.value = monthVal ? monthVal + '-01' : new Date().toISOString().slice(0,10);
   // Reset fields
   document.getElementById('mj-type').value = 'checkout';
   document.getElementById('mj-guest').value = '';
@@ -1458,730 +1458,223 @@ function printWeeklySchedule() {
   const [yr, mo] = monthVal.split('-').map(Number);
   const monthName = new Date(yr, mo-1, 1).toLocaleDateString('en-GB',{month:'long',year:'numeric'});
 
-  // All jobs for this month, filtered by cleaner if set
+  // All jobs for the month
   const monthJobs = cleaningJobs.filter(j =>
     j.date && j.date.startsWith(monthVal) &&
     (!cleanerFilter || (j.cleanerIds||[]).includes(cleanerFilter))
   ).sort((a,b) => a.date > b.date ? 1 : -1);
 
-  const printCleaners = cleanerFilter
-    ? [staff.find(s => s.id === cleanerFilter)].filter(Boolean)
-    : staff.filter(s => s.status !== 'Inactive' && monthJobs.some(j => (j.cleanerIds||[]).includes(s.id)));
+  // Active cleaners
+  const activeCl = cleanerFilter
+    ? [staff.find(s=>s.id===cleanerFilter)].filter(Boolean)
+    : staff.filter(s=>s.status!=='Inactive'&&(!s.role||s.role==='cleaner'||s.role==='both'));
 
-  // Build weeks: Mon→Sun grouping for the month
+  // Build weeks: Mon→Sun
   const firstDay = new Date(yr, mo-1, 1);
   const lastDay  = new Date(yr, mo, 0);
-  const weeks = [];
-  let weekStart = new Date(firstDay);
-  // Align to Monday
-  const dow = weekStart.getDay(); // 0=Sun
-  const offset = dow === 0 ? -6 : 1 - dow;
-  weekStart.setDate(weekStart.getDate() + offset);
+  let weekStart  = new Date(firstDay);
+  const dow = weekStart.getDay();
+  weekStart.setDate(weekStart.getDate() + (dow===0?-6:1-dow));
 
+  const weeks = [];
   while (weekStart <= lastDay) {
     const week = [];
-    for (let d = 0; d < 7; d++) {
+    for (let d=0; d<7; d++) {
       const day = new Date(weekStart);
-      day.setDate(weekStart.getDate() + d);
+      day.setDate(weekStart.getDate()+d);
       week.push(day);
     }
     weeks.push(week);
-    weekStart.setDate(weekStart.getDate() + 7);
+    weekStart.setDate(weekStart.getDate()+7);
   }
 
-  const DAY_LABELS = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  const DAY_LABELS = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
   const dayKey = d => d.toISOString().slice(0,10);
-  const fmtDay = d => d.toLocaleDateString('en-GB',{day:'numeric',month:'short'});
+  const fmtFull = d => d.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'});
 
-  let html = '';
+  let printContent = '';
 
-  printCleaners.forEach(cl => {
-    const clJobs = monthJobs.filter(j => (j.cleanerIds||[]).includes(cl.id));
-    const totalHours = clJobs.reduce((s,j) => s+(j.hours||0), 0);
+  weeks.forEach(week => {
+    // Skip weeks entirely outside the month with no jobs
+    const weekHasJob = week.some(d => monthJobs.some(j=>j.date===dayKey(d)));
+    if (!weekHasJob) return;
 
-    // Header
-    html += `
-    <div class="wk-section">
-      <div class="wk-logo">Zesty Rentals — Weekly Cleaning Schedule</div>
-      <div class="wk-header">
-        <div>
-          <div class="wk-name">${cl.firstName} ${cl.lastName}</div>
-          <div class="wk-sub">${monthName} &middot; ${(cl.zones||[]).join(', ')||'All zones'}${cl.hasCar==='Yes'?' &middot; 🚗 Car':''}</div>
-        </div>
-        <div class="wk-summary">
-          <div class="big">${clJobs.length} jobs</div>
-          <div class="small">${totalHours.toFixed(1)}h</div>
-        </div>
+    const weekLabel = new Date(week[0]).toLocaleDateString('en-GB',{day:'numeric',month:'short'}) +
+                      ' \u2013 ' +
+                      new Date(week[6]).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
+
+    // Build day columns
+    const dayCols = week.map((day, di) => {
+      const dk = dayKey(day);
+      const inMonth = day.getMonth()===mo-1;
+      const dayJobs = monthJobs.filter(j=>j.date===dk);
+      const isWeekend = di>=5;
+      const dayLabel = DAY_LABELS[di]+' '+day.getDate();
+
+      let dayContent = '';
+      if (!dayJobs.length || !inMonth) {
+        dayContent = '<div class="wk2-empty">\u2014</div>';
+      } else {
+        // Group jobs by property
+        dayJobs.forEach(j => {
+          const assignedCl = (j.cleanerIds||[])
+            .map(cid=>activeCl.find(s=>s.id===cid))
+            .filter(Boolean)
+            .map(s=>s.firstName+' '+s.lastName);
+          const depDt = new Date(j.date);
+          const arrDt = j.nights ? new Date(new Date(j.date).setDate(depDt.getDate()-j.nights)) : null;
+          const arrStr = arrDt ? arrDt.toLocaleDateString('en-GB',{day:'numeric',month:'short'}) : '\u2014';
+          const depStr = j.type==='checkout' ? depDt.toLocaleDateString('en-GB',{day:'numeric',month:'short'}) : '\u2014';
+          const babycot = (j.notes||'').toLowerCase().match(/infant|baby|cot/);
+          const guestStr = j.adults||j.guests ? (j.adults?j.adults+'A':'')+(j.children?' '+j.children+'C':'')+(j.infants?' '+j.infants+'INF':'') || (j.guests||'') : '';
+          const typeColor = j.type==='checkout'?'#a04000':'#8e6b23';
+          const typeBg   = j.type==='checkout'?'#fdebd0':'#fdf6e3';
+
+          dayContent += `
+          <div class="wk2-job" style="page-break-inside:avoid">
+            <div class="wk2-prop">${j.propertyName||'\u2014'}</div>
+            <div class="wk2-type" style="background:${typeBg};color:${typeColor}">${j.type==='checkout'?'Checkout':'Mid-Stay'}</div>
+            ${guestStr?'<div class="wk2-detail">\uD83D\uDC65 '+guestStr+'</div>':''}
+            ${arrStr!=='\u2014'?'<div class="wk2-detail">\u2197 Arr: '+arrStr+'</div>':''}
+            ${depStr!=='\u2014'?'<div class="wk2-detail">\u2198 Dep: '+depStr+'</div>':''}
+            ${j.nights?'<div class="wk2-detail">\uD83C\uDF19 '+j.nights+' nts</div>':''}
+            ${assignedCl.length?'<div class="wk2-cleaners">'+assignedCl.map(n=>'<span>'+n+'</span>').join('')+'</div>':'<div class="wk2-detail" style="color:#e74c3c">Unassigned</div>'}
+            ${j.hours?'<div class="wk2-detail">\u23F1 '+j.hours+'h</div>':''}
+            ${babycot?'<div class="wk2-detail" style="color:#c0392b;font-weight:700">\uD83D\uDECF BABYCOT</div>':''}
+            ${j.notes&&!babycot?'<div class="wk2-note">'+j.notes+'</div>':''}
+          </div>`;
+        });
+      }
+
+      return `<div class="wk2-day${isWeekend?' wk2-weekend':''}${!inMonth?' wk2-outmonth':''}">
+        <div class="wk2-day-hdr${dayJobs.length&&inMonth?' wk2-has-jobs':''}">${dayLabel}</div>
+        <div class="wk2-day-body">${dayContent}</div>
       </div>`;
+    }).join('');
 
-    // Weekly calendar
-    weeks.forEach(week => {
-      const weekHasJob = week.some(d => clJobs.some(j => j.date === dayKey(d)));
-      if (!weekHasJob) return; // skip empty weeks
-
-      const weekLabel = fmtDay(week[0]) + ' – ' + fmtDay(week[6]);
-      html += `
-      <div class="wk-week" style="page-break-inside:avoid">
-        <div class="wk-week-label">${weekLabel}</div>
-        <div class="wk-grid">`;
-
-      week.forEach((day, di) => {
-        const dk = dayKey(day);
-        const inMonth = day.getMonth() === mo-1;
-        const dayJobs = clJobs.filter(j => j.date === dk);
-        const isWeekend = di >= 5;
-
-        html += `<div class="wk-day${isWeekend?' wk-weekend':''}${!inMonth?' wk-outofmonth':''}">
-          <div class="wk-day-header">
-            <span class="wk-day-name">${DAY_LABELS[di]}</span>
-            <span class="wk-day-num${dayJobs.length?' wk-has-job':''}">${day.getDate()}</span>
-          </div>
-          <div class="wk-day-body">`;
-
-        if (dayJobs.length === 0) {
-          html += `<div class="wk-empty">—</div>`;
-        } else {
-          dayJobs.forEach(j => {
-            const coworkers = (j.cleanerIds||[]).filter(cid=>cid!==cl.id)
-              .map(cid=>{const c2=staff.find(s=>s.id===cid);return c2?c2.firstName:''}).filter(Boolean).join(', ');
-            const typeColor = j.type==='checkout'?'#a04000':'#8e6b23';
-            const typeBg   = j.type==='checkout'?'#fdebd0':'#fdf6e3';
-            const typeLabel= j.type==='checkout'?'Checkout':'Mid-Stay';
-            const babycot  = (j.notes||'').toLowerCase().match(/infant|baby|cot/);
-            html += `
-            <div class="wk-job">
-              <div class="wk-job-prop">${j.propertyName||'—'}</div>
-              <div class="wk-job-type" style="background:${typeBg};color:${typeColor}">${typeLabel}</div>
-              ${j.guests||j.adults?`<div class="wk-job-meta">👥 ${j.adults||j.guests||0}${j.children?' +'+j.children+'c':''}${j.infants?' +'+j.infants+'inf':''}</div>`:''}
-              ${coworkers?`<div class="wk-job-meta">🤝 ${coworkers}</div>`:''}
-              ${j.hours?`<div class="wk-job-meta">⏱ ${j.hours}h</div>`:''}
-              ${babycot?`<div class="wk-job-meta" style="color:#c0392b;font-weight:700">🛏 BABYCOT</div>`:''}
-              ${j.notes&&!babycot?`<div class="wk-job-note">${j.notes}</div>`:''}
-            </div>`;
-          });
-        }
-
-        html += `</div></div>`;
-      });
-
-      html += `</div></div>`;
-    });
-
-    // Totals
-    html += `
-      <div class="wk-totals">
-        <span>Total jobs: <strong>${clJobs.length}</strong></span>
-        <span>Total hours: <strong>${totalHours.toFixed(1)}h</strong></span>
-      </div>
+    printContent += `<div class="wk2-page">
+      <div class="wk2-logo">Zesty Rentals \u2014 Weekly Cleaning Schedule \u00B7 ${monthName}</div>
+      <div class="wk2-week-label">${weekLabel}</div>
+      <div class="wk2-grid">${dayCols}</div>
     </div>`;
   });
-
-  if (!html) html = '<p style="padding:40px;font-family:Arial">No jobs found for this period.</p>';
 
   const styles = `
     @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&display=swap');
     * { box-sizing:border-box; margin:0; padding:0; }
-    body { font-family:'DM Sans',Arial,sans-serif; font-size:11px; color:#1e2a28; background:#fff; }
-    .wk-section { padding:20px 24px; page-break-after:always; }
-    .wk-section:last-child { page-break-after:avoid; }
-    .wk-logo { font-size:10px; color:#888; text-transform:uppercase; letter-spacing:2px; margin-bottom:14px; }
-    .wk-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:16px; padding-bottom:10px; border-bottom:3px solid #115950; }
-    .wk-name { font-size:20px; font-weight:700; color:#115950; }
-    .wk-sub { font-size:11px; color:#888; margin-top:3px; }
-    .wk-summary { text-align:right; }
-    .wk-summary .big { font-size:22px; font-weight:700; color:#115950; }
-    .wk-summary .small { font-size:11px; color:#888; }
-
-    .wk-week { margin-bottom:14px; }
-    .wk-week-label { font-size:10px; font-weight:600; color:#888; text-transform:uppercase; letter-spacing:1px; margin-bottom:6px; padding:4px 0; border-bottom:1px solid #eee; }
-
-    /* 7-column grid */
-    .wk-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:4px; }
-    .wk-day { border:1px solid #e8e8e8; border-radius:6px; padding:4px; min-height:80px; background:#fff; }
-    .wk-weekend { background:#fafafa; }
-    .wk-outofmonth { opacity:.35; }
-    .wk-day-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:4px; padding-bottom:3px; border-bottom:1px solid #f0f0f0; }
-    .wk-day-name { font-size:9px; font-weight:600; color:#888; text-transform:uppercase; }
-    .wk-day-num { font-size:12px; font-weight:500; color:#333; }
-    .wk-has-job { background:#115950; color:#fff; border-radius:50%; width:18px; height:18px; display:inline-flex; align-items:center; justify-content:center; font-size:10px; }
-    .wk-day-body { display:flex; flex-direction:column; gap:3px; }
-    .wk-empty { color:#ccc; font-size:10px; text-align:center; padding:8px 0; }
-    .wk-job { background:#f0faf7; border:1px solid #c8e6d8; border-radius:4px; padding:4px 5px; }
-    .wk-job-prop { font-weight:600; font-size:10px; color:#115950; line-height:1.3; }
-    .wk-job-type { font-size:9px; font-weight:700; padding:1px 5px; border-radius:8px; display:inline-block; margin:2px 0; }
-    .wk-job-meta { font-size:9px; color:#666; line-height:1.4; }
-    .wk-job-note { font-size:9px; color:#999; font-style:italic; margin-top:1px; }
-    .wk-totals { display:flex; gap:24px; padding:10px 0 0; border-top:1px solid #eee; margin-top:12px; font-size:12px; color:#555; }
-
-    @page { margin:10mm; size:A4 landscape; }
-    @media print {
-      .wk-week { page-break-inside:avoid; }
-      .wk-section { page-break-after:always; }
-    }
+    body { font-family:'DM Sans',Arial,sans-serif; font-size:10px; color:#1e2a28; background:#fff; }
+    .wk2-page { padding:14px 16px; page-break-after:always; }
+    .wk2-page:last-child { page-break-after:avoid; }
+    .wk2-logo { font-size:9px; color:#888; text-transform:uppercase; letter-spacing:2px; margin-bottom:8px; }
+    .wk2-week-label { font-size:16px; font-weight:700; color:#115950; margin-bottom:10px; padding-bottom:6px; border-bottom:3px solid #115950; }
+    .wk2-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:5px; height:calc(100vh - 80px); }
+    .wk2-day { border:1px solid #dde; border-radius:5px; overflow:hidden; display:flex; flex-direction:column; }
+    .wk2-weekend { background:#fafaf8; }
+    .wk2-outmonth { opacity:.3; }
+    .wk2-day-hdr { padding:5px 7px; font-size:10px; font-weight:700; color:#555; background:#f5f5f5; border-bottom:1px solid #eee; }
+    .wk2-has-jobs { background:#115950; color:#fff; }
+    .wk2-day-body { padding:5px; flex:1; overflow:hidden; display:flex; flex-direction:column; gap:5px; }
+    .wk2-empty { color:#ccc; text-align:center; padding:10px 0; font-size:11px; }
+    .wk2-job { background:#f0faf7; border:1px solid #c0e0d0; border-radius:4px; padding:5px 6px; page-break-inside:avoid; }
+    .wk2-prop { font-weight:700; font-size:10px; color:#115950; margin-bottom:3px; }
+    .wk2-type { font-size:8px; font-weight:700; padding:1px 6px; border-radius:8px; display:inline-block; margin-bottom:3px; }
+    .wk2-detail { font-size:9px; color:#555; line-height:1.6; }
+    .wk2-cleaners { display:flex; flex-wrap:wrap; gap:2px; margin-top:3px; }
+    .wk2-cleaners span { background:#115950; color:#fff; padding:1px 5px; border-radius:8px; font-size:8px; font-weight:600; }
+    .wk2-note { font-size:8px; color:#999; font-style:italic; margin-top:2px; }
+    @page { margin:8mm; size:A4 landscape; }
+    @media print { .wk2-page { page-break-after:always; } }
   `;
 
   const w = window.open('', '_blank');
-  w.document.write('<html><head><title>Weekly Schedule '+monthName+'</title><style>'+styles+'</style></head><body>'+html+'</body></html>');
+  w.document.write('<html><head><title>Weekly Schedule '+monthName+'</title><style>'+styles+'</style></head><body>'+(printContent||'<p style="padding:40px">No jobs.</p>')+'</body></html>');
   w.document.close();
   setTimeout(() => w.print(), 600);
 }
 
-function buildPrintStyles() {
-  return `
-    @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&display=swap');
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'DM Sans', Arial, sans-serif; font-size: 13px; color: #1e2a28; background: white; }
-    .print-page { page-break-after: always; padding: 28px 32px; }
-    .print-page:last-child { page-break-after: avoid; }
-    .print-logo { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 20px; }
-    .print-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 22px; padding-bottom: 14px; border-bottom: 3px solid #115950; }
-    .print-name { font-size: 22px; font-weight: 700; color: #115950; }
-    .print-sub { font-size: 13px; color: #666; margin-top: 4px; }
-    .print-summary { text-align: right; }
-    .print-summary .big { font-size: 20px; font-weight: 700; color: #115950; }
-    .print-summary .small { font-size: 11px; color: #888; }
-    .col-headers { display: grid; grid-template-columns: 80px 1fr 80px 75px 75px 40px 50px 130px 80px; gap: 0; background: #115950; color: white; padding: 7px 10px; border-radius: 6px 6px 0 0; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0; }
-    .print-job-row { display: grid; grid-template-columns: 80px 1fr 80px 75px 75px 40px 50px 130px 80px; gap: 0; padding: 9px 10px; border-bottom: 1px solid #e8f0ef; font-size: 12px; }
-    .print-job-row:nth-child(even) { background: #f8f5f0; }
-    .type-badge { display: inline-block; padding: 1px 7px; border-radius: 10px; font-size: 10px; font-weight: 600; }
-    .type-checkout { background: #fdebd0; color: #a04000; }
-    .type-midstay { background: #fdf6e3; color: #8e6b23; }
-    .coworker-tag { display: inline-block; padding: 1px 6px; background: #e0f5f1; color: #115950; border-radius: 10px; font-size: 10px; font-weight: 500; margin: 1px; }
-    .totals-row { display: flex; justify-content: flex-end; gap: 20px; padding: 12px 10px; border-top: 2px solid #115950; margin-top: 2px; }
-    .total-item { text-align: right; }
-    .total-label { font-size: 10px; text-transform: uppercase; color: #888; letter-spacing: 0.5px; }
-    .total-val { font-size: 16px; font-weight: 700; color: #115950; }
-  `;
-}
 
 function printSchedule() {
   const monthVal = document.getElementById('calMonth')?.value || '';
   const cleanerFilter = document.getElementById('calCleaner')?.value || '';
   if (!monthVal) { showToast('Select a month first', 'error'); return; }
-  const monthJobs = cleaningJobs.filter(j => j.date && j.date.startsWith(monthVal) && (!cleanerFilter || (j.cleanerIds||[]).includes(cleanerFilter)));
+  const monthJobs = cleaningJobs.filter(j => j.date && j.date.startsWith(monthVal) &&
+    (!cleanerFilter || (j.cleanerIds||[]).includes(cleanerFilter)));
   monthJobs.sort((a,b) => a.date > b.date ? 1 : -1);
-
-  const printCleaners = cleanerFilter ? [staff.find(s => s.id === cleanerFilter)].filter(Boolean) : staff.filter(s => s.status !== 'Inactive');
+  const printCleaners = cleanerFilter
+    ? [staff.find(s => s.id === cleanerFilter)].filter(Boolean)
+    : staff.filter(s => s.status !== 'Inactive');
   const monthName = new Date(monthVal+'-01').toLocaleDateString('en-GB',{month:'long',year:'numeric'});
   let printContent = '';
 
   printCleaners.forEach(cl => {
     const clJobs = monthJobs.filter(j => (j.cleanerIds||[]).includes(cl.id));
     if (clJobs.length === 0 && !cleanerFilter) return;
-    const totalHours = clJobs.reduce((sum,j) => sum + (j.hours||0), 0);
+    const totalHours = clJobs.reduce((s,j) => s+(j.hours||0), 0);
 
-    printContent += `
-      <div class="print-page">
-        <div class="print-logo">Zesty Rentals \u2014 Cleaning Schedule</div>
-        <div class="print-header">
-          <div>
-            <div class="print-name">${cl.firstName} ${cl.lastName}</div>
-            <div class="print-sub">${monthName} \u00B7 ${(cl.zones||[]).join(', ') || 'All zones'}${cl.hasCar==='Yes' ? ' \u00B7 \u{1F697} Car' : ''}</div>
-          </div>
-          <div class="print-summary">
-            <div class="big">${clJobs.length} jobs</div>
-            <div class="small">${totalHours.toFixed(1)}h total</div>
-          </div>
-        </div>
-        <div class="col-headers">
-          <div>Date</div><div>Property</div><div>Type</div><div>Arrival</div><div>Departure</div><div>Nts</div><div>Guests</div><div>Co-workers</div><div>Notes</div>
-        </div>
-        ${clJobs.length === 0 ? '<p style="padding:20px;color:#999">No jobs assigned this month.</p>' :
-          clJobs.map(j => {
-            const coworkers = (j.cleanerIds||[]).filter(cid => cid !== cl.id).map(cid => {
-              const c2 = staff.find(s => s.id === cid);
-              return c2 ? `<span class="coworker-tag">${c2.firstName} ${c2.lastName}</span>` : '';
-            }).join('');
-            const _depDt = j.date ? new Date(j.date) : null;
-            const _arrDt = (_depDt && j.nights) ? new Date(new Date(j.date).setDate(new Date(j.date).getDate()-j.nights)) : null;
-            const _arrStr = _arrDt ? _arrDt.toLocaleDateString('en-GB',{day:'numeric',month:'short'}) : '\u2014';
-            const _depStr = j.type==='checkout' && _depDt ? _depDt.toLocaleDateString('en-GB',{day:'numeric',month:'short'}) : '\u2014';
-            const _babycot = (j.notes||'').toLowerCase().match(/infant|baby|cot/);
-            return `<div class="print-job-row">
-              <div><strong>${formatDate(j.date)}</strong></div>
-              <div>${j.propertyName}${j.zone ? '<br><span style="font-size:10px;color:#888">'+j.zone+'</span>' : ''}</div>
-              <div><span class="type-badge type-${j.type}">${j.type === 'checkout' ? 'Checkout' : 'Mid-Stay'}</span>${_babycot ? '<br><span style="background:#ffcccc;color:#c0392b;padding:1px 5px;border-radius:8px;font-size:9px;font-weight:700">\u{1F6CF} BABYCOT</span>' : ''}</div>
-              <div style="font-size:11px">${_arrStr}</div>
-              <div style="font-size:11px">${_depStr}</div>
-              <div style="text-align:center">${j.nights||'\u2014'}</div>
-              <div style="font-size:11px;text-align:center">${j.adults||j.guests ? (j.adults?j.adults+'A':'')+(j.children?' '+j.children+'C':'')+(j.infants?' '+j.infants+'INF':'') || (j.guests||'—') : '—'}${j.infants>0?' <span style=\"background:#ffcccc;color:#c0392b;padding:0 4px;border-radius:6px;font-size:9px;font-weight:700\">INF</span>':''}</div>
-              <div>${coworkers || '<span style="color:#ccc;font-size:11px">Solo</span>'}</div>
-              <div style="font-size:11px;color:#666">${(_babycot ? '\u{1F6CF} BABYCOT REQ. ' : '')+( j.notes||'')}</div>
-            </div>`;
-          }).join('')
-        }
-        <div class="totals-row">
-          <div class="total-item"><div class="total-label">Total Jobs</div><div class="total-val">${clJobs.length}</div></div>
-          <div class="total-item"><div class="total-label">Total Hours</div><div class="total-val">${totalHours.toFixed(1)}h</div></div>
-        </div>
-      </div>`;
-  });
+    // Group jobs by date
+    const byDate = {};
+    clJobs.forEach(j => { if (!byDate[j.date]) byDate[j.date]=[]; byDate[j.date].push(j); });
+    const dates = Object.keys(byDate).sort();
 
-  const w = window.open('', '_blank');
-  w.document.write(`<html><head><title>Cleaning Schedule ${monthName}</title><style>${buildPrintStyles()}</style></head><body>${printContent || '<p style="padding:40px;font-family:Arial">No jobs found for this period.</p>'}</body></html>`);
-  w.document.close();
-  setTimeout(() => w.print(), 600);
-}
+    const dateBlocks = dates.map(date => {
+      const dayJobs = byDate[date];
+      const dayLabel = new Date(date).toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long'});
 
-// Remove cleaning jobs for properties that have no cleaning fee set
-async function removeNoFeeJobs() {
-  // Refresh property cache from Supabase first
-  try {
-    const freshProps = await SyncStore.load('zesty_properties', 'properties');
-    if (freshProps.data && freshProps.data.length > 0) window._propCache = freshProps.data;
-  } catch(e) {}
-
-  const toRemove = cleaningJobs.filter(j => {
-    if (!j.propertyName && !j.propertyId) return false;
-    return !getPropertyHasCleaning(j.propertyId || j.propertyName);
-  });
-
-  if (!toRemove.length) {
-    showToast('No jobs found for no-fee properties', 'success');
-    return;
-  }
-
-  // List affected properties
-  const propNames = [...new Set(toRemove.map(j => j.propertyName))].sort().join(', ');
-  showConfirm('🗑️', 'Remove No-Fee Property Jobs?',
-    `Remove ${toRemove.length} jobs for: ${propNames}?`,
-    'btn-danger', 'Remove All',
-    async () => {
-      const removeIds = new Set(toRemove.map(j => j.id));
-      cleaningJobs = cleaningJobs.filter(j => !removeIds.has(j.id));
-      // Delete from Supabase
-      for (const j of toRemove) {
-        await SyncStore.deleteOne('zesty_cleaning_jobs', 'cleaning_jobs', j.id, cleaningJobs);
-      }
-      // Clear localStorage too
-      localStorage.setItem('zesty_cleaning_jobs', JSON.stringify(cleaningJobs));
-      renderCalendar(); renderJobs(); updateJobStats();
-      showToast(`✓ Removed ${toRemove.length} jobs for ${[...new Set(toRemove.map(j=>j.propertyName))].length} properties`, 'success');
-    }
-  );
-}
-
-function exportManagerExcel() {
-  const monthVal = document.getElementById('calMonth')?.value || '';
-  if (!monthVal) { showToast('Select a month first', 'error'); return; }
-  const monthJobs = cleaningJobs.filter(j => j.date && j.date.startsWith(monthVal))
-    .sort((a,b) => a.date > b.date ? 1 : -1);
-  if (!monthJobs.length) { showToast('No jobs for this month', 'error'); return; }
-
-  const monthName = new Date(monthVal+'-01').toLocaleDateString('en-GB',{month:'long',year:'numeric'});
-  const headers = ['Date','Property','Zone','Type','Guest','Arrival','Departure','Nights',
-                   'Adults','Children','Infants','Cleaners','Hours','Notes'];
-  
-  const rows = monthJobs.map(j => {
-    const cls = (j.cleanerIds||[]).map(cid=>{const s=staff.find(x=>x.id===cid);return s?s.firstName+' '+s.lastName:'';}).filter(Boolean).join(' + ');
-    const dep = j.date ? new Date(j.date) : null;
-    const arr = (dep && j.nights) ? new Date(new Date(j.date).setDate(new Date(j.date).getDate()-j.nights)) : null;
-    const arrStr = arr ? arr.toLocaleDateString('en-GB') : '';
-    const depStr = j.type==='checkout' && dep ? dep.toLocaleDateString('en-GB') : '';
-    return [
-      j.date, j.propertyName||'', j.zone||'',
-      j.type==='checkout'?'Checkout':'Mid-Stay',
-      j.guestName||'', arrStr, depStr, j.nights||'',
-      j.adults||'', j.children||'', j.infants||'',
-      cls||'Unassigned', j.hours||'', j.notes||''
-    ].map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',');
-  });
-
-  const csv = [headers.join(','), ...rows].join('\n');
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8;'}));
-  a.download = `manager_schedule_${monthVal}.csv`;
-  a.click();
-  showToast('\u2713 Excel/CSV exported', 'success');
-}
-
-function printManagerSummary() {
-  const monthVal = document.getElementById('calMonth')?.value || '';
-  if (!monthVal) { showToast('Select a month first', 'error'); return; }
-  
-  const monthJobs = cleaningJobs.filter(j => j.date && j.date.startsWith(monthVal))
-    .sort((a,b) => a.date > b.date ? 1 : a.date < b.date ? -1 : 0);
-  
-  if (!monthJobs.length) { showToast('No jobs for this month', 'error'); return; }
-  
-  const monthName = new Date(monthVal+'-01').toLocaleDateString('en-GB',{month:'long',year:'numeric'});
-  
-  // Group by date
-  const byDate = {};
-  monthJobs.forEach(j => {
-    if (!byDate[j.date]) byDate[j.date] = [];
-    byDate[j.date].push(j);
-  });
-  
-  const styles = buildPrintStyles() + `
-    .day-header { background:#1a7a6e; color:#fff; padding:8px 12px; margin-top:16px; border-radius:6px 6px 0 0; font-weight:700; font-size:13px; }
-    .day-table { width:100%; border-collapse:collapse; margin-bottom:4px; font-size:11px; }
-    .day-table th { background:#f0faf8; padding:6px 8px; text-align:left; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; border-bottom:2px solid #1a7a6e; }
-    .day-table td { padding:7px 8px; border-bottom:1px solid #e8f0ef; vertical-align:top; }
-    .day-table tr:hover td { background:#f8fcfb; }
-    .badge-checkout { background:#fdebd0; color:#a04000; padding:2px 7px; border-radius:10px; font-size:10px; font-weight:700; }
-    .badge-midstay { background:#fdf6e3; color:#8e6b23; padding:2px 7px; border-radius:10px; font-size:10px; font-weight:700; }
-    .badge-babycot { background:#ffcccc; color:#c0392b; padding:2px 7px; border-radius:10px; font-size:10px; font-weight:700; border:1px solid #c0392b; }
-    .cleaner-tag { display:inline-block; background:#e0f5f1; color:#115950; padding:2px 6px; border-radius:10px; font-size:10px; font-weight:600; margin:1px; }
-    .same-day-alert { background:#fff3cd; color:#856404; padding:2px 7px; border-radius:10px; font-size:10px; font-weight:700; border:1px solid #ffc107; }
-    .manager-title { font-family:Arial,sans-serif; }
-    @page { size:A4 landscape; margin:8mm; }
-    .day-header { page-break-before: always; }
-    .day-header:first-child { page-break-before: avoid; }
-    tr { page-break-inside: avoid; }
-    .day-table { page-break-inside: auto; }
-  `;
-  
-  // Check for same-day check-in/checkout
-  const checkoutDates = new Set(monthJobs.filter(j=>j.type==='checkout').map(j=>j.date));
-  
-  let html = `<div style="font-family:Arial,sans-serif;padding:16px 0">
-    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;padding-bottom:12px;border-bottom:3px solid #1a7a6e">
-      <div>
-        <div style="font-size:22px;font-weight:700;color:#1a7a6e">Manager Schedule Summary</div>
-        <div style="font-size:14px;color:#666;margin-top:4px">${monthName}</div>
-      </div>
-      <div style="text-align:right;font-size:12px;color:#888">
-        <div>Zesty Rentals</div>
-        <div>Printed: ${new Date().toLocaleDateString('en-GB')}</div>
-        <div style="margin-top:4px;font-weight:700;color:#1a7a6e">${monthJobs.length} cleaning jobs</div>
-      </div>
-    </div>`;
-  
-  for (const [date, jobs] of Object.entries(byDate).sort()) {
-    const dayName = new Date(date).toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long'});
-    // Check if any checkout on this day has a check-in too (same day turnover)
-    const hasCheckout = jobs.some(j=>j.type==='checkout');
-    
-    html += `<div class="day-header">${dayName}
-      ${hasCheckout ? '<span style="margin-left:12px;background:rgba(255,255,255,0.2);padding:2px 8px;border-radius:8px;font-size:11px">' + jobs.filter(j=>j.type==='checkout').length + ' checkout' + (jobs.filter(j=>j.type==='checkout').length>1?'s':'') + '</span>' : ''}
-      ${jobs.filter(j=>j.type==='midstay').length>0 ? '<span style="margin-left:6px;background:rgba(255,255,255,0.15);padding:2px 8px;border-radius:8px;font-size:11px">' + jobs.filter(j=>j.type==='midstay').length + ' mid-stay</span>' : ''}
-    </div>
-    <table class="day-table" style="table-layout:fixed;width:100%">
-      <thead><tr>
-        <th style="width:22%">Property</th>
-        <th style="width:9%">Type</th>
-        <th style="width:14%">Guest</th>
-        <th style="width:8%">Arrival</th>
-        <th style="width:8%">Departure</th>
-        <th style="width:5%">Nts</th>
-        <th style="width:8%">Guests</th>
-        <th style="width:14%">Cleaners</th>
-        <th style="width:5%">Hrs</th>
-        <th style="width:7%">Notes</th>
-      </tr></thead>
-      <tbody>`;
-    
-    for (const j of jobs) {
-      const cls = (j.cleanerIds||[]).map(cid => {
-        const cl = staff.find(s=>s.id===cid);
-        return cl ? `<span class="cleaner-tag">${cl.firstName}</span>` : '';
+      const rows = dayJobs.map(j => {
+        const coworkers = (j.cleanerIds||[]).filter(cid=>cid!==cl.id)
+          .map(cid=>{const c2=staff.find(s=>s.id===cid);return c2?`<span class="coworker-tag">${c2.firstName} ${c2.lastName}</span>`:''}).join('');
+        const depDt = j.date ? new Date(j.date) : null;
+        const arrDt = (depDt&&j.nights) ? new Date(new Date(j.date).setDate(new Date(j.date).getDate()-j.nights)) : null;
+        const arrStr = arrDt ? arrDt.toLocaleDateString('en-GB',{day:'numeric',month:'short'}) : '\u2014';
+        const depStr = j.type==='checkout'&&depDt ? depDt.toLocaleDateString('en-GB',{day:'numeric',month:'short'}) : '\u2014';
+        const babycot = (j.notes||'').toLowerCase().match(/infant|baby|cot/);
+        const guestStr = j.adults||j.guests ? (j.adults?j.adults+'A':'')+(j.children?' '+j.children+'C':'')+(j.infants?' '+j.infants+'INF':'') || (j.guests||'\u2014') : '\u2014';
+        return `<div class="print-job-row">
+          <div><strong>${j.propertyName}</strong>${j.zone?'<br><span style="font-size:10px;color:#888">'+j.zone+'</span>':''}</div>
+          <div><span class="type-badge type-${j.type}">${j.type==='checkout'?'Checkout':'Mid-Stay'}</span>${babycot?'<br><span style="background:#ffcccc;color:#c0392b;padding:1px 5px;border-radius:8px;font-size:9px;font-weight:700">\uD83D\uDECF BABYCOT</span>':''}</div>
+          <div style="font-size:11px">${arrStr}</div>
+          <div style="font-size:11px">${depStr}</div>
+          <div style="text-align:center">${j.nights||'\u2014'}</div>
+          <div style="font-size:11px;text-align:center">${guestStr}${j.infants>0?' <span style=\"background:#ffcccc;color:#c0392b;padding:0 4px;border-radius:6px;font-size:9px;font-weight:700\">INF</span>':''}</div>
+          <div>${coworkers||'<span style="color:#ccc;font-size:11px">Solo</span>'}</div>
+          <div style="font-size:11px;color:#666">${(babycot?'\uD83D\uDECF BABYCOT REQ. ':'')}${j.notes||''}</div>
+        </div>`;
       }).join('');
-      
-      // Calculate arrival from departure and nights (for checkout jobs)
-      let arrivalDate = '—', departureDate = '—';
-      if (j.type === 'checkout' && j.date && j.nights) {
-        const dep = new Date(j.date);
-        const arr = new Date(dep);
-        arr.setDate(arr.getDate() - j.nights);
-        arrivalDate = arr.toLocaleDateString('en-GB',{day:'numeric',month:'short'});
-        departureDate = dep.toLocaleDateString('en-GB',{day:'numeric',month:'short'});
-      } else if (j.type === 'midstay' && j.date && j.midStayDay) {
-        // midStayDay = days after arrival
-        const cleanDate = new Date(j.date);
-        const arr = new Date(cleanDate);
-        arr.setDate(arr.getDate() - j.midStayDay);
-        const dep = new Date(arr);
-        dep.setDate(dep.getDate() + (j.nights||0));
-        arrivalDate = arr.toLocaleDateString('en-GB',{day:'numeric',month:'short'});
-        departureDate = dep.toLocaleDateString('en-GB',{day:'numeric',month:'short'});
-      }
-      
-      // Infants check for babycot (we store in guestName if noted, or check via nights < 3 shorthand)
-      // Since we don't have infant count in jobs, add babycot column as manual note placeholder
-      const hasBabycot = (j.notes||'').toLowerCase().includes('infant') || 
-                         (j.notes||'').toLowerCase().includes('baby') ||
-                         (j.notes||'').toLowerCase().includes('cot');
-      
-      // Same day alert: if this is a checkout and there's also a new checkin (another booking arriving same day at same property)
-      const sameDayCheckIn = j.type === 'checkout' && cleaningJobs.some(other => 
-        other.id !== j.id && other.date === j.date && 
-        other.propertyName === j.propertyName && other.type === 'checkout'
-      );
-      
-      // Build guest string
-      const guestStr = j.adults||j.guests ? 
-        [(j.adults?(j.adults+'A'):''), (j.children&&j.children>0?(j.children+'C'):''), (j.infants&&j.infants>0?('<strong style="color:#c0392b">'+j.infants+'INF</strong>'):'')]
-        .filter(Boolean).join(' ') || String(j.guests||'—') : '—';
-      html += `<tr style="page-break-inside:avoid">
-        <td style="word-wrap:break-word"><strong style="font-size:11px">${j.propertyName||'—'}</strong>${j.zone?`<br><span style="font-size:9px;color:#888">${j.zone}</span>`:''}</td>
-        <td>
-          <span class="${j.type==='checkout'?'badge-checkout':'badge-midstay'}" style="font-size:9px">${j.type==='checkout'?'OUT':'MID'}</span>
-          ${hasBabycot?'<br><span class="badge-babycot" style="font-size:9px">COT</span>':''}
-        </td>
-        <td style="font-size:10px;word-wrap:break-word">${j.guestName||'—'}</td>
-        <td style="font-size:11px;white-space:nowrap">${arrivalDate}</td>
-        <td style="font-size:11px;white-space:nowrap">${departureDate}</td>
-        <td style="text-align:center;font-size:11px">${j.nights||'—'}</td>
-        <td style="font-size:10px;text-align:center">${guestStr}</td>
-        <td style="font-size:10px">${cls||'<span style="color:#e74c3c;font-size:9px">\u26A0 Unassigned</span>'}</td>
-        <td style="text-align:center;font-weight:700;color:#1a7a6e;font-size:11px">${j.hours?j.hours+'h':'—'}</td>
-        <td style="font-size:10px;color:#666;word-wrap:break-word">${j.notes||''}</td>
-      </tr>`;
-    }
-    html += '</tbody></table><div style="page-break-after:always"></div>';
-  }
-  html += '</div>';
-  
-  const w = window.open('','_blank');
-  w.document.write(`<html><head><title>Manager Schedule - ${monthName}</title><style>${styles}</style></head><body>${html}</body></html>`);
-  w.document.close();
-  setTimeout(()=>w.print(),500);
-}
 
-function printAllJobs() {
-  const monthVal = document.getElementById('jobMonth').value;
-  const zoneFilter = document.getElementById('jobZone').value;
-  const typeFilter = document.getElementById('jobType').value;
-  const cleanerFilter = document.getElementById('jobCleaner').value;
-  const search = (document.getElementById('jobSearch').value||'').toLowerCase();
+      // Each date group stays together — never splits across pages
+      return `<div class="date-block">
+        <div class="date-header">${dayLabel} <span style="font-size:11px;color:#888;font-weight:400">${dayJobs.length} job${dayJobs.length!==1?'s':''}</span></div>
+        <div class="col-headers">
+          <div>Property</div><div>Type</div><div>Arrival</div><div>Departure</div><div>Nts</div><div>Guests</div><div>Co-workers</div><div>Notes</div>
+        </div>
+        ${rows}
+      </div>`;
+    }).join('');
 
-  let jobs = cleaningJobs.filter(j => {
-    return (!monthVal || j.date.startsWith(monthVal)) &&
-      (!zoneFilter || (j.zone||'').toLowerCase().includes(zoneFilter.toLowerCase())) &&
-      (!typeFilter || j.type === typeFilter) &&
-      (!cleanerFilter || (j.cleanerIds||[]).includes(cleanerFilter)) &&
-      (!search || (j.propertyName||'').toLowerCase().includes(search));
-  });
-  jobs.sort((a,b) => a.date > b.date ? 1 : -1);
-
-  const monthName = monthVal ? new Date(monthVal+'-01').toLocaleDateString('en-GB',{month:'long',year:'numeric'}) : 'All Time';
-  const totalJobs = jobs.length;
-  const totalPayAll = jobs.reduce((sum,j) => {
-    return sum + (j.cleanerIds||[]).reduce((s2, cid) => {
-      const cl = staff.find(s => s.id === cid);
-      if (!cl) return s2;
-      return s2 + (cl.hourlyRate||0)*(j.hours||0) + (cl.hasCar==='Yes' ? (j.propertyTransport||0) : 0);
-    }, 0);
-  }, 0);
-
-  const rows = jobs.map(j => {
-    const cls = (j.cleanerIds||[]).map(cid => staff.find(s => s.id === cid)).filter(Boolean);
-    const totalPay = cls.reduce((sum,cl) => {
-      return sum + (cl.hourlyRate||0)*(j.hours||0) + (cl.hasCar==='Yes'?(j.propertyTransport||0):0);
-    }, 0);
-    return `<div class="print-job-row">
-      <div><strong>${formatDate(j.date)}</strong></div>
-      <div>${j.propertyName}${j.zone ? '<br><span style="font-size:10px;color:#888">'+j.zone+'</span>' : ''}</div>
-      <div><span class="type-badge type-${j.type}">${j.type === 'checkout' ? 'Checkout' : 'Mid-Stay'}</span></div>
-      <div>${cls.map(cl=>`<span class="coworker-tag">${cl.firstName} ${cl.lastName}</span>`).join('') || '<span style="color:#e74c3c;font-size:11px">\u26A0 Unassigned</span>'}</div>
-      <div>${j.hours ? j.hours+'h' : '\u2014'}</div>
-      <div>${j.propertyTransport ? '\u20AC'+j.propertyTransport : '\u2014'}</div>
-      <div style="font-weight:600;color:#115950">${totalPay > 0 ? '\u20AC'+totalPay.toFixed(0) : '\u2014'}</div>
-      <div style="font-size:11px;color:#666">${j.notes||''}</div>
-    </div>`;
-  }).join('');
-
-  const printStyles = buildPrintStyles() + `
-    .col-headers { grid-template-columns: 85px 1fr 75px 130px 50px 60px 65px 80px; }
-    .print-job-row { grid-template-columns: 85px 1fr 75px 130px 50px 60px 65px 80px; }
-  `;
-
-  const w = window.open('', '_blank');
-  w.document.write(`<html><head><title>All Cleaning Jobs \u2014 ${monthName}</title><style>${printStyles}</style></head><body>
-    <div class="print-page">
-      <div class="print-logo">Zesty Rentals \u2014 All Cleaning Jobs</div>
+    printContent += `<div class="print-page">
+      <div class="print-logo">Zesty Rentals \u2014 Cleaning Schedule</div>
       <div class="print-header">
         <div>
-          <div class="print-name">Cleaning Jobs Report</div>
-          <div class="print-sub">${monthName}${zoneFilter ? ' \u00B7 '+zoneFilter : ''}${typeFilter ? ' \u00B7 '+(typeFilter==='checkout'?'Checkout':'Mid-Stay') : ''}</div>
+          <div class="print-name">${cl.firstName} ${cl.lastName}</div>
+          <div class="print-sub">${monthName} \u00B7 ${(cl.zones||[]).join(', ')||'All zones'}${cl.hasCar==='Yes'?' \u00B7 \uD83D\uDE97 Car':''}</div>
         </div>
         <div class="print-summary">
-          <div class="big">${totalJobs} jobs</div>
-          <div class="small">Total cost: \u20AC${totalPayAll.toFixed(2)}</div>
+          <div class="big">${clJobs.length} jobs</div>
+          <div class="small">${totalHours.toFixed(1)}h total</div>
         </div>
       </div>
-      <div class="col-headers">
-        <div>Date</div><div>Property</div><div>Type</div><div>Cleaners</div><div>Hours</div><div>Transport</div><div>Pay</div><div>Notes</div>
+      ${clJobs.length===0?'<p style="padding:20px;color:#999">No jobs this month.</p>':dateBlocks}
+      <div class="totals-row">
+        <div class="total-item"><div class="total-label">Total Jobs</div><div class="total-val">${clJobs.length}</div></div>
+        <div class="total-item"><div class="total-label">Total Hours</div><div class="total-val">${totalHours.toFixed(1)}h</div></div>
       </div>
-      ${rows || '<p style="padding:20px;color:#999">No jobs found.</p>'}
-    </div>
-<!-- ==================== HOURS PAGE ==================== -->
-<div id="page-hours" class="page">
-  <div style="display:flex;gap:6px;margin-bottom:22px;flex-wrap:wrap">
-    <button onclick="showPage('staff')" style="padding:8px 18px;border-radius:8px;border:1px solid var(--border);background:#fff;color:var(--text-muted);font-size:13px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif">\u{1F465} Staff</button>
-    <button onclick="showPage('schedule')" style="padding:8px 18px;border-radius:8px;border:1px solid var(--border);background:#fff;color:var(--text-muted);font-size:13px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif">\u{1F4C5} Schedule</button>
-    <button onclick="showPage('jobs')" style="padding:8px 18px;border-radius:8px;border:1px solid var(--border);background:#fff;color:var(--text-muted);font-size:13px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif">\u{1F527} Jobs</button>
-    <button onclick="showPage('import')" style="padding:8px 18px;border-radius:8px;border:1px solid var(--border);background:#fff;color:var(--text-muted);font-size:13px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif">\u{1F4E5} Import CSV</button>
-    <button onclick="showPage('hours')" style="padding:8px 18px;border-radius:8px;border:2px solid var(--teal);background:var(--teal);color:#fff;font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif">\u23F1 Hours</button>
-  </div>
+    </div>`;
+  });
 
-  <div class="toolbar" style="flex-wrap:wrap;gap:10px">
-    <input type="month" id="hoursMonth" onchange="renderHoursSheet()">
-    <select id="hoursPropFilter" onchange="renderHoursSheet()"><option value="">All Properties</option></select>
-    <button class="btn btn-teal btn-sm" onclick="addHoursRow()">+ Add Extra Cleaning</button>
-    <button class="btn btn-primary btn-sm" onclick="saveHoursSheet()">\u{1F4BE} Save Sheet</button>
-    <button class="btn btn-print btn-sm" onclick="printHoursSheet()">\u{1F5A8} Print</button>
-    <button class="btn btn-outline btn-sm" onclick="exportHoursCSV()">\u2B07 Export CSV</button>
-    <div style="margin-left:auto;font-size:12px;color:var(--text-muted)" id="hoursSavedMsg"></div>
-  </div>
-
-  <!-- Summary -->
-  <div class="stats-bar" style="margin-bottom:18px">
-    <div class="stat-card"><div class="stat-label">Total Jobs</div><div class="stat-value" id="h-total">0</div></div>
-    <div class="stat-card"><div class="stat-label">Total Hours</div><div class="stat-value" id="h-hours">0</div></div>
-    <div class="stat-card"><div class="stat-label">Total Labour Cost</div><div class="stat-value" id="h-labour">\u20AC0</div></div>
-    <div class="stat-card"><div class="stat-label">Transport Cost</div><div class="stat-value" id="h-transport">\u20AC0</div></div>
-    <div class="stat-card"><div class="stat-label">Total Cost</div><div class="stat-value" id="h-cost">\u20AC0</div></div>
-  </div>
-
-  <div class="table-wrap">
-    <div class="table-header">
-      <h3 id="hoursTableTitle">Hours Sheet</h3>
-    </div>
-    <div style="overflow-x:auto">
-      <table id="hoursTable">
-        <thead id="hoursHead"></thead>
-        <tbody id="hoursBody"></tbody>
-        <tfoot id="hoursFoot"></tfoot>
-      </table>
-    </div>
-  </div>
-</div>
-
-  </body></html>`);
+  const w = window.open('', '_blank');
+  w.document.write('<html><head><title>Cleaning Schedule '+monthName+'</title><style>'+buildPrintStyles()+'</style></head><body>'+(printContent||'<p style="padding:40px;font-family:Arial">No jobs found.</p>')+'</body></html>');
   w.document.close();
   setTimeout(() => w.print(), 600);
 }
 
-// ============ MODALS / CONFIRM / TOAST ============
-function openModal(id) { document.getElementById(id).classList.add('open'); }
-function closeModal(id) { document.getElementById(id).classList.remove('open'); }
-function showConfirm(icon, title, msg, btnClass, btnText, cb) {
-  document.getElementById('confirmIcon').textContent = icon;
-  document.getElementById('confirmTitle').textContent = title;
-  document.getElementById('confirmMsg').textContent = msg;
-  const btn = document.getElementById('confirmBtn');
-  btn.className = `btn ${btnClass}`; btn.textContent = btnText;
-  confirmCb = cb;
-  document.getElementById('confirmOverlay').classList.add('open');
-}
-function closeConfirm() { document.getElementById('confirmOverlay').classList.remove('open'); confirmCb = null; }
-function doConfirm() { if (confirmCb) confirmCb(); closeConfirm(); }
-function showToast(msg, type='') {
-  const t = document.getElementById('toast');
-  t.textContent = msg; t.className = `toast ${type} show`;
-  setTimeout(() => t.classList.remove('show'), 3000);
-}
-
-['staffModal','jobModal'].forEach(id => {
-  document.getElementById(id).addEventListener('click', e => { if(e.target === e.currentTarget) closeModal(id); });
-});
-document.getElementById('confirmOverlay').addEventListener('click', e => { if(e.target === e.currentTarget) closeConfirm(); });
-
-// \u2500\u2500 SIDEBAR NAVIGATION \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
-function _initSidebar() {
-  const sidebar = document.getElementById('erpSidebar');
-  const overlay = document.getElementById('erpOverlay');
-  const hamburger = document.getElementById('erpHamburger');
-  if (!sidebar) return;
-  // Hamburger toggle
-  if (hamburger) {
-    hamburger.addEventListener('click', () => {
-      sidebar.classList.toggle('open');
-      overlay.classList.toggle('open');
-    });
-  }
-  // Close on overlay click
-  if (overlay) {
-    overlay.addEventListener('click', () => {
-      sidebar.classList.remove('open');
-      overlay.classList.remove('open');
-    });
-  }
-  // Inject Azure user badge into sidebar footer
-  const origBadge = document.getElementById('_azure_badge');
-  const footerUser = document.getElementById('sidebarUser');
-  if (origBadge && footerUser) {
-    footerUser.innerHTML = origBadge.innerHTML;
-    origBadge.remove();
-  }
-  // Watch for badge to appear
-  const obs = new MutationObserver(() => {
-    const b = document.getElementById('_azure_badge');
-    const fu = document.getElementById('sidebarUser');
-    if (b && fu) {
-      fu.innerHTML = b.innerHTML;
-      b.remove();
-      obs.disconnect();
-    }
-  });
-  obs.observe(document.body, {childList:true, subtree:true});
-}
-document.addEventListener('DOMContentLoaded', _initSidebar);
-
-
-function openAddManualJobModal() {
-  // Populate property dropdown from _propCache
-  const propSel = document.getElementById('amj-property');
-  if (propSel) {
-    const propList = (window._propCache || JSON.parse(localStorage.getItem('zesty_properties')||'[]'))
-      .filter(p => !p.archived)
-      .sort((a,b) => (a.shortName||a.propertyName||'').localeCompare(b.shortName||b.propertyName||''));
-    propSel.innerHTML = '<option value="">— Select property —</option>' +
-      propList.map(p => `<option value="${p.shortName||p.propertyName}">${p.shortName||p.propertyName}</option>`).join('');
-  }
-  // Populate cleaner dropdown
-  const cleanerSel = document.getElementById('amj-cleaners');
-  if (cleanerSel) {
-    const active = staff.filter(s => s.status !== 'Inactive' && (!s.role || s.role === 'cleaner' || s.role === 'both'));
-    cleanerSel.innerHTML = active.map(s => `<option value="${s.id}">${s.firstName} ${s.lastName}</option>`).join('');
-  }
-  // Reset fields
-  document.getElementById('amj-date').value = today();
-  document.getElementById('amj-type').value = 'checkout';
-  document.getElementById('amj-hours').value = '';
-  document.getElementById('amj-guest').value = '';
-  document.getElementById('amj-notes').value = '';
-  openModal('addManualJobModal');
-}
-
-async function saveManualJobFromModal() {
-  const propName = document.getElementById('amj-property')?.value?.trim();
-  const date     = document.getElementById('amj-date')?.value;
-  if (!propName || !date) { showToast('Property and date are required', 'error'); return; }
-
-  const prop = (window._propCache || []).find(p => (p.shortName||p.propertyName) === propName);
-
-  // Get selected cleaners
-  const cleanerSel = document.getElementById('amj-cleaners');
-  const selectedCleaners = Array.from(cleanerSel?.selectedOptions||[]).map(o => o.value);
-
-  const job = {
-    id:               'manual_job_' + Date.now(),
-    date,
-    type:             document.getElementById('amj-type')?.value || 'checkout',
-    propertyName:     propName,
-    propertyId:       prop?.id || '',
-    propertyTransport:parseFloat(prop?.transport||0),
-    guestName:        document.getElementById('amj-guest')?.value || 'Manual job',
-    hours:            parseFloat(document.getElementById('amj-hours')?.value) || null,
-    notes:            document.getElementById('amj-notes')?.value || '',
-    cleanerIds:       selectedCleaners,
-    cleanerHours:     {},
-    source:           'manual',
-    zone:             prop?.zone || '',
-  };
-
-  cleaningJobs.push(job);
-  await SyncStore.saveAll('zesty_cleaning_jobs', 'cleaning_jobs', cleaningJobs);
-  closeModal('addManualJobModal');
-  renderJobs();
-  renderCalendar();
-  updateJobStats();
-  showToast('\u2713 Manual job added', 'success');
-}
-
-init().catch(console.error);
-showDbStatus(true);
 
