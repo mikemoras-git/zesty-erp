@@ -628,6 +628,7 @@ body.erp-layout {
     </select>
     <div style="margin-left:auto;display:flex;gap:8px">
       <button class="btn btn-print no-print" onclick="printSchedule()">🖨 Print Schedule</button>
+      <button onclick="printWeeklySchedule()" style="padding:8px 16px;background:#115950;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif">📅 Weekly Print</button>
       <button class="btn btn-outline no-print" onclick="printManagerSummary()" style="background:#1a7a6e;color:#fff;border-color:#1a7a6e">📋 Manager PDF</button>
       <button class="btn btn-outline no-print" onclick="exportManagerExcel()" style="background:#217346;color:#fff;border-color:#217346">📊 Manager Excel</button>
       <button class="btn btn-outline btn-sm no-print" onclick="removeNoFeeJobs()" style="background:#c0392b;color:#fff;border-color:#c0392b;margin-left:8px" title="Remove jobs for properties with no cleaning fee">🗑 Remove No-Fee Props</button>
@@ -766,6 +767,7 @@ body.erp-layout {
     </select>
     <button class="btn btn-teal btn-sm" style="margin-left:auto" onclick="autoAssign()">⚡ Auto-Assign</button>
     <button class="btn btn-outline btn-sm" onclick="exportJobsCSV()">⬇ Export CSV</button>
+      <button onclick="openAddManualJobModal()" style="padding:8px 16px;background:#115950;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif">➕ Add Job</button>
     <button class="btn btn-print btn-sm" onclick="printAllJobs()">🖨 Print PDF</button>
   </div>
   <div class="table-wrap">
@@ -1121,5 +1123,59 @@ body.erp-layout {
   window._zNavTicketType='bug';
 })();
 </script>
+
+<!-- ══ ADD MANUAL JOB MODAL ══ -->
+<div class="modal-overlay" id="addManualJobModal">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-header">
+      <h2>Add Manual Job</h2>
+      <button class="modal-close" onclick="closeModal('addManualJobModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group form-span-2">
+          <label>Property *</label>
+          <select id="amj-property" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px">
+            <option value="">— Select property —</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Date *</label>
+          <input type="date" id="amj-date">
+        </div>
+        <div class="form-group">
+          <label>Type</label>
+          <select id="amj-type" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px">
+            <option value="checkout">🏠 Checkout Clean</option>
+            <option value="midstay">🔄 Mid-Stay Clean</option>
+            <option value="deep">🧽 Deep Clean</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Assign Cleaners <small style="color:var(--text-muted)">(hold Ctrl/Cmd to select multiple)</small></label>
+          <select id="amj-cleaners" multiple style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;height:90px">
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Hours</label>
+          <input type="number" id="amj-hours" min="0" max="24" step="0.5" placeholder="e.g. 3">
+        </div>
+        <div class="form-group">
+          <label>Guest / Description</label>
+          <input type="text" id="amj-guest" placeholder="Guest name or description">
+        </div>
+        <div class="form-group form-span-2">
+          <label>Notes</label>
+          <textarea id="amj-notes" rows="2" placeholder="Any notes..."></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('addManualJobModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveManualJobFromModal()">💾 Save Job</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>

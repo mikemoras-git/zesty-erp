@@ -1450,6 +1450,182 @@ function exportScheduleCSV() {
   showToast('\u2713 Schedule exported', 'success');
 }
 
+function printWeeklySchedule() {
+  const monthVal = document.getElementById('calMonth')?.value || '';
+  const cleanerFilter = document.getElementById('calCleaner')?.value || '';
+  if (!monthVal) { showToast('Select a month first', 'error'); return; }
+
+  const [yr, mo] = monthVal.split('-').map(Number);
+  const monthName = new Date(yr, mo-1, 1).toLocaleDateString('en-GB',{month:'long',year:'numeric'});
+
+  // All jobs for this month, filtered by cleaner if set
+  const monthJobs = cleaningJobs.filter(j =>
+    j.date && j.date.startsWith(monthVal) &&
+    (!cleanerFilter || (j.cleanerIds||[]).includes(cleanerFilter))
+  ).sort((a,b) => a.date > b.date ? 1 : -1);
+
+  const printCleaners = cleanerFilter
+    ? [staff.find(s => s.id === cleanerFilter)].filter(Boolean)
+    : staff.filter(s => s.status !== 'Inactive' && monthJobs.some(j => (j.cleanerIds||[]).includes(s.id)));
+
+  // Build weeks: Mon→Sun grouping for the month
+  const firstDay = new Date(yr, mo-1, 1);
+  const lastDay  = new Date(yr, mo, 0);
+  const weeks = [];
+  let weekStart = new Date(firstDay);
+  // Align to Monday
+  const dow = weekStart.getDay(); // 0=Sun
+  const offset = dow === 0 ? -6 : 1 - dow;
+  weekStart.setDate(weekStart.getDate() + offset);
+
+  while (weekStart <= lastDay) {
+    const week = [];
+    for (let d = 0; d < 7; d++) {
+      const day = new Date(weekStart);
+      day.setDate(weekStart.getDate() + d);
+      week.push(day);
+    }
+    weeks.push(week);
+    weekStart.setDate(weekStart.getDate() + 7);
+  }
+
+  const DAY_LABELS = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  const dayKey = d => d.toISOString().slice(0,10);
+  const fmtDay = d => d.toLocaleDateString('en-GB',{day:'numeric',month:'short'});
+
+  let html = '';
+
+  printCleaners.forEach(cl => {
+    const clJobs = monthJobs.filter(j => (j.cleanerIds||[]).includes(cl.id));
+    const totalHours = clJobs.reduce((s,j) => s+(j.hours||0), 0);
+
+    // Header
+    html += `
+    <div class="wk-section">
+      <div class="wk-logo">Zesty Rentals — Weekly Cleaning Schedule</div>
+      <div class="wk-header">
+        <div>
+          <div class="wk-name">${cl.firstName} ${cl.lastName}</div>
+          <div class="wk-sub">${monthName} &middot; ${(cl.zones||[]).join(', ')||'All zones'}${cl.hasCar==='Yes'?' &middot; 🚗 Car':''}</div>
+        </div>
+        <div class="wk-summary">
+          <div class="big">${clJobs.length} jobs</div>
+          <div class="small">${totalHours.toFixed(1)}h</div>
+        </div>
+      </div>`;
+
+    // Weekly calendar
+    weeks.forEach(week => {
+      const weekHasJob = week.some(d => clJobs.some(j => j.date === dayKey(d)));
+      if (!weekHasJob) return; // skip empty weeks
+
+      const weekLabel = fmtDay(week[0]) + ' – ' + fmtDay(week[6]);
+      html += `
+      <div class="wk-week" style="page-break-inside:avoid">
+        <div class="wk-week-label">${weekLabel}</div>
+        <div class="wk-grid">`;
+
+      week.forEach((day, di) => {
+        const dk = dayKey(day);
+        const inMonth = day.getMonth() === mo-1;
+        const dayJobs = clJobs.filter(j => j.date === dk);
+        const isWeekend = di >= 5;
+
+        html += `<div class="wk-day${isWeekend?' wk-weekend':''}${!inMonth?' wk-outofmonth':''}">
+          <div class="wk-day-header">
+            <span class="wk-day-name">${DAY_LABELS[di]}</span>
+            <span class="wk-day-num${dayJobs.length?' wk-has-job':''}">${day.getDate()}</span>
+          </div>
+          <div class="wk-day-body">`;
+
+        if (dayJobs.length === 0) {
+          html += `<div class="wk-empty">—</div>`;
+        } else {
+          dayJobs.forEach(j => {
+            const coworkers = (j.cleanerIds||[]).filter(cid=>cid!==cl.id)
+              .map(cid=>{const c2=staff.find(s=>s.id===cid);return c2?c2.firstName:''}).filter(Boolean).join(', ');
+            const typeColor = j.type==='checkout'?'#a04000':'#8e6b23';
+            const typeBg   = j.type==='checkout'?'#fdebd0':'#fdf6e3';
+            const typeLabel= j.type==='checkout'?'Checkout':'Mid-Stay';
+            const babycot  = (j.notes||'').toLowerCase().match(/infant|baby|cot/);
+            html += `
+            <div class="wk-job">
+              <div class="wk-job-prop">${j.propertyName||'—'}</div>
+              <div class="wk-job-type" style="background:${typeBg};color:${typeColor}">${typeLabel}</div>
+              ${j.guests||j.adults?`<div class="wk-job-meta">👥 ${j.adults||j.guests||0}${j.children?' +'+j.children+'c':''}${j.infants?' +'+j.infants+'inf':''}</div>`:''}
+              ${coworkers?`<div class="wk-job-meta">🤝 ${coworkers}</div>`:''}
+              ${j.hours?`<div class="wk-job-meta">⏱ ${j.hours}h</div>`:''}
+              ${babycot?`<div class="wk-job-meta" style="color:#c0392b;font-weight:700">🛏 BABYCOT</div>`:''}
+              ${j.notes&&!babycot?`<div class="wk-job-note">${j.notes}</div>`:''}
+            </div>`;
+          });
+        }
+
+        html += `</div></div>`;
+      });
+
+      html += `</div></div>`;
+    });
+
+    // Totals
+    html += `
+      <div class="wk-totals">
+        <span>Total jobs: <strong>${clJobs.length}</strong></span>
+        <span>Total hours: <strong>${totalHours.toFixed(1)}h</strong></span>
+      </div>
+    </div>`;
+  });
+
+  if (!html) html = '<p style="padding:40px;font-family:Arial">No jobs found for this period.</p>';
+
+  const styles = `
+    @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&display=swap');
+    * { box-sizing:border-box; margin:0; padding:0; }
+    body { font-family:'DM Sans',Arial,sans-serif; font-size:11px; color:#1e2a28; background:#fff; }
+    .wk-section { padding:20px 24px; page-break-after:always; }
+    .wk-section:last-child { page-break-after:avoid; }
+    .wk-logo { font-size:10px; color:#888; text-transform:uppercase; letter-spacing:2px; margin-bottom:14px; }
+    .wk-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:16px; padding-bottom:10px; border-bottom:3px solid #115950; }
+    .wk-name { font-size:20px; font-weight:700; color:#115950; }
+    .wk-sub { font-size:11px; color:#888; margin-top:3px; }
+    .wk-summary { text-align:right; }
+    .wk-summary .big { font-size:22px; font-weight:700; color:#115950; }
+    .wk-summary .small { font-size:11px; color:#888; }
+
+    .wk-week { margin-bottom:14px; }
+    .wk-week-label { font-size:10px; font-weight:600; color:#888; text-transform:uppercase; letter-spacing:1px; margin-bottom:6px; padding:4px 0; border-bottom:1px solid #eee; }
+
+    /* 7-column grid */
+    .wk-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:4px; }
+    .wk-day { border:1px solid #e8e8e8; border-radius:6px; padding:4px; min-height:80px; background:#fff; }
+    .wk-weekend { background:#fafafa; }
+    .wk-outofmonth { opacity:.35; }
+    .wk-day-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:4px; padding-bottom:3px; border-bottom:1px solid #f0f0f0; }
+    .wk-day-name { font-size:9px; font-weight:600; color:#888; text-transform:uppercase; }
+    .wk-day-num { font-size:12px; font-weight:500; color:#333; }
+    .wk-has-job { background:#115950; color:#fff; border-radius:50%; width:18px; height:18px; display:inline-flex; align-items:center; justify-content:center; font-size:10px; }
+    .wk-day-body { display:flex; flex-direction:column; gap:3px; }
+    .wk-empty { color:#ccc; font-size:10px; text-align:center; padding:8px 0; }
+    .wk-job { background:#f0faf7; border:1px solid #c8e6d8; border-radius:4px; padding:4px 5px; }
+    .wk-job-prop { font-weight:600; font-size:10px; color:#115950; line-height:1.3; }
+    .wk-job-type { font-size:9px; font-weight:700; padding:1px 5px; border-radius:8px; display:inline-block; margin:2px 0; }
+    .wk-job-meta { font-size:9px; color:#666; line-height:1.4; }
+    .wk-job-note { font-size:9px; color:#999; font-style:italic; margin-top:1px; }
+    .wk-totals { display:flex; gap:24px; padding:10px 0 0; border-top:1px solid #eee; margin-top:12px; font-size:12px; color:#555; }
+
+    @page { margin:10mm; size:A4 landscape; }
+    @media print {
+      .wk-week { page-break-inside:avoid; }
+      .wk-section { page-break-after:always; }
+    }
+  `;
+
+  const w = window.open('', '_blank');
+  w.document.write('<html><head><title>Weekly Schedule '+monthName+'</title><style>'+styles+'</style></head><body>'+html+'</body></html>');
+  w.document.close();
+  setTimeout(() => w.print(), 600);
+}
+
 function buildPrintStyles() {
   return `
     @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&display=swap');
@@ -1943,6 +2119,68 @@ function _initSidebar() {
   obs.observe(document.body, {childList:true, subtree:true});
 }
 document.addEventListener('DOMContentLoaded', _initSidebar);
+
+
+function openAddManualJobModal() {
+  // Populate property dropdown from _propCache
+  const propSel = document.getElementById('amj-property');
+  if (propSel) {
+    const propList = (window._propCache || JSON.parse(localStorage.getItem('zesty_properties')||'[]'))
+      .filter(p => !p.archived)
+      .sort((a,b) => (a.shortName||a.propertyName||'').localeCompare(b.shortName||b.propertyName||''));
+    propSel.innerHTML = '<option value="">— Select property —</option>' +
+      propList.map(p => `<option value="${p.shortName||p.propertyName}">${p.shortName||p.propertyName}</option>`).join('');
+  }
+  // Populate cleaner dropdown
+  const cleanerSel = document.getElementById('amj-cleaners');
+  if (cleanerSel) {
+    const active = staff.filter(s => s.status !== 'Inactive' && (!s.role || s.role === 'cleaner' || s.role === 'both'));
+    cleanerSel.innerHTML = active.map(s => `<option value="${s.id}">${s.firstName} ${s.lastName}</option>`).join('');
+  }
+  // Reset fields
+  document.getElementById('amj-date').value = today();
+  document.getElementById('amj-type').value = 'checkout';
+  document.getElementById('amj-hours').value = '';
+  document.getElementById('amj-guest').value = '';
+  document.getElementById('amj-notes').value = '';
+  openModal('addManualJobModal');
+}
+
+async function saveManualJobFromModal() {
+  const propName = document.getElementById('amj-property')?.value?.trim();
+  const date     = document.getElementById('amj-date')?.value;
+  if (!propName || !date) { showToast('Property and date are required', 'error'); return; }
+
+  const prop = (window._propCache || []).find(p => (p.shortName||p.propertyName) === propName);
+
+  // Get selected cleaners
+  const cleanerSel = document.getElementById('amj-cleaners');
+  const selectedCleaners = Array.from(cleanerSel?.selectedOptions||[]).map(o => o.value);
+
+  const job = {
+    id:               'manual_job_' + Date.now(),
+    date,
+    type:             document.getElementById('amj-type')?.value || 'checkout',
+    propertyName:     propName,
+    propertyId:       prop?.id || '',
+    propertyTransport:parseFloat(prop?.transport||0),
+    guestName:        document.getElementById('amj-guest')?.value || 'Manual job',
+    hours:            parseFloat(document.getElementById('amj-hours')?.value) || null,
+    notes:            document.getElementById('amj-notes')?.value || '',
+    cleanerIds:       selectedCleaners,
+    cleanerHours:     {},
+    source:           'manual',
+    zone:             prop?.zone || '',
+  };
+
+  cleaningJobs.push(job);
+  await SyncStore.saveAll('zesty_cleaning_jobs', 'cleaning_jobs', cleaningJobs);
+  closeModal('addManualJobModal');
+  renderJobs();
+  renderCalendar();
+  updateJobStats();
+  showToast('\u2713 Manual job added', 'success');
+}
 
 init().catch(console.error);
 showDbStatus(true);
