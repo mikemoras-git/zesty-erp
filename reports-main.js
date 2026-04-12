@@ -129,23 +129,26 @@ function generateOwner(){
     const guests=parseInt(r.People||r.Guests||0);
     // Lodgify CSV columns per spec:
     // Total Rent = RoomRatesTotal - PromotionsTotal
-    const roomRates=parseFloat(r.RoomRatesTotal||r.TotalAmount||0);
-    const promotions=parseFloat(r.PromotionsTotal||0);
-    const rent=parseFloat((roomRates-promotions).toFixed(2));
-    // Taxes and Fees = FeesTotal + TaxesTotal
-    const taxesFees=parseFloat(((parseFloat(r.FeesTotal||0))+(parseFloat(r.TaxesTotal||0))).toFixed(2));
-    // OTA Comm = (Total Rent - Taxes and Fees) * platFeeRate
-    const otaBase=Math.max(0,rent-taxesFees);
-    const otaRate=getCommRate(prop,r.Source);
-    const ota=parseFloat((otaBase*otaRate/100).toFixed(2));
-    // Received = Total Rent - Taxes & Fees - OTA Comm (what owner actually receives)
-    const rec=parseFloat((rent-taxesFees-ota).toFixed(2));
-    // Zesty Comm = Received * mgmt% (commission on received amount)
-    const netBase=Math.max(0,rec);
-    const zesty=parseFloat((netBase*mgmt/100).toFixed(2));
-    // Net Income = Received - Zesty Comm
-    const netInc=parseFloat((rec-zesty).toFixed(2));
+    // Use manual overrides if set, else calculate from CSV
+    let rent,taxesFees,ota,rec,zesty,netInc;
+    if(r._override){
+      rent=parseFloat(r._rent)||0;taxesFees=parseFloat(r._taxFees)||0;ota=parseFloat(r._ota)||0;
+      rec=parseFloat((rent-taxesFees-ota).toFixed(2));
+      zesty=parseFloat(r._zesty)||parseFloat((Math.max(0,rec)*mgmt/100).toFixed(2));
+      netInc=parseFloat((rec-zesty).toFixed(2));
+    } else {
+      const roomRates=parseFloat(r.RoomRatesTotal||r.TotalAmount||0);
+      const promotions=parseFloat(r.PromotionsTotal||0);
+      rent=parseFloat((roomRates-promotions).toFixed(2));
+      taxesFees=parseFloat(((parseFloat(r.FeesTotal||0))+(parseFloat(r.TaxesTotal||0))).toFixed(2));
+      const otaBase=Math.max(0,rent-taxesFees);const otaRate=getCommRate(prop,r.Source);
+      ota=parseFloat((otaBase*otaRate/100).toFixed(2));
+      rec=parseFloat((rent-taxesFees-ota).toFixed(2));
+      zesty=parseFloat((Math.max(0,rec)*mgmt/100).toFixed(2));
+      netInc=parseFloat((rec-zesty).toFixed(2));
+    }
     const daily=nights>0?rent/nights:0;
+    r._rent=rent;r._taxFees=taxesFees;r._ota=ota;r._zesty=zesty;
     tRent+=rent;tOTA+=ota;tTaxFees+=taxesFees;tRec+=rec;tZesty+=zesty;tNet+=netInc;
     bySource[r.Source||'Other']=(bySource[r.Source||'Other']||0)+rent;
     return`<tr>
@@ -164,6 +167,9 @@ function generateOwner(){
       <td style="text-align:right;font-size:12px">${rec>0?eur(rec):'—'}</td>
       <td style="text-align:right;color:var(--text-muted);font-size:12px">${eur(zesty)}</td>
       <td style="text-align:right;font-weight:700;color:var(--teal-dark)">${eur(netInc)}</td>
+      <td style="padding:4px;white-space:nowrap">
+        <button onclick="editBookingRow(${i})" style="background:none;border:none;cursor:pointer;font-size:13px;opacity:.6" onmouseenter="this.style.opacity=1" onmouseleave="this.style.opacity=.6">✏️</button>${r._manual?'<button onclick="deleteManualRow('+i+')" style="background:none;border:none;cursor:pointer;font-size:12px;opacity:.5" onmouseenter="this.style.opacity=1" onmouseleave="this.style.opacity=.5">🗑</button>':''}
+      </td>
     </tr>`;
   }).join('');
 
@@ -230,6 +236,10 @@ function generateOwner(){
   // Show finalise button
   const _fb = document.getElementById('finaliseBtn');
   if (_fb) { _fb.style.display=''; _fb.textContent='\u2713 Finalise & Record'; _fb.style.background=''; _fb.disabled=false; }
+    currentStatementData={
+    id:currentStatementData?.id||null,
+    propId,month,bookings,tRent,tTaxFees,tOTA,tRec,tZesty,tNet,tJobs,tClean,mgmt
+  };
   document.getElementById('owner-out').innerHTML=`
   <div class="rpt-wrap">
     <div class="rpt-section" style="background:linear-gradient(135deg,var(--teal-dark),var(--teal));color:#fff;padding:26px 28px">
@@ -256,7 +266,7 @@ function generateOwner(){
         <thead><tr><th>#</th><th>Guest</th><th>Booked</th><th>Check-in</th><th>Check-out</th>
           <th>Nts</th><th>Gst</th><th>Source</th><th>Daily Avg</th><th>Total Rent</th>
           <th>Taxes&amp;Fees</th><th>OTA Comm</th><th>Received</th>
-          <th>Zesty Comm</th><th>Net Income</th>
+          <th>Zesty Comm</th><th>Net Income</th><th style="width:44px"></th>
         </tr></thead>
         <tbody>${bRows}</tbody>
         <tfoot><tr><td colspan="9" style="text-align:right">TOTAL</td>
@@ -320,7 +330,16 @@ function generateOwner(){
         <span style="color:#ccc;font-style:italic">Add notes here...</span>
       </div>
     </div>
-  </div>`;
+  </div>
+    <div class="no-print" style="margin-top:20px;padding:16px 20px;background:var(--cream);border:1px solid var(--border);border-radius:10px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+      <div style="font-size:13px;font-weight:600;color:var(--teal-dark);white-space:nowrap">Save Statement</div>
+      <span id="stmt-status-badge" style="background:#999;color:#fff;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:700">📝 Unsaved</span>
+      <input id="stmt-notes" type="text" placeholder="Notes (optional)..." style="flex:1;min-width:180px;padding:6px 10px;border:1px solid var(--border);border-radius:7px;font-size:13px;font-family:'DM Sans',sans-serif">
+      <button onclick="addManualBooking()" class="btn btn-outline btn-sm" style="font-size:12px">➕ Add Row</button>
+      <button onclick="saveStatement('draft')" class="btn btn-sm" style="background:#f0f0f0;color:#333;font-size:12px">📝 Draft</button>
+      <button onclick="saveStatement('review')" class="btn btn-sm" style="background:#e67e22;color:#fff;font-size:12px">🔍 Under Review</button>
+      <button onclick="saveStatement('sent')" class="btn btn-sm" style="background:#27ae60;color:#fff;font-size:12px">✅ Sent to Client</button>
+    </div>`;
 }
 
 /* ═══ OCCUPANCY ═══ */
@@ -401,4 +420,254 @@ function showToast(msg, type) {
   t.style.background = type === 'error' ? '#c0392b' : '#1a7a6e';
   t.style.opacity = '1'; t.style.transform = 'translateY(0)';
   setTimeout(() => { t.style.opacity = '0'; t.style.transform = 'translateY(20px)'; }, 3000);
+}
+
+
+// ══════════════════════════════════════════════
+// STATEMENT MANAGEMENT
+// ══════════════════════════════════════════════
+let currentStatementData = null;
+
+const SUPA_S = 'https://whuytfjwdjjepayeiohj.supabase.co';
+const KEY_S  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndodXl0Zmp3ZGpqZXBheWVpb2hqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIyODQxMzQsImV4cCI6MjA4Nzg2MDEzNH0.pTDAqw_Cnzc9D3tJU-tU7Ch5qpapKmteiqI_ooSCufY';
+
+async function supaStmt(path, method='GET', body=null) {
+  const opts = {method, headers:{'apikey':KEY_S,'Authorization':'Bearer '+KEY_S,'Content-Type':'application/json','Prefer':'resolution=merge-duplicates,return=representation'}};
+  if (body) opts.body = JSON.stringify(body);
+  const r = await fetch(SUPA_S+'/rest/v1/'+path, opts);
+  if (!r.ok) throw new Error(await r.text());
+  return r.json();
+}
+
+function updateStatementStatusBadge(status) {
+  const badge = document.getElementById('stmt-status-badge');
+  if (!badge) return;
+  const colors = {draft:'#888',review:'#e67e22',sent:'#27ae60'};
+  const labels = {draft:'\uD83D\uDCDD Draft',review:'\uD83D\uDD0D Under Review',sent:'\u2705 Sent to Client'};
+  badge.textContent = labels[status]||status;
+  badge.style.background = colors[status]||'#888';
+}
+
+async function saveStatement(status) {
+  if (!currentStatementData) {showToast('Generate a report first','error');return;}
+  const prop  = properties.find(p=>p.id===currentStatementData.propId);
+  const owner = owners.find(o=>o.id===prop?.owner);
+  const record = {
+    id:            currentStatementData.id || ('stmt_'+Date.now()),
+    property_id:   currentStatementData.propId||'',
+    property_name: prop?.shortName||prop?.propertyName||'',
+    owner_id:      prop?.owner||'',
+    owner_name:    owner?(owner.firstName||'')+' '+(owner.lastName||owner.companyName||''):'',
+    month:         currentStatementData.month||'',
+    status,
+    data:          currentStatementData,
+    notes:         document.getElementById('stmt-notes')?.value||'',
+    updated_at:    new Date().toISOString(),
+    sent_at:       status==='sent'?new Date().toISOString():null,
+  };
+  try {
+    await supaStmt('zesty_statements', 'POST', record);
+    currentStatementData.id = record.id;
+    updateStatementStatusBadge(status);
+    showToast('\u2713 Saved as '+status.toUpperCase(),'success');
+  } catch(e) { showToast('Save error: '+e.message,'error'); }
+}
+
+async function loadHistory() {
+  const ownerF = document.getElementById('h-owner')?.value||'';
+  const yearF  = document.getElementById('h-year')?.value||'';
+  const listEl = document.getElementById('h-list');
+  if (listEl) listEl.innerHTML = '<div style="padding:20px;color:var(--text-muted)">Loading...</div>';
+  try {
+    let stmts = await supaStmt('zesty_statements?order=updated_at.desc&limit=300');
+    if (ownerF) stmts = stmts.filter(s=>s.owner_id===ownerF);
+    if (yearF)  stmts = stmts.filter(s=>(s.month||'').startsWith(yearF));
+
+    // Populate owner dropdown once
+    const ownerSel = document.getElementById('h-owner');
+    if (ownerSel && ownerSel.options.length<=1) {
+      owners.sort((a,b)=>(a.lastName||'').localeCompare(b.lastName||'')).forEach(o=>{
+        const opt=document.createElement('option');
+        opt.value=o.id;
+        opt.textContent=(o.firstName||'')+' '+(o.lastName||o.companyName||'');
+        ownerSel.appendChild(opt);
+      });
+    }
+    // Populate year dropdown once
+    const yearSel = document.getElementById('h-year');
+    if (yearSel && yearSel.options.length<=1) {
+      const allStmts = await supaStmt('zesty_statements?select=month');
+      const years=[...new Set(allStmts.map(s=>(s.month||'').substring(0,4)).filter(Boolean))].sort().reverse();
+      years.forEach(y=>{const opt=document.createElement('option');opt.value=y;opt.textContent=y;yearSel.appendChild(opt);});
+    }
+    // Stats
+    const totalNet=stmts.reduce((s,x)=>s+(parseFloat(x.data?.tNet)||0),0);
+    const el=document.getElementById('h-summary-line');
+    if (el) el.textContent=stmts.length+' statements \u00B7 Net total: \u20AC'+totalNet.toFixed(2);
+    const counts={draft:0,review:0,sent:0};
+    stmts.forEach(s=>{if(counts[s.status]!==undefined)counts[s.status]++;});
+    ['draft','review','sent'].forEach(st=>{const e=document.getElementById('h-count-'+st);if(e)e.textContent=counts[st];});
+
+    if (!listEl) return;
+    if (!stmts.length){listEl.innerHTML='<div style="padding:30px;text-align:center;color:var(--text-muted)">No saved statements yet. Generate a report and click Draft / Under Review / Sent to Client.</div>';return;}
+    const sColors={draft:'#888',review:'#e67e22',sent:'#27ae60'};
+    const sLabels={draft:'\uD83D\uDCDD Draft',review:'\uD83D\uDD0D Review',sent:'\u2705 Sent'};
+    listEl.innerHTML=stmts.map(s=>`
+      <div style="display:flex;align-items:center;gap:12px;padding:13px 16px;border-bottom:1px solid var(--border);flex-wrap:wrap">
+        <div style="flex:1;min-width:180px">
+          <div style="font-weight:600;font-size:14px">${s.property_name||'Unknown'}</div>
+          <div style="font-size:12px;color:var(--text-muted)">${s.owner_name||''} &middot; ${s.month||''}</div>
+          ${s.notes?'<div style="font-size:11px;color:#999;margin-top:2px">'+s.notes+'</div>':''}
+        </div>
+        <div style="font-size:14px;font-weight:700;color:var(--teal-dark)">&euro;${(parseFloat(s.data?.tNet)||0).toFixed(2)}</div>
+        <span style="background:${sColors[s.status]||'#888'};color:#fff;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:700">${sLabels[s.status]||s.status}</span>
+        <div style="display:flex;gap:6px;align-items:center">
+          <button onclick="openStatement('${s.id}')" class="btn btn-sm btn-outline" style="font-size:12px">&#128196; Open</button>
+          <select onchange="changeStatementStatus('${s.id}',this.value)" style="font-size:11px;padding:4px 6px;border:1px solid var(--border);border-radius:6px;background:#fff">
+            <option value="">Change&hellip;</option>
+            <option value="draft">&#128221; Draft</option>
+            <option value="review">&#128269; Under Review</option>
+            <option value="sent">&#9989; Sent</option>
+          </select>
+          <button onclick="deleteStatement('${s.id}')" class="btn btn-sm" style="background:#fdf0ef;color:var(--danger);border:1px solid var(--danger);font-size:12px">&#128465;</button>
+        </div>
+      </div>`).join('');
+  } catch(e) {
+    if(listEl) listEl.innerHTML='<div style="padding:20px;color:var(--danger)">Error: '+e.message+'</div>';
+  }
+}
+
+async function openStatement(id) {
+  try {
+    const [stmt] = await supaStmt('zesty_statements?id=eq.'+id);
+    if (!stmt) return;
+    currentStatementData = stmt.data;
+    currentStatementData.id = stmt.id;
+    const propSel = document.getElementById('s-prop');
+    const monthSel = document.getElementById('s-month');
+    if (propSel) propSel.value = stmt.property_id||'';
+    if (monthSel) monthSel.value = stmt.month||'';
+    showTab('owner', document.querySelector('.report-tab.active')||document.querySelector('.report-tab'));
+    generateOwner();
+    updateStatementStatusBadge(stmt.status);
+    const notesEl = document.getElementById('stmt-notes');
+    if (notesEl) notesEl.value = stmt.notes||'';
+  } catch(e) { showToast('Open error: '+e.message,'error'); }
+}
+
+async function changeStatementStatus(id, status) {
+  if (!status) return;
+  try {
+    const patch={status,updated_at:new Date().toISOString()};
+    if(status==='sent') patch.sent_at=new Date().toISOString();
+    await fetch(SUPA_S+'/rest/v1/zesty_statements?id=eq.'+id,{
+      method:'PATCH',
+      headers:{'apikey':KEY_S,'Authorization':'Bearer '+KEY_S,'Content-Type':'application/json','Prefer':'return=minimal'},
+      body:JSON.stringify(patch)
+    });
+    showToast('\u2713 Status updated','success');
+    loadHistory();
+  } catch(e){ showToast('Error: '+e.message,'error'); }
+}
+
+async function deleteStatement(id) {
+  if(!confirm('Delete this statement? This cannot be undone.')) return;
+  await fetch(SUPA_S+'/rest/v1/zesty_statements?id=eq.'+id,{
+    method:'DELETE',headers:{'apikey':KEY_S,'Authorization':'Bearer '+KEY_S}
+  });
+  showToast('Statement deleted','error');
+  loadHistory();
+}
+
+// ── Edit booking row ─────────────────────────────────────────────────
+function editBookingRow(idx) {
+  if(!currentStatementData?.bookings) return;
+  const b = currentStatementData.bookings[idx];
+  if(!b) return;
+  const m = document.getElementById('editBookingModal');
+  if(!m) return;
+  m.querySelector('h2').textContent = b._manual ? 'Edit Manual Entry' : 'Edit Booking';
+  document.getElementById('eb-idx').value      = idx;
+  document.getElementById('eb-guest').value    = b.Name||'';
+  document.getElementById('eb-checkin').value  = b.DateArrival||'';
+  document.getElementById('eb-checkout').value = b.DateDeparture||'';
+  document.getElementById('eb-nights').value   = b.Nights||'';
+  document.getElementById('eb-source').value   = b.Source||'';
+  document.getElementById('eb-rent').value     = b._rent||'';
+  document.getElementById('eb-taxfees').value  = b._taxFees||'0';
+  document.getElementById('eb-ota').value      = b._ota||'0';
+  document.getElementById('eb-zesty').value    = b._zesty||'';
+  document.getElementById('eb-note').value     = b._note||'';
+  document.getElementById('eb-del-btn').style.display = b._manual ? '' : 'none';
+  openModal('editBookingModal');
+}
+
+function saveBookingEdit() {
+  const idx = parseInt(document.getElementById('eb-idx').value);
+  if(!currentStatementData?.bookings || isNaN(idx)) return;
+  const b = currentStatementData.bookings[idx];
+  b._override  = true;
+  b.Name           = document.getElementById('eb-guest').value;
+  b.DateArrival    = document.getElementById('eb-checkin').value;
+  b.DateDeparture  = document.getElementById('eb-checkout').value;
+  b.Nights         = document.getElementById('eb-nights').value;
+  b.Source         = document.getElementById('eb-source').value;
+  b._rent          = parseFloat(document.getElementById('eb-rent').value)||0;
+  b._taxFees       = parseFloat(document.getElementById('eb-taxfees').value)||0;
+  b._ota           = parseFloat(document.getElementById('eb-ota').value)||0;
+  b._zesty         = parseFloat(document.getElementById('eb-zesty').value)||0;
+  b._note          = document.getElementById('eb-note').value;
+  closeModal('editBookingModal');
+  generateOwner();
+  showToast('\u2713 Row updated','success');
+}
+
+function addManualBooking() {
+  if(!currentStatementData){showToast('Generate a report first','error');return;}
+  const m = document.getElementById('editBookingModal');
+  if(m) m.querySelector('h2').textContent = 'Add Manual Entry';
+  document.getElementById('eb-idx').value      = -1;
+  document.getElementById('eb-guest').value    = '';
+  document.getElementById('eb-checkin').value  = (currentStatementData.month||'')+'-01';
+  document.getElementById('eb-checkout').value = '';
+  document.getElementById('eb-nights').value   = '1';
+  document.getElementById('eb-source').value   = 'Manual';
+  document.getElementById('eb-rent').value     = '';
+  document.getElementById('eb-taxfees').value  = '0';
+  document.getElementById('eb-ota').value      = '0';
+  document.getElementById('eb-zesty').value    = '';
+  document.getElementById('eb-note').value     = '';
+  document.getElementById('eb-del-btn').style.display = 'none';
+  openModal('editBookingModal');
+}
+
+function saveManualBooking() {
+  const idx = parseInt(document.getElementById('eb-idx').value);
+  if(idx >= 0){ saveBookingEdit(); return; }
+  if(!currentStatementData) return;
+  const manual = {
+    _manual:true, _override:true, Status:'Booked',
+    Name:          document.getElementById('eb-guest').value||'Manual Entry',
+    DateArrival:   document.getElementById('eb-checkin').value,
+    DateDeparture: document.getElementById('eb-checkout').value,
+    Nights:        document.getElementById('eb-nights').value||'1',
+    Source:        document.getElementById('eb-source').value||'Manual',
+    _rent:parseFloat(document.getElementById('eb-rent').value)||0,
+    _taxFees:parseFloat(document.getElementById('eb-taxfees').value)||0,
+    _ota:parseFloat(document.getElementById('eb-ota').value)||0,
+    _zesty:parseFloat(document.getElementById('eb-zesty').value)||0,
+    _note:document.getElementById('eb-note').value,
+  };
+  if(!currentStatementData.bookings) currentStatementData.bookings=[];
+  currentStatementData.bookings.push(manual);
+  closeModal('editBookingModal');
+  generateOwner();
+  showToast('\u2713 Manual entry added','success');
+}
+
+function deleteManualRow(idx) {
+  if(!currentStatementData?.bookings) return;
+  currentStatementData.bookings.splice(idx,1);
+  generateOwner();
+  showToast('Row removed','error');
 }

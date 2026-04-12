@@ -195,6 +195,19 @@
       </select>
       <div style="margin-left:auto;font-size:12px;color:var(--text-muted)" id="h-summary-line"></div>
     </div>
+    <!-- Status count pills -->
+    <div style="display:flex;gap:12px;margin-bottom:18px;flex-wrap:wrap">
+      <div style="background:#f0f0f0;border-radius:20px;padding:6px 16px;font-size:13px">📝 Draft: <strong id="h-count-draft">0</strong></div>
+      <div style="background:#fef3e8;border-radius:20px;padding:6px 16px;font-size:13px">🔍 Under Review: <strong id="h-count-review">0</strong></div>
+      <div style="background:#edfaf3;border-radius:20px;padding:6px 16px;font-size:13px">✅ Sent: <strong id="h-count-sent">0</strong></div>
+    </div>
+    <!-- Statement list -->
+    <div id="h-list" style="border:1px solid var(--border);border-radius:10px;overflow:hidden;background:#fff">
+      <div style="padding:20px;text-align:center;color:var(--text-muted)">Select an owner or year to load statements, or click Refresh.</div>
+    </div>
+    <div style="margin-top:12px;text-align:right">
+      <button onclick="loadHistory()" class="btn btn-outline btn-sm">🔄 Refresh</button>
+    </div>
 
     <!-- Earnings Summary Cards -->
     <div class="stats-bar" id="h-stats" style="margin-bottom:20px">
@@ -259,6 +272,73 @@
 
 </script>
 <script src="reports-extra.js"></script>
+
+
+<!-- ══ EDIT BOOKING MODAL ══ -->
+<div class="modal-overlay" id="editBookingModal">
+  <div class="modal" style="max-width:540px">
+    <div class="modal-header">
+      <h2>Edit Booking</h2>
+      <button class="modal-close" onclick="closeModal('editBookingModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="eb-idx">
+      <div class="form-grid">
+        <div class="form-group form-span-2">
+          <label>Guest Name</label>
+          <input type="text" id="eb-guest" placeholder="Guest name">
+        </div>
+        <div class="form-group">
+          <label>Check-in</label>
+          <input type="date" id="eb-checkin">
+        </div>
+        <div class="form-group">
+          <label>Check-out</label>
+          <input type="date" id="eb-checkout">
+        </div>
+        <div class="form-group">
+          <label>Nights</label>
+          <input type="number" id="eb-nights" min="1" step="1">
+        </div>
+        <div class="form-group">
+          <label>Source / Channel</label>
+          <select id="eb-source" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px">
+            <option value="Airbnb">Airbnb</option>
+            <option value="Booking.com">Booking.com</option>
+            <option value="VRBO">VRBO</option>
+            <option value="Manual">Manual / Direct</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Total Rent (€)</label>
+          <input type="number" id="eb-rent" min="0" step="0.01" placeholder="0.00">
+        </div>
+        <div class="form-group">
+          <label>Taxes &amp; Fees (€)</label>
+          <input type="number" id="eb-taxfees" min="0" step="0.01" placeholder="0.00">
+        </div>
+        <div class="form-group">
+          <label>OTA Commission (€)</label>
+          <input type="number" id="eb-ota" min="0" step="0.01" placeholder="0.00">
+        </div>
+        <div class="form-group">
+          <label>Zesty Commission (€) <small style="color:var(--text-muted)">(leave blank to auto-calculate)</small></label>
+          <input type="number" id="eb-zesty" min="0" step="0.01" placeholder="Auto">
+        </div>
+        <div class="form-group form-span-2">
+          <label>Note</label>
+          <input type="text" id="eb-note" placeholder="Internal note for this row...">
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button id="eb-del-btn" class="btn btn-danger btn-sm" onclick="deleteManualRow(parseInt(document.getElementById('eb-idx').value))" style="margin-right:auto;display:none">🗑 Remove</button>
+      <button class="btn btn-outline" onclick="closeModal('editBookingModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveManualBooking()">💾 Save</button>
+    </div>
+  </div>
+</div>
 
 </body>
 </html>
