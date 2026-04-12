@@ -1677,4 +1677,5 @@ function printSchedule() {
   setTimeout(() => w.print(), 600);
 }
 
-
+init().catch(console.error);
+showDbStatus(true);
