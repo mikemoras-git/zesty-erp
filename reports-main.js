@@ -238,7 +238,7 @@ function generateOwner(){
   if (_fb) { _fb.style.display=''; _fb.textContent='\u2713 Finalise & Record'; _fb.style.background=''; _fb.disabled=false; }
     currentStatementData={
     id:currentStatementData?.id||null,
-    propId,month,bookings,tRent,tTaxFees,tOTA,tRec,tZesty,tNet,tJobs,tClean,mgmt
+    propId,month,bookings,tRent,tTaxFees,tOTA,tRec,tZesty,tNet,tJobs,tCleanH,mgmt
   };
   document.getElementById('owner-out').innerHTML=`
   <div class="rpt-wrap">
