@@ -1567,7 +1567,7 @@ function printWeeklySchedule() {
     .wk2-page:last-child { page-break-after:avoid; }
     .wk2-logo { font-size:9px; color:#888; text-transform:uppercase; letter-spacing:2px; margin-bottom:8px; }
     .wk2-week-label { font-size:16px; font-weight:700; color:#115950; margin-bottom:10px; padding-bottom:6px; border-bottom:3px solid #115950; }
-    .wk2-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:5px; height:calc(100vh - 80px); }
+    .wk2-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:5px; min-height:200px; }
     .wk2-day { border:1px solid #dde; border-radius:5px; overflow:hidden; display:flex; flex-direction:column; }
     .wk2-weekend { background:#fafaf8; }
     .wk2-outmonth { opacity:.3; }
@@ -1675,6 +1675,122 @@ function printSchedule() {
   w.document.write('<html><head><title>Cleaning Schedule '+monthName+'</title><style>'+buildPrintStyles()+'</style></head><body>'+(printContent||'<p style="padding:40px;font-family:Arial">No jobs found.</p>')+'</body></html>');
   w.document.close();
   setTimeout(() => w.print(), 600);
+}
+
+
+// ── Add Manual Job (from Jobs tab) ──────────────────────────────────────
+function openAddManualJobModal() {
+  const propSel = document.getElementById('amj-property');
+  if (propSel) {
+    const propList = (window._propCache || JSON.parse(localStorage.getItem('zesty_properties')||'[]'))
+      .filter(p => !p.archived)
+      .sort((a,b) => (a.shortName||a.propertyName||'').localeCompare(b.shortName||b.propertyName||''));
+    propSel.innerHTML = '<option value="">— Select property —</option>' +
+      propList.map(p => `<option value="${p.shortName||p.propertyName}">${p.shortName||p.propertyName}</option>`).join('');
+  }
+  const cleanerSel = document.getElementById('amj-cleaners');
+  if (cleanerSel) {
+    const active = staff.filter(s => s.status !== 'Inactive' && (!s.role || s.role === 'cleaner' || s.role === 'both'));
+    cleanerSel.innerHTML = active.map(s => `<option value="${s.id}">${s.firstName} ${s.lastName}</option>`).join('');
+  }
+  document.getElementById('amj-date').value    = new Date().toISOString().slice(0,10);
+  document.getElementById('amj-type').value    = 'checkout';
+  document.getElementById('amj-hours').value   = '';
+  document.getElementById('amj-guest').value   = '';
+  document.getElementById('amj-notes').value   = '';
+  openModal('addManualJobModal');
+}
+
+async function saveManualJobFromModal() {
+  const propName = document.getElementById('amj-property')?.value?.trim();
+  const date     = document.getElementById('amj-date')?.value;
+  if (!propName || !date) { showToast('Property and date are required', 'error'); return; }
+  const prop = (window._propCache || []).find(p => (p.shortName||p.propertyName) === propName);
+  const cleanerSel = document.getElementById('amj-cleaners');
+  const selectedCleaners = Array.from(cleanerSel?.selectedOptions||[]).map(o => o.value);
+  const job = {
+    id:                'manual_job_' + Date.now(),
+    date,
+    type:              document.getElementById('amj-type')?.value || 'checkout',
+    propertyName:      propName,
+    propertyId:        prop?.id || '',
+    propertyTransport: parseFloat(prop?.transport||0),
+    guestName:         document.getElementById('amj-guest')?.value || 'Manual job',
+    hours:             parseFloat(document.getElementById('amj-hours')?.value) || null,
+    notes:             document.getElementById('amj-notes')?.value || '',
+    cleanerIds:        selectedCleaners,
+    cleanerHours:      {},
+    source:            'manual',
+    zone:              prop?.zone || '',
+  };
+  cleaningJobs.push(job);
+  await SyncStore.saveAll('zesty_cleaning_jobs', 'cleaning_jobs', cleaningJobs);
+  closeModal('addManualJobModal');
+  renderJobs();
+  renderCalendar();
+  updateJobStats();
+  showToast('\u2713 Manual job added', 'success');
+}
+
+// ── Print All Jobs as PDF ────────────────────────────────────────────────
+function printAllJobs() {
+  const monthVal    = document.getElementById('jobMonth')?.value || '';
+  const zoneFilter  = document.getElementById('jobZone')?.value || '';
+  const typeFilter  = document.getElementById('jobType')?.value || '';
+  const searchVal   = (document.getElementById('jobSearch')?.value||'').toLowerCase();
+
+  let filtered = cleaningJobs.filter(j => {
+    if (monthVal && !(j.date||'').startsWith(monthVal)) return false;
+    if (zoneFilter && j.zone !== zoneFilter) return false;
+    if (typeFilter && j.type !== typeFilter) return false;
+    if (searchVal) {
+      const hay = ((j.propertyName||'')+' '+(j.guestName||'')).toLowerCase();
+      if (!hay.includes(searchVal)) return false;
+    }
+    return true;
+  }).sort((a,b) => (b.date||'') > (a.date||'') ? 1 : -1);
+
+  const monthLabel = monthVal ? new Date(monthVal+'-01').toLocaleDateString('en-GB',{month:'long',year:'numeric'}) : 'All';
+
+  const rows = filtered.map(j => {
+    const assignedNames = (j.cleanerIds||[]).map(id => {
+      const s = staff.find(x=>x.id===id);
+      return s ? s.firstName+' '+s.lastName : '';
+    }).filter(Boolean).join(', ') || '—';
+    const transport = parseFloat(j.propertyTransport||0);
+    return `<tr>
+      <td>${j.date||'—'}</td>
+      <td>${j.propertyName||'—'}</td>
+      <td>${j.zone||'—'}</td>
+      <td><span style="background:${j.type==='checkout'?'#fdebd0':'#fdf6e3'};color:${j.type==='checkout'?'#a04000':'#8e6b23'};padding:2px 8px;border-radius:8px;font-size:11px;font-weight:700">${j.type==='checkout'?'Checkout':'Mid-Stay'}</span></td>
+      <td style="text-align:center">${j.nights||'—'}</td>
+      <td>${assignedNames}</td>
+      <td style="text-align:center">${j.hours||'—'}</td>
+      <td style="text-align:right">${transport>0?'\u20AC'+transport.toFixed(1):'—'}</td>
+      <td style="font-size:11px;color:#666">${j.notes||''}</td>
+    </tr>`;
+  }).join('');
+
+  const styles = `
+    @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600&display=swap');
+    * { box-sizing:border-box; margin:0; padding:0; }
+    body { font-family:'DM Sans',Arial,sans-serif; font-size:11px; color:#1e2a28; }
+    h1 { font-size:18px; color:#115950; margin-bottom:4px; }
+    .sub { font-size:11px; color:#888; margin-bottom:16px; }
+    table { width:100%; border-collapse:collapse; }
+    th { background:#115950; color:#fff; padding:6px 8px; text-align:left; font-size:10px; text-transform:uppercase; letter-spacing:.5px; }
+    td { padding:6px 8px; border-bottom:1px solid #eee; vertical-align:top; }
+    tr:nth-child(even) td { background:#f9f9f9; }
+    @page { margin:10mm; size:A4 landscape; }
+  `;
+
+  const w = window.open('','_blank');
+  w.document.write('<html><head><title>Jobs '+monthLabel+'</title><style>'+styles+'</style></head><body>'+
+    '<h1>Cleaning Jobs</h1><div class="sub">'+monthLabel+' \u00B7 '+filtered.length+' jobs</div>'+
+    '<table><thead><tr><th>Date</th><th>Property</th><th>Zone</th><th>Type</th><th>Nts</th><th>Assigned To</th><th>Hours</th><th>Transport</th><th>Notes</th></tr></thead>'+
+    '<tbody>'+rows+'</tbody></table></body></html>');
+  w.document.close();
+  setTimeout(()=>w.print(),400);
 }
 
 init().catch(console.error);
