@@ -13,29 +13,49 @@ let confirmCb = null;
 const COLORS = ['#1a7a6e','#c9a84c','#e67e22','#8e44ad','#2471a3','#1e8449','#c0392b','#2c3e50'];
 
 
-// ── Modal helpers (cleaning module uses its own modal-overlay pattern) ──
+// ── UI helpers (cleaning module — no erp-base.js) ──────────────────────
+
 function openModal(id) {
   const el = document.getElementById(id);
-  if (!el) return;
-  el.style.display = 'flex';
-  el.style.alignItems = 'center';
-  el.style.justifyContent = 'center';
-  document.body.style.overflow = 'hidden';
+  if (el) { el.style.display = 'flex'; el.style.alignItems = 'center'; el.style.justifyContent = 'center'; }
 }
 function closeModal(id) {
   const el = document.getElementById(id);
   if (el) el.style.display = 'none';
-  // Only restore scroll if no other modals are open
-  const anyOpen = Array.from(document.querySelectorAll('.modal-overlay'))
-    .some(m => m.style.display === 'flex');
-  if (!anyOpen) document.body.style.overflow = '';
+  // Never lock body scroll
+  document.body.style.overflow = '';
 }
-// Close modal when clicking the overlay background
 document.addEventListener('click', function(e) {
   if (e.target && e.target.classList && e.target.classList.contains('modal-overlay')) {
     closeModal(e.target.id);
   }
 });
+
+function showToast(msg, type) {
+  const el = document.getElementById('toast');
+  if (!el) return;
+  el.textContent = msg;
+  el.className = 'toast show' + (type ? ' ' + type : '');
+  clearTimeout(el._t);
+  el._t = setTimeout(() => { el.className = 'toast'; }, 3500);
+}
+
+function showConfirm(icon, title, msg, btnClass, btnLabel, onConfirm) {
+  const overlay = document.getElementById('confirmOverlay');
+  if (!overlay) { if (confirm(title + '\n' + msg)) onConfirm(); return; }
+  overlay.querySelector('#confirmTitle') && (overlay.querySelector('#confirmTitle').textContent = title);
+  overlay.querySelector('#confirmMsg')   && (overlay.querySelector('#confirmMsg').textContent = msg);
+  const btn = overlay.querySelector('#confirmOkBtn');
+  if (btn) { btn.textContent = btnLabel; btn.className = 'btn ' + (btnClass||'btn-primary'); btn.onclick = () => { closeModal('confirmOverlay'); onConfirm(); }; }
+  openModal('confirmOverlay');
+}
+
+function showDbStatus(online) {
+  const el = document.getElementById('dbStatus');
+  if (!el) return;
+  el.textContent = online ? '● Connected' : '○ Offline';
+  el.style.color = online ? 'var(--success, #27ae60)' : '#e74c3c';
+}
 
 
 function getColor(idx) { return COLORS[idx % COLORS.length]; }
