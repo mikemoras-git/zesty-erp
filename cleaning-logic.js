@@ -1633,7 +1633,7 @@ function printWeeklySchedule() {
     @media print { .wk2-page { page-break-after:always; } }
   `;
 
-  const _htmlContent = _printHtml;
+  const _htmlContent = printContent;
   const _printWin = window.open('', '_blank');
   if (_printWin) {
     _printWin.document.open();
@@ -1731,7 +1731,7 @@ function printSchedule() {
     \u003C/div\u003E`;
   });
 
-  const _htmlContent = _printHtml;
+  const _htmlContent = printContent;
   const _printWin = window.open('', '_blank');
   if (_printWin) {
     _printWin.document.open();
