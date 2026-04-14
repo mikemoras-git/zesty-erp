@@ -814,7 +814,7 @@ function addManualHoursJob() {
       .filter(p => !p.archived)
       .sort((a,b) => (a.shortName||a.propertyName||'').localeCompare(b.shortName||b.propertyName||''));
     propSel.innerHTML = '<option value="">— Select property —</option>' +
-      propList.map(p => `\u003Coption value="${p.shortName||p.propertyName}"\u003E${p.shortName||p.propertyName}\u003C/option\u003E`).join('');
+      propList.map(p => '<option value="' + (p.shortName||p.propertyName) + '">' + (p.shortName||p.propertyName) + '</option>').join('');
   }
   // Set default date to first of current hours month
   const monthVal = document.getElementById('hoursMonth')?.value || '';
@@ -1633,12 +1633,23 @@ function printWeeklySchedule() {
     @media print { .wk2-page { page-break-after:always; } }
   `;
 
-  const _printHtml = ('<html><head><title>Weekly Schedule '+monthName+'</title><style>'+styles+'</style><\/head><body>'+(printContent||'<p style="padding:40px">No jobs.</p>')+'<\/body><\/html>');
-  const _blob=new Blob([_printHtml],{type:'text/html'});
-  const _url=URL.createObjectURL(_blob);
-  const w=window.open(_url,'_blank');
-  if(!w){showToast('Allow popups for this site to use Print','error');URL.revokeObjectURL(_url);return;}
-  setTimeout(()=>{w.print();URL.revokeObjectURL(_url);},600);
+  const _htmlContent = _printHtml;
+  const _printWin = window.open('', '_blank');
+  if (_printWin) {
+    _printWin.document.open();
+    _printWin.document.write(_htmlContent);
+    _printWin.document.close();
+    setTimeout(() => _printWin.print(), 600);
+  } else {
+    // Fallback: create hidden iframe
+    const _ifr = document.createElement('iframe');
+    _ifr.style.cssText = 'position:fixed;top:-9999px;left:-9999px;width:1px;height:1px';
+    document.body.appendChild(_ifr);
+    _ifr.contentDocument.open();
+    _ifr.contentDocument.write(_htmlContent);
+    _ifr.contentDocument.close();
+    setTimeout(() => { _ifr.contentWindow.print(); document.body.removeChild(_ifr); }, 600);
+  }
 }
 
 
@@ -1720,12 +1731,23 @@ function printSchedule() {
     \u003C/div\u003E`;
   });
 
-  const _printHtml = ('<html><head><title>Cleaning Schedule '+monthName+'</title><style>'+buildPrintStyles()+'</style><\/head><body>'+(printContent||'<p style="padding:40px;font-family:Arial">No jobs found.</p>')+'<\/body><\/html>');
-  const _blob=new Blob([_printHtml],{type:'text/html'});
-  const _url=URL.createObjectURL(_blob);
-  const w=window.open(_url,'_blank');
-  if(!w){showToast('Allow popups for this site to use Print','error');URL.revokeObjectURL(_url);return;}
-  setTimeout(()=>{w.print();URL.revokeObjectURL(_url);},600);
+  const _htmlContent = _printHtml;
+  const _printWin = window.open('', '_blank');
+  if (_printWin) {
+    _printWin.document.open();
+    _printWin.document.write(_htmlContent);
+    _printWin.document.close();
+    setTimeout(() => _printWin.print(), 600);
+  } else {
+    // Fallback: create hidden iframe
+    const _ifr = document.createElement('iframe');
+    _ifr.style.cssText = 'position:fixed;top:-9999px;left:-9999px;width:1px;height:1px';
+    document.body.appendChild(_ifr);
+    _ifr.contentDocument.open();
+    _ifr.contentDocument.write(_htmlContent);
+    _ifr.contentDocument.close();
+    setTimeout(() => { _ifr.contentWindow.print(); document.body.removeChild(_ifr); }, 600);
+  }
 }
 
 
@@ -1737,12 +1759,12 @@ function openAddManualJobModal() {
       .filter(p => !p.archived)
       .sort((a,b) => (a.shortName||a.propertyName||'').localeCompare(b.shortName||b.propertyName||''));
     propSel.innerHTML = '<option value="">— Select property —</option>' +
-      propList.map(p => `\u003Coption value="${p.shortName||p.propertyName}"\u003E${p.shortName||p.propertyName}\u003C/option\u003E`).join('');
+      propList.map(p => '<option value="' + (p.shortName||p.propertyName) + '">' + (p.shortName||p.propertyName) + '</option>').join('');
   }
   const cleanerSel = document.getElementById('amj-cleaners');
   if (cleanerSel) {
     const active = staff.filter(s => s.status !== 'Inactive' && (!s.role || s.role === 'cleaner' || s.role === 'both'));
-    cleanerSel.innerHTML = active.map(s => `\u003Coption value="${s.id}"\u003E${s.firstName} ${s.lastName}\u003C/option\u003E`).join('');
+    cleanerSel.innerHTML = active.map(s => '<option value="' + s.id + '">' + s.firstName + ' ' + s.lastName + '</option>').join('');
   }
   document.getElementById('amj-date').value    = new Date().toISOString().slice(0,10);
   document.getElementById('amj-type').value    = 'checkout';
@@ -1839,15 +1861,23 @@ function printAllJobs() {
     '<h1>Cleaning Jobs</h1><div class="sub">'+monthLabel+' \u00B7 '+filtered.length+' jobs</div>'+
     '<table><thead><tr><th>Date</th><th>Property</th><th>Zone</th><th>Type</th><th>Nts</th><th>Assigned To</th><th>Hours</th><th>Transport</th><th>Notes</th></tr></thead>'+
     '<tbody>'+rows+'</tbody></table><\/body><\/html>';
-  const blob = new Blob([html], {type:'text/html'});
-  const url  = URL.createObjectURL(blob);
-  const w = window.open(url, '_blank');
-  if (!w) {
-    // Popup blocked - fallback: inject into iframe
-    showToast('Allow popups for this site to use Print PDF', 'error');
-    return;
+  const _htmlContent = html;
+  const _printWin = window.open('', '_blank');
+  if (_printWin) {
+    _printWin.document.open();
+    _printWin.document.write(_htmlContent);
+    _printWin.document.close();
+    setTimeout(() => _printWin.print(), 600);
+  } else {
+    // Fallback: create hidden iframe
+    const _ifr = document.createElement('iframe');
+    _ifr.style.cssText = 'position:fixed;top:-9999px;left:-9999px;width:1px;height:1px';
+    document.body.appendChild(_ifr);
+    _ifr.contentDocument.open();
+    _ifr.contentDocument.write(_htmlContent);
+    _ifr.contentDocument.close();
+    setTimeout(() => { _ifr.contentWindow.print(); document.body.removeChild(_ifr); }, 600);
   }
-  setTimeout(() => { w.print(); URL.revokeObjectURL(url); }, 600);
 }
 
 
@@ -1929,15 +1959,16 @@ async function removeNoFeeJobs() {
 function printHoursSheet() {
   const monthVal = document.getElementById('hoursMonth')?.value || '';
   if (!monthVal) { showToast('Select a month first', 'error'); return; }
-  const printWin = window.open('', '_blank');
-  if (!printWin) { showToast('Allow popups to print', 'error'); return; }
   const tableEl = document.getElementById('hoursTableWrap') || document.getElementById('hoursSheet');
-  const html = tableEl ? tableEl.outerHTML : '<p>No hours data</p>';
-  const blob = new Blob(['<html><head><style>body{font-family:Arial,sans-serif;font-size:11px}table{border-collapse:collapse;width:100%}th,td{border:1px solid #ddd;padding:4px 6px}th{background:#115950;color:#fff}@page{size:A4 landscape;margin:10mm}</style></head><body>' + html + '</body></html>'], {type:'text/html'});
-  const url = URL.createObjectURL(blob);
-  const w = window.open(url, '_blank');
-  if (!w) { showToast('Allow popups to print', 'error'); return; }
-  setTimeout(() => { w.print(); URL.revokeObjectURL(url); }, 500);
+  const hoursHtml = tableEl ? tableEl.outerHTML : '<p>No hours data</p>';
+  const _doc = '<html><head><style>body{font-family:Arial,sans-serif;font-size:11px}table{border-collapse:collapse;width:100%}th,td{border:1px solid #ddd;padding:4px 6px}th{background:#115950;color:#fff}@page{size:A4 landscape;margin:10mm}</style></head><body>' + hoursHtml + '</body></html>';
+  const _w = window.open('', '_blank');
+  if (_w) { _w.document.open(); _w.document.write(_doc); _w.document.close(); setTimeout(()=>_w.print(),500); return; }
+  const _ifr = document.createElement('iframe');
+  _ifr.style.cssText = 'position:fixed;top:-9999px;left:-9999px;width:1px;height:1px';
+  document.body.appendChild(_ifr);
+  _ifr.contentDocument.open(); _ifr.contentDocument.write(_doc); _ifr.contentDocument.close();
+  setTimeout(()=>{ _ifr.contentWindow.print(); document.body.removeChild(_ifr); }, 500);
 }
 
 function exportHoursCSV() {
