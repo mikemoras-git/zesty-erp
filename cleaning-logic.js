@@ -1,3 +1,4 @@
+/* CLEANING-LOGIC v2025-FINAL - 102859 bytes */
 // ============ DATA ============
 let staff = [];
 let cleaningJobs = [];
@@ -72,7 +73,7 @@ function updateCleanImportStatus() {
     const last = JSON.parse(localStorage.getItem('zesty_last_clean_import') || 'null');
     if (!last) { el.textContent = ''; return; }
     const d = new Date(last.date);
-    el.innerHTML = `\u2713 Last import: <strong>${last.filename}</strong> on ${d.toLocaleDateString('el-GR')} \u00B7 ${last.jobs} jobs created`;
+    el.innerHTML = `\u2713 Last import: \u003Cstrong\u003E${last.filename}\u003C/strong\u003E on ${d.toLocaleDateString('el-GR')} \u00B7 ${last.jobs} jobs created`;
   } catch { el.textContent = ''; }
 }
 
@@ -328,38 +329,38 @@ function renderStaff() {
 
   const tbody = document.getElementById('staffTable');
   if (filtered.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="10"><div class="empty-state"><div class="empty-icon">\u{1F469}</div><p>No cleaning staff yet. Add your first cleaner.</p></div></td></tr>`;
+    tbody.innerHTML = `\u003Ctr\u003E\u003Ctd colspan="10"\u003E\u003Cdiv class="empty-state"\u003E\u003Cdiv class="empty-icon"\u003E\u{1F469}\u003C/div\u003E\u003Cp\u003ENo cleaning staff yet. Add your first cleaner.\u003C/p\u003E\u003C/div\u003E\u003C/td\u003E\u003C/tr\u003E`;
   } else {
     const makeRow = (s) => {
       const colorIdx = staff.indexOf(s);
-      const zones = (s.zones||[]).map(z => `<span class="zone-tag zone-${z.replace(' ','-')}">${z}</span>`).join('');
-      const statusBadge = `<span class="badge badge-${s.status === 'Active' ? 'active' : 'inactive'}">${s.status||'Active'}</span>`;
+      const zones = (s.zones||[]).map(z => `\u003Cspan class="zone-tag zone-${z.replace(' ','-')}"\u003E${z}\u003C/span\u003E`).join('');
+      const statusBadge = `\u003Cspan class="badge badge-${s.status === 'Active' ? 'active' : 'inactive'}"\u003E${s.status||'Active'}\u003C/span\u003E`;
       const roleBadge = s.role === 'both' ? '<span style="background:#fdf6e3;color:#7d6608;padding:1px 6px;border-radius:8px;font-size:10px;font-weight:700">BOTH</span>' : '';
-      return `<tr>
-        <td>
-          <div style="display:flex;align-items:center;gap:10px">
-            <div class="cleaner-avatar" style="background:${getColor(colorIdx)}">${getInitials(s.firstName,s.lastName)}</div>
-            <div>
-              <div style="font-weight:500">${s.firstName} ${s.lastName} ${roleBadge}</div>
-              <div style="font-size:11px;color:var(--text-muted)">${s.email||''}</div>
-            </div>
-          </div>
-        </td>
-        <td style="font-size:12px">${s.phone||'\u2014'}</td>
-        <td>${zones||'\u2014'}</td>
-        <td>${s.hourlyRate ? '\u20AC'+s.hourlyRate+'/hr' : '\u2014'}</td>
-        <td>${s.transportCost ? '\u20AC'+s.transportCost : '\u2014'}</td>
-        <td>${s.hasCar === 'Yes' ? '\u{1F697} Yes' : s.hasCar === 'No' ? '\u274C No' : '\u2014'}</td>
-        <td>${s.drivingLicense === 'Yes' ? '\u2705' : s.drivingLicense === 'No' ? '\u274C' : '\u2014'}</td>
-        <td>${s.insurance === 'Yes' ? `\u2705 ${s.insuranceExpiry ? '(exp: '+formatDate(s.insuranceExpiry)+')' : ''}` : s.insurance === 'No' ? '\u274C' : '\u2014'}</td>
-        <td>${statusBadge}</td>
-        <td>
-          <div style="display:flex;gap:5px">
-            <button class="btn btn-teal btn-sm" onclick="editStaff('${s.id}')">\u270F\uFE0F</button>
-            <button class="btn btn-danger btn-sm" onclick="deleteStaff('${s.id}')">\u{1F5D1}</button>
-          </div>
-        </td>
-      </tr>`;
+      return `\u003Ctr\u003E
+        \u003Ctd\u003E
+          \u003Cdiv style="display:flex;align-items:center;gap:10px"\u003E
+            \u003Cdiv class="cleaner-avatar" style="background:${getColor(colorIdx)}"\u003E${getInitials(s.firstName,s.lastName)}\u003C/div\u003E
+            \u003Cdiv\u003E
+              \u003Cdiv style="font-weight:500"\u003E${s.firstName} ${s.lastName} ${roleBadge}\u003C/div\u003E
+              \u003Cdiv style="font-size:11px;color:var(--text-muted)"\u003E${s.email||''}\u003C/div\u003E
+            \u003C/div\u003E
+          \u003C/div\u003E
+        \u003C/td\u003E
+        \u003Ctd style="font-size:12px"\u003E${s.phone||'\u2014'}\u003C/td\u003E
+        \u003Ctd\u003E${zones||'\u2014'}\u003C/td\u003E
+        \u003Ctd\u003E${s.hourlyRate ? '\u20AC'+s.hourlyRate+'/hr' : '\u2014'}\u003C/td\u003E
+        \u003Ctd\u003E${s.transportCost ? '\u20AC'+s.transportCost : '\u2014'}\u003C/td\u003E
+        \u003Ctd\u003E${s.hasCar === 'Yes' ? '\u{1F697} Yes' : s.hasCar === 'No' ? '\u274C No' : '\u2014'}\u003C/td\u003E
+        \u003Ctd\u003E${s.drivingLicense === 'Yes' ? '\u2705' : s.drivingLicense === 'No' ? '\u274C' : '\u2014'}\u003C/td\u003E
+        \u003Ctd\u003E${s.insurance === 'Yes' ? `\u2705 ${s.insuranceExpiry ? '(exp: '+formatDate(s.insuranceExpiry)+')' : ''}` : s.insurance === 'No' ? '\u274C' : '\u2014'}\u003C/td\u003E
+        \u003Ctd\u003E${statusBadge}\u003C/td\u003E
+        \u003Ctd\u003E
+          \u003Cdiv style="display:flex;gap:5px"\u003E
+            \u003Cbutton class="btn btn-teal btn-sm" onclick="editStaff('${s.id}')"\u003E\u270F\uFE0F\u003C/button\u003E
+            \u003Cbutton class="btn btn-danger btn-sm" onclick="deleteStaff('${s.id}')"\u003E\u{1F5D1}\u003C/button\u003E
+          \u003C/div\u003E
+        \u003C/td\u003E
+      \u003C/tr\u003E`;
     };
     
     // Show all active staff as cleaners (no agent role distinction)
@@ -367,7 +368,7 @@ function renderStaff() {
     
     // Cleaners table
     const cleanerRows = cleaners.map(makeRow).join('');
-    tbody.innerHTML = cleanerRows || `<tr><td colspan="10" style="color:var(--text-muted);text-align:center;padding:20px">No cleaners found.</td></tr>`;
+    tbody.innerHTML = cleanerRows || `\u003Ctr\u003E\u003Ctd colspan="10" style="color:var(--text-muted);text-align:center;padding:20px"\u003ENo cleaners found.\u003C/td\u003E\u003C/tr\u003E`;
     
       }
   updateStaffStats();
@@ -504,8 +505,8 @@ async function deleteStaff(id) {
 
 function updateStaffDropdowns() {
   const activeStaff = staff.filter(s => s.status !== 'Inactive');
-  const opts = `<option value="">Unassigned</option>` + activeStaff.map(s => `<option value="${s.id}">${s.firstName} ${s.lastName}</option>`).join('');
-  const filterOpts = `<option value="">All Cleaners</option>` + staff.map(s => `<option value="${s.id}">${s.firstName} ${s.lastName}</option>`).join('');
+  const opts = `\u003Coption value=""\u003EUnassigned\u003C/option\u003E` + activeStaff.map(s => `\u003Coption value="${s.id}"\u003E${s.firstName} ${s.lastName}\u003C/option\u003E`).join('');
+  const filterOpts = `\u003Coption value=""\u003EAll Cleaners\u003C/option\u003E` + staff.map(s => `\u003Coption value="${s.id}"\u003E${s.firstName} ${s.lastName}\u003C/option\u003E`).join('');
   const set = (id, val) => { const el = document.getElementById(id); if (el) el.innerHTML = val; };
   set('j_cleaner', opts);
   set('calCleaner', filterOpts);
@@ -564,16 +565,16 @@ function showImportResults(filename, rows) {
   const alreadyImported = rows.filter(r => r.Status === 'Booked' && existingIds.has(r.Id)).length;
 
   document.getElementById('importSummary').innerHTML = `
-    <div class="import-stat"><div class="num">${rows.length}</div><div class="lbl">Total Rows</div></div>
-    <div class="import-stat"><div class="num" style="color:var(--success)">${booked}</div><div class="lbl">Booked</div></div>
-    <div class="import-stat"><div class="num" style="color:#27ae60">${newBooked}</div><div class="lbl">New (to import)</div></div>
-    <div class="import-stat"><div class="num" style="color:#7f8c8d">${alreadyImported}</div><div class="lbl">Already in DB</div></div>
-    <div class="import-stat"><div class="num" style="color:var(--danger)">${declined + open}</div><div class="lbl">Skipped (Declined/Open)</div></div>
+    \u003Cdiv class="import-stat"\u003E\u003Cdiv class="num"\u003E${rows.length}\u003C/div\u003E\u003Cdiv class="lbl"\u003ETotal Rows\u003C/div\u003E\u003C/div\u003E
+    \u003Cdiv class="import-stat"\u003E\u003Cdiv class="num" style="color:var(--success)"\u003E${booked}\u003C/div\u003E\u003Cdiv class="lbl"\u003EBooked\u003C/div\u003E\u003C/div\u003E
+    \u003Cdiv class="import-stat"\u003E\u003Cdiv class="num" style="color:#27ae60"\u003E${newBooked}\u003C/div\u003E\u003Cdiv class="lbl"\u003ENew (to import)\u003C/div\u003E\u003C/div\u003E
+    \u003Cdiv class="import-stat"\u003E\u003Cdiv class="num" style="color:#7f8c8d"\u003E${alreadyImported}\u003C/div\u003E\u003Cdiv class="lbl"\u003EAlready in DB\u003C/div\u003E\u003C/div\u003E
+    \u003Cdiv class="import-stat"\u003E\u003Cdiv class="num" style="color:var(--danger)"\u003E${declined + open}\u003C/div\u003E\u003Cdiv class="lbl"\u003ESkipped (Declined/Open)\u003C/div\u003E\u003C/div\u003E
   `;
 
   // Populate property filter
   const props = [...new Set(rows.map(r => r.HouseInternalName || r.HouseName).filter(Boolean))].sort();
-  document.getElementById('importPropFilter').innerHTML = `<option value="">All Properties</option>` + props.map(p => `<option value="${p}">${p}</option>`).join('');
+  document.getElementById('importPropFilter').innerHTML = `\u003Coption value=""\u003EAll Properties\u003C/option\u003E` + props.map(p => `\u003Coption value="${p}"\u003E${p}\u003C/option\u003E`).join('');
 
   document.getElementById('importResults').style.display = 'block';
   renderImportPreview();
@@ -601,25 +602,25 @@ function renderImportPreview() {
     const alreadyIn = existingIds2.has(r.Id);
     const statusColor = r.Status === 'Booked' ? 'var(--success)' : r.Status === 'Declined' ? 'var(--danger)' : '#e67e22';
     const rowStyle = alreadyIn ? 'opacity:0.55;' : '';
-    return `<tr style="${rowStyle}">
-      <td style="font-size:12px">${r.Name||'\u2014'}</td>
-      <td style="font-size:12px">${r.HouseInternalName || r.HouseName || '\u2014'}</td>
-      <td style="font-size:12px">${formatDate(r.DateArrival)}</td>
-      <td style="font-size:12px">${formatDate(r.DateDeparture)}</td>
-      <td style="text-align:center">${nights}</td>
-      <td style="font-size:11px">${r.Source||'\u2014'}</td>
-      <td><span style="color:${statusColor};font-size:12px;font-weight:500">${r.Status}</span></td>
-      <td style="font-size:11px;color:${hasCleaning ? 'var(--teal)' : 'var(--text-muted)'}">
+    return `\u003Ctr style="${rowStyle}"\u003E
+      \u003Ctd style="font-size:12px"\u003E${r.Name||'\u2014'}\u003C/td\u003E
+      \u003Ctd style="font-size:12px"\u003E${r.HouseInternalName || r.HouseName || '\u2014'}\u003C/td\u003E
+      \u003Ctd style="font-size:12px"\u003E${formatDate(r.DateArrival)}\u003C/td\u003E
+      \u003Ctd style="font-size:12px"\u003E${formatDate(r.DateDeparture)}\u003C/td\u003E
+      \u003Ctd style="text-align:center"\u003E${nights}\u003C/td\u003E
+      \u003Ctd style="font-size:11px"\u003E${r.Source||'\u2014'}\u003C/td\u003E
+      \u003Ctd\u003E\u003Cspan style="color:${statusColor};font-size:12px;font-weight:500"\u003E${r.Status}\u003C/span\u003E\u003C/td\u003E
+      \u003Ctd style="font-size:11px;color:${hasCleaning ? 'var(--teal)' : 'var(--text-muted)'}"\u003E
         ${hasCleaning ? '\u{1F4C5} ' + formatDate(r.DateDeparture) : '\u26D4 No cleaning'}
-      </td>
-      <td style="font-size:11px;color:var(--text-muted)">
+      \u003C/td\u003E
+      \u003Ctd style="font-size:11px;color:var(--text-muted)"\u003E
         ${!hasCleaning ? '\u2014' : midDays.length ? midDays.length + ' mid-stay' : '\u2014'}
         ${alreadyIn ? '<span style="font-size:10px;background:#ecf0f1;padding:1px 5px;border-radius:8px;color:#7f8c8d">already in DB</span>' : ''}
-      </td>
-    </tr>`;
+      \u003C/td\u003E
+    \u003C/tr\u003E`;
   }).join('');
   if (filtered.length > 100) {
-    tbody.innerHTML += `<tr><td colspan="10" style="text-align:center;padding:12px;color:var(--text-muted);font-size:12px">Showing first 100 of ${filtered.length} rows</td></tr>`;
+    tbody.innerHTML += `\u003Ctr\u003E\u003Ctd colspan="10" style="text-align:center;padding:12px;color:var(--text-muted);font-size:12px"\u003EShowing first 100 of ${filtered.length} rows\u003C/td\u003E\u003C/tr\u003E`;
   }
 }
 
@@ -672,30 +673,30 @@ function renderHoursSheet() {
     const cur = propFilter.value;
     propFilter.innerHTML = '<option value="">All Properties</option>' +
       [...new Set(monthJobs.map(j=>j.propertyName).filter(Boolean))].sort()
-        .map(p=>`<option value="${p}" ${p===cur?'selected':''}>${p}</option>`).join('');
+        .map(p=>`\u003Coption value="${p}" ${p===cur?'selected':''}\u003E${p}\u003C/option\u003E`).join('');
   }
   const propF = propFilter?.value || '';
   const filteredJobs = propF ? monthJobs.filter(j=>j.propertyName===propF) : monthJobs;
 
   // Table header: Date | Property | Type | Guest | [cleaner cols] | Tot.Hrs | Tot.Pay | Notes
   const staffCols = activeStaff.map(s =>
-    `<th style="min-width:80px;text-align:center">${s.firstName}<br>
-     <span style="font-size:10px;color:var(--text-muted)">€${s.hourlyRate||0}/h</span></th>`
+    `\u003Cth style="min-width:80px;text-align:center"\u003E${s.firstName}\u003Cbr\u003E
+     \u003Cspan style="font-size:10px;color:var(--text-muted)"\u003E€${s.hourlyRate||0}/h\u003C/span\u003E\u003C/th\u003E`
   ).join('');
 
   const thead = document.getElementById('hoursHead');
-  if (thead) thead.innerHTML = `<tr>
-    <th style="width:90px">Date</th>
-    <th>Property</th>
-    <th style="width:80px">Type</th>
-    <th style="width:130px">Guest</th>
+  if (thead) thead.innerHTML = `\u003Ctr\u003E
+    \u003Cth style="width:90px"\u003EDate\u003C/th\u003E
+    \u003Cth\u003EProperty\u003C/th\u003E
+    \u003Cth style="width:80px"\u003EType\u003C/th\u003E
+    \u003Cth style="width:130px"\u003EGuest\u003C/th\u003E
     ${staffCols}
-    <th style="text-align:right;width:70px">Hrs</th>
-    <th style="text-align:right;width:80px">Pay</th>
-    <th style="text-align:right;width:80px">Charge</th>
-    <th style="width:90px">Notes</th>
-    <th style="width:40px"></th>
-  </tr>`;
+    \u003Cth style="text-align:right;width:70px"\u003EHrs\u003C/th\u003E
+    \u003Cth style="text-align:right;width:80px"\u003EPay\u003C/th\u003E
+    \u003Cth style="text-align:right;width:80px"\u003ECharge\u003C/th\u003E
+    \u003Cth style="width:90px"\u003ENotes\u003C/th\u003E
+    \u003Cth style="width:40px"\u003E\u003C/th\u003E
+  \u003C/tr\u003E`;
 
   let totalHours=0, totalPay=0, totalCharge=0;
   const staffTotals = {};
@@ -715,13 +716,13 @@ function renderHoursSheet() {
         rowHours += hrsNum; rowPay += pay;
         staffTotals[s.id].hours += hrsNum; staffTotals[s.id].pay += pay;
       }
-      return `<td style="text-align:center;padding:4px">
-        <input type="number" min="0" max="24" step="0.5" value="${hrs}"
+      return `\u003Ctd style="text-align:center;padding:4px"\u003E
+        \u003Cinput type="number" min="0" max="24" step="0.5" value="${hrs}"
           data-jobid="${j.id}" data-staffid="${s.id}"
           onchange="onHoursChange(this)"
           style="width:58px;padding:5px;border:1px solid var(--border);border-radius:6px;
-                 text-align:center;font-size:13px;background:${hrsNum>0?'#e0f5f1':'#fff'}">
-      </td>`;
+                 text-align:center;font-size:13px;background:${hrsNum>0?'#e0f5f1':'#fff'}"\u003E
+      \u003C/td\u003E`;
     }).join('');
 
     // Property charge from properties module
@@ -733,43 +734,43 @@ function renderHoursSheet() {
     totalHours += rowHours; totalPay += rowPay; totalCharge += rowCharge;
 
     const typeBadge = j.type==='checkout'
-      ? `<span style="background:#fdebd0;color:#a04000;padding:1px 6px;border-radius:8px;font-size:10px;font-weight:700">CHECKOUT</span>`
-      : `<span style="background:#fdf6e3;color:#8e6b23;padding:1px 6px;border-radius:8px;font-size:10px;font-weight:700">MID-STAY</span>`;
-    const infants = j.infants>0 ? ` <span style="background:#ffcccc;color:#c0392b;padding:0 4px;border-radius:5px;font-size:9px">INF</span>` : '';
+      ? `\u003Cspan style="background:#fdebd0;color:#a04000;padding:1px 6px;border-radius:8px;font-size:10px;font-weight:700"\u003ECHECKOUT\u003C/span\u003E`
+      : `\u003Cspan style="background:#fdf6e3;color:#8e6b23;padding:1px 6px;border-radius:8px;font-size:10px;font-weight:700"\u003EMID-STAY\u003C/span\u003E`;
+    const infants = j.infants>0 ? ` \u003Cspan style="background:#ffcccc;color:#c0392b;padding:0 4px;border-radius:5px;font-size:9px"\u003EINF\u003C/span\u003E` : '';
 
-    return `<tr style="border-bottom:1px solid var(--border)">
-      <td style="font-size:12px;white-space:nowrap">${j.date||'—'}</td>
-      <td style="font-size:12px">${j.propertyName||'—'}</td>
-      <td>${typeBadge}</td>
-      <td style="font-size:11px;color:var(--text-muted)">${j.guestName||'—'}${infants}</td>
+    return `\u003Ctr style="border-bottom:1px solid var(--border)"\u003E
+      \u003Ctd style="font-size:12px;white-space:nowrap"\u003E${j.date||'—'}\u003C/td\u003E
+      \u003Ctd style="font-size:12px"\u003E${j.propertyName||'—'}\u003C/td\u003E
+      \u003Ctd\u003E${typeBadge}\u003C/td\u003E
+      \u003Ctd style="font-size:11px;color:var(--text-muted)"\u003E${j.guestName||'—'}${infants}\u003C/td\u003E
       ${staffCells}
-      <td style="text-align:right;font-weight:700;color:var(--teal)">${rowHours>0?rowHours+'h':'—'}</td>
-      <td style="text-align:right;font-size:12px;color:var(--danger)">${rowPay>0?'€'+rowPay.toFixed(0):'—'}</td>
-      <td style="text-align:right;font-size:12px;font-weight:600;color:${margin>=0?'var(--teal-dark)':'var(--danger)'}">${rowCharge>0?'€'+rowCharge.toFixed(0):'—'}</td>
-      <td style="font-size:11px;color:var(--text-muted)">${j.notes||''}</td>
-      <td style="text-align:center;padding:4px">
-        <button onclick="editManualHoursJob('${j.id}')" title="Edit" style="background:none;border:none;cursor:pointer;font-size:14px;padding:2px 5px;border-radius:6px" onmouseenter="this.style.background='#f0f0f0'" onmouseleave="this.style.background='none'">✏️</button>
-      </td>
-    </tr>`;
+      \u003Ctd style="text-align:right;font-weight:700;color:var(--teal)"\u003E${rowHours>0?rowHours+'h':'—'}\u003C/td\u003E
+      \u003Ctd style="text-align:right;font-size:12px;color:var(--danger)"\u003E${rowPay>0?'€'+rowPay.toFixed(0):'—'}\u003C/td\u003E
+      \u003Ctd style="text-align:right;font-size:12px;font-weight:600;color:${margin>=0?'var(--teal-dark)':'var(--danger)'}"\u003E${rowCharge>0?'€'+rowCharge.toFixed(0):'—'}\u003C/td\u003E
+      \u003Ctd style="font-size:11px;color:var(--text-muted)"\u003E${j.notes||''}\u003C/td\u003E
+      \u003Ctd style="text-align:center;padding:4px"\u003E
+        \u003Cbutton onclick="editManualHoursJob('${j.id}')" title="Edit" style="background:none;border:none;cursor:pointer;font-size:14px;padding:2px 5px;border-radius:6px" onmouseenter="this.style.background='#f0f0f0'" onmouseleave="this.style.background='none'"\u003E✏️\u003C/button\u003E
+      \u003C/td\u003E
+    \u003C/tr\u003E`;
   }).join('');
 
   const tbody = document.getElementById('hoursBody');
   if (tbody) tbody.innerHTML = rows ||
-    `<tr class="empty-row"><td colspan="${4+activeStaff.length+5}">No cleaning jobs for this period.</td></tr>`;
+    `\u003Ctr class="empty-row"\u003E\u003Ctd colspan="${4+activeStaff.length+5}"\u003ENo cleaning jobs for this period.\u003C/td\u003E\u003C/tr\u003E`;
 
-  const staffFootCells = activeStaff.map(s => `<td style="text-align:center;font-weight:700;color:var(--teal)">
-    ${staffTotals[s.id].hours>0?staffTotals[s.id].hours+'h':'—'}<br>
-    <span style="font-size:11px">${staffTotals[s.id].pay>0?'€'+staffTotals[s.id].pay.toFixed(0):''}</span>
-  </td>`).join('');
+  const staffFootCells = activeStaff.map(s => `\u003Ctd style="text-align:center;font-weight:700;color:var(--teal)"\u003E
+    ${staffTotals[s.id].hours>0?staffTotals[s.id].hours+'h':'—'}\u003Cbr\u003E
+    \u003Cspan style="font-size:11px"\u003E${staffTotals[s.id].pay>0?'€'+staffTotals[s.id].pay.toFixed(0):''}\u003C/span\u003E
+  \u003C/td\u003E`).join('');
   const tfoot = document.getElementById('hoursFoot');
-  if (tfoot) tfoot.innerHTML = `<tr style="background:var(--cream);font-weight:700">
-    <td colspan="4">TOTAL</td>
+  if (tfoot) tfoot.innerHTML = `\u003Ctr style="background:var(--cream);font-weight:700"\u003E
+    \u003Ctd colspan="4"\u003ETOTAL\u003C/td\u003E
     ${staffFootCells}
-    <td style="text-align:right">${totalHours}h</td>
-    <td style="text-align:right;color:var(--danger)">€${totalPay.toFixed(0)}</td>
-    <td style="text-align:right;color:var(--teal-dark)">€${totalCharge.toFixed(0)}</td>
-    <td></td>
-  </tr>`;
+    \u003Ctd style="text-align:right"\u003E${totalHours}h\u003C/td\u003E
+    \u003Ctd style="text-align:right;color:var(--danger)"\u003E€${totalPay.toFixed(0)}\u003C/td\u003E
+    \u003Ctd style="text-align:right;color:var(--teal-dark)"\u003E€${totalCharge.toFixed(0)}\u003C/td\u003E
+    \u003Ctd\u003E\u003C/td\u003E
+  \u003C/tr\u003E`;
 
   const setEl=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
   setEl('h-total', filteredJobs.length);
@@ -813,7 +814,7 @@ function addManualHoursJob() {
       .filter(p => !p.archived)
       .sort((a,b) => (a.shortName||a.propertyName||'').localeCompare(b.shortName||b.propertyName||''));
     propSel.innerHTML = '<option value="">— Select property —</option>' +
-      propList.map(p => `<option value="${p.shortName||p.propertyName}">${p.shortName||p.propertyName}</option>`).join('');
+      propList.map(p => `\u003Coption value="${p.shortName||p.propertyName}"\u003E${p.shortName||p.propertyName}\u003C/option\u003E`).join('');
   }
   // Set default date to first of current hours month
   const monthVal = document.getElementById('hoursMonth')?.value || '';
@@ -839,7 +840,7 @@ function editManualHoursJob(id) {
       .filter(p => !p.archived)
       .sort((a,b) => (a.shortName||a.propertyName||'').localeCompare(b.shortName||b.propertyName||''));
     propSel.innerHTML = '<option value="">— Select property —</option>' +
-      propList.map(p => `<option value="${p.shortName||p.propertyName}"${(p.shortName||p.propertyName)===j.propertyName?' selected':''}>${p.shortName||p.propertyName}</option>`).join('');
+      propList.map(p => `\u003Coption value="${p.shortName||p.propertyName}"${(p.shortName||p.propertyName)===j.propertyName?' selected':''}\u003E${p.shortName||p.propertyName}\u003C/option\u003E`).join('');
   }
   document.getElementById('mj-id').value       = j.id;
   document.getElementById('mj-date').value     = j.date || '';
@@ -1088,15 +1089,15 @@ async function clearAllJobs() {
 function renderImportHistory() {
   const tbody = document.getElementById('importHistory');
   if (importHistory.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="5"><div class="empty-state" style="padding:20px"><p>No imports yet.</p></div></td></tr>`;
+    tbody.innerHTML = `\u003Ctr\u003E\u003Ctd colspan="5"\u003E\u003Cdiv class="empty-state" style="padding:20px"\u003E\u003Cp\u003ENo imports yet.\u003C/p\u003E\u003C/div\u003E\u003C/td\u003E\u003C/tr\u003E`;
   } else {
-    tbody.innerHTML = importHistory.map(h => `<tr>
-      <td style="font-size:12px">${formatDate(h.date)}</td>
-      <td style="font-size:12px">${h.filename}</td>
-      <td style="text-align:center">${h.bookings}</td>
-      <td style="text-align:center">${h.jobs}</td>
-      <td><span class="badge badge-active">Imported</span></td>
-    </tr>`).join('');
+    tbody.innerHTML = importHistory.map(h => `\u003Ctr\u003E
+      \u003Ctd style="font-size:12px"\u003E${formatDate(h.date)}\u003C/td\u003E
+      \u003Ctd style="font-size:12px"\u003E${h.filename}\u003C/td\u003E
+      \u003Ctd style="text-align:center"\u003E${h.bookings}\u003C/td\u003E
+      \u003Ctd style="text-align:center"\u003E${h.jobs}\u003C/td\u003E
+      \u003Ctd\u003E\u003Cspan class="badge badge-active"\u003EImported\u003C/span\u003E\u003C/td\u003E
+    \u003C/tr\u003E`).join('');
   }
 }
 
@@ -1184,9 +1185,9 @@ function renderCalendar() {
   const legend = document.getElementById('calLegend');
   const activeCleaners = staff.filter(s => s.status !== 'Inactive');
   legend.innerHTML = [
-    `<div style="display:flex;align-items:center;gap:5px;font-size:12px"><span style="width:12px;height:12px;border-radius:3px;background:#c0392b;display:inline-block"></span> Checkout (unassigned)</div>`,
-    `<div style="display:flex;align-items:center;gap:5px;font-size:12px"><span style="width:12px;height:12px;border-radius:3px;background:#e67e22;display:inline-block"></span> Mid-Stay (unassigned)</div>`,
-    ...activeCleaners.map((cl, i) => `<div style="display:flex;align-items:center;gap:5px;font-size:12px"><div class="cleaner-avatar" style="background:${getColor(staff.indexOf(cl))};width:16px;height:16px;font-size:9px">${getInitials(cl.firstName,cl.lastName)}</div> ${cl.firstName} ${cl.lastName}</div>`)
+    `\u003Cdiv style="display:flex;align-items:center;gap:5px;font-size:12px"\u003E\u003Cspan style="width:12px;height:12px;border-radius:3px;background:#c0392b;display:inline-block"\u003E\u003C/span\u003E Checkout (unassigned)\u003C/div\u003E`,
+    `\u003Cdiv style="display:flex;align-items:center;gap:5px;font-size:12px"\u003E\u003Cspan style="width:12px;height:12px;border-radius:3px;background:#e67e22;display:inline-block"\u003E\u003C/span\u003E Mid-Stay (unassigned)\u003C/div\u003E`,
+    ...activeCleaners.map((cl, i) => `\u003Cdiv style="display:flex;align-items:center;gap:5px;font-size:12px"\u003E\u003Cdiv class="cleaner-avatar" style="background:${getColor(staff.indexOf(cl))};width:16px;height:16px;font-size:9px"\u003E${getInitials(cl.firstName,cl.lastName)}\u003C/div\u003E ${cl.firstName} ${cl.lastName}\u003C/div\u003E`)
   ].join('');
 }
 
@@ -1230,39 +1231,39 @@ function renderJobs() {
 
   const tbody = document.getElementById('jobsTable');
   if (pageData.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="9"><div class="empty-state"><div class="empty-icon">\u{1F9F9}</div><p>No jobs found. Import bookings to generate cleaning jobs.</p></div></td></tr>`;
+    tbody.innerHTML = `\u003Ctr\u003E\u003Ctd colspan="9"\u003E\u003Cdiv class="empty-state"\u003E\u003Cdiv class="empty-icon"\u003E\u{1F9F9}\u003C/div\u003E\u003Cp\u003ENo jobs found. Import bookings to generate cleaning jobs.\u003C/p\u003E\u003C/div\u003E\u003C/td\u003E\u003C/tr\u003E`;
   } else {
     tbody.innerHTML = pageData.map(j => {
       const assignedCls = (j.cleanerIds||[]).map(cid => staff.find(s => s.id === cid)).filter(Boolean);
       const typeBadge = j.type === 'checkout'
-        ? `<span style="background:#fdebd0;color:#a04000;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:500">\u{1F3C1} Checkout</span>`
-        : `<span style="background:#fdf6e3;color:#8e6b23;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:500">\u{1F504} Mid-Stay</span>`;
+        ? `\u003Cspan style="background:#fdebd0;color:#a04000;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:500"\u003E\u{1F3C1} Checkout\u003C/span\u003E`
+        : `\u003Cspan style="background:#fdf6e3;color:#8e6b23;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:500"\u003E\u{1F504} Mid-Stay\u003C/span\u003E`;
       const cleanerCell = assignedCls.length
-        ? assignedCls.map(cl => `<div style="display:inline-flex;align-items:center;gap:5px;margin-right:6px"><div class="cleaner-avatar" style="background:${getColor(staff.indexOf(cl))};width:24px;height:24px;font-size:9px">${getInitials(cl.firstName,cl.lastName)}</div><span style="font-size:12px">${cl.firstName}</span></div>`).join('')
-        : `<span style="color:var(--danger);font-size:12px">\u26A0 Unassigned</span>`;
+        ? assignedCls.map(cl => `\u003Cdiv style="display:inline-flex;align-items:center;gap:5px;margin-right:6px"\u003E\u003Cdiv class="cleaner-avatar" style="background:${getColor(staff.indexOf(cl))};width:24px;height:24px;font-size:9px"\u003E${getInitials(cl.firstName,cl.lastName)}\u003C/div\u003E\u003Cspan style="font-size:12px"\u003E${cl.firstName}\u003C/span\u003E\u003C/div\u003E`).join('')
+        : `\u003Cspan style="color:var(--danger);font-size:12px"\u003E\u26A0 Unassigned\u003C/span\u003E`;
       const totalPay = j.hours ? assignedCls.reduce((sum, cl) => {
         const base = (cl.hourlyRate||0) * j.hours;
         const transport = (cl.hasCar === 'Yes' && j.propertyTransport) ? j.propertyTransport : 0;
         return sum + base + transport;
       }, 0) : 0;
       const pay = totalPay > 0 ? `\u20AC${totalPay.toFixed(0)}` : '\u2014';
-      return `<tr>
-        <td style="font-size:12px;font-weight:500">${formatDate(j.date)}</td>
-        <td style="font-size:12px">${j.propertyName||'\u2014'}</td>
-        <td><span class="zone-tag zone-${(j.zone||'').replace(' ','-')}">${j.zone||'\u2014'}</span></td>
-        <td>${typeBadge}</td>
-        <td style="text-align:center;font-size:12px">${j.nights||'\u2014'}</td>
-        <td>${cleanerCell}</td>
-        <td style="text-align:center;font-size:12px">${j.hours ? j.hours+'h' : '\u2014'}</td>
-        <td style="text-align:center;font-size:12px;color:var(--teal)">${j.propertyTransport ? '\u20AC'+j.propertyTransport : '\u2014'}</td>
-        <td style="text-align:right;font-size:12px;font-weight:500;color:var(--teal-dark)">${pay}</td>
-        <td>
-          <div style="display:flex;gap:4px">
-            <button class="btn btn-teal btn-sm" onclick="openJobModal('${j.id}')">\u270F\uFE0F</button>
-            <button class="btn btn-danger btn-sm" onclick="deleteJob('${j.id}')">\u{1F5D1}</button>
-          </div>
-        </td>
-      </tr>`;
+      return `\u003Ctr\u003E
+        \u003Ctd style="font-size:12px;font-weight:500"\u003E${formatDate(j.date)}\u003C/td\u003E
+        \u003Ctd style="font-size:12px"\u003E${j.propertyName||'\u2014'}\u003C/td\u003E
+        \u003Ctd\u003E\u003Cspan class="zone-tag zone-${(j.zone||'').replace(' ','-')}"\u003E${j.zone||'\u2014'}\u003C/span\u003E\u003C/td\u003E
+        \u003Ctd\u003E${typeBadge}\u003C/td\u003E
+        \u003Ctd style="text-align:center;font-size:12px"\u003E${j.nights||'\u2014'}\u003C/td\u003E
+        \u003Ctd\u003E${cleanerCell}\u003C/td\u003E
+        \u003Ctd style="text-align:center;font-size:12px"\u003E${j.hours ? j.hours+'h' : '\u2014'}\u003C/td\u003E
+        \u003Ctd style="text-align:center;font-size:12px;color:var(--teal)"\u003E${j.propertyTransport ? '\u20AC'+j.propertyTransport : '\u2014'}\u003C/td\u003E
+        \u003Ctd style="text-align:right;font-size:12px;font-weight:500;color:var(--teal-dark)"\u003E${pay}\u003C/td\u003E
+        \u003Ctd\u003E
+          \u003Cdiv style="display:flex;gap:4px"\u003E
+            \u003Cbutton class="btn btn-teal btn-sm" onclick="openJobModal('${j.id}')"\u003E\u270F\uFE0F\u003C/button\u003E
+            \u003Cbutton class="btn btn-danger btn-sm" onclick="deleteJob('${j.id}')"\u003E\u{1F5D1}\u003C/button\u003E
+          \u003C/div\u003E
+        \u003C/td\u003E
+      \u003C/tr\u003E`;
     }).join('');
   }
 
@@ -1308,11 +1309,11 @@ function renderCleanerCheckboxes(selectedIds, transportCharge) {
     const idx = staff.indexOf(cl);
     const checked = selectedIds.includes(cl.id);
     const getsTransport = cl.hasCar === 'Yes' && transportCharge > 0;
-    return `<label data-selected="${checked}" data-staffid="${cl.id}" style="display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border:1px solid ${checked ? 'var(--teal)' : 'var(--border)'};border-radius:20px;cursor:pointer;background:${checked ? '#e0f5f1' : 'var(--cream)'};font-size:12px;font-weight:${checked?'500':'400'};transition:all 0.2s" onclick="toggleCleanerCheck(this,'${cl.id}')">
-      <div class="cleaner-avatar" style="background:${getColor(idx)};width:20px;height:20px;font-size:9px">${getInitials(cl.firstName,cl.lastName)}</div>
+    return `\u003Clabel data-selected="${checked}" data-staffid="${cl.id}" style="display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border:1px solid ${checked ? 'var(--teal)' : 'var(--border)'};border-radius:20px;cursor:pointer;background:${checked ? '#e0f5f1' : 'var(--cream)'};font-size:12px;font-weight:${checked?'500':'400'};transition:all 0.2s" onclick="toggleCleanerCheck(this,'${cl.id}')"\u003E
+      \u003Cdiv class="cleaner-avatar" style="background:${getColor(idx)};width:20px;height:20px;font-size:9px"\u003E${getInitials(cl.firstName,cl.lastName)}\u003C/div\u003E
       ${cl.firstName} ${cl.lastName}
       ${getsTransport ? '<span style="font-size:10px;color:var(--teal);margin-left:3px">\u{1F697}+\u20AC'+transportCharge+'</span>' : ''}
-    </label>`;
+    \u003C/label\u003E`;
   }).join('');
 }
 
@@ -1352,7 +1353,7 @@ function updateCostPreview(j) {
     if (!cl) return '';
     const base = (cl.hourlyRate||0) * hours;
     const tr = cl.hasCar === 'Yes' ? transport : 0;
-    return `<span style="margin-right:16px"><strong>${cl.firstName}</strong>: \u20AC${base.toFixed(0)} pay${tr > 0 ? ' + \u20AC'+tr+' transport' : ''} = \u20AC${(base+tr).toFixed(0)}</span>`;
+    return `\u003Cspan style="margin-right:16px"\u003E\u003Cstrong\u003E${cl.firstName}\u003C/strong\u003E: \u20AC${base.toFixed(0)} pay${tr > 0 ? ' + \u20AC'+tr+' transport' : ''} = \u20AC${(base+tr).toFixed(0)}\u003C/span\u003E`;
   }).filter(Boolean).join('');
   preview.innerHTML = '\u{1F4B0} Estimated cost: ' + lines;
   preview.style.display = 'block';
@@ -1577,9 +1578,9 @@ function printWeeklySchedule() {
           const typeBg   = j.type==='checkout'?'#fdebd0':'#fdf6e3';
 
           dayContent += `
-          <div class="wk2-job" style="page-break-inside:avoid">
-            <div class="wk2-prop">${j.propertyName||'\u2014'}</div>
-            <div class="wk2-type" style="background:${typeBg};color:${typeColor}">${j.type==='checkout'?'Checkout':'Mid-Stay'}</div>
+          \u003Cdiv class="wk2-job" style="page-break-inside:avoid"\u003E
+            \u003Cdiv class="wk2-prop"\u003E${j.propertyName||'\u2014'}\u003C/div\u003E
+            \u003Cdiv class="wk2-type" style="background:${typeBg};color:${typeColor}"\u003E${j.type==='checkout'?'Checkout':'Mid-Stay'}\u003C/div\u003E
             ${guestStr?'<div class="wk2-detail">\uD83D\uDC65 '+guestStr+'</div>':''}
             ${arrStr!=='\u2014'?'<div class="wk2-detail">\u2197 Arr: '+arrStr+'</div>':''}
             ${depStr!=='\u2014'?'<div class="wk2-detail">\u2198 Dep: '+depStr+'</div>':''}
@@ -1588,21 +1589,21 @@ function printWeeklySchedule() {
             ${j.hours?'<div class="wk2-detail">\u23F1 '+j.hours+'h</div>':''}
             ${babycot?'<div class="wk2-detail" style="color:#c0392b;font-weight:700">\uD83D\uDECF BABYCOT</div>':''}
             ${j.notes&&!babycot?'<div class="wk2-note">'+j.notes+'</div>':''}
-          </div>`;
+          \u003C/div\u003E`;
         });
       }
 
-      return `<div class="wk2-day${isWeekend?' wk2-weekend':''}${!inMonth?' wk2-outmonth':''}">
-        <div class="wk2-day-hdr${dayJobs.length&&inMonth?' wk2-has-jobs':''}">${dayLabel}</div>
-        <div class="wk2-day-body">${dayContent}</div>
-      </div>`;
+      return `\u003Cdiv class="wk2-day${isWeekend?' wk2-weekend':''}${!inMonth?' wk2-outmonth':''}"\u003E
+        \u003Cdiv class="wk2-day-hdr${dayJobs.length&&inMonth?' wk2-has-jobs':''}"\u003E${dayLabel}\u003C/div\u003E
+        \u003Cdiv class="wk2-day-body"\u003E${dayContent}\u003C/div\u003E
+      \u003C/div\u003E`;
     }).join('');
 
-    printContent += `<div class="wk2-page">
-      <div class="wk2-logo">Zesty Rentals \u2014 Weekly Cleaning Schedule \u00B7 ${monthName}</div>
-      <div class="wk2-week-label">${weekLabel}</div>
-      <div class="wk2-grid">${dayCols}</div>
-    </div>`;
+    printContent += `\u003Cdiv class="wk2-page"\u003E
+      \u003Cdiv class="wk2-logo"\u003EZesty Rentals \u2014 Weekly Cleaning Schedule \u00B7 ${monthName}\u003C/div\u003E
+      \u003Cdiv class="wk2-week-label"\u003E${weekLabel}\u003C/div\u003E
+      \u003Cdiv class="wk2-grid"\u003E${dayCols}\u003C/div\u003E
+    \u003C/div\u003E`;
   });
 
   const styles = `
@@ -1632,7 +1633,7 @@ function printWeeklySchedule() {
     @media print { .wk2-page { page-break-after:always; } }
   `;
 
-  const _printHtml = ('<html><head><title>Weekly Schedule '+monthName+'</title><style>'+styles+'</style></head><body>'+(printContent||'<p style="padding:40px">No jobs.</p>')+'</body></html>');
+  const _printHtml = ('<html><head><title>Weekly Schedule '+monthName+'</title><style>'+styles+'</style><\/head><body>'+(printContent||'<p style="padding:40px">No jobs.</p>')+'<\/body><\/html>');
   const _blob=new Blob([_printHtml],{type:'text/html'});
   const _url=URL.createObjectURL(_blob);
   const w=window.open(_url,'_blank');
@@ -1670,56 +1671,56 @@ function printSchedule() {
 
       const rows = dayJobs.map(j => {
         const coworkers = (j.cleanerIds||[]).filter(cid=>cid!==cl.id)
-          .map(cid=>{const c2=staff.find(s=>s.id===cid);return c2?`<span class="coworker-tag">${c2.firstName} ${c2.lastName}</span>`:''}).join('');
+          .map(cid=>{const c2=staff.find(s=>s.id===cid);return c2?`\u003Cspan class="coworker-tag"\u003E${c2.firstName} ${c2.lastName}\u003C/span\u003E`:''}).join('');
         const depDt = j.date ? new Date(j.date) : null;
         const arrDt = (depDt&&j.nights) ? new Date(new Date(j.date).setDate(new Date(j.date).getDate()-j.nights)) : null;
         const arrStr = arrDt ? arrDt.toLocaleDateString('en-GB',{day:'numeric',month:'short'}) : '\u2014';
         const depStr = j.type==='checkout'&&depDt ? depDt.toLocaleDateString('en-GB',{day:'numeric',month:'short'}) : '\u2014';
         const babycot = (j.notes||'').toLowerCase().match(/infant|baby|cot/);
         const guestStr = j.adults||j.guests ? (j.adults?j.adults+'A':'')+(j.children?' '+j.children+'C':'')+(j.infants?' '+j.infants+'INF':'') || (j.guests||'\u2014') : '\u2014';
-        return `<div class="print-job-row">
-          <div><strong>${j.propertyName}</strong>${j.zone?'<br><span style="font-size:10px;color:#888">'+j.zone+'</span>':''}</div>
-          <div><span class="type-badge type-${j.type}">${j.type==='checkout'?'Checkout':'Mid-Stay'}</span>${babycot?'<br><span style="background:#ffcccc;color:#c0392b;padding:1px 5px;border-radius:8px;font-size:9px;font-weight:700">\uD83D\uDECF BABYCOT</span>':''}</div>
-          <div style="font-size:11px">${arrStr}</div>
-          <div style="font-size:11px">${depStr}</div>
-          <div style="text-align:center">${j.nights||'\u2014'}</div>
-          <div style="font-size:11px;text-align:center">${guestStr}${j.infants>0?' <span style=\"background:#ffcccc;color:#c0392b;padding:0 4px;border-radius:6px;font-size:9px;font-weight:700\">INF</span>':''}</div>
-          <div>${coworkers||'<span style="color:#ccc;font-size:11px">Solo</span>'}</div>
-          <div style="font-size:11px;color:#666">${(babycot?'\uD83D\uDECF BABYCOT REQ. ':'')}${j.notes||''}</div>
-        </div>`;
+        return `\u003Cdiv class="print-job-row"\u003E
+          \u003Cdiv\u003E\u003Cstrong\u003E${j.propertyName}\u003C/strong\u003E${j.zone?'<br><span style="font-size:10px;color:#888">'+j.zone+'</span>':''}\u003C/div\u003E
+          \u003Cdiv\u003E\u003Cspan class="type-badge type-${j.type}"\u003E${j.type==='checkout'?'Checkout':'Mid-Stay'}\u003C/span\u003E${babycot?'<br><span style="background:#ffcccc;color:#c0392b;padding:1px 5px;border-radius:8px;font-size:9px;font-weight:700">\uD83D\uDECF BABYCOT</span>':''}\u003C/div\u003E
+          \u003Cdiv style="font-size:11px"\u003E${arrStr}\u003C/div\u003E
+          \u003Cdiv style="font-size:11px"\u003E${depStr}\u003C/div\u003E
+          \u003Cdiv style="text-align:center"\u003E${j.nights||'\u2014'}\u003C/div\u003E
+          \u003Cdiv style="font-size:11px;text-align:center"\u003E${guestStr}${j.infants>0?' <span style=\"background:#ffcccc;color:#c0392b;padding:0 4px;border-radius:6px;font-size:9px;font-weight:700\">INF</span>':''}\u003C/div\u003E
+          \u003Cdiv\u003E${coworkers||'<span style="color:#ccc;font-size:11px">Solo</span>'}\u003C/div\u003E
+          \u003Cdiv style="font-size:11px;color:#666"\u003E${(babycot?'\uD83D\uDECF BABYCOT REQ. ':'')}${j.notes||''}\u003C/div\u003E
+        \u003C/div\u003E`;
       }).join('');
 
       // Each date group stays together — never splits across pages
-      return `<div class="date-block">
-        <div class="date-header">${dayLabel} <span style="font-size:11px;color:#888;font-weight:400">${dayJobs.length} job${dayJobs.length!==1?'s':''}</span></div>
-        <div class="col-headers">
-          <div>Property</div><div>Type</div><div>Arrival</div><div>Departure</div><div>Nts</div><div>Guests</div><div>Co-workers</div><div>Notes</div>
-        </div>
+      return `\u003Cdiv class="date-block"\u003E
+        \u003Cdiv class="date-header"\u003E${dayLabel} \u003Cspan style="font-size:11px;color:#888;font-weight:400"\u003E${dayJobs.length} job${dayJobs.length!==1?'s':''}\u003C/span\u003E\u003C/div\u003E
+        \u003Cdiv class="col-headers"\u003E
+          \u003Cdiv\u003EProperty\u003C/div\u003E\u003Cdiv\u003EType\u003C/div\u003E\u003Cdiv\u003EArrival\u003C/div\u003E\u003Cdiv\u003EDeparture\u003C/div\u003E\u003Cdiv\u003ENts\u003C/div\u003E\u003Cdiv\u003EGuests\u003C/div\u003E\u003Cdiv\u003ECo-workers\u003C/div\u003E\u003Cdiv\u003ENotes\u003C/div\u003E
+        \u003C/div\u003E
         ${rows}
-      </div>`;
+      \u003C/div\u003E`;
     }).join('');
 
-    printContent += `<div class="print-page">
-      <div class="print-logo">Zesty Rentals \u2014 Cleaning Schedule</div>
-      <div class="print-header">
-        <div>
-          <div class="print-name">${cl.firstName} ${cl.lastName}</div>
-          <div class="print-sub">${monthName} \u00B7 ${(cl.zones||[]).join(', ')||'All zones'}${cl.hasCar==='Yes'?' \u00B7 \uD83D\uDE97 Car':''}</div>
-        </div>
-        <div class="print-summary">
-          <div class="big">${clJobs.length} jobs</div>
-          <div class="small">${totalHours.toFixed(1)}h total</div>
-        </div>
-      </div>
+    printContent += `\u003Cdiv class="print-page"\u003E
+      \u003Cdiv class="print-logo"\u003EZesty Rentals \u2014 Cleaning Schedule\u003C/div\u003E
+      \u003Cdiv class="print-header"\u003E
+        \u003Cdiv\u003E
+          \u003Cdiv class="print-name"\u003E${cl.firstName} ${cl.lastName}\u003C/div\u003E
+          \u003Cdiv class="print-sub"\u003E${monthName} \u00B7 ${(cl.zones||[]).join(', ')||'All zones'}${cl.hasCar==='Yes'?' \u00B7 \uD83D\uDE97 Car':''}\u003C/div\u003E
+        \u003C/div\u003E
+        \u003Cdiv class="print-summary"\u003E
+          \u003Cdiv class="big"\u003E${clJobs.length} jobs\u003C/div\u003E
+          \u003Cdiv class="small"\u003E${totalHours.toFixed(1)}h total\u003C/div\u003E
+        \u003C/div\u003E
+      \u003C/div\u003E
       ${clJobs.length===0?'<p style="padding:20px;color:#999">No jobs this month.</p>':dateBlocks}
-      <div class="totals-row">
-        <div class="total-item"><div class="total-label">Total Jobs</div><div class="total-val">${clJobs.length}</div></div>
-        <div class="total-item"><div class="total-label">Total Hours</div><div class="total-val">${totalHours.toFixed(1)}h</div></div>
-      </div>
-    </div>`;
+      \u003Cdiv class="totals-row"\u003E
+        \u003Cdiv class="total-item"\u003E\u003Cdiv class="total-label"\u003ETotal Jobs\u003C/div\u003E\u003Cdiv class="total-val"\u003E${clJobs.length}\u003C/div\u003E\u003C/div\u003E
+        \u003Cdiv class="total-item"\u003E\u003Cdiv class="total-label"\u003ETotal Hours\u003C/div\u003E\u003Cdiv class="total-val"\u003E${totalHours.toFixed(1)}h\u003C/div\u003E\u003C/div\u003E
+      \u003C/div\u003E
+    \u003C/div\u003E`;
   });
 
-  const _printHtml = ('<html><head><title>Cleaning Schedule '+monthName+'</title><style>'+buildPrintStyles()+'</style></head><body>'+(printContent||'<p style="padding:40px;font-family:Arial">No jobs found.</p>')+'</body></html>');
+  const _printHtml = ('<html><head><title>Cleaning Schedule '+monthName+'</title><style>'+buildPrintStyles()+'</style><\/head><body>'+(printContent||'<p style="padding:40px;font-family:Arial">No jobs found.</p>')+'<\/body><\/html>');
   const _blob=new Blob([_printHtml],{type:'text/html'});
   const _url=URL.createObjectURL(_blob);
   const w=window.open(_url,'_blank');
@@ -1736,12 +1737,12 @@ function openAddManualJobModal() {
       .filter(p => !p.archived)
       .sort((a,b) => (a.shortName||a.propertyName||'').localeCompare(b.shortName||b.propertyName||''));
     propSel.innerHTML = '<option value="">— Select property —</option>' +
-      propList.map(p => `<option value="${p.shortName||p.propertyName}">${p.shortName||p.propertyName}</option>`).join('');
+      propList.map(p => `\u003Coption value="${p.shortName||p.propertyName}"\u003E${p.shortName||p.propertyName}\u003C/option\u003E`).join('');
   }
   const cleanerSel = document.getElementById('amj-cleaners');
   if (cleanerSel) {
     const active = staff.filter(s => s.status !== 'Inactive' && (!s.role || s.role === 'cleaner' || s.role === 'both'));
-    cleanerSel.innerHTML = active.map(s => `<option value="${s.id}">${s.firstName} ${s.lastName}</option>`).join('');
+    cleanerSel.innerHTML = active.map(s => `\u003Coption value="${s.id}"\u003E${s.firstName} ${s.lastName}\u003C/option\u003E`).join('');
   }
   document.getElementById('amj-date').value    = new Date().toISOString().slice(0,10);
   document.getElementById('amj-type').value    = 'checkout';
@@ -1808,17 +1809,17 @@ function printAllJobs() {
       return s ? s.firstName+' '+s.lastName : '';
     }).filter(Boolean).join(', ') || '—';
     const transport = parseFloat(j.propertyTransport||0);
-    return `<tr>
-      <td>${j.date||'—'}</td>
-      <td>${j.propertyName||'—'}</td>
-      <td>${j.zone||'—'}</td>
-      <td><span style="background:${j.type==='checkout'?'#fdebd0':'#fdf6e3'};color:${j.type==='checkout'?'#a04000':'#8e6b23'};padding:2px 8px;border-radius:8px;font-size:11px;font-weight:700">${j.type==='checkout'?'Checkout':'Mid-Stay'}</span></td>
-      <td style="text-align:center">${j.nights||'—'}</td>
-      <td>${assignedNames}</td>
-      <td style="text-align:center">${j.hours||'—'}</td>
-      <td style="text-align:right">${transport>0?'\u20AC'+transport.toFixed(1):'—'}</td>
-      <td style="font-size:11px;color:#666">${j.notes||''}</td>
-    </tr>`;
+    return `\u003Ctr\u003E
+      \u003Ctd\u003E${j.date||'—'}\u003C/td\u003E
+      \u003Ctd\u003E${j.propertyName||'—'}\u003C/td\u003E
+      \u003Ctd\u003E${j.zone||'—'}\u003C/td\u003E
+      \u003Ctd\u003E\u003Cspan style="background:${j.type==='checkout'?'#fdebd0':'#fdf6e3'};color:${j.type==='checkout'?'#a04000':'#8e6b23'};padding:2px 8px;border-radius:8px;font-size:11px;font-weight:700"\u003E${j.type==='checkout'?'Checkout':'Mid-Stay'}\u003C/span\u003E\u003C/td\u003E
+      \u003Ctd style="text-align:center"\u003E${j.nights||'—'}\u003C/td\u003E
+      \u003Ctd\u003E${assignedNames}\u003C/td\u003E
+      \u003Ctd style="text-align:center"\u003E${j.hours||'—'}\u003C/td\u003E
+      \u003Ctd style="text-align:right"\u003E${transport>0?'\u20AC'+transport.toFixed(1):'—'}\u003C/td\u003E
+      \u003Ctd style="font-size:11px;color:#666"\u003E${j.notes||''}\u003C/td\u003E
+    \u003C/tr\u003E`;
   }).join('');
 
   const styles = `
@@ -1834,10 +1835,10 @@ function printAllJobs() {
     @page { margin:10mm; size:A4 landscape; }
   `;
 
-  const html = '<html><head><title>Jobs '+monthLabel+'</title><style>'+styles+'</style></head><body>'+
+  const html = '<html><head><title>Jobs '+monthLabel+'</title><style>'+styles+'</style><\/head><body>'+
     '<h1>Cleaning Jobs</h1><div class="sub">'+monthLabel+' \u00B7 '+filtered.length+' jobs</div>'+
     '<table><thead><tr><th>Date</th><th>Property</th><th>Zone</th><th>Type</th><th>Nts</th><th>Assigned To</th><th>Hours</th><th>Transport</th><th>Notes</th></tr></thead>'+
-    '<tbody>'+rows+'</tbody></table></body></html>';
+    '<tbody>'+rows+'</tbody></table><\/body><\/html>';
   const blob = new Blob([html], {type:'text/html'});
   const url  = URL.createObjectURL(blob);
   const w = window.open(url, '_blank');
@@ -1848,6 +1849,163 @@ function printAllJobs() {
   }
   setTimeout(() => { w.print(); URL.revokeObjectURL(url); }, 600);
 }
+
+
+// ── Staff Modal ──────────────────────────────────────────────────────────
+function openStaffModal(defaultRole) {
+  defaultRole = defaultRole || 'cleaner';
+  document.getElementById('staffModalTitle').textContent = 'Add Cleaner';
+  const roleEl = document.getElementById('s_role');
+  if (roleEl) roleEl.value = defaultRole;
+  ['s_firstName','s_lastName','s_phone','s_email','s_hourlyRate'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.value = '';
+  });
+  document.getElementById('s_editId').value = '';
+  document.getElementById('s_status').value = 'Active';
+  const hasCar = document.getElementById('s_hasCar'); if (hasCar) hasCar.value = 'No';
+  // Clear zone checkboxes
+  document.querySelectorAll('#staffZonesContainer input[type=checkbox]').forEach(cb => cb.checked = false);
+  openModal('staffModal');
+}
+
+function openAddStaff() { openStaffModal('cleaner'); }
+
+// ── Confirm dialog ────────────────────────────────────────────────────────
+function closeConfirm() { closeModal('confirmOverlay'); }
+function doConfirm() {
+  const btn = document.getElementById('confirmBtn');
+  if (btn && btn._cb) { btn._cb(); }
+  closeConfirm();
+}
+
+// Override showConfirm to use the HTML confirmOverlay properly
+function showConfirm(icon, title, msg, btnClass, btnLabel, onConfirm) {
+  const overlay = document.getElementById('confirmOverlay');
+  if (!overlay) { if (confirm(title + '\n' + msg)) onConfirm(); return; }
+  const iconEl  = document.getElementById('confirmIcon');
+  const titleEl = document.getElementById('confirmTitle');
+  const msgEl   = document.getElementById('confirmMsg');
+  const btn     = document.getElementById('confirmBtn');
+  if (iconEl)  iconEl.textContent  = icon || '⚠️';
+  if (titleEl) titleEl.textContent = title || 'Are you sure?';
+  if (msgEl)   msgEl.textContent   = msg || '';
+  if (btn) {
+    btn.textContent = btnLabel || 'Confirm';
+    btn.className   = 'btn ' + (btnClass || 'btn-primary');
+    btn._cb         = onConfirm;
+  }
+  openModal('confirmOverlay');
+}
+
+// ── Remove no-fee jobs ────────────────────────────────────────────────────
+async function removeNoFeeJobs() {
+  try {
+    const freshProps = await SyncStore.load('zesty_properties', 'properties');
+    if (freshProps.data && freshProps.data.length > 0) window._propCache = freshProps.data;
+  } catch(e) {}
+  const toRemove = cleaningJobs.filter(j => {
+    if (!j.propertyName && !j.propertyId) return false;
+    return !getPropertyHasCleaning(j.propertyId || j.propertyName);
+  });
+  if (!toRemove.length) { showToast('No jobs found for no-fee properties', 'success'); return; }
+  const propNames = [...new Set(toRemove.map(j => j.propertyName))].sort().join(', ');
+  showConfirm('🗑️', 'Remove No-Fee Property Jobs?',
+    'Remove ' + toRemove.length + ' jobs for: ' + propNames + '?',
+    'btn-danger', 'Remove All',
+    async () => {
+      const removeIds = new Set(toRemove.map(j => j.id));
+      cleaningJobs = cleaningJobs.filter(j => !removeIds.has(j.id));
+      for (const j of toRemove) {
+        await SyncStore.deleteOne('zesty_cleaning_jobs', 'cleaning_jobs', j.id, cleaningJobs);
+      }
+      localStorage.setItem('zesty_cleaning_jobs', JSON.stringify(cleaningJobs));
+      renderCalendar(); renderJobs(); updateJobStats();
+      showToast('✓ Removed ' + toRemove.length + ' jobs', 'success');
+    }
+  );
+}
+
+// ── Hours print & export ──────────────────────────────────────────────────
+function printHoursSheet() {
+  const monthVal = document.getElementById('hoursMonth')?.value || '';
+  if (!monthVal) { showToast('Select a month first', 'error'); return; }
+  const printWin = window.open('', '_blank');
+  if (!printWin) { showToast('Allow popups to print', 'error'); return; }
+  const tableEl = document.getElementById('hoursTableWrap') || document.getElementById('hoursSheet');
+  const html = tableEl ? tableEl.outerHTML : '<p>No hours data</p>';
+  const blob = new Blob(['<html><head><style>body{font-family:Arial,sans-serif;font-size:11px}table{border-collapse:collapse;width:100%}th,td{border:1px solid #ddd;padding:4px 6px}th{background:#115950;color:#fff}@page{size:A4 landscape;margin:10mm}</style></head><body>' + html + '</body></html>'], {type:'text/html'});
+  const url = URL.createObjectURL(blob);
+  const w = window.open(url, '_blank');
+  if (!w) { showToast('Allow popups to print', 'error'); return; }
+  setTimeout(() => { w.print(); URL.revokeObjectURL(url); }, 500);
+}
+
+function exportHoursCSV() {
+  const monthVal = document.getElementById('hoursMonth')?.value || '';
+  if (!monthVal) { showToast('Select a month first', 'error'); return; }
+  const [yr, mo] = monthVal.split('-').map(Number);
+  const monthJobs = cleaningJobs.filter(j => j.date && j.date.startsWith(monthVal) &&
+    (j.type === 'checkout' || j.type === 'midstay'));
+  const activeStaff = staff.filter(s => s.status !== 'Inactive' && (!s.role || s.role === 'cleaner' || s.role === 'both'));
+  const headers = ['Date','Property','Type','Guest','Hours',...activeStaff.map(s=>s.firstName+' '+s.lastName),'Total Hours','Notes'];
+  const rows = monthJobs.sort((a,b)=>a.date>b.date?1:-1).map(j => {
+    const staffHrs = activeStaff.map(s => {
+      const h = j.cleanerHours?.[s.id];
+      return h !== undefined ? h : ((j.cleanerIds||[]).includes(s.id) && j.hours ? j.hours : '');
+    });
+    return [j.date, j.propertyName||'', j.type, j.guestName||'', j.hours||'', ...staffHrs, j.hours||'', j.notes||'']
+      .map(v => '"'+String(v).replace(/"/g,'""')+'"').join(',');
+  });
+  const csv = '\ufeff' + [headers.join(','), ...rows].join('\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv], {type:'text/csv;charset=utf-8;'}));
+  a.download = 'hours_' + monthVal + '.csv';
+  a.click();
+  showToast('✓ Hours CSV exported', 'success');
+}
+
+// ── Manager Excel export ──────────────────────────────────────────────────
+function exportManagerExcel() {
+  const monthVal = document.getElementById('calMonth')?.value || '';
+  if (!monthVal) { showToast('Select a month first', 'error'); return; }
+  const monthJobs = cleaningJobs.filter(j => j.date && j.date.startsWith(monthVal))
+    .sort((a,b) => a.date > b.date ? 1 : -1);
+  if (!monthJobs.length) { showToast('No jobs for this month', 'error'); return; }
+  const headers = ['Date','Property','Zone','Type','Guest','Arrival','Departure','Nights',
+                   'Adults','Children','Infants','Cleaners','Hours','Transport','Notes'];
+  const rows = monthJobs.map(j => {
+    const cls = (j.cleanerIds||[]).map(cid => {
+      const s = staff.find(x=>x.id===cid);
+      return s ? s.firstName+' '+s.lastName : '';
+    }).filter(Boolean).join(' + ');
+    const dep = j.date ? new Date(j.date) : null;
+    const arr = (dep && j.nights) ? new Date(new Date(j.date).setDate(new Date(j.date).getDate()-j.nights)) : null;
+    return [
+      j.date, j.propertyName||'', j.zone||'',
+      j.type==='checkout'?'Checkout':'Mid-Stay',
+      j.guestName||'',
+      arr ? arr.toLocaleDateString('en-GB') : '',
+      j.type==='checkout' && dep ? dep.toLocaleDateString('en-GB') : '',
+      j.nights||'', j.adults||'', j.children||'', j.infants||'',
+      cls||'Unassigned', j.hours||'',
+      j.propertyTransport>0?j.propertyTransport:'',
+      j.notes||''
+    ].map(v => '"'+String(v).replace(/"/g,'""')+'"').join(',');
+  });
+  const csv = '\ufeff' + [headers.join(','), ...rows].join('\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv], {type:'text/csv;charset=utf-8;'}));
+  a.download = 'manager_schedule_' + monthVal + '.csv';
+  a.click();
+  showToast('✓ Manager Excel exported', 'success');
+}
+
+// printManagerSummary = Manager PDF (alias for printSchedule)
+function printManagerSummary() {
+  // Use the per-cleaner printSchedule output
+  printSchedule();
+}
+
 
 init().catch(console.error);
 showDbStatus(true);
