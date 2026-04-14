@@ -2038,5 +2038,39 @@ function printManagerSummary() {
 }
 
 
+
+function buildPrintStyles() {
+  return `
+    @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&display=swap');
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'DM Sans', Arial, sans-serif; font-size: 13px; color: #1e2a28; background: white; }
+    .print-page { padding: 28px 32px; }
+    .print-page + .print-page { page-break-before: always; }
+    .print-page:last-child { page-break-after: avoid; }
+    .print-logo { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 20px; }
+    .print-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 22px; padding-bottom: 14px; border-bottom: 3px solid #115950; }
+    .print-name { font-size: 22px; font-weight: 700; color: #115950; }
+    .print-sub { font-size: 13px; color: #666; margin-top: 4px; }
+    .print-summary { text-align: right; }
+    .print-summary .big { font-size: 20px; font-weight: 700; color: #115950; }
+    .print-summary .small { font-size: 11px; color: #888; }
+    .date-block { page-break-inside: avoid; margin-top: 14px; }
+    .date-header { font-size: 13px; font-weight: 700; color: #115950; background: #f0faf7; padding: 6px 10px; border-left: 4px solid #115950; margin-bottom: 0; }
+    .col-headers { display: grid; grid-template-columns: 2fr 1fr 0.8fr 0.8fr 0.5fr 0.7fr 1.2fr 1.5fr; background: #e8f4f0; padding: 5px 10px; font-size: 10px; font-weight: 600; color: #115950; text-transform: uppercase; letter-spacing: 0.5px; }
+    .print-job-row { display: grid; grid-template-columns: 2fr 1fr 0.8fr 0.8fr 0.5fr 0.7fr 1.2fr 1.5fr; padding: 9px 10px; border-bottom: 1px solid #e8f0ef; font-size: 12px; }
+    .print-job-row:nth-child(even) { background: #f8f5f0; }
+    .type-badge { display: inline-block; padding: 1px 7px; border-radius: 10px; font-size: 10px; font-weight: 600; }
+    .type-checkout { background: #fdebd0; color: #a04000; }
+    .type-midstay { background: #fdf6e3; color: #8e6b23; }
+    .coworker-tag { display: inline-block; background: #e8f4f0; color: #115950; padding: 1px 6px; border-radius: 8px; font-size: 10px; font-weight: 600; margin: 1px 2px; }
+    .totals-row { display: flex; gap: 24px; padding: 12px 10px; background: #f0faf7; border-top: 2px solid #115950; margin-top: 8px; }
+    .total-item { text-align: center; }
+    .total-label { font-size: 10px; color: #888; text-transform: uppercase; }
+    .total-val { font-size: 18px; font-weight: 700; color: #115950; }
+    @page { margin: 10mm; size: A4 portrait; }
+    @media print { .date-block { page-break-inside: avoid; } }
+  `;
+}
+
 init().catch(console.error);
 showDbStatus(true);
