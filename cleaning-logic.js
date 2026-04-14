@@ -1633,7 +1633,7 @@ function printWeeklySchedule() {
     @media print { .wk2-page { page-break-after:always; } }
   `;
 
-  const _htmlContent = printContent;
+  const _htmlContent = '<html><head><title>Cleaning Schedule '+monthName+'</title><style>'+buildPrintStyles()+'</style></head><body>'+(printContent||'<p style="padding:40px;font-family:Arial">No jobs found.</p>')+'</body></html>';
   const _printWin = window.open('', '_blank');
   if (_printWin) {
     _printWin.document.open();
@@ -1731,7 +1731,7 @@ function printSchedule() {
     \u003C/div\u003E`;
   });
 
-  const _htmlContent = printContent;
+  const _htmlContent = '<html><head><title>Cleaning Schedule '+monthName+'</title><style>'+buildPrintStyles()+'</style></head><body>'+(printContent||'<p style="padding:40px;font-family:Arial">No jobs found.</p>')+'</body></html>';
   const _printWin = window.open('', '_blank');
   if (_printWin) {
     _printWin.document.open();
