@@ -18,13 +18,15 @@ const COLORS = ['#1a7a6e','#c9a84c','#e67e22','#8e44ad','#2471a3','#1e8449','#c0
 
 function openModal(id) {
   const el = document.getElementById(id);
-  if (el) { el.style.display = 'flex'; el.style.alignItems = 'center'; el.style.justifyContent = 'center'; }
+  if (!el) return;
+  el.style.opacity = '1';
+  el.style.pointerEvents = 'auto';
 }
 function closeModal(id) {
   const el = document.getElementById(id);
-  if (el) el.style.display = 'none';
-  // Never lock body scroll
-  document.body.style.overflow = '';
+  if (!el) return;
+  el.style.opacity = '0';
+  el.style.pointerEvents = 'none';
 }
 document.addEventListener('click', function(e) {
   if (e.target && e.target.classList && e.target.classList.contains('modal-overlay')) {
