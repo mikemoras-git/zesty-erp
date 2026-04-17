@@ -196,20 +196,30 @@ function generateOwner(){
 
   // Cleaning
   const cleans=cleanJobs.filter(j=>{
-    const cp=(j.propertyName||'').toLowerCase(), ps=(prop.shortName||'').toLowerCase().split(' ')[0];
+    const cp=(j.propertyName||'').toLowerCase(), ps=(prop.shortName||prop.propertyName||'').toLowerCase().split(' ')[0];
     return cp.includes(ps)&&(j.date||'').startsWith(month);
   });
   const tCleanH=cleans.reduce((s,j)=>s+(j.hours||0),0);
   const staffC=JSON.parse(localStorage.getItem('zesty_staff')||'[]');
+  const cleaningFeePerJob=parseFloat(prop.cleaningFee||0);
+  const tCleanCharge=cleans.length*cleaningFeePerJob;
   const cRows=cleans.map(j=>{
     const cls=(j.cleanerIds||[]).map(id=>staffC.find(s=>s.id===id)).filter(Boolean);
-    const pay=cls.reduce((s,cl)=>s+(cl.hourlyRate||0)*(j.hours||0)+(cl.hasCar==='Yes'?(j.propertyTransport||0):0),0);
+    const pay=cls.reduce((s,cl)=>{
+      const trTicked=j.cleanerTransport?.[cl.id]===true;
+      return s+(cl.hourlyRate||0)*(j.hours||0)+(cl.hasCar==='Yes'&&trTicked?(j.propertyTransport||0):0);
+    },0);
+    const typeColors={checkout:['#fdebd0','#a04000'],deep:['#e8d5f5','#6c3483']};
+    const [tbg,tcol]=typeColors[j.type]||['#fdf6e3','#8e6b23'];
+    const tLabel=j.type==='checkout'?'Checkout':j.type==='deep'?'Deep Clean':'Mid-Stay';
+    const charge=cleaningFeePerJob>0?eur(cleaningFeePerJob):'—';
     return`<tr>
       <td style="font-size:12px">${fmtDate(j.date)}</td>
-      <td><span style="font-size:11px;font-weight:600;padding:2px 6px;border-radius:8px;background:${j.type==='checkout'?'#fdebd0':'#fdf6e3'};color:${j.type==='checkout'?'#a04000':'#8e6b23'}">${j.type==='checkout'?'Checkout':'Mid-Stay'}</span></td>
+      <td><span style="font-size:11px;font-weight:600;padding:2px 6px;border-radius:8px;background:${tbg};color:${tcol}">${tLabel}</span></td>
       <td>${cls.map(cl=>cl.firstName+' '+cl.lastName).join(', ')||'—'}</td>
       <td style="text-align:center">${j.hours||'—'}</td>
-      <td style="text-align:right">${pay>0?eur(pay):'—'}</td>
+      <td style="text-align:right;color:var(--danger)">${pay>0?eur(pay):'—'}</td>
+      <td style="text-align:right;font-weight:600;color:var(--teal-dark)">${charge}</td>
     </tr>`;
   }).join('');
 
@@ -238,7 +248,7 @@ function generateOwner(){
   if (_fb) { _fb.style.display=''; _fb.textContent='\u2713 Finalise & Record'; _fb.style.background=''; _fb.disabled=false; }
     currentStatementData={
     id:currentStatementData?.id||null,
-    propId,month,bookings,tRent,tTaxFees,tOTA,tRec,tZesty,tNet,tJobs,tCleanH,mgmt
+    propId,month,bookings,tRent,tTaxFees,tOTA,tRec,tZesty,tNet,tJobs,tCleanH,tCleanCharge,mgmt
   };
   document.getElementById('owner-out').innerHTML=`
   <div class="rpt-wrap">
@@ -290,10 +300,11 @@ function generateOwner(){
     </div>`:''}
 
     ${cleans.length>0?`<div class="rpt-section">
-      <div class="rpt-section-title">Cleaning — ${cleans.length} sessions · ${tCleanH}h total</div>
+      <div class="rpt-section-title">Cleaning — ${cleans.length} sessions · ${tCleanH}h total${tCleanCharge>0?' · '+eur(tCleanCharge)+' charged':''}</div>
       <table class="rpt-table">
-        <thead><tr><th>Date</th><th>Type</th><th>Cleaner(s)</th><th style="text-align:center">Hours</th><th style="text-align:right">Pay</th></tr></thead>
+        <thead><tr><th>Date</th><th>Type</th><th>Cleaner(s)</th><th style="text-align:center">Hours</th><th style="text-align:right">Staff Cost</th><th style="text-align:right">Charge to Owner</th></tr></thead>
         <tbody>${cRows}</tbody>
+        ${tCleanCharge>0?`<tfoot><tr><td colspan="5" style="text-align:right">TOTAL CLEANING CHARGE</td><td style="text-align:right;font-weight:700">${eur(tCleanCharge)}</td></tr></tfoot>`:''}
       </table>
     </div>`:''}
 
@@ -308,7 +319,8 @@ function generateOwner(){
           <div class="sum-row"><span class="sum-label">Zesty Management (${pct(mgmt)})</span><span class="sum-val" style="color:var(--teal)">+ ${eur(tZesty)}</span></div>
           <div class="sum-row subtotal"><span>Net Income (owner keeps)</span><span style="color:var(--success)">${eur(tNet)}</span></div>
           ${propJobs.length>0?`<div class="sum-row"><span class="sum-label">Job Orders (charged)</span><span class="sum-val" style="color:var(--teal)">+ ${eur(tJobs)}</span></div>`:''}
-          <div class="sum-row payable"><span>DUE TO ZESTY</span><span>${eur(tZesty+tJobs)}</span></div>
+          ${tCleanCharge>0?`<div class="sum-row"><span class="sum-label">Cleaning (${cleans.length} sessions)</span><span class="sum-val" style="color:var(--teal)">+ ${eur(tCleanCharge)}</span></div>`:''}
+          <div class="sum-row payable"><span>DUE TO ZESTY</span><span>${eur(tZesty+tJobs+tCleanCharge)}</span></div>
         </div>
         <div>
           <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted);margin-bottom:12px">Revenue by Channel</div>

@@ -587,6 +587,73 @@ function printOrder() {
   if (id) printOrderById(id);
 }
 
+function printOrderById(id) {
+  const o = orders.find(x => x.id === id);
+  if (!o) return;
+  const cust = customers.find(c => c.id === o.customerId);
+  const pl = pricelists.find(p => p.id === o.pricelistId);
+  const total = calcOrderTotal(o);
+  const itemRows = pl && o.items ? Object.entries(o.items)
+    .filter(([,qty]) => parseFloat(qty) > 0)
+    .map(([code, qty]) => {
+      const item = ITEMS.find(i => i.code === code);
+      const price = pl.prices[code] || 0;
+      return `<tr>
+        <td style="padding:6px 10px;border-bottom:1px solid #f0f0f0">${item ? item.en : code}</td>
+        <td style="padding:6px 10px;text-align:center;border-bottom:1px solid #f0f0f0">${qty}</td>
+        <td style="padding:6px 10px;text-align:right;border-bottom:1px solid #f0f0f0">€${price.toFixed(2)}</td>
+        <td style="padding:6px 10px;text-align:right;font-weight:600;border-bottom:1px solid #f0f0f0">€${(parseFloat(qty)*price).toFixed(2)}</td>
+      </tr>`;
+    }).join('') : '';
+
+  const html = `<!DOCTYPE html><html><head><title>Order ${o.orderId||o.id}</title>
+  <style>
+    body{font-family:'DM Sans',Arial,sans-serif;font-size:13px;color:#1e2a28;margin:0;padding:24px}
+    .header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px;padding-bottom:16px;border-bottom:3px solid #115950}
+    .brand{font-size:22px;font-weight:700;color:#115950}.brand span{color:#c9a84c}
+    .order-meta{text-align:right;font-size:12px;color:#666}
+    .order-id{font-size:18px;font-weight:700;color:#115950}
+    .customer-box{background:#f5f9f8;border-radius:8px;padding:12px 16px;margin-bottom:20px;font-size:13px}
+    table{width:100%;border-collapse:collapse}
+    thead tr{background:#115950;color:#fff}
+    th{padding:8px 10px;text-align:left;font-size:12px}
+    .total-row td{padding:10px;font-weight:700;font-size:14px;border-top:2px solid #115950}
+    @page{margin:15mm}
+    @media print{body{padding:0}}
+  </style></head><body>
+  <div class="header">
+    <div><div class="brand">Zesty<span>·</span>ERP</div><div style="font-size:11px;color:#888;margin-top:3px">Laundry Order</div></div>
+    <div class="order-meta">
+      <div class="order-id">${o.orderId||o.id}</div>
+      <div>Date: ${fmtDate(o.date)}</div>
+      <div>Status: ${o.status||'Pending'}</div>
+    </div>
+  </div>
+  <div class="customer-box">
+    <strong>Customer:</strong> ${cust?.name||'—'}<br>
+    <strong>Pricelist:</strong> ${pl?.name||'—'}
+    ${o.notes?`<br><strong>Notes:</strong> ${o.notes}`:''}
+  </div>
+  <table>
+    <thead><tr><th>Item</th><th style="text-align:center">Qty</th><th style="text-align:right">Unit Price</th><th style="text-align:right">Amount</th></tr></thead>
+    <tbody>${itemRows||'<tr><td colspan="4" style="padding:12px;color:#999;text-align:center">No items</td></tr>'}</tbody>
+    <tfoot><tr class="total-row"><td colspan="3" style="text-align:right">TOTAL</td><td style="text-align:right">€${total.toFixed(2)}</td></tr></tfoot>
+  </table>
+  <script>window.onload=function(){window.print();}<\/script>
+  </body></html>`;
+
+  const win = window.open('', '_blank');
+  if (win) {
+    win.document.open(); win.document.write(html); win.document.close();
+  } else {
+    const ifr = document.createElement('iframe');
+    ifr.style.cssText = 'position:fixed;top:-9999px;left:-9999px;width:1px;height:1px';
+    document.body.appendChild(ifr);
+    ifr.contentDocument.open(); ifr.contentDocument.write(html); ifr.contentDocument.close();
+    setTimeout(() => { ifr.contentWindow.print(); document.body.removeChild(ifr); }, 600);
+  }
+}
+
 // ── Date formatter ─────────────────────────────────────────────────────
 function fmtDate(d) {
   if (!d) return '—';
@@ -877,7 +944,7 @@ async function deleteReceipt() {
   if (!id) return;
   showConfirm('\uD83D\uDDD1', 'Delete Receipt?', 'This cannot be undone.', 'btn-danger', 'Delete', async () => {
     receipts = receipts.filter(r => r.id !== id);
-    await SyncStore.saveAll('zesty_laundry_receipts', 'laundry_receipts', receipts);
+    await SyncStore.deleteOne('zesty_laundry_receipts', 'laundry_receipts', id, receipts);
     closeModal('receiptModal');
     renderReceipts();
     renderDashboard();
@@ -947,37 +1014,84 @@ function openExportHistory() {
   showToast('Export history coming soon', 'info');
 }
 function generateReport() {
-  const year = document.getElementById('rpt-year')?.value || new Date().getFullYear();
-  // Simple summary - totals by customer for the year
-  const yearStr = String(year);
-  const yearOrders = orders.filter(o => (o.date||'').startsWith(yearStr));
-  const yearReceipts = receipts.filter(r => (r.date||'').startsWith(yearStr));
-  const out = document.getElementById('report-output') || document.getElementById('rpt-output');
+  const fCustId = document.getElementById('rpt-cust')?.value || '';
+  const from = document.getElementById('rpt-from')?.value || '';
+  const to   = document.getElementById('rpt-to')?.value   || '';
+  const out  = document.getElementById('report-output') || document.getElementById('rpt-output');
   if (!out) return;
+
+  const filteredOrders   = orders.filter(o => (!fCustId || o.customerId === fCustId) && (!from || (o.date||'') >= from) && (!to || (o.date||'') <= to));
+  const filteredReceipts = receipts.filter(r => (!fCustId || r.customerId === fCustId) && (!from || (r.date||'') >= from) && (!to || (r.date||'') <= to));
+
+  // Build per-customer rows
+  const custSet = fCustId ? customers.filter(c => c.id === fCustId) : customers;
+  const rows = [];
+  custSet.forEach(c => {
+    const cOrds = filteredOrders.filter(o => o.customerId === c.id);
+    const cRecs = filteredReceipts.filter(r => r.customerId === c.id);
+    if (!cOrds.length && !cRecs.length) return;
+    const charged  = cOrds.reduce((s, o) => s + calcOrderTotal(o), 0);
+    const received = cRecs.reduce((s, r) => s + (parseFloat(r.grossAmount) || 0), 0);
+    const bal = charged - received;
+
+    // Aging: oldest order not fully covered by receipts
+    let agingDate = '';
+    if (bal > 0) {
+      const sortedOrds = [...cOrds].sort((a, b) => (a.date||'') < (b.date||'') ? -1 : 1);
+      let covered = received;
+      for (const o of sortedOrds) {
+        const amt = calcOrderTotal(o);
+        if (covered <= 0) { agingDate = o.date || ''; break; }
+        covered -= amt;
+        if (covered < 0) { agingDate = o.date || ''; break; }
+      }
+      if (!agingDate && sortedOrds.length) agingDate = sortedOrds[0].date || '';
+    }
+
+    const agingDays = agingDate ? Math.floor((Date.now() - new Date(agingDate)) / 86400000) : 0;
+    rows.push({ name: c.name, orders: cOrds.length, charged, received, bal, agingDate, agingDays });
+  });
+
+  // Sort by balance descending (highest first)
+  rows.sort((a, b) => b.bal - a.bal);
+
   let html = `<table style="width:100%;border-collapse:collapse;font-size:13px">
     <thead><tr style="background:#0f4a42;color:#fff">
-      <th style="padding:8px">Customer</th>
+      <th style="padding:8px;text-align:left">Customer</th>
       <th style="text-align:right;padding:8px">Orders</th>
       <th style="text-align:right;padding:8px">Charged</th>
       <th style="text-align:right;padding:8px">Received</th>
       <th style="text-align:right;padding:8px">Balance</th>
+      <th style="text-align:right;padding:8px">Oldest Unpaid</th>
+      <th style="text-align:right;padding:8px">Aging (days)</th>
     </tr></thead><tbody>`;
-  customers.forEach(c => {
-    const pl = pricelists.find(p=>p.id===c.pricelistId);
-    const cOrds = yearOrders.filter(o=>o.customerId===c.id);
-    const cRecs = yearReceipts.filter(r=>r.customerId===c.id);
-    if (!cOrds.length && !cRecs.length) return;
-    const charged  = cOrds.reduce((s,o)=>s+calcOrderTotal(o,pl),0);
-    const received = cRecs.reduce((s,r)=>s+(parseFloat(r.grossAmount)||0),0);
-    const bal = charged - received;
+
+  rows.forEach(r => {
+    const agingColor = r.agingDays > 90 ? '#c0392b' : r.agingDays > 30 ? '#e67e22' : '#27ae60';
     html += `<tr style="border-bottom:1px solid #eee">
-      <td style="padding:7px">${c.name}</td>
-      <td style="text-align:right;padding:7px">${cOrds.length}</td>
-      <td style="text-align:right;padding:7px">\u20AC${charged.toFixed(2)}</td>
-      <td style="text-align:right;padding:7px;color:#27ae60">\u20AC${received.toFixed(2)}</td>
-      <td style="text-align:right;padding:7px;font-weight:700;color:${bal>0?'#c0392b':'#27ae60'}">\u20AC${Math.abs(bal).toFixed(2)}${bal>0?' DR':bal<0?' CR':''}</td>
+      <td style="padding:7px;font-weight:500">${r.name}</td>
+      <td style="text-align:right;padding:7px">${r.orders}</td>
+      <td style="text-align:right;padding:7px">€${r.charged.toFixed(2)}</td>
+      <td style="text-align:right;padding:7px;color:#27ae60">€${r.received.toFixed(2)}</td>
+      <td style="text-align:right;padding:7px;font-weight:700;color:${r.bal>0?'#c0392b':r.bal<0?'#27ae60':'#666'}">€${Math.abs(r.bal).toFixed(2)}${r.bal>0?' DR':r.bal<0?' CR':''}</td>
+      <td style="text-align:right;padding:7px;font-size:12px;color:#666">${r.agingDate||'—'}</td>
+      <td style="text-align:right;padding:7px;font-weight:600;color:${r.bal>0?agingColor:'#666'}">${r.bal>0?r.agingDays+'d':'—'}</td>
     </tr>`;
   });
+
+  if (!rows.length) html += '<tr><td colspan="7" style="padding:20px;text-align:center;color:#999">No data for selected period.</td></tr>';
+
+  const totCharged  = rows.reduce((s, r) => s + r.charged, 0);
+  const totReceived = rows.reduce((s, r) => s + r.received, 0);
+  const totBal      = rows.reduce((s, r) => s + r.bal, 0);
+  html += `<tr style="background:#f5f9f8;font-weight:700;border-top:2px solid #0f4a42">
+    <td style="padding:8px">TOTAL</td>
+    <td style="text-align:right;padding:8px">${rows.reduce((s,r)=>s+r.orders,0)}</td>
+    <td style="text-align:right;padding:8px">€${totCharged.toFixed(2)}</td>
+    <td style="text-align:right;padding:8px;color:#27ae60">€${totReceived.toFixed(2)}</td>
+    <td style="text-align:right;padding:8px;color:${totBal>0?'#c0392b':'#27ae60'}">€${Math.abs(totBal).toFixed(2)}${totBal>0?' DR':totBal<0?' CR':''}</td>
+    <td colspan="2"></td>
+  </tr>`;
   html += '</tbody></table>';
   out.innerHTML = html;
 }
