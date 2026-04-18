@@ -73,6 +73,23 @@ function getShortName(propName) {
   return p ? (p.shortName || p.propertyName || propName) : propName;
 }
 
+// Infer transport fee for a property by scanning existing job records
+function getPropertyTransportFee(propName) {
+  if (!propName) return 0;
+  const norm = propName.toLowerCase().split(' ')[0];
+  const fees = cleaningJobs
+    .filter(j => parseFloat(j.propertyTransport) > 0 && (j.propertyName||'').toLowerCase().includes(norm))
+    .map(j => parseFloat(j.propertyTransport));
+  return fees.length ? Math.max(...fees) : 0;
+}
+
+// Auto-fill transport fee when property is selected in the manual job modal
+function onMjPropertyChange(propName) {
+  const fee = getPropertyTransportFee(propName);
+  const el = document.getElementById('mj-transport');
+  if (el) el.value = fee > 0 ? fee : '';
+}
+
 function typeLabel(type) {
   if (type === 'checkout') return 'Checkout';
   if (type === 'deep') return 'Deep Clean';
@@ -724,8 +741,10 @@ function renderHoursSheet() {
     const propCache = window._propCache || JSON.parse(localStorage.getItem('zesty_properties')||'[]');
     const prop = propCache.find(p => (p.shortName||p.propertyName||'').toLowerCase() === (j.propertyName||'').toLowerCase())
       || propCache.find(p => (p.shortName||p.propertyName||'').toLowerCase().includes((j.propertyName||'').toLowerCase().split(' ')[0]));
-    // Fall back to property's current transport fee if the job record predates this field
-    const jobTransportFee = parseFloat(j.propertyTransport || prop?.propertyTransport || 0);
+    // Use job's own transport fee; fall back to inferring from other jobs for the same property
+    const jobTransportFee = parseFloat(j.propertyTransport) > 0
+      ? parseFloat(j.propertyTransport)
+      : getPropertyTransportFee(j.propertyName);
 
     const staffCells = activeStaff.map(s => {
       const savedHrs = j.cleanerHours?.[s.id];
@@ -868,6 +887,7 @@ function addManualHoursJob() {
   document.getElementById('mj-type').value = 'checkout';
   document.getElementById('mj-guest').value = '';
   document.getElementById('mj-hours').value = '';
+  document.getElementById('mj-transport').value = '';
   document.getElementById('mj-notes').value = '';
   document.getElementById('mj-id').value = '';
   document.getElementById('mj-modal-title').textContent = 'Add Manual Job';
@@ -886,12 +906,15 @@ function editManualHoursJob(id) {
     propSel.innerHTML = '<option value="">— Select property —</option>' +
       propList.map(p => `\u003Coption value="${p.shortName||p.propertyName}"${(p.shortName||p.propertyName)===j.propertyName?' selected':''}\u003E${p.shortName||p.propertyName}\u003C/option\u003E`).join('');
   }
-  document.getElementById('mj-id').value       = j.id;
-  document.getElementById('mj-date').value     = j.date || '';
-  document.getElementById('mj-type').value     = j.type || 'checkout';
-  document.getElementById('mj-guest').value    = j.guestName || '';
-  document.getElementById('mj-hours').value    = j.hours || '';
-  document.getElementById('mj-notes').value    = j.notes || '';
+  document.getElementById('mj-id').value         = j.id;
+  document.getElementById('mj-date').value       = j.date || '';
+  document.getElementById('mj-type').value       = j.type || 'checkout';
+  document.getElementById('mj-guest').value      = j.guestName || '';
+  document.getElementById('mj-hours').value      = j.hours || '';
+  document.getElementById('mj-notes').value      = j.notes || '';
+  // Pre-fill transport: use job value if set, otherwise infer from sibling jobs
+  const inferredFee = parseFloat(j.propertyTransport) > 0 ? j.propertyTransport : getPropertyTransportFee(j.propertyName);
+  document.getElementById('mj-transport').value  = inferredFee > 0 ? inferredFee : '';
   document.getElementById('mj-modal-title').textContent = 'Edit Job';
   openModal('manualJobModal');
 }
@@ -912,7 +935,7 @@ async function saveManualJob() {
     type:              document.getElementById('mj-type')?.value || 'checkout',
     propertyName:      propName,
     propertyId:        prop?.id || '',
-    propertyTransport: parseFloat(prop?.transport || 0),
+    propertyTransport: parseFloat(document.getElementById('mj-transport')?.value) || getPropertyTransportFee(propName),
     guestName:         document.getElementById('mj-guest')?.value || 'Manual entry',
     hours:             parseFloat(document.getElementById('mj-hours')?.value) || 0,
     notes:             document.getElementById('mj-notes')?.value || '',
