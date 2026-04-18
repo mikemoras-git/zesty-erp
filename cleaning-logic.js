@@ -67,6 +67,18 @@ function getInitials(f, l) {
   return ((f||'')[0]||'') + ((l||'')[0]||'');
 }
 
+function getShortName(propName) {
+  const props = window._propCache || JSON.parse(localStorage.getItem('zesty_properties')||'[]');
+  const p = props.find(x => x.propertyName === propName || x.shortName === propName);
+  return p ? (p.shortName || p.propertyName || propName) : propName;
+}
+
+function typeLabel(type) {
+  if (type === 'checkout') return 'Checkout';
+  if (type === 'deep') return 'Deep Clean';
+  return 'Mid-Stay';
+}
+
 // ============ INIT ============
 function updateCleanImportStatus() {
   const el = document.getElementById('cleanLastImport');
@@ -659,10 +671,10 @@ function renderHoursSheet() {
   const titleEl = document.getElementById('hoursTableTitle');
   if (titleEl) titleEl.textContent = 'Hours Sheet — ' + monthName;
 
-  // Only cleaning jobs (checkout/midstay) for this month
+  // All cleaning jobs for this month (checkout, midstay, deep)
   const monthJobs = cleaningJobs.filter(j =>
     j.date && j.date.startsWith(monthVal) &&
-    (j.type === 'checkout' || j.type === 'midstay')
+    (j.type === 'checkout' || j.type === 'midstay' || j.type === 'deep')
   ).sort((a,b) => (a.date||'') > (b.date||'') ? 1 : -1);
 
   // Active cleaners only (role=cleaner or both, or no role set)
@@ -700,86 +712,101 @@ function renderHoursSheet() {
     \u003Cth style="width:40px"\u003E\u003C/th\u003E
   \u003C/tr\u003E`;
 
-  let totalHours=0, totalPay=0, totalCharge=0;
+  let totalHours=0, totalPay=0, totalTransport=0, totalCharge=0;
   const staffTotals = {};
-  activeStaff.forEach(s => staffTotals[s.id] = {hours:0, pay:0});
+  activeStaff.forEach(s => staffTotals[s.id] = {hours:0, pay:0, transport:0});
 
   const rows = filteredJobs.map((j) => {
     const assignedIds = j.cleanerIds || [];
-    let rowHours=0, rowPay=0;
+    let rowHours=0, rowPay=0, rowTransport=0;
+    const jobTransportFee = parseFloat(j.propertyTransport||0);
 
     const staffCells = activeStaff.map(s => {
       const savedHrs = j.cleanerHours?.[s.id];
       const hrs = savedHrs !== undefined ? savedHrs :
                   (assignedIds.includes(s.id) && j.hours ? j.hours : '');
       const hrsNum = parseFloat(hrs) || 0;
-      const pay = hrsNum * (parseFloat(s.hourlyRate)||0);
-      if (hrsNum > 0) {
-        rowHours += hrsNum; rowPay += pay;
-        staffTotals[s.id].hours += hrsNum; staffTotals[s.id].pay += pay;
+      const hasTransport = jobTransportFee > 0 && s.hasCar === 'Yes';
+      const transportTicked = j.cleanerTransport?.[s.id] === true ||
+        (savedHrs === undefined && assignedIds.includes(s.id) && hasTransport && j.cleanerTransport === undefined);
+      const transportPay = (hasTransport && transportTicked) ? jobTransportFee : 0;
+      const pay = hrsNum * (parseFloat(s.hourlyRate)||0) + transportPay;
+      if (hrsNum > 0 || transportPay > 0) {
+        rowHours += hrsNum; rowPay += pay; rowTransport += transportPay;
+        staffTotals[s.id].hours += hrsNum;
+        staffTotals[s.id].pay += pay;
+        staffTotals[s.id].transport += transportPay;
       }
-      return `\u003Ctd style="text-align:center;padding:4px"\u003E
-        \u003Cinput type="number" min="0" max="24" step="0.5" value="${hrs}"
+      const transportCheckbox = hasTransport
+        ? `<div style="font-size:10px;color:var(--teal);margin-top:2px;white-space:nowrap;text-align:center">
+            <input type="checkbox" ${transportTicked?'checked':''} data-jobid="${j.id}" data-staffid="${s.id}" onchange="onTransportChange(this)" style="margin-right:2px;cursor:pointer">🚗€${jobTransportFee}
+           </div>`
+        : '';
+      return `<td style="text-align:center;padding:4px">
+        <input type="number" min="0" max="24" step="0.5" value="${hrs}"
           data-jobid="${j.id}" data-staffid="${s.id}"
           onchange="onHoursChange(this)"
-          style="width:58px;padding:5px;border:1px solid var(--border);border-radius:6px;
-                 text-align:center;font-size:13px;background:${hrsNum>0?'#e0f5f1':'#fff'}"\u003E
-      \u003C/td\u003E`;
+          style="width:58px;padding:5px;border:1px solid var(--border);border-radius:6px;text-align:center;font-size:13px;background:${hrsNum>0?'#e0f5f1':'#fff'}">
+        ${transportCheckbox}
+      </td>`;
     }).join('');
 
     // Property charge from properties module
-    const prop = (typeof properties !== 'undefined' ? properties : [])
-      .find(p => (p.shortName||p.propertyName||'').toLowerCase().includes((j.propertyName||'').toLowerCase().split(' ')[0]));
+    const propCache = window._propCache || JSON.parse(localStorage.getItem('zesty_properties')||'[]');
+    const prop = propCache.find(p => (p.shortName||p.propertyName||'').toLowerCase() === (j.propertyName||'').toLowerCase())
+      || propCache.find(p => (p.shortName||p.propertyName||'').toLowerCase().includes((j.propertyName||'').toLowerCase().split(' ')[0]));
     const rowCharge = parseFloat(prop?.cleaningFee||0);
-    const margin = rowCharge - rowPay;
 
-    totalHours += rowHours; totalPay += rowPay; totalCharge += rowCharge;
+    totalHours += rowHours; totalPay += rowPay; totalTransport += rowTransport; totalCharge += rowCharge;
 
-    const typeBadge = j.type==='checkout'
-      ? `\u003Cspan style="background:#fdebd0;color:#a04000;padding:1px 6px;border-radius:8px;font-size:10px;font-weight:700"\u003ECHECKOUT\u003C/span\u003E`
-      : `\u003Cspan style="background:#fdf6e3;color:#8e6b23;padding:1px 6px;border-radius:8px;font-size:10px;font-weight:700"\u003EMID-STAY\u003C/span\u003E`;
-    const infants = j.infants>0 ? ` \u003Cspan style="background:#ffcccc;color:#c0392b;padding:0 4px;border-radius:5px;font-size:9px"\u003EINF\u003C/span\u003E` : '';
+    const typeBadgeColors = {checkout:['#fdebd0','#a04000'], midstay:['#fdf6e3','#8e6b23'], deep:['#e8d5f5','#6c3483']};
+    const [tbg, tcol] = typeBadgeColors[j.type] || typeBadgeColors.midstay;
+    const typeBadge = `<span style="background:${tbg};color:${tcol};padding:1px 6px;border-radius:8px;font-size:10px;font-weight:700">${typeLabel(j.type).toUpperCase()}</span>`;
+    const infants = j.infants>0 ? ` <span style="background:#ffcccc;color:#c0392b;padding:0 4px;border-radius:5px;font-size:9px">INF</span>` : '';
 
-    return `\u003Ctr style="border-bottom:1px solid var(--border)"\u003E
-      \u003Ctd style="font-size:12px;white-space:nowrap"\u003E${j.date||'—'}\u003C/td\u003E
-      \u003Ctd style="font-size:12px"\u003E${j.propertyName||'—'}\u003C/td\u003E
-      \u003Ctd\u003E${typeBadge}\u003C/td\u003E
-      \u003Ctd style="font-size:11px;color:var(--text-muted)"\u003E${j.guestName||'—'}${infants}\u003C/td\u003E
+    return `<tr style="border-bottom:1px solid var(--border)">
+      <td style="font-size:12px;white-space:nowrap">${j.date||'—'}</td>
+      <td style="font-size:12px">${getShortName(j.propertyName)||'—'}</td>
+      <td>${typeBadge}</td>
+      <td style="font-size:11px;color:var(--text-muted)">${j.guestName||'—'}${infants}</td>
       ${staffCells}
-      \u003Ctd style="text-align:right;font-weight:700;color:var(--teal)"\u003E${rowHours>0?rowHours+'h':'—'}\u003C/td\u003E
-      \u003Ctd style="text-align:right;font-size:12px;color:var(--danger)"\u003E${rowPay>0?'€'+rowPay.toFixed(0):'—'}\u003C/td\u003E
-      \u003Ctd style="text-align:right;font-size:12px;font-weight:600;color:${margin>=0?'var(--teal-dark)':'var(--danger)'}"\u003E${rowCharge>0?'€'+rowCharge.toFixed(0):'—'}\u003C/td\u003E
-      \u003Ctd style="font-size:11px;color:var(--text-muted)"\u003E${j.notes||''}\u003C/td\u003E
-      \u003Ctd style="text-align:center;padding:4px"\u003E
-        \u003Cbutton onclick="editManualHoursJob('${j.id}')" title="Edit" style="background:none;border:none;cursor:pointer;font-size:14px;padding:2px 5px;border-radius:6px" onmouseenter="this.style.background='#f0f0f0'" onmouseleave="this.style.background='none'"\u003E✏️\u003C/button\u003E
-      \u003C/td\u003E
-    \u003C/tr\u003E`;
+      <td style="text-align:right;font-weight:700;color:var(--teal)">${rowHours>0?rowHours+'h':'—'}</td>
+      <td style="text-align:right;font-size:12px;color:var(--danger)">${rowPay>0?'€'+rowPay.toFixed(0):'—'}</td>
+      <td style="text-align:right;font-size:12px;font-weight:600;color:${rowCharge>0&&rowCharge>=rowPay?'var(--teal-dark)':'var(--danger)'}">${rowCharge>0?'€'+rowCharge.toFixed(0):'—'}</td>
+      <td style="font-size:11px;color:var(--text-muted)">${j.notes||''}</td>
+      <td style="text-align:center;padding:4px">
+        <button onclick="editManualHoursJob('${j.id}')" title="Edit" style="background:none;border:none;cursor:pointer;font-size:14px;padding:2px 5px;border-radius:6px" onmouseenter="this.style.background='#f0f0f0'" onmouseleave="this.style.background='none'">✏️</button>
+      </td>
+    </tr>`;
   }).join('');
 
   const tbody = document.getElementById('hoursBody');
   if (tbody) tbody.innerHTML = rows ||
     `\u003Ctr class="empty-row"\u003E\u003Ctd colspan="${4+activeStaff.length+5}"\u003ENo cleaning jobs for this period.\u003C/td\u003E\u003C/tr\u003E`;
 
-  const staffFootCells = activeStaff.map(s => `\u003Ctd style="text-align:center;font-weight:700;color:var(--teal)"\u003E
-    ${staffTotals[s.id].hours>0?staffTotals[s.id].hours+'h':'—'}\u003Cbr\u003E
-    \u003Cspan style="font-size:11px"\u003E${staffTotals[s.id].pay>0?'€'+staffTotals[s.id].pay.toFixed(0):''}\u003C/span\u003E
-  \u003C/td\u003E`).join('');
+  const staffFootCells = activeStaff.map(s => `<td style="text-align:center;font-weight:700;color:var(--teal)">
+    ${staffTotals[s.id].hours>0?staffTotals[s.id].hours+'h':'—'}<br>
+    <span style="font-size:11px">${staffTotals[s.id].pay>0?'€'+staffTotals[s.id].pay.toFixed(0):''}</span>
+  </td>`).join('');
   const tfoot = document.getElementById('hoursFoot');
-  if (tfoot) tfoot.innerHTML = `\u003Ctr style="background:var(--cream);font-weight:700"\u003E
-    \u003Ctd colspan="4"\u003ETOTAL\u003C/td\u003E
+  if (tfoot) tfoot.innerHTML = `<tr style="background:var(--cream);font-weight:700">
+    <td colspan="4">TOTAL</td>
     ${staffFootCells}
-    \u003Ctd style="text-align:right"\u003E${totalHours}h\u003C/td\u003E
-    \u003Ctd style="text-align:right;color:var(--danger)"\u003E€${totalPay.toFixed(0)}\u003C/td\u003E
-    \u003Ctd style="text-align:right;color:var(--teal-dark)"\u003E€${totalCharge.toFixed(0)}\u003C/td\u003E
-    \u003Ctd\u003E\u003C/td\u003E
-  \u003C/tr\u003E`;
+    <td style="text-align:right">${totalHours}h</td>
+    <td style="text-align:right;color:var(--danger)">€${(totalPay).toFixed(0)}</td>
+    <td style="text-align:right;color:var(--teal-dark)">€${totalCharge.toFixed(0)}</td>
+    <td></td><td></td>
+  </tr>`;
 
   const setEl=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
+  const totalLabour = totalPay - totalTransport;
   setEl('h-total', filteredJobs.length);
   setEl('h-hours', totalHours+'h');
-  setEl('h-labour', '€'+totalPay.toFixed(0));
+  setEl('h-labour', '€'+totalLabour.toFixed(0));
+  setEl('h-transport', '€'+totalTransport.toFixed(0));
+  setEl('h-cost', '€'+totalPay.toFixed(0));
   setEl('h-charge', '€'+totalCharge.toFixed(0));
-  setEl('h-margin', '€'+(totalCharge-totalPay).toFixed(0));
+  setEl('h-profit', '€'+(totalCharge-totalPay).toFixed(0));
   window._currentHoursJobs = filteredJobs;
 }
 
@@ -795,6 +822,18 @@ async function onHoursChange(input) {
   input.style.background = hrs > 0 ? '#e0f5f1' : '#fff';
   clearTimeout(window._hoursSaveTimer);
   window._hoursSaveTimer = setTimeout(() => saveHoursSheet(), 1500);
+}
+
+function onTransportChange(checkbox) {
+  const jobId = checkbox.dataset.jobid;
+  const staffId = checkbox.dataset.staffid;
+  const job = cleaningJobs.find(j => j.id === jobId);
+  if (!job) return;
+  if (!job.cleanerTransport) job.cleanerTransport = {};
+  job.cleanerTransport[staffId] = checkbox.checked;
+  clearTimeout(window._hoursSaveTimer);
+  window._hoursSaveTimer = setTimeout(() => saveHoursSheet(), 1500);
+  renderHoursSheet();
 }
 
 async function saveHoursSheet() {
@@ -1168,15 +1207,16 @@ function renderCalendar() {
       const assignedCleaners = (j.cleanerIds||[]).map(cid => staff.find(s => s.id === cid)).filter(Boolean);
       const cl = assignedCleaners[0] || null;
       const colorIdx = cl ? staff.indexOf(cl) : -1;
-      const bg = cl ? getColor(colorIdx) : (j.type === 'checkout' ? '#c0392b' : '#e67e22');
+      const bg = cl ? getColor(colorIdx) : (j.type === 'checkout' ? '#c0392b' : j.type === 'deep' ? '#6c3483' : '#e67e22');
       const jobEl = document.createElement('div');
       jobEl.className = 'cal-job';
       jobEl.style.background = bg + '20';
       jobEl.style.color = bg;
       jobEl.style.border = `1px solid ${bg}40`;
       const initials = assignedCleaners.map(c => getInitials(c.firstName,c.lastName)).join('+') || '?';
-      jobEl.textContent = `${j.type === 'checkout' ? '\u{1F3C1}' : '\u{1F504}'} ${j.propertyName || 'Unknown'}`;
-      jobEl.title = `${j.propertyName}\n${j.type === 'checkout' ? 'Checkout Clean' : 'Mid-Stay Clean'}\nCleaners: ${assignedCleaners.map(c=>c.firstName+' '+c.lastName).join(', ') || 'Unassigned'}`;
+      const calIcon = j.type === 'checkout' ? '🏁' : j.type === 'deep' ? '🧽' : '🔄';
+      jobEl.textContent = `${calIcon} ${getShortName(j.propertyName) || 'Unknown'}`;
+      jobEl.title = `${j.propertyName}\n${typeLabel(j.type)}\nCleaners: ${assignedCleaners.map(c=>c.firstName+' '+c.lastName).join(', ') || 'Unassigned'}`;
       jobEl.onclick = () => openJobModal(j.id);
       cell.appendChild(jobEl);
     });
@@ -1238,8 +1278,10 @@ function renderJobs() {
     tbody.innerHTML = pageData.map(j => {
       const assignedCls = (j.cleanerIds||[]).map(cid => staff.find(s => s.id === cid)).filter(Boolean);
       const typeBadge = j.type === 'checkout'
-        ? `\u003Cspan style="background:#fdebd0;color:#a04000;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:500"\u003E\u{1F3C1} Checkout\u003C/span\u003E`
-        : `\u003Cspan style="background:#fdf6e3;color:#8e6b23;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:500"\u003E\u{1F504} Mid-Stay\u003C/span\u003E`;
+        ? `<span style="background:#fdebd0;color:#a04000;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:500">🏁 Checkout</span>`
+        : j.type === 'deep'
+        ? `<span style="background:#e8d5f5;color:#6c3483;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:500">🧽 Deep Clean</span>`
+        : `<span style="background:#fdf6e3;color:#8e6b23;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:500">🔄 Mid-Stay</span>`;
       const cleanerCell = assignedCls.length
         ? assignedCls.map(cl => `\u003Cdiv style="display:inline-flex;align-items:center;gap:5px;margin-right:6px"\u003E\u003Cdiv class="cleaner-avatar" style="background:${getColor(staff.indexOf(cl))};width:24px;height:24px;font-size:9px"\u003E${getInitials(cl.firstName,cl.lastName)}\u003C/div\u003E\u003Cspan style="font-size:12px"\u003E${cl.firstName}\u003C/span\u003E\u003C/div\u003E`).join('')
         : `\u003Cspan style="color:var(--danger);font-size:12px"\u003E\u26A0 Unassigned\u003C/span\u003E`;
@@ -1251,9 +1293,9 @@ function renderJobs() {
       const pay = totalPay > 0 ? `\u20AC${totalPay.toFixed(0)}` : '\u2014';
       return `\u003Ctr\u003E
         \u003Ctd style="font-size:12px;font-weight:500"\u003E${formatDate(j.date)}\u003C/td\u003E
-        \u003Ctd style="font-size:12px"\u003E${j.propertyName||'\u2014'}\u003C/td\u003E
-        \u003Ctd\u003E\u003Cspan class="zone-tag zone-${(j.zone||'').replace(' ','-')}"\u003E${j.zone||'\u2014'}\u003C/span\u003E\u003C/td\u003E
-        \u003Ctd\u003E${typeBadge}\u003C/td\u003E
+        <td style="font-size:12px">${getShortName(j.propertyName)||'—'}</td>
+        <td><span class="zone-tag zone-${(j.zone||'').replace(' ','-')}">${j.zone||'—'}</span></td>
+        <td>${typeBadge}</td>
         \u003Ctd style="text-align:center;font-size:12px"\u003E${j.nights||'\u2014'}\u003C/td\u003E
         \u003Ctd\u003E${cleanerCell}\u003C/td\u003E
         \u003Ctd style="text-align:center;font-size:12px"\u003E${j.hours ? j.hours+'h' : '\u2014'}\u003C/td\u003E
@@ -1576,13 +1618,13 @@ function printWeeklySchedule() {
           const depStr = j.type==='checkout' ? depDt.toLocaleDateString('en-GB',{day:'numeric',month:'short'}) : '\u2014';
           const babycot = (j.notes||'').toLowerCase().match(/infant|baby|cot/);
           const guestStr = j.adults||j.guests ? (j.adults?j.adults+'A':'')+(j.children?' '+j.children+'C':'')+(j.infants?' '+j.infants+'INF':'') || (j.guests||'') : '';
-          const typeColor = j.type==='checkout'?'#a04000':'#8e6b23';
-          const typeBg   = j.type==='checkout'?'#fdebd0':'#fdf6e3';
+          const typeColor = j.type==='checkout'?'#a04000':j.type==='deep'?'#6c3483':'#8e6b23';
+          const typeBg   = j.type==='checkout'?'#fdebd0':j.type==='deep'?'#e8d5f5':'#fdf6e3';
 
           dayContent += `
-          \u003Cdiv class="wk2-job" style="page-break-inside:avoid"\u003E
-            \u003Cdiv class="wk2-prop"\u003E${j.propertyName||'\u2014'}\u003C/div\u003E
-            \u003Cdiv class="wk2-type" style="background:${typeBg};color:${typeColor}"\u003E${j.type==='checkout'?'Checkout':'Mid-Stay'}\u003C/div\u003E
+          <div class="wk2-job" style="page-break-inside:avoid">
+            <div class="wk2-prop">${getShortName(j.propertyName)||'—'}</div>
+            <div class="wk2-type" style="background:${typeBg};color:${typeColor}">${typeLabel(j.type)}</div>
             ${guestStr?'<div class="wk2-detail">\uD83D\uDC65 '+guestStr+'</div>':''}
             ${arrStr!=='\u2014'?'<div class="wk2-detail">\u2197 Arr: '+arrStr+'</div>':''}
             ${depStr!=='\u2014'?'<div class="wk2-detail">\u2198 Dep: '+depStr+'</div>':''}
@@ -1635,7 +1677,7 @@ function printWeeklySchedule() {
     @media print { .wk2-page { page-break-after:always; } }
   `;
 
-  const _htmlContent = '<html><head><title>Cleaning Schedule '+monthName+'</title><style>'+buildPrintStyles()+'</style></head><body>'+(printContent||'<p style="padding:40px;font-family:Arial">No jobs found.</p>')+'</body></html>';
+  const _htmlContent = '<html><head><title>Cleaning Schedule '+monthName+'</title><style>'+styles+'</style></head><body>'+(printContent||'<p style="padding:40px;font-family:Arial">No jobs found.</p>')+'</body></html>';
   const _printWin = window.open('', '_blank');
   if (_printWin) {
     _printWin.document.open();
@@ -1691,9 +1733,9 @@ function printSchedule() {
         const depStr = j.type==='checkout'&&depDt ? depDt.toLocaleDateString('en-GB',{day:'numeric',month:'short'}) : '\u2014';
         const babycot = (j.notes||'').toLowerCase().match(/infant|baby|cot/);
         const guestStr = j.adults||j.guests ? (j.adults?j.adults+'A':'')+(j.children?' '+j.children+'C':'')+(j.infants?' '+j.infants+'INF':'') || (j.guests||'\u2014') : '\u2014';
-        return `\u003Cdiv class="print-job-row"\u003E
-          \u003Cdiv\u003E\u003Cstrong\u003E${j.propertyName}\u003C/strong\u003E${j.zone?'<br><span style="font-size:10px;color:#888">'+j.zone+'</span>':''}\u003C/div\u003E
-          \u003Cdiv\u003E\u003Cspan class="type-badge type-${j.type}"\u003E${j.type==='checkout'?'Checkout':'Mid-Stay'}\u003C/span\u003E${babycot?'<br><span style="background:#ffcccc;color:#c0392b;padding:1px 5px;border-radius:8px;font-size:9px;font-weight:700">\uD83D\uDECF BABYCOT</span>':''}\u003C/div\u003E
+        return `<div class="print-job-row">
+          <div><strong>${getShortName(j.propertyName)}</strong>${j.zone?'<br><span style="font-size:10px;color:#888">'+j.zone+'</span>':''}</div>
+          <div><span class="type-badge type-${j.type}">${typeLabel(j.type)}</span>${babycot?'<br><span style="background:#ffcccc;color:#c0392b;padding:1px 5px;border-radius:8px;font-size:9px;font-weight:700">🛏 BABYCOT</span>':''}</div>
           \u003Cdiv style="font-size:11px"\u003E${arrStr}\u003C/div\u003E
           \u003Cdiv style="font-size:11px"\u003E${depStr}\u003C/div\u003E
           \u003Cdiv style="text-align:center"\u003E${j.nights||'\u2014'}\u003C/div\u003E
@@ -1833,11 +1875,13 @@ function printAllJobs() {
       return s ? s.firstName+' '+s.lastName : '';
     }).filter(Boolean).join(', ') || '—';
     const transport = parseFloat(j.propertyTransport||0);
-    return `\u003Ctr\u003E
-      \u003Ctd\u003E${j.date||'—'}\u003C/td\u003E
-      \u003Ctd\u003E${j.propertyName||'—'}\u003C/td\u003E
-      \u003Ctd\u003E${j.zone||'—'}\u003C/td\u003E
-      \u003Ctd\u003E\u003Cspan style="background:${j.type==='checkout'?'#fdebd0':'#fdf6e3'};color:${j.type==='checkout'?'#a04000':'#8e6b23'};padding:2px 8px;border-radius:8px;font-size:11px;font-weight:700"\u003E${j.type==='checkout'?'Checkout':'Mid-Stay'}\u003C/span\u003E\u003C/td\u003E
+    const typeBgPrint = j.type==='checkout'?'#fdebd0':j.type==='deep'?'#e8d5f5':'#fdf6e3';
+    const typeColPrint = j.type==='checkout'?'#a04000':j.type==='deep'?'#6c3483':'#8e6b23';
+    return `<tr>
+      <td>${j.date||'—'}</td>
+      <td>${getShortName(j.propertyName)||'—'}</td>
+      <td>${j.zone||'—'}</td>
+      <td><span style="background:${typeBgPrint};color:${typeColPrint};padding:2px 8px;border-radius:8px;font-size:11px;font-weight:700">${typeLabel(j.type)}</span></td>
       \u003Ctd style="text-align:center"\u003E${j.nights||'—'}\u003C/td\u003E
       \u003Ctd\u003E${assignedNames}\u003C/td\u003E
       \u003Ctd style="text-align:center"\u003E${j.hours||'—'}\u003C/td\u003E
