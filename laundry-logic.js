@@ -1019,6 +1019,8 @@ function generateReport() {
   const to   = document.getElementById('rpt-to')?.value   || '';
   const out  = document.getElementById('report-output') || document.getElementById('rpt-output');
   if (!out) return;
+  // Format currency with thousands separator e.g. €1,234.56
+  const fmt = n => '€' + parseFloat(n||0).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 
   const filteredOrders   = orders.filter(o => (!fCustId || o.customerId === fCustId) && (!from || (o.date||'') >= from) && (!to || (o.date||'') <= to));
   const filteredReceipts = receipts.filter(r => (!fCustId || r.customerId === fCustId) && (!from || (r.date||'') >= from) && (!to || (r.date||'') <= to));
@@ -1071,9 +1073,9 @@ function generateReport() {
     html += `<tr style="border-bottom:1px solid #eee">
       <td style="padding:7px;font-weight:500">${r.name}</td>
       <td style="text-align:right;padding:7px">${r.orders}</td>
-      <td style="text-align:right;padding:7px">€${r.charged.toFixed(2)}</td>
-      <td style="text-align:right;padding:7px;color:#27ae60">€${r.received.toFixed(2)}</td>
-      <td style="text-align:right;padding:7px;font-weight:700;color:${r.bal>0?'#c0392b':r.bal<0?'#27ae60':'#666'}">€${Math.abs(r.bal).toFixed(2)}${r.bal>0?' DR':r.bal<0?' CR':''}</td>
+      <td style="text-align:right;padding:7px">${fmt(r.charged)}</td>
+      <td style="text-align:right;padding:7px;color:#27ae60">${fmt(r.received)}</td>
+      <td style="text-align:right;padding:7px;font-weight:700;color:${r.bal>0?'#c0392b':r.bal<0?'#27ae60':'#666'}">${fmt(Math.abs(r.bal))}${r.bal>0?' DR':r.bal<0?' CR':''}</td>
       <td style="text-align:right;padding:7px;font-size:12px;color:#666">${r.agingDate||'—'}</td>
       <td style="text-align:right;padding:7px;font-weight:600;color:${r.bal>0?agingColor:'#666'}">${r.bal>0?r.agingDays+'d':'—'}</td>
     </tr>`;
@@ -1087,9 +1089,9 @@ function generateReport() {
   html += `<tr style="background:#f5f9f8;font-weight:700;border-top:2px solid #0f4a42">
     <td style="padding:8px">TOTAL</td>
     <td style="text-align:right;padding:8px">${rows.reduce((s,r)=>s+r.orders,0)}</td>
-    <td style="text-align:right;padding:8px">€${totCharged.toFixed(2)}</td>
-    <td style="text-align:right;padding:8px;color:#27ae60">€${totReceived.toFixed(2)}</td>
-    <td style="text-align:right;padding:8px;color:${totBal>0?'#c0392b':'#27ae60'}">€${Math.abs(totBal).toFixed(2)}${totBal>0?' DR':totBal<0?' CR':''}</td>
+    <td style="text-align:right;padding:8px">${fmt(totCharged)}</td>
+    <td style="text-align:right;padding:8px;color:#27ae60">${fmt(totReceived)}</td>
+    <td style="text-align:right;padding:8px;color:${totBal>0?'#c0392b':'#27ae60'}">${fmt(Math.abs(totBal))}${totBal>0?' DR':totBal<0?' CR':''}</td>
     <td colspan="2"></td>
   </tr>`;
   html += '</tbody></table>';
