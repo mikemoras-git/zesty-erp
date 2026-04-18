@@ -719,7 +719,13 @@ function renderHoursSheet() {
   const rows = filteredJobs.map((j) => {
     const assignedIds = j.cleanerIds || [];
     let rowHours=0, rowPay=0, rowTransport=0;
-    const jobTransportFee = parseFloat(j.propertyTransport||0);
+
+    // Look up property record first — needed for transport fallback and charge rate
+    const propCache = window._propCache || JSON.parse(localStorage.getItem('zesty_properties')||'[]');
+    const prop = propCache.find(p => (p.shortName||p.propertyName||'').toLowerCase() === (j.propertyName||'').toLowerCase())
+      || propCache.find(p => (p.shortName||p.propertyName||'').toLowerCase().includes((j.propertyName||'').toLowerCase().split(' ')[0]));
+    // Fall back to property's current transport fee if the job record predates this field
+    const jobTransportFee = parseFloat(j.propertyTransport || prop?.propertyTransport || 0);
 
     const staffCells = activeStaff.map(s => {
       const savedHrs = j.cleanerHours?.[s.id];
@@ -751,11 +757,8 @@ function renderHoursSheet() {
       </td>`;
     }).join('');
 
-    // Property charge from properties module
-    const propCache = window._propCache || JSON.parse(localStorage.getItem('zesty_properties')||'[]');
-    const prop = propCache.find(p => (p.shortName||p.propertyName||'').toLowerCase() === (j.propertyName||'').toLowerCase())
-      || propCache.find(p => (p.shortName||p.propertyName||'').toLowerCase().includes((j.propertyName||'').toLowerCase().split(' ')[0]));
-    const rowCharge = parseFloat(prop?.cleaningFee||0);
+    // Charge = property's cleaning fee rate × actual hours worked this job
+    const rowCharge = parseFloat(prop?.cleaningFee||0) * rowHours;
 
     totalHours += rowHours; totalPay += rowPay; totalTransport += rowTransport; totalCharge += rowCharge;
 
