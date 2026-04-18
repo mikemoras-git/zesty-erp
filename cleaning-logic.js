@@ -73,6 +73,12 @@ function getShortName(propName) {
   return p ? (p.shortName || p.propertyName || propName) : propName;
 }
 
+// Format a euro amount — keeps one decimal only when needed (e.g. 7.5 not 8, 58 not 58.0)
+function fmtAmt(n) {
+  const v = parseFloat(n) || 0;
+  return '€' + (v % 1 === 0 ? v.toFixed(0) : v.toFixed(1));
+}
+
 // Infer transport fee for a property by scanning existing job records
 function getPropertyTransportFee(propName) {
   if (!propName) return 0;
@@ -793,8 +799,8 @@ function renderHoursSheet() {
       <td style="font-size:11px;color:var(--text-muted)">${j.guestName||'—'}${infants}</td>
       ${staffCells}
       <td style="text-align:right;font-weight:700;color:var(--teal)">${rowHours>0?rowHours+'h':'—'}</td>
-      <td style="text-align:right;font-size:12px;color:var(--danger)">${rowPay>0?'€'+rowPay.toFixed(0):'—'}</td>
-      <td style="text-align:right;font-size:12px;font-weight:600;color:${rowCharge>0&&rowCharge>=rowPay?'var(--teal-dark)':'var(--danger)'}">${rowCharge>0?'€'+rowCharge.toFixed(0):'—'}</td>
+      <td style="text-align:right;font-size:12px;color:var(--danger)">${rowPay>0?fmtAmt(rowPay):'—'}</td>
+      <td style="text-align:right;font-size:12px;font-weight:600;color:${rowCharge>0&&rowCharge>=rowPay?'var(--teal-dark)':'var(--danger)'}">${rowCharge>0?fmtAmt(rowCharge):'—'}</td>
       <td style="font-size:11px;color:var(--text-muted)">${j.notes||''}</td>
       <td style="text-align:center;padding:4px">
         <button onclick="editManualHoursJob('${j.id}')" title="Edit" style="background:none;border:none;cursor:pointer;font-size:14px;padding:2px 5px;border-radius:6px" onmouseenter="this.style.background='#f0f0f0'" onmouseleave="this.style.background='none'">✏️</button>
@@ -808,15 +814,15 @@ function renderHoursSheet() {
 
   const staffFootCells = activeStaff.map(s => `<td style="text-align:center;font-weight:700;color:var(--teal)">
     ${staffTotals[s.id].hours>0?staffTotals[s.id].hours+'h':'—'}<br>
-    <span style="font-size:11px">${staffTotals[s.id].pay>0?'€'+staffTotals[s.id].pay.toFixed(0):''}</span>
+    <span style="font-size:11px">${staffTotals[s.id].pay>0?fmtAmt(staffTotals[s.id].pay):''}</span>
   </td>`).join('');
   const tfoot = document.getElementById('hoursFoot');
   if (tfoot) tfoot.innerHTML = `<tr style="background:var(--cream);font-weight:700">
     <td colspan="4">TOTAL</td>
     ${staffFootCells}
     <td style="text-align:right">${totalHours}h</td>
-    <td style="text-align:right;color:var(--danger)">€${(totalPay).toFixed(0)}</td>
-    <td style="text-align:right;color:var(--teal-dark)">€${totalCharge.toFixed(0)}</td>
+    <td style="text-align:right;color:var(--danger)">${fmtAmt(totalPay)}</td>
+    <td style="text-align:right;color:var(--teal-dark)">${fmtAmt(totalCharge)}</td>
     <td></td><td></td>
   </tr>`;
 
@@ -824,11 +830,11 @@ function renderHoursSheet() {
   const totalLabour = totalPay - totalTransport;
   setEl('h-total', filteredJobs.length);
   setEl('h-hours', totalHours+'h');
-  setEl('h-labour', '€'+totalLabour.toFixed(0));
-  setEl('h-transport', '€'+totalTransport.toFixed(0));
-  setEl('h-cost', '€'+totalPay.toFixed(0));
-  setEl('h-charge', '€'+totalCharge.toFixed(0));
-  setEl('h-profit', '€'+(totalCharge-totalPay).toFixed(0));
+  setEl('h-labour', fmtAmt(totalLabour));
+  setEl('h-transport', fmtAmt(totalTransport));
+  setEl('h-cost', fmtAmt(totalPay));
+  setEl('h-charge', fmtAmt(totalCharge));
+  setEl('h-profit', fmtAmt(totalCharge-totalPay));
   window._currentHoursJobs = filteredJobs;
 }
 
@@ -887,7 +893,7 @@ function addManualHoursJob() {
   document.getElementById('mj-type').value = 'checkout';
   document.getElementById('mj-guest').value = '';
   document.getElementById('mj-hours').value = '';
-  document.getElementById('mj-transport').value = '';
+  const _mjt = document.getElementById('mj-transport'); if (_mjt) _mjt.value = '';
   document.getElementById('mj-notes').value = '';
   document.getElementById('mj-id').value = '';
   document.getElementById('mj-modal-title').textContent = 'Add Manual Job';
@@ -914,7 +920,7 @@ function editManualHoursJob(id) {
   document.getElementById('mj-notes').value      = j.notes || '';
   // Pre-fill transport: use job value if set, otherwise infer from sibling jobs
   const inferredFee = parseFloat(j.propertyTransport) > 0 ? j.propertyTransport : getPropertyTransportFee(j.propertyName);
-  document.getElementById('mj-transport').value  = inferredFee > 0 ? inferredFee : '';
+  const _mjtEl = document.getElementById('mj-transport'); if (_mjtEl) _mjtEl.value = inferredFee > 0 ? inferredFee : '';
   document.getElementById('mj-modal-title').textContent = 'Edit Job';
   openModal('manualJobModal');
 }
