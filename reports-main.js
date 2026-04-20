@@ -217,28 +217,21 @@ function generateOwner(){
     const cls=(j.cleanerIds||[]).map(id=>staffC.find(s=>s.id===id)).filter(Boolean);
     // Use actual per-cleaner hours from j.cleanerHours (Hours module); fall back to j.hours if not recorded
     const actualJobHours=j.cleanerHours?Object.values(j.cleanerHours).reduce((s2,h)=>s2+(parseFloat(h)||0),0):(j.hours||0);
-    // Transport charge TO OWNER from property; staff transport COST from their own record
+    // Transport charge TO OWNER from property
     const jobTransportFee=parseFloat(j.propertyTransport||prop.propertyTransport||0);
-    const pay=cls.reduce((s,cl)=>{
-      const actualH=j.cleanerHours?(parseFloat(j.cleanerHours[cl.id])||0):(j.hours||0);
-      const staffTransportCost=parseFloat(cl.transportCost)||0;
-      const trTicked=j.cleanerTransport?.[cl.id]===true;
-      return s+(cl.hourlyRate||0)*actualH+(cl.hasCar==='Yes'&&trTicked?staffTransportCost:0);
-    },0);
-    // Owner charge = cleaning fee × hours + property transport fee × ticked cleaners
     const transportOwnerCharge=cls.filter(cl=>cl.hasCar==='Yes'&&j.cleanerTransport?.[cl.id]===true).length*jobTransportFee;
+    const cleaningCost=cleaningFeeRate*actualJobHours;
+    const rowTotal=cleaningCost+transportOwnerCharge;
     const typeColors={checkout:['#fdebd0','#a04000'],deep:['#e8d5f5','#6c3483']};
     const [tbg,tcol]=typeColors[j.type]||['#fdf6e3','#8e6b23'];
     const tLabel=j.type==='checkout'?'Checkout':j.type==='deep'?'Deep Clean':'Mid-Stay';
-    const rowChargeAmt=(cleaningFeeRate*actualJobHours)+transportOwnerCharge;
-    const charge=rowChargeAmt>0?eur(rowChargeAmt):'—';
     return`<tr>
       <td style="font-size:12px">${fmtDate(j.date)}</td>
       <td><span style="font-size:11px;font-weight:600;padding:2px 6px;border-radius:8px;background:${tbg};color:${tcol}">${tLabel}</span></td>
-      <td>${cls.map(cl=>cl.firstName+' '+cl.lastName).join(', ')||'—'}</td>
       <td style="text-align:center">${actualJobHours||'—'}</td>
-      <td style="text-align:right;color:var(--danger)">${pay>0?eur(pay):'—'}</td>
-      <td style="text-align:right;font-weight:600;color:var(--teal-dark)">${charge}</td>
+      <td style="text-align:right;color:var(--teal-dark)">${cleaningCost>0?eur(cleaningCost):'—'}</td>
+      <td style="text-align:right;color:var(--teal-dark)">${transportOwnerCharge>0?eur(transportOwnerCharge):'—'}</td>
+      <td style="text-align:right;font-weight:600;color:var(--teal-dark)">${rowTotal>0?eur(rowTotal):'—'}</td>
     </tr>`;
   }).join('');
 
@@ -321,9 +314,9 @@ function generateOwner(){
     ${cleans.length>0?`<div class="rpt-section">
       <div class="rpt-section-title">Cleaning — ${cleans.length} sessions · ${tCleanH}h total${tCleanCharge>0?' · '+eur(tCleanCharge)+' charged':''}</div>
       <table class="rpt-table">
-        <thead><tr><th>Date</th><th>Type</th><th>Cleaner(s)</th><th style="text-align:center">Hours</th><th style="text-align:right">Staff Cost</th><th style="text-align:right">Charge to Owner</th></tr></thead>
+        <thead><tr><th>Date</th><th>Type</th><th style="text-align:center">Hours</th><th style="text-align:right">Cleaning Cost</th><th style="text-align:right">Transport</th><th style="text-align:right">Total</th></tr></thead>
         <tbody>${cRows}</tbody>
-        ${tCleanCharge>0?`<tfoot><tr><td colspan="5" style="text-align:right">TOTAL CLEANING CHARGE</td><td style="text-align:right;font-weight:700">${eur(tCleanCharge)}</td></tr></tfoot>`:''}
+        ${tCleanCharge>0?`<tfoot><tr><td colspan="3" style="text-align:right">TOTAL CLEANING CHARGE</td><td style="text-align:right;font-weight:700"></td><td style="text-align:right;font-weight:700"></td><td style="text-align:right;font-weight:700">${eur(tCleanCharge)}</td></tr></tfoot>`:''}
       </table>
     </div>`:''}
 
