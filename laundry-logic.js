@@ -701,7 +701,7 @@ function confirmDeleteReceipt(id) {
     'btn-danger', 'Delete',
     async () => {
       receipts = receipts.filter(x => x.id !== id);
-      await SyncStore.saveAll('zesty_laundry_receipts', 'laundry_receipts', receipts);
+      await SyncStore.deleteOne('zesty_laundry_receipts', 'laundry_receipts', id, receipts);
       renderReceipts();
       renderDashboard();
       showToast('Receipt deleted', 'error');
