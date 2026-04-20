@@ -1,0 +1,1855 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Villa Business Planner — Zesty Rentals</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,300&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{--bg:#f5f3ef;--surface:#fff;--surface2:#faf9f7;--border:#e2ddd6;--border-strong:#c8c0b4;--text:#1a1714;--text-2:#5a5550;--text-3:#8a837a;--accent:#2d6a4f;--accent-light:#e8f4ee;--accent-dark:#1b4332;--gold:#b5860d;--gold-light:#fdf6e3;--danger:#c0392b;--danger-light:#fdf0ee;--safe:#2980b9;--safe-light:#eaf4fb;--good:#27ae60;--good-light:#eafaf1;--basic:#e67e22;--basic-light:#fef5e7;--radius:10px;--radius-sm:6px;}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.5;min-height:100vh;}
+/* header */
+.app-header{background:var(--accent-dark);color:#fff;padding:0 28px;display:flex;align-items:center;gap:20px;height:56px;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,.08);}
+.logo{font-family:'DM Serif Display',serif;font-size:20px;color:#fff;white-space:nowrap;}
+.logo span{color:#86efac;}
+.hdr-proj{flex:1;font-size:13px;color:rgba(255,255,255,.65);padding-left:16px;border-left:1px solid rgba(255,255,255,.2);}
+.hdr-proj strong{color:rgba(255,255,255,.9);}
+/* tabs */
+.tabs-bar{background:var(--surface);border-bottom:2px solid var(--border);padding:0 20px;display:flex;overflow-x:auto;scrollbar-width:none;position:sticky;top:56px;z-index:99;}
+.tabs-bar::-webkit-scrollbar{display:none;}
+.tab-btn{padding:13px 14px 11px;border:none;background:none;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;color:var(--text-3);cursor:pointer;white-space:nowrap;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .15s;}
+.tab-btn:hover{color:var(--text-2);}
+.tab-btn.active{color:var(--accent);border-bottom-color:var(--accent);}
+/* layout */
+.main{padding:24px 28px;max-width:1500px;margin:0 auto;}
+.tab-panel{display:none;}.tab-panel.active{display:block;}
+.section{margin-bottom:24px;}
+.sec-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;gap:12px;flex-wrap:wrap;}
+.sec-title{font-family:'DM Serif Display',serif;font-size:20px;font-weight:400;}
+.sec-sub{font-size:13px;color:var(--text-3);margin-top:2px;}
+/* cards */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;box-shadow:0 1px 3px rgba(0,0,0,.05);}
+.card+.card{margin-top:14px;}
+/* form */
+.fg{display:grid;gap:14px;}
+.g2{grid-template-columns:1fr 1fr;}.g3{grid-template-columns:1fr 1fr 1fr;}.g4{grid-template-columns:repeat(4,1fr);}
+.fgrp{display:flex;flex-direction:column;gap:4px;}
+.flbl{font-size:11px;font-weight:600;color:var(--text-2);text-transform:uppercase;letter-spacing:.5px;}
+.finp,.fsel{padding:8px 11px;border:1px solid var(--border);border-radius:var(--radius-sm);font-family:'DM Sans',sans-serif;font-size:14px;color:var(--text);background:var(--surface);width:100%;transition:border-color .15s;}
+.finp:focus,.fsel:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-light);}
+.finp.bl{color:#1a56db;font-weight:500;}
+input[type=number]{-moz-appearance:textfield;}
+input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;}
+/* buttons */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 15px;border-radius:var(--radius-sm);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;border:none;transition:all .15s;white-space:nowrap;}
+.bp{background:var(--accent);color:#fff;}.bp:hover{background:var(--accent-dark);}
+.bs{background:var(--surface);color:var(--text-2);border:1px solid var(--border);}.bs:hover{border-color:var(--border-strong);}
+.bd{background:var(--danger-light);color:var(--danger);border:1px solid #f5c6c1;}.bd:hover{background:#fde0dd;}
+.bg{background:var(--gold-light);color:var(--gold);border:1px solid #f0d98a;}
+.btn-sm{padding:5px 10px;font-size:12px;}
+/* table */
+table{width:100%;border-collapse:collapse;font-size:13px;}
+thead tr{background:var(--surface2);}
+th{padding:8px 12px;text-align:left;font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--text-2);border-bottom:2px solid var(--border);white-space:nowrap;}
+td{padding:7px 12px;border-bottom:1px solid var(--border);vertical-align:middle;}
+tbody tr:last-child td{border-bottom:none;}
+tbody tr:hover{background:var(--surface2);}
+td input,td select{border:1px solid transparent;background:transparent;font-family:'DM Sans',sans-serif;font-size:13px;padding:3px 6px;border-radius:4px;width:100%;color:var(--text);}
+td input:focus,td select:focus{outline:none;border-color:var(--accent);background:#fff;box-shadow:0 0 0 2px var(--accent-light);}
+.tr{text-align:right;font-variant-numeric:tabular-nums;}
+.tc{text-align:center;}
+/* misc */
+.badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600;}
+.b-type{background:var(--accent-light);color:var(--accent-dark);}
+.b-safe{background:var(--safe-light);color:var(--safe);}
+.b-basic{background:var(--basic-light);color:var(--basic);}
+.b-good{background:var(--good-light);color:var(--good);}
+.pos{color:var(--good);font-weight:600;}.neg{color:var(--danger);font-weight:600;}
+.divider{height:1px;background:var(--border);margin:18px 0;}
+.alert{padding:10px 14px;border-radius:var(--radius-sm);font-size:13px;margin-bottom:12px;display:flex;align-items:flex-start;gap:8px;}
+.alert-i{background:var(--safe-light);color:#1a5276;border:1px solid #aed6f1;}
+.alert-w{background:var(--gold-light);color:#7d6608;border:1px solid #f9e79f;}
+/* stats */
+.stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(148px,1fr));gap:10px;margin-bottom:18px;}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:13px 15px;}
+.stat-lbl{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--text-3);margin-bottom:3px;}
+.stat-val{font-size:21px;font-weight:700;color:var(--text);line-height:1;}
+.stat-sub{font-size:11px;color:var(--text-3);margin-top:2px;}
+.stat-card.ac{border-color:var(--accent);background:var(--accent-light);}.stat-card.ac .stat-val{color:var(--accent-dark);}
+.stat-card.gd{border-color:var(--gold);background:var(--gold-light);}.stat-card.gd .stat-val{color:var(--gold);}
+/* scenario pills */
+.sc-tabs{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;}
+.sc-btn{padding:6px 14px;border-radius:20px;border:2px solid transparent;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;}
+.sc-btn.safe{background:var(--safe-light);color:var(--safe);}.sc-btn.safe.active{border-color:var(--safe);}
+.sc-btn.basic{background:var(--basic-light);color:var(--basic);}.sc-btn.basic.active{border-color:var(--basic);}
+.sc-btn.good{background:var(--good-light);color:var(--good);}.sc-btn.good.active{border-color:var(--good);}
+/* comparables */
+.comp-sec{margin-bottom:18px;}
+.comp-sec-hdr{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;background:var(--accent-dark);color:#fff;border-radius:var(--radius) var(--radius) 0 0;}
+.comp-sec-title{font-family:'DM Serif Display',serif;font-size:16px;}
+.comp-card{background:var(--surface);border:1px solid var(--border);border-bottom:none;padding:13px 15px;}
+.comp-card:last-child{border-bottom:1px solid var(--border);}
+.comp-months{display:grid;grid-template-columns:repeat(9,1fr);gap:4px;margin-top:8px;}
+.comp-m{display:flex;flex-direction:column;gap:3px;text-align:center;}
+.comp-m-lbl{font-size:10px;color:var(--text-3);font-weight:600;text-transform:uppercase;}
+.comp-m-inp{text-align:center;border:1px solid var(--border);border-radius:4px;padding:4px 2px;font-size:13px;font-weight:500;color:#1a56db;font-family:'DM Sans',sans-serif;width:100%;}
+.comp-m-inp:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-light);}
+.comp-avg-bar{background:var(--surface2);border:1px solid var(--border);border-top:2px solid var(--accent);border-radius:0 0 var(--radius) var(--radius);padding:10px 15px;}
+.comp-avg-grid{display:grid;grid-template-columns:repeat(9,1fr);gap:4px;margin-top:5px;}
+.comp-avg-cell{text-align:center;padding:4px 2px;background:#fff;border:1px solid var(--border);border-radius:4px;}
+.cac-lbl{font-size:10px;color:var(--text-3);font-weight:600;text-transform:uppercase;}
+.cac-val{font-size:13px;font-weight:700;color:var(--accent-dark);}
+/* prop card */
+.prop-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:0 1px 3px rgba(0,0,0,.05);overflow:hidden;margin-bottom:12px;}
+.prop-hdr{padding:11px 15px;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;}
+.prop-body{padding:15px;}
+.prop-num{width:25px;height:25px;background:var(--accent);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;}
+/* cost section label */
+.cost-cat-hdr{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text-2);background:var(--surface2);padding:6px 12px;border-top:1px solid var(--border);border-bottom:1px solid var(--border);}
+/* tax mode cards */
+.tax-opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin-bottom:18px;}
+.tax-opt{border:2px solid var(--border);border-radius:var(--radius);padding:13px;cursor:pointer;transition:all .15s;background:var(--surface);}
+.tax-opt:hover{border-color:var(--accent);}
+.tax-opt.act{border-color:var(--accent);background:var(--accent-light);}
+.tax-opt-title{font-weight:700;font-size:13px;margin-bottom:3px;}
+.tax-opt-desc{font-size:11px;color:var(--text-2);}
+.tax-opt-rate{font-size:19px;font-weight:700;color:var(--accent);margin-top:5px;}
+/* pnl detail toggle */
+.detail-block{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);margin-top:10px;overflow:hidden;}
+.detail-hdr{padding:9px 14px;font-weight:600;font-size:13px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none;}
+.detail-hdr:hover{background:var(--surface2);}
+/* report print styles */
+@media print{
+  body{background:#fff;font-size:12px;}
+  .app-header,.tabs-bar,.no-print{display:none!important;}
+  .tab-panel{display:block!important;page-break-after:always;}
+  .main{padding:0;max-width:100%;}
+  .card{box-shadow:none;border:1px solid #ddd;page-break-inside:avoid;}
+  .print-report-header{display:block!important;}
+  .stats-row{grid-template-columns:repeat(5,1fr);}
+  canvas{max-height:280px!important;}
+  .report-cover{display:flex!important;}
+}
+.print-report-header{display:none;padding:24px 0 16px;border-bottom:3px solid var(--accent);margin-bottom:24px;}
+.report-cover{display:none;flex-direction:column;align-items:center;justify-content:center;min-height:300px;text-align:center;padding:40px;}
+.hint{display:inline-block;width:15px;height:15px;background:var(--border);border-radius:50%;font-size:10px;font-weight:700;text-align:center;line-height:15px;color:var(--text-2);cursor:help;margin-left:3px;}
+@media(max-width:768px){.main{padding:14px;}.g2,.g3,.g4{grid-template-columns:1fr;}.comp-months{grid-template-columns:repeat(3,1fr);}.stats-row{grid-template-columns:repeat(2,1fr);}}
+
+/* ── DASHBOARD ── */
+/* Use --z-sidebar-w injected by erp-nav.js so the dashboard sits to the right of the ERP sidebar */
+#dashboard{position:fixed;top:0;right:0;bottom:0;left:var(--z-sidebar-w,0px);background:var(--bg);z-index:200;overflow-y:auto;display:none;}
+#dashboard.active{display:block;}
+.dash-header{background:var(--accent-dark);color:#fff;padding:0 28px;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10;box-shadow:0 2px 12px rgba(0,0,0,.1);}
+.dash-logo{font-family:'DM Serif Display',serif;font-size:20px;color:#fff;}
+.dash-logo span{color:#86efac;}
+.dash-title{font-size:13px;color:rgba(255,255,255,.65);padding-left:16px;border-left:1px solid rgba(255,255,255,.2);}
+.dash-body{max-width:1300px;margin:0 auto;padding:32px 28px;}
+.dash-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:28px;}
+.dash-stat{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;}
+.ds-n{font-size:28px;font-weight:700;color:var(--text);line-height:1;}
+.ds-l{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--text-3);margin-top:4px;}
+.dash-filters{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;align-items:center;}
+.filter-btn{padding:6px 14px;border-radius:20px;border:2px solid transparent;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;background:var(--surface);color:var(--text-2);border-color:var(--border);}
+.filter-btn.active{background:var(--accent);color:#fff;border-color:var(--accent);}
+.projects-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px;}
+.proj-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:0 2px 8px rgba(0,0,0,.06);cursor:pointer;transition:all .2s;overflow:hidden;}
+.proj-card:hover{box-shadow:0 4px 20px rgba(0,0,0,.12);transform:translateY(-2px);border-color:var(--accent);}
+.proj-card-top{padding:16px 18px 12px;border-bottom:1px solid var(--border);}
+.proj-card-name{font-family:'DM Serif Display',serif;font-size:17px;color:var(--text);margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.proj-card-addr{font-size:12px;color:var(--text-3);}
+.proj-card-mid{padding:10px 18px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;border-bottom:1px solid var(--border);}
+.pcm-item{display:flex;flex-direction:column;gap:2px;}
+.pcm-lbl{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;color:var(--text-3);}
+.pcm-val{font-size:13px;font-weight:600;color:var(--text);}
+.proj-card-bot{padding:10px 18px;display:flex;align-items:center;justify-content:space-between;}
+.status-pill{padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;letter-spacing:.3px;}
+.sp-draft{background:#f0f4ff;color:#3b5bdb;}
+.sp-review{background:#fff4e6;color:#e67700;}
+.sp-sent{background:#ebfbee;color:#2f9e44;}
+.sp-archived{background:#f8f9fa;color:#868e96;}
+.proj-card-actions{display:flex;gap:6px;}
+.pca-btn{padding:4px 10px;border-radius:var(--radius-sm);font-size:11px;font-weight:500;cursor:pointer;border:1px solid var(--border);background:var(--surface);color:var(--text-2);font-family:'DM Sans',sans-serif;transition:all .15s;}
+.pca-btn:hover{border-color:var(--border-strong);color:var(--text);}
+.pca-btn.danger{color:var(--danger);border-color:#f5c6c1;}
+.pca-btn.danger:hover{background:var(--danger-light);}
+.new-proj-btn{background:var(--accent);color:#fff;border:none;border-radius:var(--radius-sm);padding:9px 18px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;transition:background .15s;}
+.new-proj-btn:hover{background:var(--accent-dark);}
+.empty-dash{text-align:center;padding:60px 24px;color:var(--text-3);}
+.empty-dash-icon{font-size:48px;margin-bottom:14px;}
+.empty-dash-text{font-size:17px;color:var(--text-2);font-weight:500;margin-bottom:6px;}
+/* Project status bar in app header */
+.proj-status-bar{display:flex;align-items:center;gap:8px;margin-left:auto;}
+.status-select{border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.1);color:#fff;border-radius:var(--radius-sm);padding:4px 8px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;cursor:pointer;}
+.status-select option{color:var(--text);background:var(--surface);}
+.back-btn{display:flex;align-items:center;gap:5px;padding:5px 12px;border-radius:var(--radius-sm);border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.1);color:rgba(255,255,255,.9);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;cursor:pointer;transition:all .15s;}
+.back-btn:hover{background:rgba(255,255,255,.2);}
+.save-btn{display:flex;align-items:center;gap:5px;padding:5px 12px;border-radius:var(--radius-sm);border:1px solid #86efac;background:rgba(134,239,172,.15);color:#86efac;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;}
+.save-btn:hover{background:rgba(134,239,172,.25);}
+.save-indicator{font-size:11px;color:rgba(255,255,255,.5);white-space:nowrap;}
+/* Loading overlay */
+.loading-overlay{position:fixed;inset:0;background:rgba(255,255,255,.85);z-index:300;display:none;align-items:center;justify-content:center;flex-direction:column;gap:12px;}
+.loading-overlay.active{display:flex;}
+.spinner{width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+<!-- LOADING OVERLAY -->
+<div class="loading-overlay" id="loading-overlay">
+  <div class="spinner"></div>
+  <div style="font-size:13px;color:var(--text-2);" id="loading-msg">Loading...</div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashboard">
+  <div class="dash-header">
+    <div style="display:flex;align-items:center;gap:16px;">
+      <div class="dash-logo">Zesty <span>ERP</span></div>
+      <div class="dash-title">Villa Business Planner</div>
+    </div>
+    <button class="new-proj-btn" onclick="newProject()">+ New Project</button>
+  </div>
+  <div class="dash-body">
+    <div class="dash-stats" id="dash-stats"></div>
+    <div class="dash-filters">
+      <span style="font-size:12px;font-weight:600;color:var(--text-2);margin-right:4px;">Filter:</span>
+      <button class="filter-btn active" onclick="setFilter('all',this)">All</button>
+      <button class="filter-btn" onclick="setFilter('draft',this)">Draft</button>
+      <button class="filter-btn" onclick="setFilter('review',this)">In Review</button>
+      <button class="filter-btn" onclick="setFilter('sent',this)">Sent to Owner</button>
+      <button class="filter-btn" onclick="setFilter('archived',this)">Archived</button>
+      <input type="text" id="dash-search" placeholder="🔍 Search projects..." oninput="renderDashboard()" style="margin-left:auto;padding:6px 12px;border:1px solid var(--border);border-radius:20px;font-family:'DM Sans',sans-serif;font-size:12px;width:220px;">
+    </div>
+    <div class="projects-grid" id="projects-grid"></div>
+  </div>
+</div>
+
+<div class="app-header" id="app-header" style="display:none;">
+  <button class="back-btn" onclick="goToDashboard()">← All Projects</button>
+  <div class="hdr-proj" style="padding-left:12px;border-left:1px solid rgba(255,255,255,.2);">
+    <strong id="hdr-proj-name">New Project</strong>
+  </div>
+  <div class="proj-status-bar">
+    <span class="save-indicator" id="save-indicator"></span>
+    <button class="save-btn" onclick="saveProject()">💾 Save</button>
+    <select class="status-select" id="proj-status-select" onchange="onStatusChange(this.value)">
+      <option value="draft">Draft</option>
+      <option value="review">In Review</option>
+      <option value="sent">Sent to Owner</option>
+      <option value="archived">Archived</option>
+    </select>
+    <button class="btn bg btn-sm no-print" onclick="printReport()" style="margin-left:4px;">🖨 Print</button>
+  </div>
+</div>
+<nav class="tabs-bar" id="app-tabs" style="display:none;">
+  <button class="tab-btn active" onclick="switchTab('project')" id="tab-project">🏗 Project</button>
+  <button class="tab-btn" onclick="switchTab('rates')" id="tab-rates">💰 Rate Table</button>
+  <button class="tab-btn" onclick="switchTab('occupancy')" id="tab-occupancy">📅 Occupancy</button>
+  <button class="tab-btn" onclick="switchTab('comparables')" id="tab-comparables">🔍 Comparables</button>
+  <button class="tab-btn" onclick="switchTab('costs')" id="tab-costs">⚙️ Cost Engine</button>
+  <button class="tab-btn" onclick="switchTab('properties')" id="tab-properties">🏠 Properties</button>
+  <button class="tab-btn" onclick="switchTab('summary')" id="tab-summary">📊 P&amp;L Summary</button>
+  <button class="tab-btn" onclick="switchTab('taxation')" id="tab-taxation">🧾 Taxation</button>
+</nav>
+<main class="main" id="app-main" style="display:none;">
+
+<!-- ══════════ PROJECT ══════════ -->
+<div class="tab-panel active" id="panel-project">
+  <div class="section">
+    <div class="sec-hdr"><div><div class="sec-title">Project Setup</div><div class="sec-sub">Core project details and financial parameters</div></div></div>
+    <div class="card">
+      <div class="fg g3">
+        <div class="fgrp"><label class="flbl">Project Name</label><input class="finp" id="proj-name" type="text" placeholder="e.g. Akti Tompazi Villas" oninput="document.getElementById('hdr-proj-name').textContent=this.value||'New Project'"></div>
+        <div class="fgrp"><label class="flbl">Location / Address</label><input class="finp" id="proj-address" type="text" placeholder="e.g. Kissamos, Crete"></div>
+        <div class="fgrp"><label class="flbl">Analysis Year</label><input class="finp" id="proj-year" type="number" value="2026"></div>
+        <div class="fgrp"><label class="flbl">Owner / Client</label><input class="finp" id="proj-owner" type="text" placeholder="e.g. Koundourakis Family"></div>
+        <div class="fgrp"><label class="flbl">Prepared By</label><input class="finp" id="proj-preparedby" value="Zesty Rentals and Investments"></div>
+      </div>
+      <div class="divider"></div>
+      <div class="fg g4">
+        <div class="fgrp"><label class="flbl">VAT on Short-term Rental %</label><input class="finp bl" id="proj-vat" type="number" value="8" step="0.5"></div>
+        <div class="fgrp"><label class="flbl">Platform Commission %</label><input class="finp bl" id="proj-platform" type="number" value="15" step="0.5"></div>
+        <div class="fgrp"><label class="flbl">Mgmt Fee %</label><input class="finp bl" id="proj-mgmt" type="number" value="10" step="0.5"></div>
+        <div class="fgrp"><label class="flbl">Avg Nights per Stay <span class="hint" title="Booked nights divided by this = turnovers/year. Each turnover triggers: cleaning, check-in, laundry, amenity refill.">?</span></label><input class="finp bl" id="proj-avg-stay" type="number" value="4.5" step="0.5" min="1"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ RATE TABLE ══════════ -->
+<div class="tab-panel" id="panel-rates">
+  <div class="section">
+    <div class="sec-hdr">
+      <div><div class="sec-title">Shared Rate Table</div><div class="sec-sub">Nightly rates by bedroom group — aligned with Comparables</div></div>
+      <div style="display:flex;gap:8px;"><button class="btn bs btn-sm" onclick="fillFromComps()">↙ Fill from Comparables avg</button></div>
+    </div>
+    <div class="alert alert-i">ℹ️ &nbsp;<span>Blue values are editable inputs. Rates are per night, before multiplier. Grouped by bedroom count.</span></div>
+    <div id="rate-table-container"></div>
+  </div>
+</div>
+
+<!-- ══════════ OCCUPANCY ══════════ -->
+<div class="tab-panel" id="panel-occupancy">
+  <div class="section">
+    <div class="sec-hdr"><div><div class="sec-title">Occupancy Scenarios</div><div class="sec-sub">Set Basic scenario occupancy — Safe and Good are derived by offset</div></div></div>
+    <div class="card" style="margin-bottom:14px;">
+      <div style="font-weight:600;margin-bottom:12px;">Scenario Offsets from Basic</div>
+      <div class="fg g2" style="max-width:400px;">
+        <div class="fgrp"><label class="flbl">Safe Scenario offset (pp)</label><input class="finp bl" id="occ-safe-offset" type="number" value="-10" oninput="buildOccupancy()"></div>
+        <div class="fgrp"><label class="flbl">Good Scenario offset (pp)</label><input class="finp bl" id="occ-good-offset" type="number" value="8" oninput="buildOccupancy()"></div>
+      </div>
+      <div style="font-size:12px;color:var(--text-3);margin-top:8px;">pp = percentage points. Safe = Basic + offset (clamped 0–100%). Edit Basic directly in the table below.</div>
+    </div>
+    <div id="occ-panels"></div>
+  </div>
+</div>
+
+<!-- ══════════ COMPARABLES ══════════ -->
+<div class="tab-panel" id="panel-comparables">
+  <div class="section">
+    <div class="sec-hdr">
+      <div><div class="sec-title">Comparable Properties</div><div class="sec-sub">Grouped by bedroom count — averages feed the Rate Table</div></div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <select class="fsel" id="comp-add-beds" style="width:130px;">
+          <option value="1">Studio / 1BR</option><option value="2" selected>2 Bedrooms</option><option value="3">3 Bedrooms</option>
+          <option value="4">4 Bedrooms</option><option value="5">5 Bedrooms</option><option value="6">6 Bedrooms</option>
+        </select>
+        <button class="btn bp" onclick="addComp()">+ Add Comparable</button>
+      </div>
+    </div>
+    <div id="comparables-list"></div>
+  </div>
+</div>
+
+<!-- ══════════ COST ENGINE ══════════ -->
+<div class="tab-panel" id="panel-costs">
+  <div class="section">
+    <div class="sec-hdr"><div><div class="sec-title">Cost Engine</div><div class="sec-sub">Variable per-stay costs, scaled by bed count</div></div></div>
+    <div class="alert alert-w">⚡ &nbsp;<span>Cleaning is calculated by hours × rate/hr per bed. All other costs scale by qty/bed. Check-in/out and pool/garden are set separately.</span></div>
+
+    <!-- CLEANING SECTION -->
+    <div class="card" style="margin-bottom:14px;">
+      <div style="font-weight:700;font-size:15px;margin-bottom:14px;display:flex;align-items:center;gap:8px;">🧹 Cleaning <span style="font-size:12px;font-weight:400;color:var(--text-3);">Calculated per bed, per turnover</span></div>
+      <div class="fg g4" style="margin-bottom:14px;">
+        <div class="fgrp"><label class="flbl">Hours per Bed (per turnover)</label><input class="finp bl" id="clean-hrs" type="number" value="1.5" step="0.25" min="0" oninput="recalcCosts()"></div>
+        <div class="fgrp"><label class="flbl">Hourly Rate (€/hr)</label><input class="finp bl" id="clean-rate" type="number" value="8" step="0.5" min="0" oninput="recalcCosts()"></div>
+        <div class="fgrp"><label class="flbl">Cleaning Staff Transport (€/trip)</label><input class="finp bl" id="clean-transport" type="number" value="5" step="2.5" min="0" oninput="recalcCosts()"></div>
+        <div class="fgrp"><label class="flbl">Transport trips per turnover</label><input class="finp bl" id="clean-trips" type="number" value="1" step="1" min="0" oninput="recalcCosts()"></div>
+      </div>
+      <div style="background:var(--surface2);border-radius:var(--radius-sm);padding:10px 14px;font-size:13px;display:flex;gap:24px;flex-wrap:wrap;">
+        <span>Cost/bed/turnover (labour): <strong id="clean-per-bed">€0.00</strong></span>
+        <span>Transport per turnover: <strong id="clean-transport-total">€0.00</strong></span>
+        <span>3-bed example total: <strong id="clean-3bed">€0.00</strong></span>
+      </div>
+    </div>
+
+    <!-- OTHER VARIABLE COSTS -->
+    <div class="card" style="padding:0;">
+      <div style="padding:13px 16px;font-weight:700;font-size:15px;border-bottom:1px solid var(--border);">📦 Variable Costs per Turnover</div>
+      <table id="cost-table">
+        <thead><tr><th>Category</th><th>Item</th><th>Unit Price (€)</th><th>Qty / Bed</th><th class="tr">Total / Bed (€)</th><th></th></tr></thead>
+        <tbody id="cost-tbody"></tbody>
+        <tfoot><tr style="background:var(--accent-light);">
+          <td colspan="4" style="font-weight:700;padding:9px 12px;color:var(--accent-dark);">TOTAL VARIABLE COST / STAY (excl. cleaning) — 3-bed example</td>
+          <td class="tr" style="font-weight:700;color:var(--accent-dark);padding:9px 12px;" id="cost-total-ex">—</td><td></td>
+        </tr></tfoot>
+      </table>
+    </div>
+
+    <!-- CHECK IN -->
+    <div class="card" style="margin-top:14px;">
+      <div style="font-weight:700;margin-bottom:10px;">🔑 Check-in / Check-out (per turnover)</div>
+      <div class="fg g3">
+        <div class="fgrp"><label class="flbl">Fixed Cost (€)</label><input class="finp bl" id="ci-fixed" type="number" value="0" oninput="recalcCosts()"></div>
+        <div class="fgrp"><label class="flbl">Cost per km (€)</label><input class="finp bl" id="ci-perkm" type="number" value="0" step="0.1" oninput="recalcCosts()"></div>
+        <div class="fgrp"><label class="flbl">Distance from Office (km)</label><input class="finp bl" id="ci-km" type="number" value="4" oninput="recalcCosts()"></div>
+      </div>
+      <div style="margin-top:8px;font-size:13px;color:var(--text-2);">Check-in cost per turnover: <strong id="ci-total">€0.00</strong></div>
+    </div>
+
+    <!-- COST BY BEDS SUMMARY -->
+    <div style="margin-top:16px;">
+      <div style="font-weight:600;margin-bottom:8px;">Total Variable Cost Per Stay by Bedroom Count (incl. cleaning + check-in)</div>
+      <div class="stats-row" id="cost-by-beds"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ PROPERTIES ══════════ -->
+<div class="tab-panel" id="panel-properties">
+  <div class="section">
+    <div class="sec-hdr">
+      <div><div class="sec-title">Properties</div><div class="sec-sub">Add all rental units in the project</div></div>
+      <button class="btn bp" onclick="addProperty()">+ Add Property</button>
+    </div>
+    <div id="properties-list"></div>
+    <div id="props-empty" class="empty-state"><div class="empty-icon">🏠</div><div class="empty-text">No properties yet</div></div>
+  </div>
+</div>
+
+<!-- ══════════ P&L SUMMARY ══════════ -->
+<div class="tab-panel" id="panel-summary">
+  <!-- Print cover -->
+  <div class="report-cover no-print" style="display:none;"></div>
+  <div class="print-report-header" id="print-hdr"></div>
+
+  <div class="section">
+    <div class="sec-hdr">
+      <div><div class="sec-title">P&amp;L Summary</div><div class="sec-sub">Financial projection — select scenario</div></div>
+      <button class="btn bg btn-sm no-print" onclick="printReport()">🖨 Print Report</button>
+    </div>
+    <div class="sc-tabs no-print">
+      <button class="sc-btn safe active" onclick="setScenario('safe',this)">🔵 Safe</button>
+      <button class="sc-btn basic" onclick="setScenario('basic',this)">🟠 Basic</button>
+      <button class="sc-btn good" onclick="setScenario('good',this)">🟢 Good</button>
+    </div>
+    <div id="summary-content"></div>
+  </div>
+</div>
+
+<!-- ══════════ TAXATION ══════════ -->
+<div class="tab-panel" id="panel-taxation">
+  <div class="section">
+    <div class="sec-hdr">
+      <div><div class="sec-title">Taxation Scenarios</div><div class="sec-sub">Compare tax burden across different legal structures</div></div>
+      <button class="btn bp btn-sm" onclick="renderTaxation()">↻ Recalculate</button>
+    </div>
+
+    <!-- TAX BRACKETS SETTINGS -->
+    <div class="card" style="margin-bottom:14px;">
+      <div style="font-weight:700;font-size:15px;margin-bottom:14px;">⚙️ Tax Bracket Settings <span style="font-size:12px;font-weight:400;color:var(--text-3);">Adjust as legislation changes</span></div>
+      <div class="fg g2" style="gap:20px;">
+        <!-- Personal Income Tax -->
+        <div>
+          <div style="font-weight:600;margin-bottom:8px;font-size:13px;">Personal Income Tax (Φυσικό Πρόσωπο)</div>
+          <table id="tax-personal-table">
+            <thead><tr><th>From (€)</th><th>To (€)</th><th>Rate %</th><th></th></tr></thead>
+            <tbody id="tax-personal-tbody"></tbody>
+          </table>
+          <button class="btn bs btn-sm" style="margin-top:8px;" onclick="addTaxBracket('personal')">+ Add Bracket</button>
+        </div>
+        <!-- STR Brackets -->
+        <div>
+          <div style="font-weight:600;margin-bottom:8px;font-size:13px;">Short-term Rental Brackets (ΑΑΔΕ / STR)</div>
+          <table id="tax-str-table">
+            <thead><tr><th>From (€)</th><th>To (€)</th><th>Rate %</th><th></th></tr></thead>
+            <tbody id="tax-str-tbody"></tbody>
+          </table>
+          <button class="btn bs btn-sm" style="margin-top:8px;" onclick="addTaxBracket('str')">+ Add Bracket</button>
+        </div>
+        <!-- IKE & flat rates -->
+        <div>
+          <div style="font-weight:600;margin-bottom:8px;font-size:13px;">ΙΚΕ Corporate Tax</div>
+          <div class="fg g2">
+            <div class="fgrp"><label class="flbl">Corporate Tax Rate %</label><input class="finp bl" id="ike-rate" type="number" value="22" step="1" oninput="renderTaxation()"></div>
+            <div class="fgrp"><label class="flbl">Dividend Tax %</label><input class="finp bl" id="ike-div-rate" type="number" value="5" step="1" oninput="renderTaxation()"></div>
+          </div>
+        </div>
+        <div>
+          <div style="font-weight:600;margin-bottom:8px;font-size:13px;">STR Flat Rate (when applicable)</div>
+          <div class="fgrp"><label class="flbl">STR flat tax rate % (per owner)</label><input class="finp bl" id="str-flat-rate" type="number" value="15" step="1" oninput="renderTaxation()"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SCENARIO INPUTS -->
+    <div class="fg g2" style="margin-bottom:14px;gap:14px;">
+      <!-- Scenario selector for revenue base -->
+      <div class="card">
+        <div style="font-weight:600;margin-bottom:10px;">Revenue Base</div>
+        <div class="fgrp" style="margin-bottom:10px;"><label class="flbl">Use P&amp;L scenario as income base</label>
+          <select class="fsel" id="tax-scenario-sel" onchange="renderTaxation()">
+            <option value="safe">Safe Scenario</option><option value="basic" selected>Basic Scenario</option><option value="good">Good Scenario</option>
+          </select>
+        </div>
+        <div id="tax-income-preview" style="font-size:13px;color:var(--text-2);">—</div>
+      </div>
+      <div class="card">
+        <div style="font-weight:600;margin-bottom:10px;">Tax Base Rules</div>
+        <div style="font-size:13px;color:var(--text-2);line-height:1.7;">
+          <div style="padding:6px 10px;background:var(--safe-light);border-radius:6px;margin-bottom:6px;">
+            <strong>STR (1 or 2 owners):</strong> Tax is calculated on <strong>Gross Revenue</strong> — no expense deductions allowed under Greek STR legislation.
+          </div>
+          <div style="padding:6px 10px;background:var(--accent-light);border-radius:6px;">
+            <strong>IKE / Personal Company:</strong> Tax is calculated on <strong>Gross Operating Profit</strong> (after all operating expenses). Accountant &amp; SSI costs reduce the taxable base further.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PER-STRUCTURE COST SETTINGS -->
+    <div class="card" style="margin-bottom:14px;">
+      <div style="font-weight:700;font-size:15px;margin-bottom:12px;">Per-Structure Deductible Costs</div>
+      <div class="fg g4">
+        <div>
+          <div style="font-weight:600;font-size:12px;color:var(--text-2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">ΙΚΕ</div>
+          <div class="fgrp" style="margin-bottom:8px;"><label class="flbl">Accountant (€/yr)</label><input class="finp bl" id="tc-ike-acc" type="number" value="1500" oninput="renderTaxation()"></div>
+          <div class="fgrp"><label class="flbl">Social Security (€/yr)</label><input class="finp bl" id="tc-ike-ss" type="number" value="0" oninput="renderTaxation()"></div>
+        </div>
+        <div>
+          <div style="font-weight:600;font-size:12px;color:var(--text-2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">Personal Company</div>
+          <div class="fgrp" style="margin-bottom:8px;"><label class="flbl">Accountant (€/yr)</label><input class="finp bl" id="tc-pers-acc" type="number" value="1000" oninput="renderTaxation()"></div>
+          <div class="fgrp"><label class="flbl">Social Security / ΕΦΚΑ (€/yr)</label><input class="finp bl" id="tc-pers-ss" type="number" value="2640" oninput="renderTaxation()"></div>
+        </div>
+        <div>
+          <div style="font-weight:600;font-size:12px;color:var(--text-2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">STR — 1 Owner</div>
+          <div class="fgrp" style="margin-bottom:8px;"><label class="flbl">Accountant (€/yr)</label><input class="finp bl" id="tc-str1-acc" type="number" value="800" oninput="renderTaxation()"></div>
+          <div class="fgrp"><label class="flbl">Social Security (€/yr)</label><input class="finp bl" id="tc-str1-ss" type="number" value="0" oninput="renderTaxation()"></div>
+        </div>
+        <div>
+          <div style="font-weight:600;font-size:12px;color:var(--text-2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">STR — 2 Owners</div>
+          <div class="fgrp" style="margin-bottom:8px;"><label class="flbl">Accountant (€/yr)</label><input class="finp bl" id="tc-str2-acc" type="number" value="1000" oninput="renderTaxation()"></div>
+          <div class="fgrp"><label class="flbl">Social Security (€/yr)</label><input class="finp bl" id="tc-str2-ss" type="number" value="0" oninput="renderTaxation()"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RESULTS -->
+    <div id="tax-results"></div>
+  </div>
+</div>
+
+</main>
+
+<script>
+// ════════════════════════════════════════════════════════
+// SUPABASE + PROJECT MANAGEMENT
+// ════════════════════════════════════════════════════════
+const SUPA_URL='https://whuytfjwdjjepayeiohj.supabase.co';
+const SUPA_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndodXl0Zmp3ZGpqZXBheWVpb2hqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDI5MDk0MjIsImV4cCI6MjAxODQ4NTQyMn0.6HBMkFMR-RC8-6otUOFiNiVGSFHNrF8OtNLxHj8VU9M';
+let _supa=null;
+function getSB(){if(!_supa&&window.supabase)_supa=window.supabase.createClient(SUPA_URL,SUPA_KEY);return _supa;}
+
+let currentProjectId=null;
+let dashFilter='all';
+let dashProjects=[];
+
+function showLoading(msg){
+  document.getElementById('loading-overlay').classList.add('active');
+  document.getElementById('loading-msg').textContent=msg||'Loading...';
+}
+function hideLoading(){document.getElementById('loading-overlay').classList.remove('active');}
+function setSaveInd(msg,clr){
+  const el=document.getElementById('save-indicator');
+  if(el){el.textContent=msg;el.style.color=clr||'rgba(255,255,255,.5)';}
+}
+
+function collectData(){
+  const g=id=>document.getElementById(id)?.value||'';
+  return {
+    name:g('proj-name'),address:g('proj-address'),year:g('proj-year'),
+    owner:g('proj-owner'),preparedby:g('proj-preparedby'),
+    vat:g('proj-vat'),platform:g('proj-platform'),mgmt:g('proj-mgmt'),avg_stay:g('proj-avg-stay'),
+    clean_hrs:g('clean-hrs'),clean_rate:g('clean-rate'),clean_transport:g('clean-transport'),clean_trips:g('clean-trips'),
+    ci_fixed:g('ci-fixed'),ci_perkm:g('ci-perkm'),ci_km:g('ci-km'),
+    ike_rate:g('ike-rate'),ike_div_rate:g('ike-div-rate'),str_flat_rate:g('str-flat-rate'),
+    occ_safe_offset:g('occ-safe-offset'),occ_good_offset:g('occ-good-offset'),
+    tc_ike_acc:g('tc-ike-acc'),tc_ike_ss:g('tc-ike-ss'),
+    tc_pers_acc:g('tc-pers-acc'),tc_pers_ss:g('tc-pers-ss'),
+    tc_str1_acc:g('tc-str1-acc'),tc_str1_ss:g('tc-str1-ss'),
+    tc_str2_acc:g('tc-str2-acc'),tc_str2_ss:g('tc-str2-ss'),
+    S_rates:JSON.parse(JSON.stringify(S.rates)),
+    S_occ_basic:[...S.occ_basic],
+    S_costs:JSON.parse(JSON.stringify(S.costs)),
+    S_comps:JSON.parse(JSON.stringify(S.comps)),
+    S_props:JSON.parse(JSON.stringify(S.props)),
+    S_taxBrackets:JSON.parse(JSON.stringify(S.taxBrackets)),
+  };
+}
+
+function restoreData(d){
+  if(!d)return;
+  const s=(id,val)=>{const el=document.getElementById(id);if(el&&val!==undefined&&val!=='')el.value=val;};
+  s('proj-name',d.name);s('proj-address',d.address);s('proj-year',d.year||'2026');
+  s('proj-owner',d.owner);s('proj-preparedby',d.preparedby);
+  s('proj-vat',d.vat);s('proj-platform',d.platform);s('proj-mgmt',d.mgmt);s('proj-avg-stay',d.avg_stay);
+  s('clean-hrs',d.clean_hrs);s('clean-rate',d.clean_rate);
+  s('clean-transport',d.clean_transport);s('clean-trips',d.clean_trips);
+  s('ci-fixed',d.ci_fixed);s('ci-perkm',d.ci_perkm);s('ci-km',d.ci_km);
+  s('ike-rate',d.ike_rate);s('ike-div-rate',d.ike_div_rate);s('str-flat-rate',d.str_flat_rate);
+  s('occ-safe-offset',d.occ_safe_offset);s('occ-good-offset',d.occ_good_offset);
+  s('tc-ike-acc',d.tc_ike_acc);s('tc-ike-ss',d.tc_ike_ss);
+  s('tc-pers-acc',d.tc_pers_acc);s('tc-pers-ss',d.tc_pers_ss);
+  s('tc-str1-acc',d.tc_str1_acc);s('tc-str1-ss',d.tc_str1_ss);
+  s('tc-str2-acc',d.tc_str2_acc);s('tc-str2-ss',d.tc_str2_ss);
+  if(d.S_rates)Object.assign(S.rates,d.S_rates);
+  if(d.S_occ_basic)S.occ_basic=[...d.S_occ_basic];
+  if(d.S_costs)S.costs=d.S_costs.map(c=>({...c}));
+  if(d.S_comps)S.comps=d.S_comps.map(c=>({...c}));
+  if(d.S_props)S.props=d.S_props.map(p=>({...p}));
+  if(d.S_taxBrackets){S.taxBrackets.personal=d.S_taxBrackets.personal||[];S.taxBrackets.str=d.S_taxBrackets.str||[];}
+  document.getElementById('hdr-proj-name').textContent=d.name||'Untitled';
+}
+
+function rebuildUI(){buildRateTable();buildOccupancy();buildCostTable();renderProps();renderComps();recalcCosts();}
+
+function projStats(data){
+  try{
+    const r=data.S_rates||{},o=data.S_occ_basic||[],pr=data.S_props||[];
+    const UB={'Studio':1,'2 Bedroom':2,'3 Bedroom':3,'4 Bedroom':4,'5 Bedroom':5,'6 Bedroom':6};
+    const PD=[91,60,30,20,31,11,30,31,61];
+    let rev=0;
+    pr.forEach(p=>{const b=UB[p.unitType]||1,ra=r[b]||[];PD.forEach((d,i)=>{rev+=(ra[i]||0)*(p.multiplier||1)*d*(o[i]||0);});});
+    return{props:pr.length,rev:Math.round(rev)};
+  }catch(e){return{props:0,rev:0};}
+}
+
+async function ensureTable(){
+  const sb=getSB();if(!sb)return false;
+  const{error}=await sb.from('villa_plans').select('id').limit(1);
+  if(error&&(error.code==='42P01'||error.message?.includes('does not exist'))){
+    alert('Please create the villa_plans table in Supabase SQL editor:\n\nCREATE TABLE villa_plans (\n  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,\n  name text,\n  status text DEFAULT \'draft\',\n  data jsonb,\n  created_at timestamptz DEFAULT now(),\n  updated_at timestamptz DEFAULT now()\n);');
+    return false;
+  }
+  return true;
+}
+
+async function loadAllProjects(){
+  const sb=getSB();if(!sb)return[];
+  const{data,error}=await sb.from('villa_plans').select('id,name,status,created_at,updated_at,data').order('updated_at',{ascending:false});
+  if(error){console.error(error);return[];}
+  return data||[];
+}
+
+async function saveProject(){
+  const sb=getSB();if(!sb){alert('Supabase not available');return;}
+  setSaveInd('Saving...','#fbbf24');
+  const payload=collectData();
+  const status=document.getElementById('proj-status-select')?.value||'draft';
+  const row={name:payload.name||'Untitled',status,data:payload,updated_at:new Date().toISOString()};
+  let error;
+  if(currentProjectId){
+    ({error}=await sb.from('villa_plans').update(row).eq('id',currentProjectId));
+  }else{
+    const{data:nd,error:e}=await sb.from('villa_plans').insert(row).select('id').single();
+    error=e;if(nd)currentProjectId=nd.id;
+  }
+  if(error){setSaveInd('Failed','#f87171');console.error(error);}
+  else{setSaveInd('Saved ✓','#86efac');setTimeout(()=>setSaveInd(''),3000);}
+}
+
+async function deleteProject(id){
+  if(!confirm('Delete this project permanently?'))return;
+  const sb=getSB();
+  await sb.from('villa_plans').delete().eq('id',id);
+  await loadDashboard();
+}
+
+async function duplicateProject(id){
+  const p=dashProjects.find(x=>x.id===id);if(!p)return;
+  const sb=getSB();
+  const row={name:'Copy of '+(p.name||'Project'),status:'draft',data:{...(p.data||{}),name:'Copy of '+(p.name||'Project')},updated_at:new Date().toISOString()};
+  await sb.from('villa_plans').insert(row);
+  await loadDashboard();
+}
+
+function onStatusChange(){if(currentProjectId)saveProject();}
+
+function setFilter(f,btn){
+  dashFilter=f;
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+  renderDashboard();
+}
+
+function renderDashboard(){
+  const search=(document.getElementById('dash-search')?.value||'').toLowerCase();
+  let list=dashProjects;
+  if(dashFilter!=='all')list=list.filter(p=>p.status===dashFilter);
+  if(search)list=list.filter(p=>(p.name||'').toLowerCase().includes(search)||((p.data?.address||'')).toLowerCase().includes(search));
+
+  const cnt={draft:0,review:0,sent:0,archived:0};
+  dashProjects.forEach(p=>{if(cnt[p.status]!==undefined)cnt[p.status]++;});
+  document.getElementById('dash-stats').innerHTML=[
+    {n:dashProjects.length,l:'Total',c:''},
+    {n:cnt.draft,l:'Draft',c:'#3b5bdb'},
+    {n:cnt.review,l:'In Review',c:'#e67700'},
+    {n:cnt.sent,l:'Sent to Owner',c:'#2f9e44'},
+    {n:cnt.archived,l:'Archived',c:'#868e96'},
+  ].map(s=>`<div class="dash-stat"><div class="ds-n"${s.c?' style="color:'+s.c+'"':''}>${s.n}</div><div class="ds-l">${s.l}</div></div>`).join('');
+
+  const grid=document.getElementById('projects-grid');
+  if(!list.length){
+    grid.innerHTML=`<div class="empty-dash" style="grid-column:1/-1"><div class="empty-dash-icon">🏗</div><div class="empty-dash-text">${dashProjects.length===0?'No projects yet':'No projects match this filter'}</div>${dashProjects.length===0?'<div style="font-size:13px;margin-top:6px;">Click &ldquo;+ New Project&rdquo; to get started</div>':''}</div>`;
+    return;
+  }
+  const SL={draft:'Draft',review:'In Review',sent:'Sent to Owner',archived:'Archived'};
+  const SC={draft:'sp-draft',review:'sp-review',sent:'sp-sent',archived:'sp-archived'};
+  grid.innerHTML=list.map(p=>{
+    const st=projStats(p.data||{});
+    const upd=p.updated_at?new Date(p.updated_at).toLocaleDateString('el-GR'):'—';
+    const addr=(p.data?.address||'').trim(),yr=p.data?.year||'';
+    return `<div class="proj-card" onclick="openProject('${p.id}')">
+      <div class="proj-card-top">
+        <div class="proj-card-name">${p.name||'Untitled'}</div>
+        <div class="proj-card-addr">${addr}${addr&&yr?' · ':''}${yr}</div>
+      </div>
+      <div class="proj-card-mid">
+        <div class="pcm-item"><div class="pcm-lbl">Properties</div><div class="pcm-val">${st.props}</div></div>
+        <div class="pcm-item"><div class="pcm-lbl">Est. Revenue</div><div class="pcm-val">€${Number(st.rev).toLocaleString('el-GR',{maximumFractionDigits:0})}</div></div>
+        <div class="pcm-item"><div class="pcm-lbl">Updated</div><div class="pcm-val">${upd}</div></div>
+      </div>
+      <div class="proj-card-bot">
+        <span class="status-pill ${SC[p.status]||'sp-draft'}">${SL[p.status]||p.status}</span>
+        <div class="proj-card-actions" onclick="event.stopPropagation()">
+          <button class="pca-btn" onclick="duplicateProject('${p.id}')">Duplicate</button>
+          <button class="pca-btn danger" onclick="deleteProject('${p.id}')">Delete</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function loadDashboard(){
+  showLoading('Loading projects...');
+  dashProjects=await loadAllProjects();
+  hideLoading();
+  renderDashboard();
+}
+
+function showApp(){
+  document.getElementById('dashboard').classList.remove('active');
+  document.getElementById('app-header').style.display='flex';
+  document.getElementById('app-tabs').style.display='flex';
+  document.getElementById('app-main').style.display='block';
+}
+function showDashboard(){
+  document.getElementById('dashboard').classList.add('active');
+  document.getElementById('app-header').style.display='none';
+  document.getElementById('app-tabs').style.display='none';
+  document.getElementById('app-main').style.display='none';
+}
+function goToDashboard(){showDashboard();loadDashboard();}
+
+const DEF_RATES_RESET={1:[0,160,180,225,270,290,230,200,160],2:[0,170,195,230,275,295,255,205,165],3:[0,190,215,265,310,365,290,240,190],4:[0,0,0,0,0,0,0,0,0],5:[0,0,0,0,0,0,0,0,0],6:[0,0,0,0,0,0,0,0,0]};
+const DEF_COSTS_RESET=[{cat:'Linens',name:'Σεντόνια (sheets)',price:1.92,qpb:2},{cat:'Linens',name:'Μαξιλάκια (pillowcases)',price:1.08,qpb:2},{cat:'Linens',name:'Πετσέτες (towels)',price:1.20,qpb:4},{cat:'Linens',name:'Κουβέρτες (blankets)',price:6.00,qpb:1},{cat:'Linens',name:'Πατάκια (bath mats)',price:1.08,qpb:1},{cat:'Cleaning',name:'Cleaning per bed',price:12.00,qpb:1.5},{cat:'Amenities',name:'Shampoo',price:0.32,qpb:2},{cat:'Amenities',name:'Body cream',price:0.36,qpb:2},{cat:'Amenities',name:'Hair cream',price:0.34,qpb:2},{cat:'Amenities',name:'Shower gel',price:0.32,qpb:2},{cat:'Amenities',name:'Soap',price:0.31,qpb:2},{cat:'Consumables',name:'Toilet paper',price:0.50,qpb:2},{cat:'Consumables',name:'Washing gel',price:5.00,qpb:0.5},{cat:'Consumables',name:'Σφουγγάρι / sponge',price:0.50,qpb:1},{cat:'Consumables',name:'Olive oil & others',price:5.00,qpb:1},{cat:'Consumables',name:'Dishwasher tablets',price:0.50,qpb:1.5},{cat:'Consumables',name:'Washing machine tabs',price:0.75,qpb:1}];
+
+function resetState(){
+  Object.keys(DEF_RATES_RESET).forEach(k=>{S.rates[k]=[...DEF_RATES_RESET[k]];});
+  S.occ_basic=[0.05,0.20,0.65,0.80,0.90,0.90,0.70,0.15,0.05];
+  S.costs=DEF_COSTS_RESET.map(c=>({...c}));
+  S.comps=[];S.props=[];
+  S.taxBrackets={personal:[{from:0,to:12000,rate:15},{from:12000,to:35000,rate:35},{from:35000,to:Infinity,rate:45}],str:[{from:0,to:10000,rate:9},{from:10000,to:20000,rate:22},{from:20000,to:30000,rate:28},{from:30000,to:40000,rate:36},{from:40000,to:Infinity,rate:44}]};
+  ['proj-name','proj-address','proj-owner'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  const yr=document.getElementById('proj-year');if(yr)yr.value='2026';
+  const pb=document.getElementById('proj-preparedby');if(pb)pb.value='Zesty Rentals and Investments';
+  document.getElementById('hdr-proj-name').textContent='New Project';
+  const sel=document.getElementById('proj-status-select');if(sel)sel.value='draft';
+  setSaveInd('');
+}
+
+function newProject(){
+  currentProjectId=null;
+  resetState();
+  rebuildUI();
+  switchTab('project');
+  showApp();
+}
+
+async function openProject(id){
+  showLoading('Opening project...');
+  const sb=getSB();
+  const{data,error}=await sb.from('villa_plans').select('*').eq('id',id).single();
+  hideLoading();
+  if(error||!data){alert('Could not load project: '+(error?.message||'unknown error'));return;}
+  currentProjectId=id;
+  resetState();
+  if(data.data)restoreData(data.data);
+  const sel=document.getElementById('proj-status-select');if(sel)sel.value=data.status||'draft';
+  rebuildUI();
+  switchTab('project');
+  showApp();
+  setSaveInd('');
+}
+
+async function startApp(){
+  showDashboard();
+  showLoading('Connecting to Supabase...');
+  // Wait for supabase to load
+  let attempts=0;
+  while(!window.supabase&&attempts<20){await new Promise(r=>setTimeout(r,100));attempts++;}
+  const ok=await ensureTable();
+  hideLoading();
+  if(ok!==false)await loadDashboard();
+}
+</script>
+
+<script>
+// ══════════════════════════════════════════════════════
+// CONSTANTS
+// ══════════════════════════════════════════════════════
+const PERIODS=[
+  {label:'Jan 1 – Apr 1',  short:'Jan–Mar',days:91},
+  {label:'Apr 2 – May 31', short:'Apr–May',days:60},
+  {label:'Jun 1 – Jun 30', short:'Jun',    days:30},
+  {label:'Jul 1 – Jul 20', short:'Jul-1',  days:20},
+  {label:'Jul 21 – Aug 20',short:'Jul/Aug',days:31},
+  {label:'Aug 21 – Aug 31',short:'Aug-3',  days:11},
+  {label:'Sep 1 – Sep 30', short:'Sep',    days:30},
+  {label:'Oct 1 – Oct 31', short:'Oct',    days:31},
+  {label:'Nov 1 – Dec 31', short:'Nov–Dec',days:61},
+];
+const TOTAL_DAYS=365;
+const COMP_MONTHS=['Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov'];
+const BED_GROUPS=[1,2,3,4,5,6];
+const BED_LABELS={1:'Studio / 1 Bedroom',2:'2 Bedrooms',3:'3 Bedrooms',4:'4 Bedrooms',5:'5 Bedrooms',6:'6 Bedrooms'};
+const UNIT_TYPES=['Studio','2 Bedroom','3 Bedroom','4 Bedroom','5 Bedroom','6 Bedroom'];
+const UNIT_BEDS={'Studio':1,'2 Bedroom':2,'3 Bedroom':3,'4 Bedroom':4,'5 Bedroom':5,'6 Bedroom':6};
+const DEF_RATES={1:[0,160,180,225,270,290,230,200,160],2:[0,170,195,230,275,295,255,205,165],3:[0,190,215,265,310,365,290,240,190],4:[0,0,0,0,0,0,0,0,0],5:[0,0,0,0,0,0,0,0,0],6:[0,0,0,0,0,0,0,0,0]};
+const DEF_OCC_BASIC=[0.05,0.20,0.65,0.80,0.90,0.90,0.70,0.15,0.05];
+const DEF_COSTS=[
+  {cat:'Linens',    name:'Σεντόνια (sheets)',       price:1.92,qpb:2},
+  {cat:'Linens',    name:'Μαξιλάκια (pillowcases)', price:1.08,qpb:2},
+  {cat:'Linens',    name:'Πετσέτες (towels)',        price:1.20,qpb:4},
+  {cat:'Linens',    name:'Κουβέρτες (blankets)',     price:6.00,qpb:1},
+  {cat:'Linens',    name:'Πατάκια (bath mats)',      price:1.08,qpb:1},
+  {cat:'Amenities', name:'Shampoo',                  price:0.32,qpb:2},
+  {cat:'Amenities', name:'Body cream',               price:0.36,qpb:2},
+  {cat:'Amenities', name:'Hair cream',               price:0.34,qpb:2},
+  {cat:'Amenities', name:'Shower gel',               price:0.32,qpb:2},
+  {cat:'Amenities', name:'Soap',                     price:0.31,qpb:2},
+  {cat:'Consumables',name:'Toilet paper',            price:0.50,qpb:2},
+  {cat:'Consumables',name:'Washing gel',             price:5.00,qpb:0.5},
+  {cat:'Consumables',name:'Σφουγγάρι / sponge',     price:0.50,qpb:1},
+  {cat:'Consumables',name:'Olive oil & others',      price:5.00,qpb:1},
+  {cat:'Consumables',name:'Dishwasher tablets',      price:0.50,qpb:1.5},
+  {cat:'Consumables',name:'Washing machine tabs',    price:0.75,qpb:1},
+];
+const DEF_TAX_PERSONAL=[{from:0,to:12000,rate:15},{from:12000,to:35000,rate:35},{from:35000,to:Infinity,rate:45}];
+const DEF_TAX_STR=[{from:0,to:10000,rate:9},{from:10000,to:20000,rate:22},{from:20000,to:30000,rate:28},{from:30000,to:40000,rate:36},{from:40000,to:Infinity,rate:44}];
+
+// ══════════════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════════════
+const S={
+  rates:JSON.parse(JSON.stringify(DEF_RATES)),
+  occ_basic:[...DEF_OCC_BASIC],
+  comps:[],props:[],
+  costs:DEF_COSTS.map(c=>({...c})),
+  scenario:'safe',
+  taxBrackets:{personal:DEF_TAX_PERSONAL.map(b=>({...b})),str:DEF_TAX_STR.map(b=>({...b}))},
+};
+function getOcc(scenario){
+  const safeOffset=(parseFloat(document.getElementById('occ-safe-offset')?.value)||(-10))/100;
+  const goodOffset=(parseFloat(document.getElementById('occ-good-offset')?.value)||8)/100;
+  return S.occ_basic.map((v,i)=>{
+    if(scenario==='basic')return v;
+    const off=scenario==='safe'?safeOffset:goodOffset;
+    return Math.min(1,Math.max(0,v+off));
+  });
+}
+
+// ══════════════════════════════════════════════════════
+// TAB NAV
+// ══════════════════════════════════════════════════════
+function switchTab(n){
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('panel-'+n).classList.add('active');
+  document.getElementById('tab-'+n).classList.add('active');
+  if(n==='summary')renderSummary();
+  if(n==='taxation')renderTaxation();
+}
+
+// ══════════════════════════════════════════════════════
+// RATE TABLE
+// ══════════════════════════════════════════════════════
+function buildRateTable(){
+  const c=document.getElementById('rate-table-container');c.innerHTML='';
+  BED_GROUPS.forEach(beds=>{
+    const avgs=compAvgForBeds(beds);
+    let html=`<div style="margin-bottom:20px;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+        <span style="background:#f0e6ff;color:#6b21a8;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:700;">${BED_LABELS[beds]}</span>
+        ${avgs.some(v=>v>0)?`<span style="font-size:11px;color:var(--text-3);">Comp avg: ${avgs.map((v,i)=>v>0?COMP_MONTHS[i]+' €'+Math.round(v):'').filter(Boolean).join(' · ')}</span>`:''}
+      </div>
+      <div style="overflow-x:auto;"><table>
+        <thead><tr><th>Unit Type</th>${PERIODS.map(p=>`<th class="tr">${p.short}<br><span style="font-weight:400;font-size:10px;color:var(--text-3)">${p.days}d</span></th>`).join('')}<th class="tr">Wtd Avg</th></tr></thead>
+        <tbody>`;
+    UNIT_TYPES.filter(ut=>UNIT_BEDS[ut]===beds).forEach(ut=>{
+      html+=`<tr><td><span class="badge b-type">${ut}</span></td>`;
+      PERIODS.forEach((_,pi)=>html+=`<td class="tr"><input type="number" class="bl" min="0" step="1" value="${S.rates[beds][pi]}" style="width:66px;text-align:right;" oninput="S.rates[${beds}][${pi}]=parseFloat(this.value)||0;updWavg(${beds})"></td>`);
+      html+=`<td class="tr" id="wavg-${beds}"><strong>€${calcWavg(beds).toFixed(0)}</strong></td></tr>`;
+    });
+    html+=`</tbody></table></div></div>`;
+    c.insertAdjacentHTML('beforeend',html);
+  });
+}
+function calcWavg(beds){let rev=0,d=0;PERIODS.forEach((p,pi)=>{const r=S.rates[beds][pi];if(r>0){rev+=r*p.days;d+=p.days;}});return d>0?rev/d:0;}
+function updWavg(beds){const el=document.getElementById('wavg-'+beds);if(el)el.innerHTML=`<strong>€${calcWavg(beds).toFixed(0)}</strong>`;}
+function compAvgForBeds(beds){
+  const m=S.comps.filter(c=>c.beds===beds);
+  return COMP_MONTHS.map((_,mi)=>{const v=m.map(c=>parseFloat(c.rates[mi])).filter(v=>!isNaN(v)&&v>0);return v.length?v.reduce((a,b)=>a+b,0)/v.length:0;});
+}
+function fillFromComps(){
+  const m2p=[0,1,1,2,3,4,6,7,8];
+  BED_GROUPS.forEach(beds=>{const avgs=compAvgForBeds(beds);m2p.forEach((pi,mi)=>{if(avgs[mi]>0)S.rates[beds][pi]=Math.round(avgs[mi]);});});
+  buildRateTable();
+}
+
+// ══════════════════════════════════════════════════════
+// OCCUPANCY
+// ══════════════════════════════════════════════════════
+function buildOccupancy(){
+  const c=document.getElementById('occ-panels');c.innerHTML='';
+  const scenarios=[
+    {key:'basic',label:'Basic Scenario (edit directly)',cls:'basic',editable:true},
+    {key:'safe', label:'Safe Scenario (derived)',      cls:'safe', editable:false},
+    {key:'good', label:'Good Scenario (derived)',      cls:'good', editable:false},
+  ];
+  scenarios.forEach(sc=>{
+    const occ=getOcc(sc.key);
+    const totalN=occ.reduce((s,v,i)=>s+v*PERIODS[i].days,0);
+    const annOcc=(totalN/TOTAL_DAYS*100).toFixed(1);
+    let html=`<div class="card" style="margin-bottom:12px;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+        <span class="badge b-${sc.cls}">${sc.label}</span>
+        ${!sc.editable?`<span style="font-size:12px;color:var(--text-3);">Basic ${sc.key==='safe'?'−':'+'} ${Math.abs(parseFloat(document.getElementById(sc.key==='safe'?'occ-safe-offset':'occ-good-offset')?.value)||0)}pp</span>`:''}
+        <span style="margin-left:auto;font-size:12px;color:var(--text-3);">Annual occ: <strong>${annOcc}%</strong> &nbsp;·&nbsp; <strong>${totalN.toFixed(0)}</strong> nights</span>
+      </div>
+      <div style="overflow-x:auto;"><table>
+        <thead><tr><th>Period</th><th class="tc">Days</th><th class="tc">Occ %</th><th class="tc">Nights</th><th class="tc">Season</th></tr></thead>
+        <tbody>`;
+    PERIODS.forEach((p,pi)=>{
+      const v=occ[pi];
+      const pct=(v*100).toFixed(0);
+      html+=`<tr>
+        <td>${p.label}</td><td class="tc">${p.days}</td>
+        <td class="tc">${sc.editable
+          ?`<input type="number" min="0" max="100" step="1" value="${pct}" style="width:58px;text-align:center;color:#1a56db;font-weight:500;" oninput="S.occ_basic[${pi}]=parseFloat(this.value)/100||0;buildOccupancy()"> %`
+          :`<strong>${pct}%</strong>`}
+        </td>
+        <td class="tc">${(v*p.days).toFixed(1)}</td>
+        <td class="tc"><span style="background:${seasonClr(pi)}20;color:${seasonClr(pi)};padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;">${seasonLbl(pi)}</span></td>
+      </tr>`;
+    });
+    html+=`</tbody></table></div></div>`;
+    c.insertAdjacentHTML('beforeend',html);
+  });
+}
+function seasonLbl(pi){return['Off','Spring','Early Summer','Summer','Peak','Peak','Late Summer','Autumn','Off'][pi]||'';}
+function seasonClr(pi){return['#7f8c8d','#27ae60','#f39c12','#e74c3c','#c0392b','#c0392b','#e67e22','#2980b9','#7f8c8d'][pi];}
+
+// ══════════════════════════════════════════════════════
+// COMPARABLES
+// ══════════════════════════════════════════════════════
+function addComp(data){
+  const id=data?data.id:(Date.now()+(Math.random()*99|0));
+  const beds=data?data.beds:parseInt(document.getElementById('comp-add-beds').value);
+  const comp=data||{id,name:'',link:'',beds,maxPeople:beds*2,rates:Array(9).fill('')};
+  S.comps.push(comp);renderComps();
+}
+function removeComp(id){S.comps=S.comps.filter(c=>c.id!==id);renderComps();}
+function upComp(id,f,v){const c=S.comps.find(x=>x.id===id);if(c){c[f]=v;}}
+function upCompRate(id,mi,v){const c=S.comps.find(x=>x.id===id);if(c){c.rates[mi]=parseFloat(v)||'';renderCompAvgs();}}
+function renderComps(){
+  const list=document.getElementById('comparables-list');
+  if(!S.comps.length){list.innerHTML=`<div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-text">No comparables</div></div>`;return;}
+  let html='';
+  BED_GROUPS.forEach(beds=>{
+    const group=S.comps.filter(c=>c.beds===beds);if(!group.length)return;
+    const avgs=compAvgForBeds(beds);
+    html+=`<div class="comp-sec">
+      <div class="comp-sec-hdr"><div class="comp-sec-title">${BED_LABELS[beds]}</div><div style="font-size:13px;opacity:.8;">${group.length} comparable${group.length>1?'s':''}</div></div>`;
+    group.forEach((c,idx)=>{
+      html+=`<div class="comp-card">
+        <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:8px;">
+          <div class="prop-num">${idx+1}</div>
+          <div style="flex:1;">
+            <input type="text" value="${esc(c.name)}" placeholder="Property name" style="border:none;font-weight:600;font-size:14px;width:100%;background:transparent;font-family:'DM Sans',sans-serif;color:var(--text);" oninput="upComp(${c.id},'name',this.value)">
+            <input type="url" value="${esc(c.link)}" placeholder="🔗 Airbnb / Booking.com link..." style="border:none;font-size:12px;width:100%;background:transparent;font-family:'DM Sans',sans-serif;color:#2980b9;" oninput="upComp(${c.id},'link',this.value)">
+          </div>
+          <button class="btn bd btn-sm" onclick="removeComp(${c.id})">✕</button>
+        </div>
+        <div style="font-size:11px;font-weight:600;color:var(--text-2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;">Nightly Rate (€/night)</div>
+        <div class="comp-months">${COMP_MONTHS.map((m,mi)=>`<div class="comp-m"><div class="comp-m-lbl">${m}</div><input class="comp-m-inp" type="number" min="0" step="1" value="${c.rates[mi]||''}" placeholder="—" oninput="upCompRate(${c.id},${mi},this.value)"></div>`).join('')}</div>
+      </div>`;
+    });
+    html+=`<div class="comp-avg-bar">
+      <div style="font-size:11px;font-weight:600;color:var(--text-2);">Market Average — ${BED_LABELS[beds]}</div>
+      <div class="comp-avg-grid">${COMP_MONTHS.map((m,mi)=>`<div class="comp-avg-cell"><div class="cac-lbl">${m}</div><div class="cac-val" id="cavg-${beds}-${mi}">${avgs[mi]>0?'€'+Math.round(avgs[mi]):'—'}</div></div>`).join('')}</div>
+    </div></div>`;
+  });
+  list.innerHTML=html;
+}
+function renderCompAvgs(){BED_GROUPS.forEach(beds=>{const avgs=compAvgForBeds(beds);COMP_MONTHS.forEach((_,mi)=>{const el=document.getElementById(`cavg-${beds}-${mi}`);if(el)el.textContent=avgs[mi]>0?'€'+Math.round(avgs[mi]):'—';});});}
+
+// ══════════════════════════════════════════════════════
+// COSTS
+// ══════════════════════════════════════════════════════
+function buildCostTable(){
+  const tbody=document.getElementById('cost-tbody');tbody.innerHTML='';
+  let lastCat='';
+  S.costs.forEach((c,i)=>{
+    if(c.cat!==lastCat){lastCat=c.cat;tbody.insertAdjacentHTML('beforeend',`<tr><td colspan="6" class="cost-cat-hdr">${c.cat}</td></tr>`);}
+    tbody.insertAdjacentHTML('beforeend',`<tr>
+      <td style="color:var(--text-3);font-size:12px;">${c.cat}</td>
+      <td>${c.name}</td>
+      <td class="tr"><input type="number" class="bl" min="0" step="0.01" value="${c.price}" style="width:72px;text-align:right;" oninput="S.costs[${i}].price=parseFloat(this.value)||0;recalcCosts()"></td>
+      <td class="tr"><input type="number" class="bl" min="0" step="0.1" value="${c.qpb}" style="width:52px;text-align:right;" oninput="S.costs[${i}].qpb=parseFloat(this.value)||0;recalcCosts()"></td>
+      <td class="tr" id="cr-${i}">€${(c.price*c.qpb).toFixed(2)}</td>
+      <td class="tc"><button class="btn bd btn-sm" onclick="S.costs.splice(${i},1);buildCostTable()">✕</button></td>
+    </tr>`);
+  });
+  recalcCosts();
+}
+function cleaningCostPerBed(){
+  const hrs=parseFloat(document.getElementById('clean-hrs')?.value)||1.5;
+  const rate=parseFloat(document.getElementById('clean-rate')?.value)||8;
+  return hrs*rate;
+}
+function cleaningTransportPerTurnover(){
+  const transport=parseFloat(document.getElementById('clean-transport')?.value)||5;
+  const trips=parseFloat(document.getElementById('clean-trips')?.value)||1;
+  return transport*trips;
+}
+function checkinCost(){
+  const f=parseFloat(document.getElementById('ci-fixed')?.value)||0;
+  const pk=parseFloat(document.getElementById('ci-perkm')?.value)||0;
+  const km=parseFloat(document.getElementById('ci-km')?.value)||0;
+  return f+pk*km*2;
+}
+function varCostPerBed(){return S.costs.reduce((s,c)=>s+c.price*c.qpb,0);}
+function totalCostForBeds(beds){return varCostPerBed()*beds+cleaningCostPerBed()*beds+cleaningTransportPerTurnover()+checkinCost();}
+function recalcCosts(){
+  S.costs.forEach((c,i)=>{const el=document.getElementById('cr-'+i);if(el)el.textContent='€'+(c.price*c.qpb).toFixed(2);});
+  const cpb=cleaningCostPerBed(),ctr=cleaningTransportPerTurnover(),ci=checkinCost();
+  const e1=document.getElementById('clean-per-bed');if(e1)e1.textContent='€'+cpb.toFixed(2);
+  const e2=document.getElementById('clean-transport-total');if(e2)e2.textContent='€'+ctr.toFixed(2);
+  const e3=document.getElementById('clean-3bed');if(e3)e3.textContent='€'+(cpb*3+ctr+ci).toFixed(2);
+  const e4=document.getElementById('ci-total');if(e4)e4.textContent='€'+ci.toFixed(2);
+  const ex3=varCostPerBed()*3;const exEl=document.getElementById('cost-total-ex');if(exEl)exEl.textContent='€'+ex3.toFixed(2);
+  const bbd=document.getElementById('cost-by-beds');
+  if(bbd)bbd.innerHTML=BED_GROUPS.map(b=>`<div class="stat-card"><div class="stat-lbl">${BED_LABELS[b]}</div><div class="stat-val">€${totalCostForBeds(b).toFixed(0)}</div><div class="stat-sub">per turnover</div></div>`).join('');
+}
+
+// ══════════════════════════════════════════════════════
+// PROPERTIES
+// ══════════════════════════════════════════════════════
+function addProperty(data){
+  const id=data?data.id:(Date.now()+(Math.random()*99|0));
+  const p=data||{id,name:'',unitType:'Studio',bedrooms:1,bathrooms:1,area:0,multiplier:1.0,pool:false,poolCost:0,garden:false,gardenCost:0,electricity:0,water:0,internet:0,insurance:0,other:0,otherLabel:'Other',notes:''};
+  S.props.push(p);renderProps();
+}
+function removeProperty(id){S.props=S.props.filter(p=>p.id!==id);renderProps();}
+function upProp(id,f,v){const p=S.props.find(x=>x.id===id);if(p)p[f]=v;}
+function renderProps(){
+  document.getElementById('props-empty').style.display=S.props.length?'none':'block';
+  document.getElementById('properties-list').innerHTML=S.props.map((p,idx)=>{
+    const beds=UNIT_BEDS[p.unitType]||1;
+    const rMin=Math.min(...S.rates[beds].filter(r=>r>0))||0;
+    const rMax=Math.max(...S.rates[beds])||0;
+    const annFixed=(p.pool?p.poolCost:0)+(p.garden?p.gardenCost:0)+(p.electricity||0)+(p.water||0)+(p.internet||0)+(p.insurance||0)+(p.other||0);
+    return `<div class="prop-card">
+      <div class="prop-hdr">
+        <div class="prop-num">${idx+1}</div>
+        <input type="text" value="${esc(p.name)}" placeholder="Unit name" style="border:none;font-weight:600;font-size:14px;flex:1;background:transparent;font-family:'DM Sans',sans-serif;color:var(--text);" oninput="upProp(${p.id},'name',this.value)">
+        <span class="badge b-type">${p.unitType}</span>
+        <button class="btn bd btn-sm" onclick="removeProperty(${p.id})">Remove</button>
+      </div>
+      <div class="prop-body">
+        <div class="fg g4" style="margin-bottom:12px;">
+          <div class="fgrp"><label class="flbl">Unit Type</label>
+            <select class="fsel" onchange="upProp(${p.id},'unitType',this.value);upProp(${p.id},'bedrooms',{Studio:1,'2 Bedroom':2,'3 Bedroom':3,'4 Bedroom':4,'5 Bedroom':5,'6 Bedroom':6}[this.value]||1);renderProps()">
+              ${UNIT_TYPES.map(ut=>`<option ${p.unitType===ut?'selected':''}>${ut}</option>`).join('')}
+            </select>
+          </div>
+          <div class="fgrp"><label class="flbl">Bedrooms</label><input class="finp" type="number" min="0" max="20" value="${p.bedrooms}" oninput="upProp(${p.id},'bedrooms',parseInt(this.value)||1)"></div>
+          <div class="fgrp"><label class="flbl">Bathrooms</label><input class="finp" type="number" min="0" max="10" value="${p.bathrooms}" step="0.5" oninput="upProp(${p.id},'bathrooms',parseFloat(this.value)||1)"></div>
+          <div class="fgrp"><label class="flbl">Area (m²)</label><input class="finp" type="number" min="0" value="${p.area}" oninput="upProp(${p.id},'area',parseFloat(this.value)||0)"></div>
+          <div class="fgrp"><label class="flbl">Price Multiplier <span class="hint" title="1.0=base, 1.2=+20%">?</span></label><input class="finp bl" type="number" min="0.1" max="3" step="0.05" value="${p.multiplier}" oninput="upProp(${p.id},'multiplier',parseFloat(this.value)||1)"></div>
+          <div class="fgrp" style="grid-column:span 3;"><label class="flbl">Notes</label><input class="finp" type="text" value="${esc(p.notes||'')}" placeholder="e.g. sea view, pool..." oninput="upProp(${p.id},'notes',this.value)"></div>
+        </div>
+        <div class="divider" style="margin:10px 0;"></div>
+        <div style="font-weight:600;font-size:12px;color:var(--text-2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;">Annual Fixed Costs (€/year)</div>
+        <div class="fg g4">
+          <div class="fgrp">
+            <label class="flbl" style="display:flex;align-items:center;gap:6px;"><input type="checkbox" ${p.pool?'checked':''} onchange="upProp(${p.id},'pool',this.checked);renderProps()" style="cursor:pointer;"> 🏊 Pool Maintenance</label>
+            <input class="finp bl" type="number" min="0" value="${p.poolCost||0}" ${!p.pool?'disabled style="opacity:.4;"':''} oninput="upProp(${p.id},'poolCost',parseFloat(this.value)||0)">
+          </div>
+          <div class="fgrp">
+            <label class="flbl" style="display:flex;align-items:center;gap:6px;"><input type="checkbox" ${p.garden?'checked':''} onchange="upProp(${p.id},'garden',this.checked);renderProps()" style="cursor:pointer;"> 🌿 Garden Maintenance</label>
+            <input class="finp bl" type="number" min="0" value="${p.gardenCost||0}" ${!p.garden?'disabled style="opacity:.4;"':''} oninput="upProp(${p.id},'gardenCost',parseFloat(this.value)||0)">
+          </div>
+          <div class="fgrp"><label class="flbl">⚡ Electricity (€/yr)</label><input class="finp bl" type="number" min="0" value="${p.electricity||0}" oninput="upProp(${p.id},'electricity',parseFloat(this.value)||0)"></div>
+          <div class="fgrp"><label class="flbl">💧 Water (€/yr)</label><input class="finp bl" type="number" min="0" value="${p.water||0}" oninput="upProp(${p.id},'water',parseFloat(this.value)||0)"></div>
+          <div class="fgrp"><label class="flbl">📶 Internet (€/yr)</label><input class="finp bl" type="number" min="0" value="${p.internet||0}" oninput="upProp(${p.id},'internet',parseFloat(this.value)||0)"></div>
+          <div class="fgrp"><label class="flbl">🛡 Insurance (€/yr)</label><input class="finp bl" type="number" min="0" value="${p.insurance||0}" oninput="upProp(${p.id},'insurance',parseFloat(this.value)||0)"></div>
+          <div class="fgrp"><label class="flbl"><input type="text" value="${esc(p.otherLabel||'Other')}" style="border:none;background:transparent;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:600;color:var(--text-2);text-transform:uppercase;letter-spacing:.5px;width:100%;" oninput="upProp(${p.id},'otherLabel',this.value)"> (€/yr)</label><input class="finp bl" type="number" min="0" value="${p.other||0}" oninput="upProp(${p.id},'other',parseFloat(this.value)||0)"></div>
+        </div>
+        <div style="margin-top:10px;padding:9px 13px;background:var(--surface2);border-radius:var(--radius-sm);font-size:12px;color:var(--text-2);">
+          Rate: <strong>€${(rMin*p.multiplier).toFixed(0)}–€${(rMax*p.multiplier).toFixed(0)}/night</strong> &nbsp;·&nbsp; 
+          Var cost/stay: <strong>€${totalCostForBeds(beds).toFixed(0)}</strong> &nbsp;·&nbsp;
+          Annual fixed: <strong>€${fmt(annFixed)}</strong>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════════════════
+// P&L CALCULATIONS
+// ══════════════════════════════════════════════════════
+function calcPropPnL(prop,scenario){
+  const platPct=(parseFloat(document.getElementById('proj-platform')?.value)||15)/100;
+  const mgmtPct=(parseFloat(document.getElementById('proj-mgmt')?.value)||10)/100;
+  const avgStay=(parseFloat(document.getElementById('proj-avg-stay')?.value)||4.5);
+  const beds=UNIT_BEDS[prop.unitType]||prop.bedrooms||1;
+  const occ=getOcc(scenario);
+  let revenue=0,nights=0;
+  PERIODS.forEach((p,pi)=>{const r=S.rates[beds][pi]*prop.multiplier;const n=p.days*occ[pi];revenue+=r*n;nights+=n;});
+  const turnovers=Math.round(nights/avgStay);
+  const platFee=revenue*platPct;
+  const mgmtFee=revenue*mgmtPct;
+  const netRevenue=revenue-platFee-mgmtFee;
+  // variable costs by category
+  const laundry=S.costs.filter(c=>c.cat==='Linens').reduce((s,c)=>s+c.price*c.qpb,0)*beds*turnovers;
+  const amenities=S.costs.filter(c=>c.cat==='Amenities').reduce((s,c)=>s+c.price*c.qpb,0)*beds*turnovers;
+  const consumables=S.costs.filter(c=>c.cat==='Consumables').reduce((s,c)=>s+c.price*c.qpb,0)*beds*turnovers;
+  const cleaning=(cleaningCostPerBed()*beds+cleaningTransportPerTurnover())*turnovers;
+  const checkin=checkinCost()*turnovers;
+  const totalVar=laundry+amenities+consumables+cleaning+checkin;
+  // fixed costs
+  const electricity=prop.electricity||0;
+  const water=prop.water||0;
+  const internet=prop.internet||0;
+  const insurance=prop.insurance||0;
+  const other=prop.other||0;
+  const pool=prop.pool?(prop.poolCost||0):0;
+  const garden=prop.garden?(prop.gardenCost||0):0;
+  const totalFixed=electricity+water+internet+insurance+other+pool+garden;
+  const grossProfit=netRevenue-totalVar-totalFixed;
+  return {revenue,nights,turnovers,platFee,mgmtFee,netRevenue,laundry,amenities,consumables,cleaning,checkin,totalVar,electricity,water,internet,insurance,other,pool,garden,totalFixed,grossProfit};
+}
+
+// ══════════════════════════════════════════════════════
+// P&L SUMMARY RENDER
+// ══════════════════════════════════════════════════════
+let activeScenario='safe';
+function setScenario(sc,btn){
+  activeScenario=sc;
+  document.querySelectorAll('.sc-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderSummary();
+}
+
+let waterfallChart=null;
+function renderSummary(){
+  if(!document.getElementById('panel-summary').classList.contains('active'))return;
+  const sc=activeScenario;
+  if(!S.props.length){document.getElementById('summary-content').innerHTML=`<div class="empty-state"><div class="empty-icon">📊</div><div class="empty-text">Add properties first</div></div>`;return;}
+  let tot={revenue:0,nights:0,turnovers:0,platFee:0,mgmtFee:0,netRevenue:0,laundry:0,amenities:0,consumables:0,cleaning:0,checkin:0,totalVar:0,electricity:0,water:0,internet:0,insurance:0,other:0,pool:0,garden:0,totalFixed:0,grossProfit:0};
+  const pnls=S.props.map(p=>{const r=calcPropPnL(p,sc);Object.keys(tot).forEach(k=>k in r&&(tot[k]+=r[k]));return{prop:p,r};});
+  const scLabel={safe:'🔵 Safe',basic:'🟠 Basic',good:'🟢 Good'}[sc];
+  const scBadge=`<span class="badge b-${sc}">${scLabel}</span>`;
+
+  let html=`<div class="stats-row">
+    <div class="stat-card ac"><div class="stat-lbl">Gross Revenue</div><div class="stat-val">€${fmt(tot.revenue)}</div><div class="stat-sub">${tot.nights.toFixed(0)} nights / ${tot.turnovers} turnovers</div></div>
+    <div class="stat-card"><div class="stat-lbl">Platform & Mgmt Fees</div><div class="stat-val neg">€${fmt(tot.platFee+tot.mgmtFee)}</div><div class="stat-sub">Net revenue: €${fmt(tot.netRevenue)}</div></div>
+    <div class="stat-card"><div class="stat-lbl">Variable Costs</div><div class="stat-val neg">€${fmt(tot.totalVar)}</div><div class="stat-sub">Cleaning, linens, consumables</div></div>
+    <div class="stat-card"><div class="stat-lbl">Fixed Costs</div><div class="stat-val neg">€${fmt(tot.totalFixed)}</div><div class="stat-sub">Utilities, insurance, pool, garden</div></div>
+    <div class="stat-card gd"><div class="stat-lbl">Gross Operating Profit</div><div class="stat-val">€${fmt(tot.grossProfit)}</div><div class="stat-sub">${scBadge} (pre-tax)</div></div>
+    <div class="stat-card"><div class="stat-lbl">GOP Margin</div><div class="stat-val">${tot.revenue>0?(tot.grossProfit/tot.revenue*100).toFixed(1):'0'}%</div><div class="stat-sub">on gross revenue</div></div>
+  </div>`;
+
+  // Waterfall chart
+  html+=`<div class="card" style="margin-bottom:16px;">
+    <div style="font-weight:600;margin-bottom:12px;">Revenue Waterfall — ${scLabel}</div>
+    <div style="position:relative;height:260px;"><canvas id="waterfall-chart"></canvas></div>
+  </div>`;
+
+  // Per-property table
+  html+=`<div class="card" style="padding:0;margin-bottom:14px;">
+    <div style="padding:11px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;"><strong>Per-Property Summary</strong>${scBadge}</div>
+    <div style="overflow-x:auto;"><table>
+      <thead><tr><th>Property</th><th>Type</th><th class="tr">Nights</th><th class="tr">Revenue</th><th class="tr">Fees</th><th class="tr">Variable</th><th class="tr">Fixed</th><th class="tr">Gross Profit</th><th class="tr">GOP %</th></tr></thead>
+      <tbody>${pnls.map(({prop:p,r},i)=>`<tr>
+        <td><strong>${p.name||`Property ${i+1}`}</strong>${p.notes?`<br><small style="color:var(--text-3)">${esc(p.notes)}</small>`:''}</td>
+        <td><span class="badge b-type">${p.unitType}</span></td>
+        <td class="tr">${r.nights.toFixed(0)}</td>
+        <td class="tr">€${fmt(r.revenue)}</td>
+        <td class="tr neg">€${fmt(r.platFee+r.mgmtFee)}</td>
+        <td class="tr neg">€${fmt(r.totalVar)}</td>
+        <td class="tr neg">€${fmt(r.totalFixed)}</td>
+        <td class="tr ${r.grossProfit>=0?'pos':'neg'}">€${fmt(r.grossProfit)}</td>
+        <td class="tr">${r.revenue>0?(r.grossProfit/r.revenue*100).toFixed(1):0}%</td>
+      </tr>`).join('')}</tbody>
+      <tfoot><tr style="background:var(--accent-light);font-weight:700;">
+        <td colspan="2">PROJECT TOTAL</td>
+        <td class="tr">${tot.nights.toFixed(0)}</td>
+        <td class="tr">€${fmt(tot.revenue)}</td>
+        <td class="tr">€${fmt(tot.platFee+tot.mgmtFee)}</td>
+        <td class="tr">€${fmt(tot.totalVar)}</td>
+        <td class="tr">€${fmt(tot.totalFixed)}</td>
+        <td class="tr ${tot.grossProfit>=0?'pos':'neg'}">€${fmt(tot.grossProfit)}</td>
+        <td class="tr">${tot.revenue>0?(tot.grossProfit/tot.revenue*100).toFixed(1):0}%</td>
+      </tr></tfoot>
+    </table></div>
+  </div>`;
+
+  // Detailed cost breakdown
+  html+=`<div class="card" style="padding:0;margin-bottom:14px;">
+    <div style="padding:11px 16px;border-bottom:1px solid var(--border);font-weight:600;">Cost Breakdown — All Properties Combined</div>
+    <table>
+      <thead><tr><th>Cost Category</th><th class="tr">Amount (€)</th><th class="tr">% of Revenue</th><th class="tr">% of Total Costs</th></tr></thead>
+      <tbody>
+        ${costRow('🧺 Laundry & Linens',tot.laundry,tot.revenue,tot.totalVar+tot.totalFixed)}
+        ${costRow('🧴 Amenities & Toiletries',tot.amenities,tot.revenue,tot.totalVar+tot.totalFixed)}
+        ${costRow('🛒 Consumables',tot.consumables,tot.revenue,tot.totalVar+tot.totalFixed)}
+        ${costRow('🧹 Cleaning (labour + transport)',tot.cleaning,tot.revenue,tot.totalVar+tot.totalFixed)}
+        ${costRow('🔑 Check-in / Check-out',tot.checkin,tot.revenue,tot.totalVar+tot.totalFixed)}
+        <tr style="background:var(--surface2);font-weight:600;"><td>Variable Costs Subtotal</td><td class="tr neg">€${fmt(tot.totalVar)}</td><td class="tr">${pct(tot.totalVar,tot.revenue)}</td><td class="tr">—</td></tr>
+        ${costRow('⚡ Electricity',tot.electricity,tot.revenue,tot.totalVar+tot.totalFixed)}
+        ${costRow('💧 Water',tot.water,tot.revenue,tot.totalVar+tot.totalFixed)}
+        ${costRow('📶 Internet',tot.internet,tot.revenue,tot.totalVar+tot.totalFixed)}
+        ${costRow('🛡 Insurance',tot.insurance,tot.revenue,tot.totalVar+tot.totalFixed)}
+        ${costRow('🏊 Pool Maintenance',tot.pool,tot.revenue,tot.totalVar+tot.totalFixed)}
+        ${costRow('🌿 Garden Maintenance',tot.garden,tot.revenue,tot.totalVar+tot.totalFixed)}
+        ${tot.other>0?costRow('📌 Other',tot.other,tot.revenue,tot.totalVar+tot.totalFixed):''}
+        <tr style="background:var(--surface2);font-weight:600;"><td>Fixed Costs Subtotal</td><td class="tr neg">€${fmt(tot.totalFixed)}</td><td class="tr">${pct(tot.totalFixed,tot.revenue)}</td><td class="tr">—</td></tr>
+      </tbody>
+      <tfoot><tr style="background:var(--danger-light);font-weight:700;"><td>TOTAL COSTS</td><td class="tr neg">€${fmt(tot.totalVar+tot.totalFixed)}</td><td class="tr">${pct(tot.totalVar+tot.totalFixed,tot.revenue)}</td><td class="tr">100%</td></tr></tfoot>
+    </table>
+  </div>`;
+
+  // 3-scenario comparison (simple table, no sub-tabs)
+  html+=`<div class="card" style="padding:0;margin-bottom:14px;">
+    <div style="padding:11px 16px;border-bottom:1px solid var(--border);font-weight:600;">3-Scenario Comparison (pre-tax)</div>
+    <div style="overflow-x:auto;"><table>
+      <colgroup><col style="width:210px"><col><col><col></colgroup><thead><tr><th>Metric</th><th class="tr" style="color:var(--safe);">🔵 Safe</th><th class="tr" style="color:var(--basic);">🟠 Basic</th><th class="tr" style="color:var(--good);">🟢 Good</th></tr></thead>
+      <tbody>${buildScenarioRows()}</tbody>
+    </table></div>
+  </div>`;
+
+  document.getElementById('summary-content').innerHTML=html;
+
+  // Build waterfall
+  requestAnimationFrame(()=>{
+    const ctx=document.getElementById('waterfall-chart');
+    if(!ctx)return;
+    if(waterfallChart){waterfallChart.destroy();waterfallChart=null;}
+    const labels=['Gross Revenue','Platform Fees','Mgmt Fees','Laundry','Amenities','Consumables','Cleaning','Check-in','Electricity','Water','Internet','Insurance','Pool','Garden','GOP'];
+    const rawVals=[tot.revenue,-tot.platFee,-tot.mgmtFee,-tot.laundry,-tot.amenities,-tot.consumables,-tot.cleaning,-tot.checkin,-tot.electricity,-tot.water,-tot.internet,-tot.insurance,-tot.pool,-tot.garden];
+    // build float (cumulative base) + bar values
+    const bases=[],bars=[],colors=[];
+    let running=0;
+    rawVals.forEach((v,i)=>{
+      if(i===0){bases.push(0);bars.push(v);colors.push('#2d6a4f');running=v;}
+      else{bases.push(v<0?running+v:running);bars.push(Math.abs(v));colors.push(v<0?'#c0392b':'#27ae60');running+=v;}
+    });
+    // final GOP bar
+    bases.push(0);bars.push(Math.max(0,tot.grossProfit));colors.push('#b5860d');
+    const wfLblPlugin={id:'wfL',afterDatasetsDraw(chart){
+      const meta=chart.getDatasetMeta(1);
+      meta.data.forEach((bar,i)=>{
+        if(!bars[i]||bars[i]<80)return;
+        const rv=i<rawVals.length?rawVals[i]:tot.grossProfit;
+        const lbl='€'+fmt(Math.abs(rv));
+        const cx=chart.ctx;cx.save();
+        cx.fillStyle=rv>=0?'#1b4332':'#9b2335';
+        cx.font='bold 10px sans-serif';cx.textAlign='center';cx.textBaseline='middle';
+        if(bar.height>16)cx.fillText(lbl,bar.x,bar.y+bar.height/2);
+        cx.restore();
+      });
+    }};
+    waterfallChart=new Chart(ctx,{
+      type:'bar',
+      data:{labels,datasets:[
+        {label:'Base',data:bases,backgroundColor:'transparent',borderWidth:0,stack:'s'},
+        {label:'Value',data:bars,backgroundColor:colors,borderRadius:3,stack:'s'},
+      ]},
+      options:{
+        responsive:true,maintainAspectRatio:false,animation:{duration:300},
+        plugins:{legend:{display:false},tooltip:{callbacks:{
+          label:function(c){if(c.datasetIndex===0)return '';var i=c.dataIndex;var rv=i<rawVals.length?rawVals[i]:tot.grossProfit;return '€'+fmt(Math.abs(rv));},
+          title:function(c){return c[0].label;}
+        }}},
+        scales:{x:{stacked:true,grid:{display:false},ticks:{font:{size:10},maxRotation:35}},y:{stacked:true,ticks:{callback:function(v){return '€'+fmt(v);},font:{size:11}},grid:{color:'#e2ddd6'}}},
+      },plugins:[wfLblPlugin]
+    });
+  });
+}
+function costRow(label,amt,revenue,totalCosts){
+  if(!amt||amt===0)return '';
+  return `<tr><td>${label}</td><td class="tr neg">€${fmt(amt)}</td><td class="tr">${pct(amt,revenue)}</td><td class="tr">${pct(amt,totalCosts)}</td></tr>`;
+}
+function pct(a,b){return b>0?(a/b*100).toFixed(1)+'%':'—';}
+function buildScenarioRows(){
+  const metrics=[
+    {label:'Gross Revenue',fn:t=>t.revenue},
+    {label:'Booked Nights',fn:t=>t.nights,isNum:true},
+    {label:'Platform & Mgmt Fees',fn:t=>t.platFee+t.mgmtFee,neg:true},
+    {label:'Variable Costs',fn:t=>t.totalVar,neg:true},
+    {label:'Fixed Costs',fn:t=>t.totalFixed,neg:true},
+    {label:'Gross Operating Profit',fn:t=>t.grossProfit,bold:true,hl:true},
+    {label:'GOP Margin',fn:t=>t.revenue>0?t.grossProfit/t.revenue*100:0,isPct:true},
+  ];
+  const scData={};
+  ['safe','basic','good'].forEach(sc=>{
+    let t={revenue:0,nights:0,turnovers:0,platFee:0,mgmtFee:0,netRevenue:0,laundry:0,amenities:0,consumables:0,cleaning:0,checkin:0,totalVar:0,electricity:0,water:0,internet:0,insurance:0,other:0,pool:0,garden:0,totalFixed:0,grossProfit:0};
+    S.props.forEach(p=>{const r=calcPropPnL(p,sc);Object.keys(t).forEach(k=>k in r&&(t[k]+=r[k]));});
+    scData[sc]=t;
+  });
+  return metrics.map(m=>`<tr style="${m.hl?'background:var(--gold-light);':''}">
+    <td style="${m.bold?'font-weight:700;':''}"><${m.bold?'strong':'span'}>${m.label}</${m.bold?'strong':'span'}></td>
+    ${['safe','basic','good'].map(sc=>{const v=m.fn(scData[sc]);return`<td class="tr ${m.neg?'neg':''}" style="${m.bold?'font-weight:700;':''}">${m.isPct?v.toFixed(1)+'%':m.isNum?v.toFixed(0):'€'+fmt(v)}</td>`;}).join('')}
+  </tr>`).join('');
+}
+
+// ══════════════════════════════════════════════════════
+// TAXATION MODULE
+// ══════════════════════════════════════════════════════
+function buildTaxBracketTable(key){
+  const tbody=document.getElementById(`tax-${key}-tbody`);tbody.innerHTML='';
+  S.taxBrackets[key].forEach((b,i)=>{
+    tbody.insertAdjacentHTML('beforeend',`<tr>
+      <td><input type="number" value="${b.from}" style="width:80px;" class="bl" oninput="S.taxBrackets['${key}'][${i}].from=parseFloat(this.value)||0"></td>
+      <td><input type="number" value="${b.to===Infinity?'':b.to}" placeholder="∞" style="width:80px;" class="bl" oninput="S.taxBrackets['${key}'][${i}].to=parseFloat(this.value)||Infinity"></td>
+      <td><input type="number" value="${b.rate}" step="0.5" style="width:60px;" class="bl" oninput="S.taxBrackets['${key}'][${i}].rate=parseFloat(this.value)||0"> %</td>
+      <td><button class="btn bd btn-sm" onclick="S.taxBrackets['${key}'].splice(${i},1);buildTaxBracketTable('${key}');renderTaxation()">✕</button></td>
+    </tr>`);
+  });
+}
+function addTaxBracket(key){
+  const last=S.taxBrackets[key][S.taxBrackets[key].length-1];
+  const from=last?last.to:0;
+  S.taxBrackets[key].push({from,to:Infinity,rate:0});
+  buildTaxBracketTable(key);
+}
+function applyBrackets(brackets,income){
+  let tax=0,prev=0;
+  const detail=[];
+  brackets.forEach(b=>{
+    if(income<=prev)return;
+    const taxable=Math.min(income,b.to)-prev;
+    const t=taxable*(b.rate/100);
+    detail.push({from:prev,to:b.to,rate:b.rate,taxable,tax:t});
+    tax+=t;prev=b.to;
+  });
+  return {tax,detail};
+}
+
+let taxChart=null;
+function renderTaxation(){
+  if(!document.getElementById('panel-taxation').classList.contains('active'))return;
+  buildTaxBracketTable('personal');buildTaxBracketTable('str');
+
+  const sc=document.getElementById('tax-scenario-sel')?.value||'basic';
+
+  // Collect P&L totals
+  let tot={revenue:0,platFee:0,mgmtFee:0,totalVar:0,totalFixed:0,grossProfit:0,netRevenue:0};
+  S.props.forEach(p=>{const r=calcPropPnL(p,sc);Object.keys(tot).forEach(k=>k in r&&(tot[k]+=r[k]));});
+
+  const grossRevenue   = Math.max(0, tot.revenue);      // STR tax base — NO expense deduction
+  const grossOpProfit  = Math.max(0, tot.grossProfit);  // IKE/Personal tax base — after all expenses
+
+  const ikeRate    = (parseFloat(document.getElementById('ike-rate')?.value)||22)/100;
+  const ikeDivRate = (parseFloat(document.getElementById('ike-div-rate')?.value)||5)/100;
+  const getAcc = id => parseFloat(document.getElementById(id)?.value)||0;
+
+  // Preview line
+  const preview=document.getElementById('tax-income-preview');
+  if(preview) preview.innerHTML=
+    `Gross Revenue: <strong>€${fmt(grossRevenue)}</strong> &nbsp;·&nbsp; `+
+    `Gross Operating Profit: <strong>€${fmt(grossOpProfit)}</strong> &nbsp;·&nbsp; `+
+    `${S.props.length} propert${S.props.length===1?'y':'ies'} &nbsp;·&nbsp; Scenario: <strong>${sc}</strong>`;
+
+  // ── Structure definitions ──
+  const structures=[
+    {
+      key:'personal', label:'Personal Company', color:'#2980b9', icon:'👤',
+      taxBase:'gop',  // tax on Gross Operating Profit, expenses deductible
+      calc(){
+        const acc=getAcc('tc-pers-acc'), ss=getAcc('tc-pers-ss');
+        const ti=Math.max(0, grossOpProfit - acc - ss);
+        const {tax,detail}=applyBrackets(S.taxBrackets.personal, ti);
+        const net=grossOpProfit - tax - acc - ss;
+        return {acc,ss,ti,tax,detail,net};
+      }
+    },
+    {
+      key:'ike', label:'ΙΚΕ (Private Company)', color:'#8e44ad', icon:'🏢',
+      taxBase:'gop',
+      calc(){
+        const acc=getAcc('tc-ike-acc'), ss=getAcc('tc-ike-ss');
+        const ti=Math.max(0, grossOpProfit - acc - ss);
+        const corpTax=ti*ikeRate;
+        const afterCorp=ti-corpTax;
+        const divTax=afterCorp*ikeDivRate;
+        const tax=corpTax+divTax;
+        const detail=[
+          {label:'Corporate tax',rate:ikeRate*100,taxable:ti,    tax:corpTax},
+          {label:'Dividend tax', rate:ikeDivRate*100,taxable:afterCorp,tax:divTax},
+        ];
+        const net=grossOpProfit - tax - acc - ss;
+        return {acc,ss,ti,tax,detail,net};
+      }
+    },
+    {
+      key:'str1', label:'STR — 1 Owner', color:'#e67e22', icon:'🔑',
+      taxBase:'revenue',   // tax on GROSS REVENUE, no expense deduction
+      calc(){
+        const acc=getAcc('tc-str1-acc'), ss=getAcc('tc-str1-ss');
+        const ti=grossRevenue;
+        const {tax,detail}=applyBrackets(S.taxBrackets.str, ti);
+        // Net = Gross Revenue − Tax − Accountant − SSI
+        const net=grossRevenue - tax - acc - ss;
+        return {acc,ss,ti,tax,detail,net};
+      }
+    },
+    {
+      key:'str2', label:'STR — 2 Owners', color:'#27ae60', icon:'👥',
+      taxBase:'revenue',
+      calc(){
+        const acc=getAcc('tc-str2-acc'), ss=getAcc('tc-str2-ss');
+        const perOwner = grossRevenue / 2;   // split gross revenue equally
+        const {tax:taxPerOwner, detail:d1}=applyBrackets(S.taxBrackets.str, perOwner);
+        const totalTax=taxPerOwner*2;
+        const detail=[];
+        d1.filter(d=>d.taxable>0).forEach(d=>{
+          const bracket=`€${fmt(Math.round(d.from))} – €${d.to===Infinity?'above':fmt(Math.round(d.to))}`;
+          detail.push({label:`Owner A  ${bracket}`, rate:d.rate, taxable:d.taxable, tax:d.tax});
+          detail.push({label:`Owner B  ${bracket}`, rate:d.rate, taxable:d.taxable, tax:d.tax});
+        });
+        // Net = Gross Revenue − Total Tax − Accountant − SSI
+        const net=grossRevenue - totalTax - acc - ss;
+        return {acc,ss,ti:grossRevenue,tax:totalTax,detail,net};
+      }
+    },
+  ];
+
+  const results=structures.map(s=>({...s,...s.calc()}));
+
+  // ── Summary table ──
+  let html=`<div class="card" style="padding:0;margin-bottom:14px;">
+    <div style="padding:11px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+      <strong>Taxation Comparison</strong>
+      <span style="font-size:12px;color:var(--text-3);">GOP (expenses deductible structures): <strong>€${fmt(grossOpProfit)}</strong> &nbsp;|&nbsp; Gross Revenue (STR structures): <strong>€${fmt(grossRevenue)}</strong></span>
+    </div>
+    <div style="overflow-x:auto;"><table>
+      <thead><tr>
+        <th>Structure</th>
+        <th class="tr">Accountant</th>
+        <th class="tr">Social Security</th>
+        <th class="tr">Total Tax-Specific Costs</th>
+        <th class="tr">Taxable Income</th>
+        <th class="tr">Tax</th>
+        <th class="tr">Effective Rate</th>
+        <th class="tr">Net after Tax &amp; Expenses</th>
+      </tr></thead>
+      <tbody>${results.map(r=>{
+        const totalSpecificCosts=r.acc+r.ss;
+        const effBase = r.taxBase==='revenue' ? grossRevenue : grossOpProfit;
+        const effRate = effBase>0 ? (r.tax/effBase*100).toFixed(1) : '0';
+        return `<tr>
+          <td>
+            <strong>${r.icon} ${r.label}</strong><br>
+            <small style="color:var(--text-3);font-size:11px;">Tax base: ${r.taxBase==='revenue'?'Gross Revenue (no deductions)':'Gross Operating Profit (expenses deducted)'}</small>
+          </td>
+          <td class="tr neg">€${fmt(r.acc)}</td>
+          <td class="tr neg">€${fmt(r.ss)}</td>
+          <td class="tr neg"><strong>€${fmt(totalSpecificCosts)}</strong></td>
+          <td class="tr">€${fmt(r.ti)}</td>
+          <td class="tr neg"><strong>€${fmt(r.tax)}</strong></td>
+          <td class="tr">${effRate}%</td>
+          <td class="tr ${r.net>=0?'pos':'neg'}"><strong>€${fmt(r.net)}</strong></td>
+        </tr>`;
+      }).join('')}</tbody>
+    </table></div>
+  </div>`;
+
+  // ── Per-structure bracket breakdown (2×2 grid) ──
+  html+=`<div class="fg g2" style="margin-bottom:14px;gap:12px;">`;
+  results.forEach(r=>{
+    html+=`<div class="card" style="padding:0;">
+      <div style="padding:9px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;">
+        <span style="font-size:18px;">${r.icon}</span>
+        <strong>${r.label}</strong>
+        <span style="margin-left:auto;font-size:11px;color:var(--text-3);">Tax base: €${fmt(r.ti)}</span>
+      </div>
+      <table><thead><tr><th>Bracket / Description</th><th class="tr">Rate</th><th class="tr">Taxable</th><th class="tr">Tax</th></tr></thead>
+      <tbody>${r.detail.map(d=>`<tr>
+        <td style="font-size:12px;">${d.label||`€${fmt(Math.round(d.from))} – €${d.to===Infinity?'above':fmt(Math.round(d.to))}`}</td>
+        <td class="tr">${Number(d.rate).toFixed(1)}%</td>
+        <td class="tr">€${fmt(d.taxable)}</td>
+        <td class="tr neg">€${fmt(d.tax)}</td>
+      </tr>`).join('')}
+      <tr style="background:var(--danger-light);font-weight:700;">
+        <td colspan="2">Total Tax</td>
+        <td class="tr">€${fmt(r.ti)}</td>
+        <td class="tr neg">€${fmt(r.tax)}</td>
+      </tr>
+      <tr style="background:var(--accent-light);font-weight:700;">
+        <td colspan="2">Accountant + SSI</td>
+        <td class="tr"></td>
+        <td class="tr neg">€${fmt(r.acc+r.ss)}</td>
+      </tr>
+      <tr style="background:var(--good-light);font-weight:700;">
+        <td colspan="3">Net After Tax &amp; Expenses</td>
+        <td class="tr ${r.net>=0?'pos':'neg'}">€${fmt(r.net)}</td>
+      </tr>
+      </tbody></table>
+    </div>`;
+  });
+  html+=`</div>`;
+
+  // ── Grouped bar chart: Tax+Costs vs Net ──
+  html+=`<div class="card"><div style="font-weight:600;margin-bottom:12px;">Structure Comparison — Net Outcome vs Tax &amp; Costs</div><div style="position:relative;height:280px;"><canvas id="tax-bar-chart"></canvas></div></div>`;
+
+  document.getElementById('tax-results').innerHTML=html;
+
+  requestAnimationFrame(()=>{
+    const ctx=document.getElementById('tax-bar-chart');if(!ctx)return;
+    if(taxChart){taxChart.destroy();taxChart=null;}
+    const taxLblPlugin={id:'txL',afterDatasetsDraw(chart){
+      chart.data.datasets.forEach(function(ds,di){
+        var meta=chart.getDatasetMeta(di);
+        meta.data.forEach(function(bar,i){
+          var v=ds.data[i];if(!v||v<500)return;
+          var cx=chart.ctx;cx.save();
+          cx.fillStyle='#fff';cx.font='bold 11px sans-serif';
+          cx.textAlign='center';cx.textBaseline='middle';
+          if(bar.height>18)cx.fillText('€'+fmt(v),bar.x,bar.y+bar.height/2);
+          cx.restore();
+        });
+      });
+    }};
+    taxChart=new Chart(ctx,{
+      type:'bar',
+      data:{
+        labels:results.map(r=>r.label),
+        datasets:[
+          {
+            label:'Tax',
+            data:results.map(r=>Math.round(r.tax)),
+            backgroundColor:'rgba(192,57,43,0.85)',
+            borderRadius:3,stack:'s'
+          },
+          {
+            label:'Accountant + SSI',
+            data:results.map(r=>Math.round(r.acc+r.ss)),
+            backgroundColor:'rgba(230,126,34,0.85)',
+            borderRadius:3,stack:'s'
+          },
+          {
+            label:'Net After Tax & Expenses',
+            data:results.map(r=>Math.max(0,Math.round(r.net))),
+            backgroundColor:results.map(r=>r.color+'cc'),
+            borderRadius:3,stack:'s'
+          },
+        ]
+      },
+      options:{
+        responsive:true,maintainAspectRatio:false,animation:{duration:300},
+        plugins:{
+          legend:{position:'top',labels:{font:{size:11}}},
+          tooltip:{callbacks:{
+            label:function(c){return c.dataset.label+': €'+fmt(c.raw);},
+            footer:function(items){
+              const i=items[0].dataIndex;
+              const r=results[i];
+              return ['─────────────','GOP: €'+fmt(grossOpProfit),'Revenue: €'+fmt(grossRevenue)];
+            }
+          }}
+        },
+        scales:{
+          x:{stacked:true,grid:{display:false},ticks:{font:{size:11}}},
+          y:{stacked:true,ticks:{callback:function(v){return '€'+fmt(v);},font:{size:11}},grid:{color:'#e2ddd6'}},
+        },
+      },plugins:[taxLblPlugin]
+    });
+  });
+}
+// ══════════════════════════════════════════════════════
+// PRINT
+// ══════════════════════════════════════════════════════
+function printReport(){
+  const pname=document.getElementById('proj-name')?.value||'Villa Project';
+  const addr=document.getElementById('proj-address')?.value||'';
+  const yr=document.getElementById('proj-year')?.value||'2026';
+  const owner=document.getElementById('proj-owner')?.value||'';
+  const prepby=document.getElementById('proj-preparedby')?.value||'Zesty Rentals and Investments';
+  const today=new Date().toLocaleDateString('el-GR');
+  const sc=activeScenario;
+  const scLabel={safe:'Conservative (Safe)',basic:'Base Case (Basic)',good:'Optimistic (Good)'}[sc];
+  if(!S.props.length){alert('Add properties first.');return;}
+
+  // Capture waterfall chart as PNG from the live canvas in the DOM
+  // We render onto a dedicated offscreen canvas so we always have a fresh high-res image
+  function buildWaterfallDataURL(tot,rawVals,bars,bases,colors,labels,callback){
+    var oc=document.createElement('canvas');
+    oc.width=900;oc.height=320;
+    var tmpChart=new Chart(oc,{
+      type:'bar',
+      data:{labels:labels,datasets:[
+        {label:'Base',data:bases,backgroundColor:'transparent',borderWidth:0,stack:'s'},
+        {label:'Value',data:bars,backgroundColor:colors,borderRadius:3,stack:'s'},
+      ]},
+      options:{
+        responsive:false,animation:false,
+        plugins:{legend:{display:false},tooltip:{enabled:false}},
+        scales:{
+          x:{stacked:true,grid:{display:false},ticks:{font:{size:10},maxRotation:30}},
+          y:{stacked:true,ticks:{callback:function(v){return '\u20AC'+Number(v).toLocaleString('el-GR');},font:{size:10}},grid:{color:'#e2ddd6'}},
+        },
+      },
+      plugins:[{id:'wfPrint',afterDatasetsDraw:function(chart){
+        var meta=chart.getDatasetMeta(1);
+        meta.data.forEach(function(bar,i){
+          if(!bars[i]||bars[i]<50)return;
+          var rv=i<rawVals.length?rawVals[i]:tot.grossProfit;
+          var cx=chart.ctx;cx.save();
+          cx.fillStyle=rv>=0?'#1b4332':'#9b2335';
+          cx.font='bold 10px sans-serif';cx.textAlign='center';cx.textBaseline='middle';
+          if(bar.height>14)cx.fillText('\u20AC'+Number(Math.abs(rv)).toLocaleString('el-GR',{maximumFractionDigits:0}),bar.x,bar.y+bar.height/2);
+          cx.restore();
+        });
+      }}]
+    });
+    // Chart.js renders synchronously when animation:false
+    var dataURL=oc.toDataURL('image/png');
+    tmpChart.destroy();
+    callback(dataURL);
+  }
+
+  let tot={revenue:0,nights:0,turnovers:0,platFee:0,mgmtFee:0,netRevenue:0,laundry:0,amenities:0,consumables:0,cleaning:0,checkin:0,totalVar:0,electricity:0,water:0,internet:0,insurance:0,other:0,pool:0,garden:0,totalFixed:0,grossProfit:0};
+  const pnls=S.props.map(function(p){var r=calcPropPnL(p,sc);Object.keys(tot).forEach(function(k){if(k in r)tot[k]+=r[k];});return{prop:p,r:r};});
+  const scData={};
+  ['safe','basic','good'].forEach(function(s){
+    var t={revenue:0,nights:0,platFee:0,mgmtFee:0,totalVar:0,totalFixed:0,grossProfit:0};
+    S.props.forEach(function(p){var r=calcPropPnL(p,s);Object.keys(t).forEach(function(k){if(k in r)t[k]+=r[k];});});
+    scData[s]=t;
+  });
+
+  // Waterfall data
+  var wfLabels=['Revenue','Platform','Mgmt Fee','Laundry','Amenities','Consumables','Cleaning','Check-in','Electricity','Water','Internet','Insurance','Pool','Garden','GOP'];
+  var wfRaw=[tot.revenue,-tot.platFee,-tot.mgmtFee,-tot.laundry,-tot.amenities,-tot.consumables,-tot.cleaning,-tot.checkin,-tot.electricity,-tot.water,-tot.internet,-tot.insurance,-tot.pool,-tot.garden];
+  var wfBases=[],wfBars=[],wfColors=[],run=0;
+  wfRaw.forEach(function(v,i){
+    if(i===0){wfBases.push(0);wfBars.push(v);wfColors.push('#2d6a4f');run=v;}
+    else{wfBases.push(v<0?run+v:run);wfBars.push(Math.abs(v));wfColors.push(v<0?'#c0392b':'#27ae60');run+=v;}
+  });
+  wfBases.push(0);wfBars.push(Math.max(0,tot.grossProfit));wfColors.push('#b5860d');
+
+  const vatPct=document.getElementById('proj-vat')?.value||8;
+  const platPct=document.getElementById('proj-platform')?.value||15;
+  const mgmtPct=document.getElementById('proj-mgmt')?.value||10;
+  const avgStay=document.getElementById('proj-avg-stay')?.value||4.5;
+
+  function fe(n){return '\u20AC'+Number(n||0).toLocaleString('el-GR',{minimumFractionDigits:0,maximumFractionDigits:0});}
+  function pct2(a,b){return b>0?(a/b*100).toFixed(1)+'%':'0%';}
+
+  var propRows=pnls.map(function(x,i){
+    var p=x.prop,r=x.r;
+    return '<tr><td>'+(p.name||'Property '+(i+1))+'</td><td>'+p.unitType+'</td>'+
+      '<td class="r">'+r.nights.toFixed(0)+'</td>'+
+      '<td class="r">'+fe(r.revenue)+'</td>'+
+      '<td class="r red">'+fe(r.platFee+r.mgmtFee)+'</td>'+
+      '<td class="r red">'+fe(r.totalVar)+'</td>'+
+      '<td class="r red">'+fe(r.totalFixed)+'</td>'+
+      '<td class="r '+(r.grossProfit>=0?'green':'red')+' bold">'+fe(r.grossProfit)+'</td>'+
+      '<td class="r">'+(r.revenue>0?(r.grossProfit/r.revenue*100).toFixed(1):0)+'%</td></tr>';
+  }).join('');
+
+  var scMetrics=[
+    {label:'Gross Revenue',fn:function(t){return fe(t.revenue);}},
+    {label:'Booked Nights',fn:function(t){return t.nights.toFixed(0);}},
+    {label:'Platform &amp; Mgmt Fees',fn:function(t){return fe(t.platFee+t.mgmtFee);},red:true},
+    {label:'Variable Costs',fn:function(t){return fe(t.totalVar);},red:true},
+    {label:'Fixed Costs',fn:function(t){return fe(t.totalFixed);},red:true},
+    {label:'Gross Operating Profit',fn:function(t){return fe(t.grossProfit);},bold:true,hl:true},
+    {label:'GOP Margin',fn:function(t){return t.revenue>0?(t.grossProfit/t.revenue*100).toFixed(1)+'%':'0%';}},
+  ];
+  var scRows=scMetrics.map(function(m){
+    return '<tr'+(m.hl?' class="hl"':'')+'>'+
+      '<td'+(m.bold?' class="bold"':'')+'>'+m.label+'</td>'+
+      ['safe','basic','good'].map(function(s){return '<td class="r'+(m.red?' red':'')+(m.bold?' bold':'')+'">'+m.fn(scData[s])+'</td>';}).join('')+
+      '</tr>';
+  }).join('');
+
+  var costItems=[
+    {label:'Laundry &amp; Linens',val:tot.laundry},
+    {label:'Amenities &amp; Toiletries',val:tot.amenities},
+    {label:'Consumables',val:tot.consumables},
+    {label:'Cleaning (labour + transport)',val:tot.cleaning},
+    {label:'Check-in / Check-out',val:tot.checkin},
+    {label:'Electricity',val:tot.electricity},
+    {label:'Water',val:tot.water},
+    {label:'Internet',val:tot.internet},
+    {label:'Insurance',val:tot.insurance},
+    {label:'Pool Maintenance',val:tot.pool},
+    {label:'Garden Maintenance',val:tot.garden},
+    {label:'Other',val:tot.other},
+  ].filter(function(r){return r.val>0;}).map(function(r){
+    return '<tr><td>'+r.label+'</td><td class="r red">'+fe(r.val)+'</td><td class="r">'+pct2(r.val,tot.revenue)+'</td></tr>';
+  }).join('');
+
+  var occRows=PERIODS.map(function(p,pi){var v=S.occ_basic[pi];return '<tr><td>'+p.label+'</td><td class="r">'+p.days+'</td><td class="r">'+(v*100).toFixed(0)+'%</td><td class="r">'+(v*p.days).toFixed(1)+'</td></tr>';}).join('');
+  var totalOccNights=S.occ_basic.reduce(function(s,v,i){return s+v*PERIODS[i].days;},0);
+  var propListRows=S.props.map(function(p,i){return '<tr><td>'+(i+1)+'</td><td>'+(p.name||'&mdash;')+'</td><td>'+p.unitType+'</td><td class="r">'+p.bedrooms+'</td><td class="r">'+(p.area||'&mdash;')+'</td><td class="r">'+p.multiplier+'x</td><td>'+(p.pool?'Yes':'&mdash;')+'</td><td>'+(p.garden?'Yes':'&mdash;')+'</td></tr>';}).join('');
+
+  var css=[
+    '*{box-sizing:border-box;margin:0;padding:0;}',
+    'body{font-family:"DM Sans",sans-serif;font-size:11pt;color:#1a1714;background:#fff;line-height:1.5;}',
+    '@page{size:A4;margin:20mm 18mm;}',
+    '@media print{.pb{page-break-before:always;}}',
+    '.cover{min-height:96vh;display:flex;flex-direction:column;justify-content:space-between;padding:20px 0;}',
+    '.logo{font-family:"DM Serif Display",serif;font-size:14pt;color:#2d6a4f;margin-bottom:48px;letter-spacing:1px;}',
+    '.logo span{color:#27ae60;}',
+    '.rule{height:4px;background:#1b4332;margin-bottom:36px;}',
+    '.ctitle{font-family:"DM Serif Display",serif;font-size:30pt;color:#1b4332;line-height:1.15;margin-bottom:10px;}',
+    '.csub{font-size:13pt;color:#5a5550;margin-bottom:6px;}',
+    '.mgrid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:36px;}',
+    '.mi label{font-size:8.5pt;font-weight:600;text-transform:uppercase;letter-spacing:.6px;color:#8a837a;display:block;}',
+    '.mi span{font-size:12pt;color:#1a1714;font-weight:500;}',
+    '.cfoot{border-top:2px solid #e2ddd6;padding-top:16px;display:flex;justify-content:space-between;font-size:9pt;}',
+    '.cfoot .r{color:#2d6a4f;font-weight:600;}',
+    '.phdr{display:flex;justify-content:space-between;align-items:center;padding-bottom:8px;border-bottom:2px solid #2d6a4f;margin-bottom:22px;}',
+    '.phdr-t{font-family:"DM Serif Display",serif;font-size:9pt;color:#2d6a4f;text-transform:uppercase;letter-spacing:1px;}',
+    '.phdr-r{font-size:9pt;color:#8a837a;}',
+    'h2{font-family:"DM Serif Display",serif;font-size:17pt;font-weight:400;color:#1b4332;margin:22px 0 12px;}',
+    'h2:first-child{margin-top:0;}',
+    '.kg{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px;}',
+    '.kpi{border:1px solid #e2ddd6;border-radius:7px;padding:11px 13px;}',
+    '.kpi.ac{border-color:#2d6a4f;background:#e8f4ee;}.kpi.gd{border-color:#b5860d;background:#fdf6e3;}',
+    '.kpi label{font-size:8pt;font-weight:600;text-transform:uppercase;letter-spacing:.4px;color:#8a837a;display:block;margin-bottom:2px;}',
+    '.kpi .val{font-size:18pt;font-weight:700;color:#1a1714;line-height:1;}',
+    '.kpi.ac .val{color:#1b4332;}.kpi.gd .val{color:#b5860d;}',
+    '.kpi .sub{font-size:8pt;color:#8a837a;margin-top:2px;}',
+    'table{width:100%;border-collapse:collapse;font-size:9.5pt;margin-bottom:14px;}',
+    'th{padding:7px 9px;text-align:left;font-weight:600;font-size:8pt;text-transform:uppercase;letter-spacing:.4px;color:#5a5550;border-bottom:2px solid #e2ddd6;background:#faf9f7;}',
+    'td{padding:5px 9px;border-bottom:1px solid #f0ece6;vertical-align:middle;}',
+    'tbody tr:last-child td{border-bottom:none;}',
+    '.r{text-align:right;}.bold{font-weight:700;}.red{color:#c0392b;}.green{color:#27ae60;}',
+    '.hl{background:#fdf6e3;}.hl td{font-weight:600;}',
+    'tfoot td{font-weight:700;background:#e8f4ee;border-top:2px solid #2d6a4f;}',
+    '.slbl{font-size:8pt;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#8a837a;padding:5px 9px;background:#faf9f7;border-bottom:1px solid #e2ddd6;}',
+    '.disc{margin-top:28px;padding:11px 14px;border:1px solid #e2ddd6;border-radius:6px;font-size:8.5pt;color:#8a837a;line-height:1.6;}',
+    '.wm{position:fixed;bottom:10mm;right:18mm;font-size:8pt;color:#c8c0b4;}',
+  ].join('');
+
+  var parts=[];
+  parts.push('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Business Plan - '+pname+'</title>');
+  parts.push('<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">');
+  parts.push('<style>'+css+'</style></head><body>');
+
+  // Cover
+  parts.push('<div class="cover"><div>');
+  parts.push('<div class="logo">Zesty <span>ERP</span></div><div class="rule"></div>');
+  parts.push('<div class="ctitle">'+pname+'</div><div class="csub">'+addr+'</div>');
+  parts.push('<div class="mgrid">');
+  parts.push('<div class="mi"><label>Analysis Year</label><span>'+yr+'</span></div>');
+  parts.push('<div class="mi"><label>Prepared For</label><span>'+(owner||'&mdash;')+'</span></div>');
+  parts.push('<div class="mi"><label>Scenario</label><span>'+scLabel+'</span></div>');
+  parts.push('<div class="mi"><label>Properties Analysed</label><span>'+S.props.length+'</span></div>');
+  parts.push('<div class="mi"><label>Platform Commission</label><span>'+platPct+'%</span></div>');
+  parts.push('<div class="mi"><label>Management Fee</label><span>'+mgmtPct+'%</span></div>');
+  parts.push('</div></div>');
+  parts.push('<div class="cfoot"><span>Prepared by '+prepby+' &nbsp;&middot;&nbsp; '+today+'</span><span class="r">Confidential &mdash; For Discussion Purposes Only</span></div>');
+  parts.push('</div>');
+
+  // Page 2: Executive Summary
+  parts.push('<div class="pb">');
+  parts.push('<div class="phdr"><div class="phdr-t">Executive Summary</div><div class="phdr-r">'+pname+' &middot; '+yr+'</div></div>');
+  parts.push('<h2>Financial Overview &mdash; '+scLabel+'</h2>');
+  parts.push('<div class="kg">');
+  parts.push('<div class="kpi ac"><label>Gross Revenue</label><div class="val">'+fe(tot.revenue)+'</div><div class="sub">'+tot.nights.toFixed(0)+' nights &middot; '+tot.turnovers+' turnovers</div></div>');
+  parts.push('<div class="kpi"><label>Net Revenue (after fees)</label><div class="val">'+fe(tot.netRevenue)+'</div><div class="sub">After '+platPct+'% + '+mgmtPct+'%</div></div>');
+  parts.push('<div class="kpi"><label>Variable Costs</label><div class="val" style="color:#c0392b;">'+fe(tot.totalVar)+'</div><div class="sub">Cleaning, linens, consumables</div></div>');
+  parts.push('<div class="kpi"><label>Fixed Costs</label><div class="val" style="color:#c0392b;">'+fe(tot.totalFixed)+'</div><div class="sub">Utilities, insurance, maintenance</div></div>');
+  parts.push('<div class="kpi gd"><label>Gross Operating Profit</label><div class="val">'+fe(tot.grossProfit)+'</div><div class="sub">Pre-tax operating result</div></div>');
+  parts.push('<div class="kpi"><label>GOP Margin</label><div class="val">'+(tot.revenue>0?(tot.grossProfit/tot.revenue*100).toFixed(1):0)+'%</div><div class="sub">On gross revenue</div></div>');
+  parts.push('</div>');
+  parts.push('<h2>3-Scenario Comparison</h2>');
+  parts.push('<table><colgroup><col style="width:200px"><col><col><col></colgroup>');
+  parts.push('<thead><tr><th>Metric</th><th class="r" style="color:#2980b9;">&#128309; Conservative</th><th class="r" style="color:#e67e22;">&#128992; Base Case</th><th class="r" style="color:#27ae60;">&#128994; Optimistic</th></tr></thead>');
+  parts.push('<tbody>'+scRows+'</tbody></table></div>');
+
+  // Page 3: Property Breakdown
+  parts.push('<div class="pb">');
+  parts.push('<div class="phdr"><div class="phdr-t">Property Detail</div><div class="phdr-r">'+pname+' &middot; '+yr+'</div></div>');
+  parts.push('<h2>Per-Property P&amp;L &mdash; '+scLabel+'</h2>');
+  parts.push('<table><thead><tr><th>Property</th><th>Type</th><th class="r">Nights</th><th class="r">Revenue</th><th class="r">Fees</th><th class="r">Variable</th><th class="r">Fixed</th><th class="r">GOP</th><th class="r">GOP%</th></tr></thead>');
+  parts.push('<tbody>'+propRows+'</tbody>');
+  parts.push('<tfoot><tr><td colspan="2"><strong>PROJECT TOTAL</strong></td><td class="r">'+tot.nights.toFixed(0)+'</td><td class="r">'+fe(tot.revenue)+'</td><td class="r">'+fe(tot.platFee+tot.mgmtFee)+'</td><td class="r">'+fe(tot.totalVar)+'</td><td class="r">'+fe(tot.totalFixed)+'</td><td class="r">'+fe(tot.grossProfit)+'</td><td class="r">'+(tot.revenue>0?(tot.grossProfit/tot.revenue*100).toFixed(1):0)+'%</td></tr></tfoot>');
+  parts.push('</table><h2>Cost Breakdown</h2>');
+  parts.push('<table><thead><tr><th>Cost Category</th><th class="r">Annual Amount</th><th class="r">% of Revenue</th></tr></thead>');
+  parts.push('<tbody><tr><td colspan="3" class="slbl">Variable &amp; Fixed Costs</td></tr>'+costItems+'</tbody>');
+  parts.push('<tfoot><tr><td><strong>Total Costs</strong></td><td class="r">'+fe(tot.totalVar+tot.totalFixed)+'</td><td class="r">'+pct2(tot.totalVar+tot.totalFixed,tot.revenue)+'</td></tr></tfoot>');
+  parts.push('</table></div>');
+
+  // Page 4: Assumptions
+  parts.push('<div class="pb">');
+  parts.push('<div class="phdr"><div class="phdr-t">Key Assumptions</div><div class="phdr-r">'+pname+' &middot; '+yr+'</div></div>');
+  parts.push('<h2>Operational Parameters</h2>');
+  parts.push('<table><thead><tr><th>Parameter</th><th class="r">Value</th></tr></thead><tbody>');
+  parts.push('<tr><td>VAT on short-term rental</td><td class="r">'+vatPct+'%</td></tr>');
+  parts.push('<tr><td>Platform commission</td><td class="r">'+platPct+'%</td></tr>');
+  parts.push('<tr><td>Property management fee</td><td class="r">'+mgmtPct+'%</td></tr>');
+  parts.push('<tr><td>Avg nights per stay (turnovers basis)</td><td class="r">'+avgStay+' nights</td></tr>');
+  parts.push('</tbody></table>');
+  parts.push('<h2>Occupancy &mdash; Basic Scenario</h2>');
+  parts.push('<table><thead><tr><th>Period</th><th class="r">Days</th><th class="r">Occupancy</th><th class="r">Booked Nights</th></tr></thead>');
+  parts.push('<tbody>'+occRows+'<tr class="bold"><td>Annual Total</td><td class="r">365</td><td class="r">'+(totalOccNights/365*100).toFixed(1)+'%</td><td class="r">'+totalOccNights.toFixed(0)+'</td></tr></tbody></table>');
+  parts.push('<h2>Properties in Project</h2>');
+  parts.push('<table><thead><tr><th>#</th><th>Name</th><th>Type</th><th class="r">Beds</th><th class="r">Area m&sup2;</th><th class="r">Multiplier</th><th>Pool</th><th>Garden</th></tr></thead>');
+  parts.push('<tbody>'+propListRows+'</tbody></table>');
+  parts.push('<div class="disc"><strong>Disclaimer:</strong> This business plan has been prepared by '+prepby+' using the Zesty ERP platform for informational and discussion purposes only. All revenue and cost projections are estimates based on market comparables and assumed occupancy rates. Actual results may differ materially. This document does not constitute financial, legal, or tax advice.</div>');
+  parts.push('</div>');
+  parts.push('<div class="wm">Zesty ERP &middot; '+today+' &middot; Confidential</div>');
+  parts.push('</body></html>');
+
+  // Render waterfall to PNG then open report
+  buildWaterfallDataURL(tot,wfRaw,wfBars,wfBases,wfColors,wfLabels,function(chartImg){
+    // Insert chart image into Page 2 after KPI grid
+    var chartHtml='<div style="margin:18px 0 22px;"><div style="font-weight:600;font-size:11pt;color:#1b4332;margin-bottom:8px;font-family:\'DM Serif Display\',serif;">Revenue Waterfall</div><img src="'+chartImg+'" style="width:100%;border:1px solid #e2ddd6;border-radius:6px;" /></div>';
+    // Inject after the KPI grid closing tag and before the scenario comparison heading
+    var html=parts.join('').replace('<h2>3-Scenario Comparison</h2>',chartHtml+'<h2>3-Scenario Comparison</h2>');
+    var w=window.open('','_blank','width=1000,height=750');
+    if(!w){alert('Please allow popups to generate the report.');return;}
+    w.document.open();
+    w.document.write(html);
+    w.document.close();
+    setTimeout(function(){w.print();},1800);
+  });
+}
+
+// ══════════════════════════════════════════════════════
+// UTILS
+// ══════════════════════════════════════════════════════
+function fmt(n){return Number(n||0).toLocaleString('el-GR',{minimumFractionDigits:0,maximumFractionDigits:0});}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+const empty_icon='';
+
+// ══════════════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════════════
+function init(){
+  buildRateTable();buildOccupancy();buildCostTable();renderProps();
+  buildTaxBracketTable('personal');buildTaxBracketTable('str');
+  // Pre-load comparables from Excel
+  [{id:1,name:'Armonia',link:'https://www.airbnb.gr/rooms/572391417149392556',beds:3,maxPeople:6,rates:[149,151,172,211,211,230,211,177,154]},
+   {id:2,name:"Nonda's Mansion",link:'https://www.booking.com/hotel/gr/nonda-39-s-mansion.en-gb.html',beds:3,maxPeople:6,rates:['',190,190,210,225,222,223,210,177]},
+   {id:3,name:'Villa Smaragdi',link:'https://www.booking.com/hotel/gr/villa-smaragdi.en-gb.html',beds:3,maxPeople:6,rates:[207,207,245,364,402,427,352,270,203]},
+   {id:4,name:"Zoe's Place — 2BD Beachfront",link:'https://www.booking.com/',beds:2,maxPeople:6,rates:['',205,205,265,295,295,205,195,'']},
+   {id:5,name:"Chrisanna's Residences",link:'https://www.airbnb.gr/',beds:2,maxPeople:6,rates:['',130,150,150,'',228,212,194,179]},
+   {id:6,name:'Dream Sea House Falassarna',link:'https://www.booking.com/hotel/gr/dream-sea-house.en-gb.html',beds:3,maxPeople:6,rates:[164,163,195,240,355,357,255,213,166]},
+  ].forEach(c=>S.comps.push(c));
+  renderComps();
+  // Demo property
+  addProperty({id:1001,name:'Ακτή Τομπάζη — Studio A',unitType:'Studio',bedrooms:1,bathrooms:1,area:35,multiplier:1.0,pool:false,poolCost:0,garden:true,gardenCost:360,electricity:800,water:200,internet:240,insurance:300,other:0,otherLabel:'Other',notes:'Sea view'});
+}
+document.addEventListener('DOMContentLoaded',function(){
+  init();        // build UI components
+  startApp();    // then show dashboard
+});
+</script>
+<script src="erp-nav.js"></script>
+</body>
+</html>
