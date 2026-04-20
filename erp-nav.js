@@ -23,6 +23,7 @@
     { url: 'jobs.html',            icon: '◈',  label: 'Job Orders' },
     { url: 'laundry.html',         icon: '◎',  label: 'Laundry' },
     { url: 'onboarding.html',      icon: '▷',  label: 'Onboarding' },
+    { url: 'villa-planner.html',   icon: '📐', label: 'Villa Planner' },
     { url: 'settings.html',        icon: '⚙',  label: 'Settings' },
     { url: 'tickets.html',         icon: '◈',  label: 'Tickets' },
     { url: 'reports.html',         icon: '📊', label: 'Reports' },
