@@ -961,10 +961,10 @@ async function saveManualJob() {
 }
 
 async function deleteManualJob(id) {
-  showConfirm('\uD83D\uDDD1', 'Delete Job?', 'Remove this manual job from the hours sheet?',
+  showConfirm('\uD83D\uDDD1', 'Delete Job?', 'Remove this job from the hours sheet? This cannot be undone.',
     'btn-danger', 'Delete', async () => {
       cleaningJobs = cleaningJobs.filter(j => j.id !== id);
-      await SyncStore.saveAll('zesty_cleaning_jobs', 'cleaning_jobs', cleaningJobs);
+      await SyncStore.deleteOne('zesty_cleaning_jobs', 'cleaning_jobs', id, cleaningJobs);
       closeModal('manualJobModal');
       renderHoursSheet();
       showToast('Job removed', 'error');
