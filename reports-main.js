@@ -206,26 +206,32 @@ function generateOwner(){
     const actualH=j.cleanerHours?Object.values(j.cleanerHours).reduce((s2,h)=>s2+(parseFloat(h)||0),0):(j.hours||0);
     return s+actualH;
   },0);
-  // Total charge = fee rate × total actual hours across all cleans
+  // Total charge = (fee rate × actual hours) + (property transport fee × ticked cleaners) across all cleans
   const tCleanCharge=cleans.reduce((s,j)=>{
     const actualH=j.cleanerHours?Object.values(j.cleanerHours).reduce((s2,h)=>s2+(parseFloat(h)||0),0):(j.hours||0);
-    return s+cleaningFeeRate*actualH;
+    const jTransportFee=parseFloat(j.propertyTransport||prop.propertyTransport||0);
+    const tickedCount=Object.values(j.cleanerTransport||{}).filter(v=>v===true).length;
+    return s+cleaningFeeRate*actualH+jTransportFee*tickedCount;
   },0);
   const cRows=cleans.map(j=>{
     const cls=(j.cleanerIds||[]).map(id=>staffC.find(s=>s.id===id)).filter(Boolean);
     // Use actual per-cleaner hours from j.cleanerHours (Hours module); fall back to j.hours if not recorded
     const actualJobHours=j.cleanerHours?Object.values(j.cleanerHours).reduce((s2,h)=>s2+(parseFloat(h)||0),0):(j.hours||0);
-    // Fall back to property transport fee if not stored on the job record
+    // Transport charge TO OWNER from property; staff transport COST from their own record
     const jobTransportFee=parseFloat(j.propertyTransport||prop.propertyTransport||0);
     const pay=cls.reduce((s,cl)=>{
       const actualH=j.cleanerHours?(parseFloat(j.cleanerHours[cl.id])||0):(j.hours||0);
+      const staffTransportCost=parseFloat(cl.transportCost)||0;
       const trTicked=j.cleanerTransport?.[cl.id]===true;
-      return s+(cl.hourlyRate||0)*actualH+(cl.hasCar==='Yes'&&trTicked?jobTransportFee:0);
+      return s+(cl.hourlyRate||0)*actualH+(cl.hasCar==='Yes'&&trTicked?staffTransportCost:0);
     },0);
+    // Owner charge = cleaning fee × hours + property transport fee × ticked cleaners
+    const transportOwnerCharge=cls.filter(cl=>cl.hasCar==='Yes'&&j.cleanerTransport?.[cl.id]===true).length*jobTransportFee;
     const typeColors={checkout:['#fdebd0','#a04000'],deep:['#e8d5f5','#6c3483']};
     const [tbg,tcol]=typeColors[j.type]||['#fdf6e3','#8e6b23'];
     const tLabel=j.type==='checkout'?'Checkout':j.type==='deep'?'Deep Clean':'Mid-Stay';
-    const charge=cleaningFeeRate>0&&actualJobHours>0?eur(cleaningFeeRate*actualJobHours):'—';
+    const rowChargeAmt=(cleaningFeeRate*actualJobHours)+transportOwnerCharge;
+    const charge=rowChargeAmt>0?eur(rowChargeAmt):'—';
     return`<tr>
       <td style="font-size:12px">${fmtDate(j.date)}</td>
       <td><span style="font-size:11px;font-weight:600;padding:2px 6px;border-radius:8px;background:${tbg};color:${tcol}">${tLabel}</span></td>

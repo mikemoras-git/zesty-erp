@@ -741,13 +741,13 @@ function renderHoursSheet() {
 
   const rows = filteredJobs.map((j) => {
     const assignedIds = j.cleanerIds || [];
-    let rowHours=0, rowPay=0, rowTransport=0;
+    let rowHours=0, rowPay=0, rowTransport=0, rowTransportOwnerCharge=0;
 
-    // Look up property record first — needed for transport fallback and charge rate
+    // Look up property record first — needed for transport charge rate and cleaning fee
     const propCache = window._propCache || JSON.parse(localStorage.getItem('zesty_properties')||'[]');
     const prop = propCache.find(p => (p.shortName||p.propertyName||'').toLowerCase() === (j.propertyName||'').toLowerCase())
       || propCache.find(p => (p.shortName||p.propertyName||'').toLowerCase().includes((j.propertyName||'').toLowerCase().split(' ')[0]));
-    // Use job's own transport fee; fall back to inferring from other jobs for the same property
+    // Transport charge TO OWNER (from property settings)
     const jobTransportFee = parseFloat(j.propertyTransport) > 0
       ? parseFloat(j.propertyTransport)
       : getPropertyTransportFee(j.propertyName);
@@ -757,20 +757,26 @@ function renderHoursSheet() {
       const hrs = savedHrs !== undefined ? savedHrs :
                   (assignedIds.includes(s.id) && j.hours ? j.hours : '');
       const hrsNum = parseFloat(hrs) || 0;
-      const hasTransport = jobTransportFee > 0 && s.hasCar === 'Yes';
+      // Show checkbox for any cleaner who has a car
+      const hasTransport = s.hasCar === 'Yes';
       const transportTicked = j.cleanerTransport?.[s.id] === true ||
         (savedHrs === undefined && assignedIds.includes(s.id) && hasTransport && j.cleanerTransport === undefined);
-      const transportPay = (hasTransport && transportTicked) ? jobTransportFee : 0;
+      // Staff transport COST comes from their own record (e.g. €5); owner CHARGE comes from property (e.g. €7.5)
+      const staffTransportCost = parseFloat(s.transportCost) || 0;
+      const transportPay = (hasTransport && transportTicked) ? staffTransportCost : 0;
+      const transportOwnerCharge = (hasTransport && transportTicked) ? jobTransportFee : 0;
       const pay = hrsNum * (parseFloat(s.hourlyRate)||0) + transportPay;
       if (hrsNum > 0 || transportPay > 0) {
         rowHours += hrsNum; rowPay += pay; rowTransport += transportPay;
+        rowTransportOwnerCharge += transportOwnerCharge;
         staffTotals[s.id].hours += hrsNum;
         staffTotals[s.id].pay += pay;
         staffTotals[s.id].transport += transportPay;
       }
+      // Checkbox shows staff's own transport cost; tooltip shows what gets charged to owner
       const transportCheckbox = hasTransport
-        ? `<div style="font-size:10px;color:var(--teal);margin-top:2px;white-space:nowrap;text-align:center">
-            <input type="checkbox" ${transportTicked?'checked':''} data-jobid="${j.id}" data-staffid="${s.id}" onchange="onTransportChange(this)" style="margin-right:2px;cursor:pointer">🚗€${jobTransportFee}
+        ? `<div style="font-size:10px;color:var(--teal);margin-top:2px;white-space:nowrap;text-align:center" title="Staff cost: €${staffTransportCost} | Owner charge: €${jobTransportFee}">
+            <input type="checkbox" ${transportTicked?'checked':''} data-jobid="${j.id}" data-staffid="${s.id}" onchange="onTransportChange(this)" style="margin-right:2px;cursor:pointer">🚗${staffTransportCost>0?'€'+staffTransportCost:''}
            </div>`
         : '';
       return `<td style="text-align:center;padding:4px">
@@ -782,8 +788,8 @@ function renderHoursSheet() {
       </td>`;
     }).join('');
 
-    // Charge = property's cleaning fee rate × actual hours worked this job
-    const rowCharge = parseFloat(prop?.cleaningFee||0) * rowHours;
+    // Charge = (cleaning fee rate × hours) + (property transport fee × number of ticked cleaners)
+    const rowCharge = parseFloat(prop?.cleaningFee||0) * rowHours + rowTransportOwnerCharge;
 
     totalHours += rowHours; totalPay += rowPay; totalTransport += rowTransport; totalCharge += rowCharge;
 
