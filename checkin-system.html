@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Zesty Rentals — Check-in System</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --teal:#1a7a6e; --teal-light:#23a090; --teal-dark:#115950;
+  --gold:#c9a84c; --gold-light:#e8c97a;
+  --cream:#f8f5f0; --white:#ffffff;
+  --text:#1e2a28; --text-muted:#6b7e7b; --border:#d4e0de;
+  --danger:#c0392b; --danger-light:#fdf0ef;
+  --success:#27ae60; --info:#2471a3;
+  --shadow:0 2px 16px rgba(26,122,110,0.10);
+}
+* { box-sizing:border-box; margin:0; padding:0; }
+body { font-family:'DM Sans',sans-serif; background:var(--cream); color:var(--text); min-height:100vh; }
+
+header { background:var(--teal-dark); padding:0 28px; display:flex; align-items:center; justify-content:space-between; height:64px; position:sticky; top:0; z-index:100; box-shadow:0 2px 20px rgba(0,0,0,.2); }
+.logo { font-family:'Cormorant Garamond',serif; font-size:21px; font-weight:500; color:#fff; }
+.logo span { color:var(--gold-light); }
+
+/* TABS */
+.tabs { display:flex; gap:4px; background:rgba(255,255,255,.1); border-radius:8px; padding:4px; }
+.ci-tab { padding:7px 16px; border-radius:6px; border:none; font-family:'DM Sans',sans-serif; font-size:13px; font-weight:500; cursor:pointer; color:rgba(255,255,255,.7); background:transparent; transition:all .2s; }
+.ci-tab.active { background:#fff; color:var(--teal-dark); }
+.ci-tab:hover:not(.active) { color:#fff; background:rgba(255,255,255,.15); }
+
+/* BUTTONS */
+.ci-btn { padding:8px 16px; border-radius:6px; border:none; font-family:'DM Sans',sans-serif; font-size:13px; font-weight:500; cursor:pointer; transition:all .2s; display:inline-flex; align-items:center; gap:6px; }
+.ci-btn-primary { background:var(--gold); color:var(--teal-dark); }
+.ci-btn-primary:hover { background:var(--gold-light); }
+.ci-btn-teal { background:var(--teal); color:#fff; }
+.ci-btn-teal:hover { background:var(--teal-light); }
+.ci-btn-outline { background:transparent; border:1px solid var(--border); color:var(--text-muted); }
+.ci-btn-outline:hover { border-color:var(--teal); color:var(--teal); }
+.ci-btn-danger { background:var(--danger-light); color:var(--danger); border:1px solid #f5c6c2; }
+.ci-btn-danger:hover { background:var(--danger); color:#fff; }
+.ci-btn-print { background:#2c3e50; color:#fff; }
+.ci-btn-print:hover { background:#1a252f; }
+.ci-btn-sm { padding:4px 10px; font-size:11px; }
+
+.container { max-width:1600px; margin:0 auto; padding:24px 20px; }
+.ci-page { display:none; }
+.ci-page.active { display:block; }
+
+/* STATS */
+.ci-stats { display:grid; grid-template-columns:repeat(6,1fr); gap:12px; margin-bottom:20px; }
+.ci-stat { background:#fff; border-radius:10px; padding:16px 18px; box-shadow:var(--shadow); border-left:4px solid var(--teal); }
+.ci-stat:nth-child(2) { border-color:var(--gold); }
+.ci-stat:nth-child(3) { border-color:#c0392b; }
+.ci-stat:nth-child(4) { border-color:var(--success); }
+.ci-stat:nth-child(5) { border-color:#e67e22; }
+.ci-stat:nth-child(6) { border-color:#8e44ad; }
+.ci-stat-label { font-size:10px; text-transform:uppercase; letter-spacing:.8px; color:var(--text-muted); margin-bottom:4px; }
+.ci-stat-value { font-family:'Cormorant Garamond',serif; font-size:28px; font-weight:600; color:var(--teal-dark); }
+
+/* TOOLBAR */
+.ci-toolbar { background:#fff; border-radius:10px; padding:12px 16px; display:flex; align-items:center; gap:10px; margin-bottom:16px; box-shadow:var(--shadow); flex-wrap:wrap; }
+.ci-toolbar input, .ci-toolbar select { padding:7px 12px; border:1px solid var(--border); border-radius:7px; font-family:'DM Sans',sans-serif; font-size:13px; outline:none; background:var(--cream); color:var(--text); }
+.ci-toolbar input:focus, .ci-toolbar select:focus { border-color:var(--teal); background:#fff; }
+
+/* CALENDAR */
+.ci-week-nav { display:flex; align-items:center; gap:12px; margin-bottom:16px; }
+.ci-week-label { font-size:15px; font-weight:600; color:var(--teal-dark); min-width:260px; text-align:center; }
+
+.ci-cal-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:8px; }
+.ci-day-col { background:#fff; border-radius:10px; box-shadow:var(--shadow); min-height:200px; overflow:hidden; }
+.ci-day-col.ci-today { border:2px solid var(--teal); }
+.ci-day-header { background:var(--teal-dark); color:#fff; padding:8px 10px; }
+.ci-day-name { font-size:11px; text-transform:uppercase; letter-spacing:.8px; opacity:.8; }
+.ci-day-date { font-family:'Cormorant Garamond',serif; font-size:24px; font-weight:600; line-height:1.1; }
+.ci-day-date.ci-today-badge { color:var(--gold-light); }
+.ci-day-count { font-size:10px; opacity:.7; margin-top:1px; }
+.ci-day-jobs { padding:6px; }
+.ci-no-jobs { text-align:center; padding:20px 0; color:#ccc; font-size:12px; }
+.ci-card { background:var(--cream); border-radius:8px; padding:8px 10px; margin-bottom:6px; cursor:pointer; border:1px solid var(--border); transition:all .15s; font-size:12px; }
+.ci-card:hover { border-color:var(--teal); transform:translateY(-1px); box-shadow:0 2px 8px rgba(0,0,0,.08); }
+
+/* JOBS TABLE */
+.ci-table-wrap { background:#fff; border-radius:10px; box-shadow:var(--shadow); overflow:hidden; }
+.ci-table { width:100%; border-collapse:collapse; font-size:13px; }
+.ci-table thead { background:var(--teal-dark); color:#fff; }
+.ci-table th { padding:11px 12px; text-align:left; font-weight:500; font-size:10px; text-transform:uppercase; letter-spacing:.7px; white-space:nowrap; }
+.ci-table td { padding:10px 12px; border-bottom:1px solid var(--border); vertical-align:middle; }
+.ci-table tbody tr:hover { background:#f5fbfa; }
+.ci-table tbody tr:last-child td { border-bottom:none; }
+
+/* CONFIRM */
+.ci-section-title { font-size:14px; font-weight:600; color:var(--teal-dark); margin-bottom:12px; }
+
+/* AGENTS */
+.ci-agents-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:16px; }
+.ci-agent-card { background:#fff; border-radius:12px; padding:18px 20px; box-shadow:var(--shadow); border-left:4px solid var(--teal); }
+
+/* IMPORT */
+.ci-drop-zone { border:2px dashed var(--border); border-radius:12px; padding:40px; text-align:center; cursor:pointer; transition:all .2s; background:#fff; }
+.ci-drop-zone:hover, .ci-drop-zone.ci-dragover { border-color:var(--teal); background:#f0faf8; }
+.ci-import-stats { display:flex; gap:16px; margin-bottom:16px; flex-wrap:wrap; }
+.ci-import-stat { background:#fff; border-radius:8px; padding:12px 18px; border:1px solid var(--border); text-align:center; min-width:110px; }
+.ci-import-stat .num { font-size:24px; font-weight:700; font-family:'Cormorant Garamond',serif; color:var(--teal-dark); }
+.ci-import-stat .lbl { font-size:10px; text-transform:uppercase; color:var(--text-muted); letter-spacing:.6px; }
+
+/* MODAL */
+.ci-modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:1000; display:flex; align-items:center; justify-content:center; opacity:0; pointer-events:none; transition:opacity .2s; }
+.ci-modal { background:#fff; border-radius:14px; width:660px; max-width:95vw; max-height:90vh; overflow-y:auto; box-shadow:0 20px 60px rgba(0,0,0,.2); }
+.ci-modal-header { display:flex; justify-content:space-between; align-items:center; padding:18px 22px; border-bottom:1px solid var(--border); position:sticky; top:0; background:#fff; z-index:1; }
+.ci-modal-title { font-size:16px; font-weight:600; color:var(--teal-dark); }
+.ci-modal-close { background:none; border:none; font-size:18px; cursor:pointer; color:var(--text-muted); padding:4px; }
+.ci-modal-body { padding:22px; }
+.ci-modal-footer { padding:16px 22px; border-top:1px solid var(--border); display:flex; justify-content:flex-end; gap:10px; }
+
+.ci-section-hdr { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.7px; color:var(--text-muted); margin:16px 0 8px; padding-bottom:6px; border-bottom:1px solid var(--border); }
+.ci-form-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.ci-form-grid-4 { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; }
+.ci-form-group { display:flex; flex-direction:column; gap:4px; }
+.ci-form-group label { font-size:11px; font-weight:500; text-transform:uppercase; letter-spacing:.5px; color:var(--text-muted); }
+.ci-form-group input, .ci-form-group select, .ci-form-group textarea { padding:8px 10px; border:1px solid var(--border); border-radius:7px; font-family:'DM Sans',sans-serif; font-size:13px; outline:none; background:var(--cream); color:var(--text); }
+.ci-form-group input:focus, .ci-form-group select:focus, .ci-form-group textarea:focus { border-color:var(--teal); background:#fff; }
+.ci-form-group textarea { resize:vertical; min-height:60px; }
+.ci-col-span-2 { grid-column:span 2; }
+.ci-checkbox-row { display:flex; align-items:center; gap:8px; font-size:13px; padding:4px 0; }
+.ci-checkbox-row input { width:16px; height:16px; accent-color:var(--teal); cursor:pointer; }
+
+/* TOAST */
+.ci-toast { position:fixed; bottom:24px; right:24px; background:var(--teal-dark); color:#fff; padding:12px 20px; border-radius:10px; font-size:13px; font-weight:500; opacity:0; transform:translateY(10px); transition:all .3s; z-index:9999; pointer-events:none; }
+.ci-toast.show { opacity:1; transform:translateY(0); }
+.ci-toast.error { background:var(--danger); }
+.ci-toast.success { background:var(--success); }
+
+@media (max-width:900px) {
+  .ci-stats { grid-template-columns:repeat(3,1fr); }
+  .ci-cal-grid { grid-template-columns:1fr; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Zesty <span>Rentals</span> — Check-in</div>
+  <div class="tabs">
+    <button class="ci-tab active" data-tab="schedule" onclick="showCITab('schedule')">📅 Schedule</button>
+    <button class="ci-tab" data-tab="jobs"     onclick="showCITab('jobs')">📋 Jobs</button>
+    <button class="ci-tab" data-tab="confirm"  onclick="showCITab('confirm')">✅ Confirm</button>
+    <button class="ci-tab" data-tab="agents"   onclick="showCITab('agents')">👷 Agents</button>
+    <button class="ci-tab" data-tab="import"   onclick="showCITab('import')">📥 Import</button>
+  </div>
+</header>
+
+<div class="container">
+
+  <!-- STATS -->
+  <div class="ci-stats">
+    <div class="ci-stat"><div class="ci-stat-label">This Month</div><div class="ci-stat-value" id="ci-stat-total">—</div></div>
+    <div class="ci-stat"><div class="ci-stat-label">Check-ins</div><div class="ci-stat-value" id="ci-stat-checkin">—</div></div>
+    <div class="ci-stat"><div class="ci-stat-label">Check-outs</div><div class="ci-stat-value" id="ci-stat-checkout">—</div></div>
+    <div class="ci-stat"><div class="ci-stat-label">Confirmed</div><div class="ci-stat-value" id="ci-stat-confirmed">—</div></div>
+    <div class="ci-stat"><div class="ci-stat-label">Pending</div><div class="ci-stat-value" id="ci-stat-pending">—</div></div>
+    <div class="ci-stat"><div class="ci-stat-label">Revenue (done)</div><div class="ci-stat-value" id="ci-stat-revenue">—</div></div>
+  </div>
+
+  <!-- ═══ SCHEDULE PAGE ═══ -->
+  <div class="ci-page active" id="ci-page-schedule">
+    <div class="ci-week-nav">
+      <button class="ci-btn ci-btn-outline" onclick="prevCIWeek()">← Prev</button>
+      <div class="ci-week-label" id="ciWeekLabel">—</div>
+      <button class="ci-btn ci-btn-outline" onclick="nextCIWeek()">Next →</button>
+      <button class="ci-btn ci-btn-outline" onclick="goToCIToday()">Today</button>
+      <button class="ci-btn ci-btn-print" onclick="printCIWeekly()" style="margin-left:auto">🖨 Print Week</button>
+    </div>
+    <div class="ci-cal-grid" id="ciCalGrid"></div>
+  </div>
+
+  <!-- ═══ JOBS PAGE ═══ -->
+  <div class="ci-page" id="ci-page-jobs">
+    <div class="ci-toolbar">
+      <input type="month" id="ciJobMonth" onchange="renderCIJobs()" placeholder="Month">
+      <input type="text" id="ciJobProp" oninput="renderCIJobs()" placeholder="🔍 Property..." style="min-width:180px">
+      <select id="ciJobAgent" onchange="renderCIJobs()"><option value="">All Agents</option></select>
+      <select id="ciJobType" onchange="renderCIJobs()">
+        <option value="">All Types</option>
+        <option value="checkin">🔑 Check-in</option>
+        <option value="checkout">🚪 Check-out</option>
+      </select>
+      <select id="ciJobStatus" onchange="renderCIJobs()">
+        <option value="">All Statuses</option>
+        <option value="pending">🟡 Pending</option>
+        <option value="done">✅ Done</option>
+        <option value="skipped">⏭ Skipped</option>
+      </select>
+    </div>
+    <div class="ci-table-wrap">
+      <table class="ci-table">
+        <thead><tr>
+          <th>Date</th><th>Time</th><th>Type</th><th>Property</th>
+          <th>Guest</th><th style="text-align:center">Guests</th>
+          <th>Agent</th><th>Status</th><th></th>
+        </tr></thead>
+        <tbody id="ciJobsTbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ═══ CONFIRM PAGE ═══ -->
+  <div class="ci-page" id="ci-page-confirm">
+    <div class="ci-toolbar">
+      <input type="month" id="ciConfirmMonth" onchange="renderCIConfirm()">
+      <label class="ci-checkbox-row" style="margin-left:8px">
+        <input type="checkbox" id="ciConfirmPendingOnly" checked onchange="renderCIConfirm()">
+        Show pending only
+      </label>
+    </div>
+    <div style="background:#fff3cd;border:1px solid #ffc107;border-radius:8px;padding:12px 16px;margin-bottom:14px;font-size:13px;color:#856404">
+      💡 Mark each job as <strong>Done</strong> (happened on scheduled date), <strong>Different date</strong> (happened on another day), or <strong>Skipped</strong> (agent did not go). Only <em>Done</em> jobs are charged to the owner in Reports.
+    </div>
+    <div class="ci-table-wrap">
+      <table class="ci-table">
+        <thead><tr>
+          <th>Date</th><th>Time</th><th>Type</th><th>Property</th><th>Guest</th><th>Agent</th><th>Action</th>
+        </tr></thead>
+        <tbody id="ciConfirmTbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ═══ AGENTS PAGE ═══ -->
+  <div class="ci-page" id="ci-page-agents">
+    <div style="background:#e8f6f3;border:1px solid var(--teal);border-radius:8px;padding:12px 16px;margin-bottom:16px;font-size:13px;color:var(--teal-dark)">
+      💡 Check-in agents are managed in <strong>Cleaning → Staff</strong>. Set the role to <strong>Check-in Agent</strong> or <strong>Both</strong> and assign zones and a check-in fee per visit.
+    </div>
+    <div class="ci-agents-grid" id="ciAgentsGrid"></div>
+  </div>
+
+  <!-- ═══ IMPORT PAGE ═══ -->
+  <div class="ci-page" id="ci-page-import">
+    <div class="ci-drop-zone" id="ciDropZone"
+      ondragover="ciDragOver(event)" ondragleave="ciDragLeave()" ondrop="ciDropFile(event)"
+      onclick="document.getElementById('ciFileInput').click()">
+      <div style="font-size:36px;margin-bottom:10px">📥</div>
+      <div style="font-size:15px;font-weight:600;color:var(--teal-dark);margin-bottom:6px">Drop Lodgify CSV here</div>
+      <div style="font-size:13px;color:var(--text-muted)">or click to browse — same file used for Cleaning import</div>
+      <input type="file" id="ciFileInput" accept=".csv" style="display:none" onchange="handleCIFile(event)">
+    </div>
+
+    <div id="ciImportResults" style="display:none;margin-top:20px">
+      <div class="ci-import-stats" id="ciImportSummary"></div>
+      <div style="background:#fff;border-radius:10px;overflow:hidden;box-shadow:var(--shadow)">
+        <div style="padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
+          <strong style="font-size:13px">Preview — Booked rows with check-in service</strong>
+          <div style="display:flex;gap:8px">
+            <button class="ci-btn ci-btn-outline ci-btn-sm" onclick="clearCIImport()">✕ Clear</button>
+            <button class="ci-btn ci-btn-primary" onclick="importCIJobs()">✅ Import Jobs</button>
+          </div>
+        </div>
+        <div style="overflow-x:auto">
+          <table class="ci-table">
+            <thead><tr>
+              <th>Guest</th><th>Property</th><th>Arrival</th><th>Departure</th>
+              <th style="text-align:center">Guests</th><th style="text-align:center">Infants</th>
+              <th>Check-in Svc</th><th>Returning</th><th></th>
+            </tr></thead>
+            <tbody id="ciImportPreview"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /container -->
+
+<!-- ═══ EDIT JOB MODAL ═══ -->
+<div class="ci-modal-overlay" id="ciEditModal">
+  <div class="ci-modal">
+    <div class="ci-modal-header">
+      <div class="ci-modal-title">✏️ Edit Job</div>
+      <button class="ci-modal-close" onclick="ciCloseModal('ciEditModal')">✕</button>
+    </div>
+    <div class="ci-modal-body">
+      <input type="hidden" id="ciEditId">
+
+      <div class="ci-section-hdr">📅 Schedule</div>
+      <div class="ci-form-grid">
+        <div class="ci-form-group"><label>Date</label><input type="date" id="ciEditDate"></div>
+        <div class="ci-form-group"><label>Scheduled Time</label><input type="time" id="ciEditTime"></div>
+        <div class="ci-form-group"><label>Type</label>
+          <select id="ciEditType">
+            <option value="checkin">🔑 Check-in (Arrival)</option>
+            <option value="checkout">🚪 Check-out (Departure)</option>
+          </select>
+        </div>
+        <div class="ci-form-group"><label>Agent</label>
+          <select id="ciEditAgent"><option value="">Unassigned</option></select>
+        </div>
+        <div class="ci-form-group ci-col-span-2"><label>Property</label><input type="text" id="ciEditProp" placeholder="Property name"></div>
+      </div>
+
+      <div class="ci-section-hdr">👥 Guests</div>
+      <div class="ci-form-grid-4">
+        <div class="ci-form-group"><label>Guest Name</label><input type="text" id="ciEditGuest" placeholder="Full name" style="grid-column:span 2"></div>
+        <div class="ci-form-group"><label>Total Guests</label><input type="number" id="ciEditGuests" min="0"></div>
+        <div class="ci-form-group"><label>Adults</label><input type="number" id="ciEditAdults" min="0"></div>
+        <div class="ci-form-group"><label>Children</label><input type="number" id="ciEditChildren" min="0"></div>
+        <div class="ci-form-group"><label>Infants</label><input type="number" id="ciEditInfants" min="0"></div>
+      </div>
+      <div style="margin-top:10px">
+        <label class="ci-checkbox-row"><input type="checkbox" id="ciEditBabyCot"> 🚼 Baby cot / High chair required</label>
+        <label class="ci-checkbox-row" style="margin-top:6px"><input type="checkbox" id="ciEditReturning"> ⭐ Returning guest</label>
+      </div>
+
+      <div class="ci-section-hdr">💶 Money & Notes</div>
+      <div class="ci-form-grid">
+        <div class="ci-form-group"><label>Money to Collect (€)</label><input type="number" id="ciEditMoney" min="0" step="0.01" placeholder="0.00"></div>
+        <div class="ci-form-group"><label>Special Requests</label><input type="text" id="ciEditRequests" placeholder="e.g. early check-in..."></div>
+        <div class="ci-form-group ci-col-span-2"><label>Notes</label><textarea id="ciEditNotes" placeholder="Internal notes for the agent..."></textarea></div>
+      </div>
+    </div>
+    <div class="ci-modal-footer">
+      <button class="ci-btn ci-btn-outline" onclick="ciCloseModal('ciEditModal')">Cancel</button>
+      <button class="ci-btn ci-btn-primary" onclick="saveCIJob()">💾 Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ DATE PICKER MODAL ═══ -->
+<div class="ci-modal-overlay" id="ciDatePickerModal">
+  <div class="ci-modal" style="width:360px">
+    <div class="ci-modal-header">
+      <div class="ci-modal-title">📅 Actual Date Performed</div>
+      <button class="ci-modal-close" onclick="ciCloseModal('ciDatePickerModal')">✕</button>
+    </div>
+    <div class="ci-modal-body">
+      <input type="hidden" id="ciActualDateJobId">
+      <div class="ci-form-group">
+        <label>Date the agent actually went</label>
+        <input type="date" id="ciActualDateInput">
+      </div>
+    </div>
+    <div class="ci-modal-footer">
+      <button class="ci-btn ci-btn-outline" onclick="ciCloseModal('ciDatePickerModal')">Cancel</button>
+      <button class="ci-btn ci-btn-primary" onclick="confirmCIActualDate()">✅ Confirm</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ CONFIRM DIALOG ═══ -->
+<div class="ci-modal-overlay" id="ciConfirmOverlay">
+  <div class="ci-modal" style="width:400px">
+    <div class="ci-modal-body" style="text-align:center;padding:32px 24px">
+      <div id="ciConfirmIcon" style="font-size:36px;margin-bottom:12px"></div>
+      <div id="ciConfirmTitle" style="font-size:17px;font-weight:700;margin-bottom:8px"></div>
+      <div id="ciConfirmMsg" style="font-size:13px;color:var(--text-muted);margin-bottom:24px"></div>
+      <div style="display:flex;justify-content:center;gap:12px">
+        <button class="ci-btn ci-btn-outline" onclick="ciCloseModal('ciConfirmOverlay')">Cancel</button>
+        <button class="ci-btn" id="ciConfirmOkBtn">Confirm</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="ci-toast" id="ci-toast"></div>
+
+<script src="cleaning-db.js"></script>
+<script src="checkin-logic.js"></script>
+<script>
+  // Set default month for filters
+  const _ciNow = new Date();
+  const _ciMonth = _ciNow.getFullYear() + '-' + String(_ciNow.getMonth()+1).padStart(2,'0');
+  const _ciJobMonth = document.getElementById('ciJobMonth');
+  if (_ciJobMonth) _ciJobMonth.value = _ciMonth;
+  const _ciConfirmMonth = document.getElementById('ciConfirmMonth');
+  if (_ciConfirmMonth) _ciConfirmMonth.value = _ciMonth;
+
+  initCheckin();
+</script>
+<script src="erp-nav.js"></script>
+</body>
+</html>
