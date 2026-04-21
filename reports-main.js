@@ -1,13 +1,14 @@
-let properties=[],owners=[],jobs=[],cleanJobs=[];
+let properties=[],owners=[],jobs=[],cleanJobs=[],checkinJobs=[];
 
 async function init(){
-  const[rp,ro,rj,rc]=await Promise.all([
+  const[rp,ro,rj,rc,rci]=await Promise.all([
     SyncStore.load('zesty_properties','properties'),
     SyncStore.load('zesty_owners','owners'),
     SyncStore.load('zesty_jobs','jobs'),
     SyncStore.load('zesty_cleaning_jobs','cleaning_jobs'),
+    SyncStore.load('zesty_checkin_jobs','checkin_jobs'),
   ]);
-  properties=rp.data||[]; owners=ro.data||[]; jobs=rj.data||[]; cleanJobs=rc.data||[];
+  properties=rp.data||[]; owners=ro.data||[]; jobs=rj.data||[]; cleanJobs=rc.data||[]; checkinJobs=rci.data||[];
   const sel=document.getElementById('s-prop');
   properties.filter(p=>!p.archived).sort((a,b)=>(a.shortName||'').localeCompare(b.shortName||'')).forEach(p=>{
     const o=document.createElement('option'); o.value=p.id; o.textContent=p.shortName||p.propertyName; sel.appendChild(o);
@@ -235,6 +236,29 @@ function generateOwner(){
     </tr>`;
   }).join('');
 
+  // Check-in jobs (confirmed=done only, for this property+month)
+  const propNameKey=(prop.shortName||prop.propertyName||'').toLowerCase().split(' ')[0];
+  const ciJobsMonth=checkinJobs.filter(j=>{
+    const cp=(j.propertyName||'').toLowerCase();
+    return cp.includes(propNameKey)&&(j.date||'').startsWith(month)&&j.confirmed==='done';
+  });
+  const ciCharge=parseFloat(prop.checkinCharge||0);
+  const tCICharge=ciJobsMonth.length*ciCharge;
+  const ciRows=ciJobsMonth.sort((a,b)=>((a.date||'')+(a.scheduledTime||''))<((b.date||'')+(b.scheduledTime||''))?-1:1).map(j=>{
+    const isCI=j.type==='checkin';
+    const [tbg,tcol]=isCI?['#e8f6f3','#1a7a6e']:['#fdebd0','#a04000'];
+    const tLabel=isCI?'Check-in':'Check-out';
+    const infantFlag=(parseInt(j.infants)||0)>0;
+    return`<tr>
+      <td style="font-size:12px">${fmtDate(j.actualDate||j.date)}</td>
+      <td><span style="font-size:11px;font-weight:600;padding:2px 6px;border-radius:8px;background:${tbg};color:${tcol}">${tLabel}</span></td>
+      <td style="font-size:12px">${j.guestName||'—'}${infantFlag?' <span style="font-size:10px;background:#fff3cd;color:#856404;padding:1px 4px;border-radius:4px">🚼</span>':''}</td>
+      <td style="text-align:center">${j.guests||'—'}</td>
+      <td style="font-size:11px">${j.scheduledTime||'—'}</td>
+      <td style="text-align:right;font-weight:600;color:var(--teal-dark)">${ciCharge>0?eur(ciCharge):'—'}</td>
+    </tr>`;
+  }).join('');
+
   // Occupancy
   const booked=bookings.reduce((s,r)=>s+(parseInt(r.Nights)||0),0);
   const daysM=mEnd.getDate(), occ=daysM>0?Math.round(booked/daysM*100):0;
@@ -320,6 +344,15 @@ function generateOwner(){
       </table>
     </div>`:''}
 
+    ${ciJobsMonth.length>0?`<div class="rpt-section">
+      <div class="rpt-section-title">Check-in / Check-out — ${ciJobsMonth.length} visits${tCICharge>0?' · '+eur(tCICharge)+' charged':''}</div>
+      <table class="rpt-table">
+        <thead><tr><th>Date</th><th>Type</th><th>Guest</th><th style="text-align:center">Guests</th><th style="text-align:center">Time</th><th style="text-align:right">Charge</th></tr></thead>
+        <tbody>${ciRows}</tbody>
+        ${tCICharge>0?`<tfoot><tr><td colspan="5" style="text-align:right">TOTAL CHECK-IN CHARGE</td><td style="text-align:right;font-weight:700">${eur(tCICharge)}</td></tr></tfoot>`:''}
+      </table>
+    </div>`:''}
+
     <div class="rpt-section">
       <div class="rpt-section-title">Summary</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px">
@@ -332,7 +365,8 @@ function generateOwner(){
           <div class="sum-row subtotal"><span>Net Income (owner keeps)</span><span style="color:var(--success)">${eur(tNet)}</span></div>
           ${propJobs.length>0?`<div class="sum-row"><span class="sum-label">Job Orders (charged)</span><span class="sum-val" style="color:var(--teal)">+ ${eur(tJobs)}</span></div>`:''}
           ${tCleanCharge>0?`<div class="sum-row"><span class="sum-label">Cleaning (${cleans.length} sessions)</span><span class="sum-val" style="color:var(--teal)">+ ${eur(tCleanCharge)}</span></div>`:''}
-          <div class="sum-row payable"><span>DUE TO ZESTY</span><span>${eur(tZesty+tJobs+tCleanCharge)}</span></div>
+          ${tCICharge>0?`<div class="sum-row"><span class="sum-label">Check-in / Check-out (${ciJobsMonth.length} visits)</span><span class="sum-val" style="color:var(--teal)">+ ${eur(tCICharge)}</span></div>`:''}
+          <div class="sum-row payable"><span>DUE TO ZESTY</span><span>${eur(tZesty+tJobs+tCleanCharge+tCICharge)}</span></div>
         </div>
         <div>
           <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted);margin-bottom:12px">Revenue by Channel</div>

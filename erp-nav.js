@@ -16,6 +16,7 @@
     { url: 'properties-db.html',   icon: '▣',  label: 'Properties' },
     { url: 'guests-crm.html',      icon: '◉',  label: 'Guests' },
     { url: 'cleaning-system.html', icon: '◎',  label: 'Cleaning' },
+    { url: 'checkin-system.html',  icon: '🗝',  label: 'Check-in' },
     { url: 'contacts-crm.html',    icon: '◈',  label: 'Contacts' },
     { url: 'employees.html',       icon: '⬡',  label: 'Staff' },
     { url: 'leave.html',           icon: '◌',  label: 'Leave' },
