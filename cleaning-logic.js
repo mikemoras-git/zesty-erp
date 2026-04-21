@@ -453,9 +453,7 @@ function editStaff(id) {
   document.getElementById('s_email').value = s.email||'';
   document.getElementById('s_birthdate').value = s.birthdate||'';
   document.getElementById('s_address').value = s.address||'';
-  const roleEl = document.getElementById('s_role'); if(roleEl) roleEl.value = s.role||'cleaner';
   document.getElementById('s_hourlyRate').value = s.hourlyRate||'';
-  const ciFeeEl = document.getElementById('s_checkInFee'); if(ciFeeEl) ciFeeEl.value = s.checkInFee||'';
   const crEl = document.getElementById('s_chargeRate'); if(crEl) crEl.value = s.chargeRate||'';
   document.getElementById('s_transportCost').value = s.transportCost||'';
   document.getElementById('s_hasCar').value = s.hasCar||'';
@@ -477,10 +475,9 @@ function editStaff(id) {
 
 function clearStaffForm() {
   ['s_firstName','s_lastName','s_phone','s_email','s_birthdate','s_address','s_hourlyRate',
-   's_checkInFee','s_transportCost','s_carDetails','s_licenseNumber','s_insuranceExpiry','s_iban','s_bank',
+   's_transportCost','s_carDetails','s_licenseNumber','s_insuranceExpiry','s_iban','s_bank',
    's_beneficiary','s_notes'].forEach(id => { const el = document.getElementById(id); if(el) el.value=''; });
   document.getElementById('s_status').value = 'Active';
-  const roleElC = document.getElementById('s_role'); if(roleElC) roleElC.value = 'cleaner';
   document.getElementById('s_hasCar').value = '';
   document.getElementById('s_drivingLicense').value = '';
   document.getElementById('s_insurance').value = '';
@@ -496,7 +493,6 @@ async function saveStaff() {
   const zones = [...document.querySelectorAll('.zone-check.selected')].map(el => el.dataset.zone);
   const data = {
     firstName, lastName,
-    role: document.getElementById('s_role')?.value || 'cleaner',
     status: document.getElementById('s_status').value,
     phone: document.getElementById('s_phone').value.trim(),
     email: document.getElementById('s_email').value.trim(),
@@ -504,7 +500,6 @@ async function saveStaff() {
     address: document.getElementById('s_address').value.trim(),
     zones,
     hourlyRate: parseFloat(document.getElementById('s_hourlyRate').value)||null,
-    checkInFee: parseFloat(document.getElementById('s_checkInFee')?.value)||null,
     chargeRate: parseFloat(document.getElementById('s_chargeRate')?.value)||null,
     transportCost: parseFloat(document.getElementById('s_transportCost').value)||null,
     hasCar: document.getElementById('s_hasCar').value,
