@@ -577,134 +577,125 @@ async function deleteCIJob(id) {
 }
 
 // ═══════════════════════════════════════════════════════════════
-// IMPORT
+// SYNC FROM CLEANING DATA
+// Reads cleaning jobs already imported via the Cleaning module.
+// No separate CSV needed — works from the same data.
 // ═══════════════════════════════════════════════════════════════
-function ciDragOver(e)  { e.preventDefault(); document.getElementById('ciDropZone').classList.add('ci-dragover'); }
-function ciDragLeave()  { document.getElementById('ciDropZone').classList.remove('ci-dragover'); }
-function ciDropFile(e)  { e.preventDefault(); ciDragLeave(); const f=e.dataTransfer.files[0]; if(f) processCICSV(f); }
-function handleCIFile(e){ const f=e.target.files[0]; if(f) processCICSV(f); }
+async function syncCIFromCleaning() {
+  const btn = document.getElementById('ciSyncBtn');
+  if (btn) { btn.disabled=true; btn.textContent='⏳ Syncing...'; }
 
-function parseCICSVLine(line) {
-  const result=[]; let current=''; let inQuotes=false;
-  for(let i=0;i<line.length;i++){
-    if(line[i]==='"'){if(inQuotes&&line[i+1]==='"'){current+='"';i++;}else inQuotes=!inQuotes;}
-    else if(line[i]===','&&!inQuotes){result.push(current);current='';}
-    else current+=line[i];
+  // Read cleaning jobs from localStorage (populated by cleaning module import)
+  const cleaningJobs = SyncStore._getLocal('zesty_cleaning_jobs');
+
+  // Only checkout-type jobs have the departure date + nights we need
+  const checkoutJobs = cleaningJobs.filter(j => j.type === 'checkout' && j.bookingId);
+
+  if (!checkoutJobs.length) {
+    ciShowToast('No cleaning data found. Import CSV in the Cleaning module first.', 'error');
+    if (btn) { btn.disabled=false; btn.textContent='🔄 Sync from Cleaning'; }
+    return;
   }
-  result.push(current); return result;
-}
 
-function processCICSV(file) {
-  const reader=new FileReader();
-  reader.onload=e=>{
-    const text=e.target.result;
-    const lines=text.split('\n').filter(l=>l.trim());
-    const headers=parseCICSVLine(lines[0]);
-    const rows=lines.slice(1).map(l=>{
-      const vals=parseCICSVLine(l); const obj={};
-      headers.forEach((h,i)=>obj[h.trim()]=(vals[i]||'').trim()); return obj;
-    }).filter(r=>r.Id&&r.DateArrival&&r.DateDeparture);
-    ciImportPreviewData=rows;
-    showCIImportResults(file.name,rows);
-  };
-  reader.readAsText(file,'utf-8');
-}
+  let created=0, updated=0, skipped=0;
 
-function showCIImportResults(filename, rows) {
-  const booked   = rows.filter(r=>r.Status==='Booked').length;
-  const eligible = rows.filter(r=>r.Status==='Booked'&&ciPropertyHasCheckin(r.House_Id||r.HouseName)).length;
-  const existingIds=new Set(ciJobs.map(j=>j.bookingId).filter(Boolean));
-  const newOnes  = rows.filter(r=>r.Status==='Booked'&&!existingIds.has(r.Id)&&ciPropertyHasCheckin(r.House_Id||r.HouseName)).length;
-  const sum=document.getElementById('ciImportSummary');
-  if(sum) sum.innerHTML=`
-    <div class="ci-import-stat"><div class="num">${rows.length}</div><div class="lbl">Total Rows</div></div>
-    <div class="ci-import-stat"><div class="num" style="color:var(--success)">${booked}</div><div class="lbl">Booked</div></div>
-    <div class="ci-import-stat"><div class="num" style="color:#1a7a6e">${eligible}</div><div class="lbl">Check-in Service</div></div>
-    <div class="ci-import-stat"><div class="num" style="color:#e67e22">${newOnes}</div><div class="lbl">New to Import</div></div>`;
-  const res=document.getElementById('ciImportResults'); if(res) res.style.display='block';
-  renderCIImportPreview();
-}
+  for (const cj of checkoutJobs) {
+    const propName = cj.propertyName || '';
+    const propId   = cj.propertyId   || '';
 
-function renderCIImportPreview() {
-  const rows=ciImportPreviewData.filter(r=>r.Status==='Booked');
-  const existingIds=new Set(ciJobs.map(j=>j.bookingId).filter(Boolean));
-  const tbody=document.getElementById('ciImportPreview'); if(!tbody) return;
-  tbody.innerHTML=rows.slice(0,100).map(r=>{
-    const hasSvc=ciPropertyHasCheckin(r.House_Id||r.HouseName);
-    const alreadyIn=existingIds.has(r.Id);
-    const infants=parseInt(r.Infants||0)||0;
-    const returning=isReturningGuest(r.Name,r.Id);
-    return`<tr style="${alreadyIn?'opacity:.5':''}">
-      <td style="font-size:12px">${r.Name||'—'}</td>
-      <td style="font-size:12px">${r.HouseInternalName||r.HouseName||'—'}</td>
-      <td style="font-size:12px">${r.DateArrival||'—'}</td>
-      <td style="font-size:12px">${r.DateDeparture||'—'}</td>
-      <td style="text-align:center">${r.People||r.Guests||'—'}</td>
-      <td style="text-align:center">${infants>0?'🚼 '+infants:'—'}</td>
-      <td>${hasSvc?'<span style="color:#1a7a6e">✅ Yes</span>':'<span style="color:#aaa">✗ No</span>'}</td>
-      <td>${returning?'<span style="color:#c9a84c">⭐ Yes</span>':'—'}</td>
-      <td>${alreadyIn?'<span style="font-size:10px;background:#ecf0f1;padding:1px 5px;border-radius:8px;color:#7f8c8d">in DB</span>':''}</td>
-    </tr>`;
-  }).join('');
-}
+    // Only properties with check-in service enabled
+    if (!ciPropertyHasCheckin(propId || propName)) { skipped++; continue; }
 
-async function importCIJobs() {
-  const rows=ciImportPreviewData.filter(r=>r.Status==='Booked');
-  if(!rows.length){ciShowToast('No rows to import','error');return;}
-  const existingIds=new Set(ciJobs.map(j=>j.bookingId).filter(Boolean));
-  let created=0,updated=0,skipped=0;
+    const bookingId  = cj.bookingId;
+    const guestName  = cj.guestName  || '';
+    const guests     = cj.guests     || null;
+    const adults     = cj.adults     || null;
+    const children   = cj.children   || null;
+    const infants    = cj.infants    || null;
+    const babyCot    = (infants||0) > 0;
+    const returning  = isReturningGuest(guestName, bookingId);
+    const agentId    = autoAssignAgent(propName);
 
-  for(const r of rows){
-    const propName=r.HouseInternalName||r.HouseName||'';
-    const propId=r.House_Id||'';
-    if(!ciPropertyHasCheckin(propId||propName)){skipped++;continue;}
-    const guestName=r.Name||'';
-    const guests=parseInt(r.People||r.Guests||0)||null;
-    const adults=parseInt(r.Adults||0)||null;
-    const children=parseInt(r.Children||0)||null;
-    const infants=parseInt(r.Infants||0)||null;
-    const returning=isReturningGuest(guestName,r.Id);
-    const babyCot=(infants||0)>0;
-    const agentId=autoAssignAgent(propName);
-    const base={bookingId:r.Id,propertyName:propName,propertyId:propId,
-      guestName,guests,adults,children,infants,babyCot,returningGuest:returning,
-      agentId,scheduledTime:'',moneyToReceive:0,specialRequests:'',notes:'',
-      confirmed:null,actualDate:null};
+    // Departure date is the checkout job's date
+    const departureDate = cj.date || '';
 
-    // Check-in (arrival)
-    const ciId=`ci_${r.Id}_checkin`;
-    const ciEx=ciJobs.findIndex(j=>j.id===ciId);
-    const ciJob={...base,id:ciId,type:'checkin',date:r.DateArrival};
-    if(ciEx>=0){
-      const ex=ciJobs[ciEx];
-      ciJobs[ciEx]={...ex,...ciJob,agentId:ex.agentId||agentId,
-        scheduledTime:ex.scheduledTime||'',moneyToReceive:ex.moneyToReceive||0,
-        specialRequests:ex.specialRequests||'',notes:ex.notes||'',
-        confirmed:ex.confirmed,actualDate:ex.actualDate};
-      updated++;
-    } else { ciJobs.push(ciJob); created++; }
+    // Arrival date = departure minus nights
+    let arrivalDate = '';
+    if (departureDate && cj.nights) {
+      const d = new Date(departureDate);
+      d.setDate(d.getDate() - parseInt(cj.nights));
+      arrivalDate = ciDateStr(d);
+    }
 
-    // Check-out (departure)
-    const coId=`ci_${r.Id}_checkout`;
-    const coEx=ciJobs.findIndex(j=>j.id===coId);
-    const coJob={...base,id:coId,type:'checkout',date:r.DateDeparture};
-    if(coEx>=0){
-      const ex=ciJobs[coEx];
-      ciJobs[coEx]={...ex,...coJob,agentId:ex.agentId||agentId,
-        scheduledTime:ex.scheduledTime||'',moneyToReceive:ex.moneyToReceive||0,
-        specialRequests:ex.specialRequests||'',notes:ex.notes||'',
-        confirmed:ex.confirmed,actualDate:ex.actualDate};
-      updated++;
-    } else { ciJobs.push(coJob); created++; }
+    const base = {
+      bookingId, propertyName:propName, propertyId:propId,
+      guestName, guests, adults, children, infants, babyCot,
+      returningGuest:returning, agentId,
+      scheduledTime:'', moneyToReceive:0, specialRequests:'', notes:'',
+      confirmed:null, actualDate:null
+    };
+
+    // Check-in job (arrival day)
+    if (arrivalDate) {
+      const ciId  = `ci_${bookingId}_checkin`;
+      const ciIdx = ciJobs.findIndex(j => j.id === ciId);
+      const ciJob = { ...base, id:ciId, type:'checkin', date:arrivalDate };
+      if (ciIdx >= 0) {
+        const ex = ciJobs[ciIdx];
+        ciJobs[ciIdx] = { ...ex, ...ciJob,
+          agentId:        ex.agentId        || agentId,
+          scheduledTime:  ex.scheduledTime  || '',
+          moneyToReceive: ex.moneyToReceive || 0,
+          specialRequests:ex.specialRequests|| '',
+          notes:          ex.notes          || '',
+          confirmed:      ex.confirmed,
+          actualDate:     ex.actualDate };
+        updated++;
+      } else { ciJobs.push(ciJob); created++; }
+    }
+
+    // Check-out job (departure day)
+    if (departureDate) {
+      const coId  = `ci_${bookingId}_checkout`;
+      const coIdx = ciJobs.findIndex(j => j.id === coId);
+      const coJob = { ...base, id:coId, type:'checkout', date:departureDate };
+      if (coIdx >= 0) {
+        const ex = ciJobs[coIdx];
+        ciJobs[coIdx] = { ...ex, ...coJob,
+          agentId:        ex.agentId        || agentId,
+          scheduledTime:  ex.scheduledTime  || '',
+          moneyToReceive: ex.moneyToReceive || 0,
+          specialRequests:ex.specialRequests|| '',
+          notes:          ex.notes          || '',
+          confirmed:      ex.confirmed,
+          actualDate:     ex.actualDate };
+        updated++;
+      } else { ciJobs.push(coJob); created++; }
+    }
   }
-  await saveCIData(); clearCIImport(); renderCIAll();
-  ciShowToast(`✓ Created ${created} · Updated ${updated} · Skipped ${skipped}`,'success');
+
+  await saveCIData();
+  renderCIAll();
+  renderCISyncStatus();
+  if (btn) { btn.disabled=false; btn.textContent='🔄 Sync from Cleaning'; }
+  ciShowToast(`✓ Created ${created} · Updated ${updated} · Skipped ${skipped} (no check-in service)`, 'success');
 }
 
-function clearCIImport() {
-  ciImportPreviewData=[];
-  const res=document.getElementById('ciImportResults'); if(res) res.style.display='none';
-  const inp=document.getElementById('ciFileInput'); if(inp) inp.value='';
+function renderCISyncStatus() {
+  const cleaningJobs  = SyncStore._getLocal('zesty_cleaning_jobs');
+  const checkoutCount = cleaningJobs.filter(j => j.type==='checkout' && j.bookingId).length;
+  const eligibleCount = cleaningJobs.filter(j =>
+    j.type==='checkout' && j.bookingId && ciPropertyHasCheckin(j.propertyId||j.propertyName)
+  ).length;
+  const existingCI    = ciJobs.length;
+
+  const el = document.getElementById('ciSyncStatus');
+  if (!el) return;
+  el.innerHTML = `
+    <div class="ci-import-stat"><div class="num">${checkoutCount}</div><div class="lbl">Bookings in Cleaning</div></div>
+    <div class="ci-import-stat"><div class="num" style="color:#1a7a6e">${eligibleCount}</div><div class="lbl">With Check-in Service</div></div>
+    <div class="ci-import-stat"><div class="num" style="color:#e67e22">${existingCI}</div><div class="lbl">Check-in Jobs Created</div></div>
+  `;
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -814,4 +805,5 @@ function showCITab(name) {
   const tab=document.querySelector(`.ci-tab[data-tab="${name}"]`); if(tab) tab.classList.add('active');
   if(name==='agents')  renderCIAgents();
   if(name==='confirm') renderCIConfirm();
+  if(name==='import')  renderCISyncStatus();
 }
