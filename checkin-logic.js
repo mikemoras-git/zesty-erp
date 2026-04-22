@@ -145,6 +145,10 @@ async function initCheckin() {
   // Live poll every 30s
   startPoll('checkin_jobs',   'zesty_checkin_jobs',   30000, rows => { ciJobs   = rows; renderCIAll(); });
   startPoll('checkin_agents', 'zesty_checkin_agents', 60000, rows => { ciAgents = rows; renderCIAgents(); populateCIAgentDropdowns(); });
+
+  // Auto-sync from cleaning data silently on every load
+  // This ensures any new bookings imported in the Cleaning module appear immediately
+  await syncCIFromCleaning(true);
 }
 
 function renderCIAll() {
@@ -581,9 +585,9 @@ async function deleteCIJob(id) {
 // Reads cleaning jobs already imported via the Cleaning module.
 // No separate CSV needed — works from the same data.
 // ═══════════════════════════════════════════════════════════════
-async function syncCIFromCleaning() {
+async function syncCIFromCleaning(silent=false) {
   const btn = document.getElementById('ciSyncBtn');
-  if (btn) { btn.disabled=true; btn.textContent='⏳ Syncing...'; }
+  if (!silent && btn) { btn.disabled=true; btn.textContent='⏳ Syncing...'; }
 
   // Read cleaning jobs from localStorage (populated by cleaning module import)
   const cleaningJobs = SyncStore._getLocal('zesty_cleaning_jobs');
@@ -592,8 +596,8 @@ async function syncCIFromCleaning() {
   const checkoutJobs = cleaningJobs.filter(j => j.type === 'checkout' && j.bookingId);
 
   if (!checkoutJobs.length) {
-    ciShowToast('No cleaning data found. Import CSV in the Cleaning module first.', 'error');
-    if (btn) { btn.disabled=false; btn.textContent='🔄 Sync from Cleaning'; }
+    if (!silent) ciShowToast('No cleaning data found. Import CSV in the Cleaning module first.', 'error');
+    if (!silent && btn) { btn.disabled=false; btn.textContent='🔄 Sync from Cleaning'; }
     return;
   }
 
@@ -677,8 +681,8 @@ async function syncCIFromCleaning() {
   await saveCIData();
   renderCIAll();
   renderCISyncStatus();
-  if (btn) { btn.disabled=false; btn.textContent='🔄 Sync from Cleaning'; }
-  ciShowToast(`✓ Created ${created} · Updated ${updated} · Skipped ${skipped} (no check-in service)`, 'success');
+  if (!silent && btn) { btn.disabled=false; btn.textContent='🔄 Sync from Cleaning'; }
+  if (!silent) ciShowToast(`✓ Created ${created} · Updated ${updated} · Skipped ${skipped} (no check-in service)`, 'success');
 }
 
 function renderCISyncStatus() {
