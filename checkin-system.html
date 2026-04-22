@@ -242,37 +242,30 @@ header { background:var(--teal-dark); padding:0 28px; display:flex; align-items:
 
   <!-- ═══ IMPORT PAGE ═══ -->
   <div class="ci-page" id="ci-page-import">
-    <div class="ci-drop-zone" id="ciDropZone"
-      ondragover="ciDragOver(event)" ondragleave="ciDragLeave()" ondrop="ciDropFile(event)"
-      onclick="document.getElementById('ciFileInput').click()">
-      <div style="font-size:36px;margin-bottom:10px">📥</div>
-      <div style="font-size:15px;font-weight:600;color:var(--teal-dark);margin-bottom:6px">Drop Lodgify CSV here</div>
-      <div style="font-size:13px;color:var(--text-muted)">or click to browse — same file used for Cleaning import</div>
-      <input type="file" id="ciFileInput" accept=".csv" style="display:none" onchange="handleCIFile(event)">
+
+    <!-- HOW IT WORKS -->
+    <div style="background:#e8f6f3;border:1px solid var(--teal);border-radius:10px;padding:16px 20px;margin-bottom:20px;font-size:13px;color:var(--teal-dark)">
+      <strong>How it works:</strong> Import your CSV in the <strong>Cleaning module</strong> as usual.
+      Then come back here and click <strong>Sync</strong> — check-in and check-out jobs will be created automatically
+      for all properties that have the check-in service enabled in Properties. No separate CSV upload needed.
     </div>
 
-    <div id="ciImportResults" style="display:none;margin-top:20px">
-      <div class="ci-import-stats" id="ciImportSummary"></div>
-      <div style="background:#fff;border-radius:10px;overflow:hidden;box-shadow:var(--shadow)">
-        <div style="padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
-          <strong style="font-size:13px">Preview — Booked rows with check-in service</strong>
-          <div style="display:flex;gap:8px">
-            <button class="ci-btn ci-btn-outline ci-btn-sm" onclick="clearCIImport()">✕ Clear</button>
-            <button class="ci-btn ci-btn-primary" onclick="importCIJobs()">✅ Import Jobs</button>
-          </div>
-        </div>
-        <div style="overflow-x:auto">
-          <table class="ci-table">
-            <thead><tr>
-              <th>Guest</th><th>Property</th><th>Arrival</th><th>Departure</th>
-              <th style="text-align:center">Guests</th><th style="text-align:center">Infants</th>
-              <th>Check-in Svc</th><th>Returning</th><th></th>
-            </tr></thead>
-            <tbody id="ciImportPreview"></tbody>
-          </table>
-        </div>
+    <!-- STATUS -->
+    <div class="ci-import-stats" id="ciSyncStatus" style="margin-bottom:20px"></div>
+
+    <!-- SYNC BUTTON -->
+    <div style="background:#fff;border-radius:10px;padding:28px;text-align:center;box-shadow:var(--shadow)">
+      <div style="font-size:40px;margin-bottom:12px">🔄</div>
+      <div style="font-size:16px;font-weight:600;color:var(--teal-dark);margin-bottom:6px">Sync from Cleaning Data</div>
+      <div style="font-size:13px;color:var(--text-muted);margin-bottom:20px">
+        Reads the bookings already imported in the Cleaning module and creates<br>
+        check-in / check-out jobs for properties with check-in service enabled.
       </div>
+      <button id="ciSyncBtn" class="ci-btn ci-btn-primary" onclick="syncCIFromCleaning()" style="font-size:14px;padding:10px 28px">
+        🔄 Sync from Cleaning
+      </button>
     </div>
+
   </div>
 
 </div><!-- /container -->
