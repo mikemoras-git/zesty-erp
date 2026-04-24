@@ -747,17 +747,61 @@ function csvFileSelected(file){
   reader.onload=e=>parseGuestCSV(e.target.result, file.name);
   reader.readAsText(file,'UTF-8');
 }
+
+// Parse Lodgify BookingReport CSV (same format used by Guests, Cleaning, Check-in modules)
+function parseLodgifyCSVForGuests(text){
+  const lines=text.split('\n').filter(l=>l.trim());
+  if(lines.length<2) return [];
+  const rawHeaders=parseCSVLine(lines[0]);
+  const headers=rawHeaders.map(h=>h.trim());
+  const iExact=(name)=>headers.findIndex(h=>h===name);
+  const iName   = iExact('Name');
+  const iHouse  = iExact('HouseInternalName');
+  const iArr    = iExact('DateArrival');
+  const iDep    = iExact('DateDeparture');
+  const iId     = iExact('Id');
+  const iStatus = iExact('Status');
+  if(iName<0) return null; // not Lodgify format
+  const guests=[];
+  for(let i=1;i<lines.length;i++){
+    const cols=parseCSVLine(lines[i]);
+    const name=(cols[iName]||'').trim();
+    const status=iStatus>=0?(cols[iStatus]||'').trim():'';
+    if(!name||status==='Cancelled'||status==='Declined'||status==='Open') continue;
+    guests.push({
+      name,
+      property: iHouse>=0?(cols[iHouse]||'').trim():'',
+      checkIn:  iArr>=0?(cols[iArr]||'').trim():'',
+      checkOut: iDep>=0?(cols[iDep]||'').trim():'',
+      bookingRef: iId>=0?(cols[iId]||'').trim():'',
+    });
+  }
+  return guests;
+}
+
 function parseGuestCSV(text, filename){
   const lines=text.trim().split(/\r?\n/);
   if(lines.length<2){showResult('CSV appears empty.');return;}
+
+  // Try Lodgify format first
+  const lodgifyGuests=parseLodgifyCSVForGuests(text);
+  if(lodgifyGuests!==null){
+    importedGuests=lodgifyGuests;
+    localStorage.setItem('rc_guests',JSON.stringify(lodgifyGuests));
+    const el=document.getElementById('guest-count-label');
+    if(el) el.textContent=lodgifyGuests.length+' guests loaded';
+    showResult(`✅ Imported <strong>${lodgifyGuests.length}</strong> guests from <em>${esc(filename)}</em> (Lodgify format). Close this dialog and start typing a guest name to use autocomplete.`);
+    return;
+  }
+
+  // Generic flexible format
   const headers=parseCSVLine(lines[0]).map(h=>h.trim().toLowerCase());
-  // Flexible column detection
   const idx=(candidates)=>candidates.map(c=>headers.findIndex(h=>h.includes(c))).find(i=>i>=0)??-1;
   const iGuest=idx(['guest name','guest','customer name','client','first name','full name','name']);
-  const iProp=idx(['property','unit','accommodation','listing','villa']);
-  const iCI=idx(['check-in','check in','arrival','from']);
-  const iCO=idx(['check-out','check out','departure','to']);
-  const iRef=idx(['booking','reference','reservation','booking id','ref']);
+  const iProp=idx(['houseinternalname','property','unit','accommodation','listing','villa','house']);
+  const iCI=idx(['check-in','check in','arrival','datearrival','from']);
+  const iCO=idx(['check-out','check out','departure','datedeparture','to']);
+  const iRef=idx(['booking','reference','reservation','booking id','ref','id']);
   if(iGuest<0){showResult('❌ Could not find a "Guest Name" column. Headers found: '+headers.slice(0,8).join(', '));return;}
   const guests=[];
   for(let i=1;i<lines.length;i++){
@@ -1064,8 +1108,16 @@ async function init(){
   const k=localStorage.getItem('rc_anthropic_key')||'';
   if(k) document.getElementById('api-key-input').value=k;
 
-  // Load imported guests from localStorage
-  importedGuests=JSON.parse(localStorage.getItem('rc_guests')||'[]');
+  // Load guests — prefer shared Lodgify CSV (same as Guests/Cleaning/Check-in modules)
+  const _rawCSV=JSON.parse(localStorage.getItem('zesty_raw_lodgify_csv')||'null');
+  if(_rawCSV&&_rawCSV.text){
+    const _lg=parseLodgifyCSVForGuests(_rawCSV.text);
+    if(_lg&&_lg.length){ importedGuests=_lg; }
+  }
+  // Fall back to manually imported guest list
+  if(!importedGuests.length){
+    importedGuests=JSON.parse(localStorage.getItem('rc_guests')||'[]');
+  }
   const gcl=document.getElementById('guest-count-label');
   if(gcl&&importedGuests.length) gcl.textContent=importedGuests.length+' guests loaded';
 

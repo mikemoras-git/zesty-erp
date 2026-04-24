@@ -520,22 +520,46 @@ async function saveStatement(status) {
   if (!currentStatementData) {showToast('Generate a report first','error');return;}
   const prop  = properties.find(p=>p.id===currentStatementData.propId);
   const owner = owners.find(o=>o.id===prop?.owner);
-  const record = {
-    id:            currentStatementData.id || ('stmt_'+Date.now()),
-    property_id:   currentStatementData.propId||'',
-    property_name: prop?.shortName||prop?.propertyName||'',
-    owner_id:      prop?.owner||'',
-    owner_name:    owner?(owner.firstName||'')+' '+(owner.lastName||owner.companyName||''):'',
-    month:         currentStatementData.month||'',
-    status,
-    data:          currentStatementData,
-    notes:         (document.getElementById('rpt-section-notes')?.value || document.getElementById('stmt-notes')?.value || currentReportNotes || ''),
-    updated_at:    new Date().toISOString(),
-    sent_at:       status==='sent'?new Date().toISOString():null,
-  };
+  const isNew = !currentStatementData.id;
+  const id    = currentStatementData.id || ('stmt_'+Date.now());
+  const notes = document.getElementById('rpt-section-notes')?.value
+             || document.getElementById('stmt-notes')?.value
+             || currentReportNotes || '';
   try {
-    await supaStmt('zesty_statements', 'POST', record);
-    currentStatementData.id = record.id;
+    if (isNew) {
+      // INSERT new statement
+      const record = {
+        id,
+        property_id:   currentStatementData.propId||'',
+        property_name: prop?.shortName||prop?.propertyName||'',
+        owner_id:      prop?.owner||'',
+        owner_name:    owner?((owner.firstName||'')+' '+(owner.lastName||owner.companyName||'')).trim():'',
+        month:         currentStatementData.month||'',
+        status,
+        data:          currentStatementData,
+        notes,
+        created_at:    new Date().toISOString(),
+        updated_at:    new Date().toISOString(),
+        sent_at:       status==='sent'?new Date().toISOString():null,
+      };
+      await supaStmt('zesty_statements', 'POST', record);
+    } else {
+      // PATCH existing statement
+      const patch = {
+        status,
+        data:       currentStatementData,
+        notes,
+        updated_at: new Date().toISOString(),
+        sent_at:    status==='sent'?new Date().toISOString():null,
+      };
+      const r = await fetch(SUPA_S+'/rest/v1/zesty_statements?id=eq.'+id, {
+        method: 'PATCH',
+        headers: {'apikey':KEY_S,'Authorization':'Bearer '+KEY_S,'Content-Type':'application/json','Prefer':'return=minimal'},
+        body: JSON.stringify(patch),
+      });
+      if (!r.ok) { const t=await r.text(); throw new Error(t||'HTTP '+r.status); }
+    }
+    currentStatementData.id = id;
     updateStatementStatusBadge(status);
     showToast('\u2713 Saved as '+status.toUpperCase(),'success');
   } catch(e) { showToast('Save error: '+e.message,'error'); }

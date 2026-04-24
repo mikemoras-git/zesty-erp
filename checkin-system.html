@@ -22,11 +22,11 @@ header { background:var(--teal-dark); padding:0 28px; display:flex; align-items:
 .logo { font-family:'Cormorant Garamond',serif; font-size:21px; font-weight:500; color:#fff; }
 .logo span { color:var(--gold-light); }
 
-/* TABS */
-.tabs { display:flex; gap:4px; background:rgba(255,255,255,.1); border-radius:8px; padding:4px; }
-.ci-tab { padding:7px 16px; border-radius:6px; border:none; font-family:'DM Sans',sans-serif; font-size:13px; font-weight:500; cursor:pointer; color:rgba(255,255,255,.7); background:transparent; transition:all .2s; }
-.ci-tab.active { background:#fff; color:var(--teal-dark); }
-.ci-tab:hover:not(.active) { color:#fff; background:rgba(255,255,255,.15); }
+/* TABS — in-container tab bar */
+.ci-tab-bar { display:flex; gap:4px; flex-wrap:wrap; background:var(--white); border-radius:10px; padding:6px 8px; box-shadow:var(--shadow); margin-bottom:20px; }
+.ci-tab { padding:7px 16px; border-radius:6px; border:none; font-family:'DM Sans',sans-serif; font-size:13px; font-weight:500; cursor:pointer; color:var(--text-muted); background:transparent; transition:all .2s; }
+.ci-tab.active { background:var(--teal); color:#fff; }
+.ci-tab:hover:not(.active) { background:var(--cream); color:var(--teal); }
 
 /* BUTTONS */
 .ci-btn { padding:8px 16px; border-radius:6px; border:none; font-family:'DM Sans',sans-serif; font-size:13px; font-weight:500; cursor:pointer; transition:all .2s; display:inline-flex; align-items:center; gap:6px; }
@@ -146,16 +146,18 @@ header { background:var(--teal-dark); padding:0 28px; display:flex; align-items:
 
 <header>
   <div class="logo">Zesty <span>Rentals</span> — Check-in</div>
-  <div class="tabs">
+</header>
+
+<div class="container">
+
+  <!-- MODULE TABS -->
+  <div class="ci-tab-bar">
     <button class="ci-tab active" data-tab="schedule" onclick="showCITab('schedule')">📅 Schedule</button>
     <button class="ci-tab" data-tab="jobs"     onclick="showCITab('jobs')">📋 Jobs</button>
     <button class="ci-tab" data-tab="confirm"  onclick="showCITab('confirm')">✅ Confirm</button>
     <button class="ci-tab" data-tab="agents"   onclick="showCITab('agents')">👷 Agents</button>
     <button class="ci-tab" data-tab="import"   onclick="showCITab('import')">📥 Import</button>
   </div>
-</header>
-
-<div class="container">
 
   <!-- STATS -->
   <div class="ci-stats">
@@ -294,7 +296,9 @@ header { background:var(--teal-dark); padding:0 28px; display:flex; align-items:
         <div class="ci-form-group"><label>Agent</label>
           <select id="ciEditAgent"><option value="">Unassigned</option></select>
         </div>
-        <div class="ci-form-group ci-col-span-2"><label>Property</label><input type="text" id="ciEditProp" placeholder="Property name"></div>
+        <div class="ci-form-group ci-col-span-2"><label>Property</label>
+          <select id="ciEditProp"><option value="">— Select Property —</option></select>
+        </div>
       </div>
 
       <div class="ci-section-hdr">👥 Guests</div>
