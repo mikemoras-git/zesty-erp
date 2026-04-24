@@ -416,7 +416,7 @@ body.erp-layout {
 
 /* ── MAIN CONTENT AREA ── */
 .erp-main {
-  margin-left: 220px;
+  margin-left: 0;
   flex: 1;
   min-width: 0;
   display: flex;
@@ -503,38 +503,6 @@ body.erp-layout {
 </head>
 <body class="erp-layout">
 <div class="erp-overlay" id="erpOverlay"></div>
-<aside class="erp-sidebar" id="erpSidebar">
-  <div class="erp-brand">
-    <div class="erp-brand-name">Zesty <span>ERP</span></div>
-    <div class="erp-brand-sub">Kissamos · Operations</div>
-  </div>
-  <nav class="erp-nav-section">
-    <div class="erp-nav-section-label">Modules</div>
-      <a href="index.html" class="erp-nav-link"><span class="nav-icon">🏠</span><span class="nav-label">Home</span></a>
-      <a href="owners-crm.html" class="erp-nav-link"><span class="nav-icon">👤</span><span class="nav-label">Owners</span></a>
-      <a href="properties-db.html" class="erp-nav-link"><span class="nav-icon">🏠</span><span class="nav-label">Properties</span></a>
-      <a href="guests-crm.html" class="erp-nav-link"><span class="nav-icon">✈️</span><span class="nav-label">Guests</span></a>
-      <a href="cleaning-system.html" class="erp-nav-link"><span class="nav-icon">🧹</span><span class="nav-label">Cleaning</span></a>
-      <a href="contacts-crm.html" class="erp-nav-link active"><span class="nav-icon">📋</span><span class="nav-label">Contacts</span></a>
-      <a href="employees.html" class="erp-nav-link"><span class="nav-icon">👥</span><span class="nav-label">Staff</span></a>
-      <a href="leave.html" class="erp-nav-link"><span class="nav-icon">🏖️</span><span class="nav-label">Leave</span></a>
-      <a href="tasks.html" class="erp-nav-link"><span class="nav-icon">✅</span><span class="nav-label">Tasks</span></a>
-      <a href="jobs.html" class="erp-nav-link"><span class="nav-icon">🔧</span><span class="nav-label">Job Orders</span></a>
-      <a href="laundry.html" class="erp-nav-link"><span class="nav-icon">👔</span><span class="nav-label">Laundry ERP</span></a>
-      <a href="onboarding.html" class="erp-nav-link"><span class="nav-icon">📋</span><span class="nav-label">Onboarding</span></a>
-      <a href="settings.html" class="erp-nav-link"><span class="nav-icon">⚙️</span><span class="nav-label">Settings</span></a>
-      <a href="tickets.html" class="erp-nav-link"><span class="nav-icon">◈</span><span class="nav-label">Tickets</span></a>
-      <a href="reports.html" class="erp-nav-link"><span class="nav-icon">📊</span><span class="nav-label">Reports</span></a>
-  </nav>
-  
-  <div class="erp-sidebar-footer">
-    <div class="erp-user-badge" id="sidebarUser"></div>
-    <div class="erp-sync-row">
-      <span class="sync-dot" id="syncDot" title="Saved" style="display:inline-block"></span>
-      <span class="sync-label">Connected</span>
-    </div>
-  </div>
-</aside>
 
 <div class="erp-main">
 <div class="erp-topbar">
@@ -1257,24 +1225,16 @@ function showToast(msg, type='success') {
 
 // ── SIDEBAR NAVIGATION ──────────────────────────────────
 function _initSidebar() {
-  const sidebar = document.getElementById('erpSidebar');
-  const overlay = document.getElementById('erpOverlay');
+  // Sidebar is now handled by erp-nav.js — wire old hamburger to new sidebar
   const hamburger = document.getElementById('erpHamburger');
-  if (!sidebar) return;
-  // Hamburger toggle
   if (hamburger) {
     hamburger.addEventListener('click', () => {
-      sidebar.classList.toggle('open');
-      overlay.classList.toggle('open');
+      document.getElementById('z-sidebar')?.classList.toggle('open');
+      document.getElementById('z-overlay')?.classList.toggle('open');
     });
   }
-  // Close on overlay click
-  if (overlay) {
-    overlay.addEventListener('click', () => {
-      sidebar.classList.remove('open');
-      overlay.classList.remove('open');
-    });
-  }
+  const overlay = document.getElementById('erpOverlay');
+  if (overlay) overlay.style.display = 'none';
   // Inject Azure user badge into sidebar footer
   const origBadge = document.getElementById('_azure_badge');
   const footerUser = document.getElementById('sidebarUser');
