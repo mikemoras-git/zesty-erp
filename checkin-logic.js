@@ -239,6 +239,10 @@ function ciJobCard(j) {
     ${j.returningGuest?'<div style="font-size:11px;color:#c9a84c;margin-top:2px">⭐ Returning guest</div>':''}
     <div style="font-size:11px;color:#888;margin-top:3px">👷 ${getAgentName(j.agentId)}</div>
     ${j.moneyToReceive>0?`<div style="font-size:11px;color:#1a7a6e;font-weight:600;margin-top:3px">💶 Collect: ${eur(j.moneyToReceive)}</div>`:''}
+    ${!j.confirmed?`<div style="margin-top:6px;display:flex;gap:4px" onclick="event.stopPropagation()">
+      <button onclick="markCIDone('${j.id}',null)" style="flex:1;background:#d5f5e3;border:none;color:#1e8449;padding:3px 0;border-radius:4px;font-size:10px;cursor:pointer;font-weight:600">✅ Done</button>
+      <button onclick="markCISkipped('${j.id}')" style="background:#fdebd0;border:none;color:#a04000;padding:3px 8px;border-radius:4px;font-size:10px;cursor:pointer">⏭</button>
+    </div>`:j.confirmed==='done'?'<div style="margin-top:5px;font-size:10px;color:#1e8449;font-weight:600">✅ Done</div>':'<div style="margin-top:5px;font-size:10px;color:#a04000">⏭ Skipped</div>'}
   </div>`;
 }
 
@@ -543,10 +547,59 @@ function editCIJob(id) {
   ciOpenModal('ciEditModal');
 }
 
+function openAddCIJobManual() {
+  document.getElementById('ciEditId').value  = '__new__';
+  document.getElementById('ciEditDate').value= ciCurrentWeekStart ? ciDateStr(ciCurrentWeekStart) : ciDateStr(new Date());
+  document.getElementById('ciEditTime').value= '';
+  document.getElementById('ciEditType').value= 'checkin';
+  document.getElementById('ciEditProp').value= '';
+  document.getElementById('ciEditGuest').value= '';
+  document.getElementById('ciEditGuests').value= '';
+  document.getElementById('ciEditAdults').value= '';
+  document.getElementById('ciEditChildren').value= '';
+  document.getElementById('ciEditInfants').value= '';
+  document.getElementById('ciEditBabyCot').checked= false;
+  document.getElementById('ciEditReturning').checked= false;
+  document.getElementById('ciEditMoney').value= '';
+  document.getElementById('ciEditRequests').value= '';
+  document.getElementById('ciEditNotes').value= '';
+  populateCIAgentDropdowns();
+  const agentSel=document.getElementById('ciEditAgent'); if(agentSel) agentSel.value='';
+  // Update modal title to "Add Job"
+  const titleEl=document.getElementById('ciEditModalTitle');
+  if(titleEl) titleEl.textContent='➕ Add Job';
+  ciOpenModal('ciEditModal');
+}
+
 async function saveCIJob() {
   const id=document.getElementById('ciEditId').value; if(!id) return;
-  const idx=ciJobs.findIndex(j=>j.id===id); if(idx<0) return;
   const infants=parseInt(document.getElementById('ciEditInfants').value)||0;
+  const jobData={
+    type:           document.getElementById('ciEditType').value,
+    date:           document.getElementById('ciEditDate').value,
+    scheduledTime:  document.getElementById('ciEditTime').value,
+    propertyName:   document.getElementById('ciEditProp').value.trim(),
+    guestName:      document.getElementById('ciEditGuest').value.trim(),
+    guests:         parseInt(document.getElementById('ciEditGuests').value)||null,
+    adults:         parseInt(document.getElementById('ciEditAdults').value)||null,
+    children:       parseInt(document.getElementById('ciEditChildren').value)||null,
+    infants,
+    babyCot:        document.getElementById('ciEditBabyCot').checked||infants>0,
+    returningGuest: document.getElementById('ciEditReturning').checked,
+    agentId:        document.getElementById('ciEditAgent').value,
+    moneyToReceive: parseFloat(document.getElementById('ciEditMoney').value)||0,
+    specialRequests:document.getElementById('ciEditRequests').value.trim(),
+    notes:          document.getElementById('ciEditNotes').value.trim(),
+  };
+  // Reset modal title
+  const titleEl=document.getElementById('ciEditModalTitle');
+  if(titleEl) titleEl.textContent='✏️ Edit Job';
+  if(id==='__new__') {
+    ciJobs.push({id:'manual_'+Date.now(),bookingId:null,confirmed:null,actualDate:null,...jobData});
+    await saveCIData(); ciCloseModal('ciEditModal'); renderCIAll(); ciShowToast('✓ Job added','success');
+    return;
+  }
+  const idx=ciJobs.findIndex(j=>j.id===id); if(idx<0) return;
   ciJobs[idx]={...ciJobs[idx],
     date:           document.getElementById('ciEditDate').value,
     scheduledTime:  document.getElementById('ciEditTime').value,
@@ -710,7 +763,7 @@ async function saveCIData() {
 }
 
 // ═══════════════════════════════════════════════════════════════
-// PRINT — WEEKLY PLAN
+// PRINT — WEEKLY PLAN (calendar grid format like cleaning)
 // ═══════════════════════════════════════════════════════════════
 function printCIWeekly() {
   if(!ciCurrentWeekStart) return;
@@ -718,85 +771,68 @@ function printCIWeekly() {
   const days=[];
   for(let i=0;i<7;i++){const d=new Date(monday);d.setDate(d.getDate()+i);days.push(d);}
   const end=new Date(monday);end.setDate(end.getDate()+6);
-  const weekLabel=monday.toLocaleDateString('en-GB',{day:'numeric',month:'long'})+' – '+
-    end.toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'});
+  const monthLabel=monday.toLocaleDateString('en-GB',{month:'long',year:'numeric'}).toUpperCase();
+  const weekLabel=monday.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})+' – '+
+    end.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
 
-  // Group by agent then by day
-  const agentGroups={};
-  for(const d of days){
+  function jobCard(j){
+    const isCI=j.type==='checkin';
+    const infantFlag=(parseInt(j.infants)||0)>0;
+    const agName=getAgentName(j.agentId);
+    const statusDot=j.confirmed==='done'?'✅':j.confirmed==='skipped'?'⏭':'';
+    return `<div style="background:${isCI?'#f0faf8':'#fff8f0'};border:1px solid ${isCI?'#b2ddd8':'#f0c080'};border-radius:5px;padding:6px 8px;margin-bottom:5px;font-size:10px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px;">
+        <span style="font-size:9px;font-weight:700;background:${isCI?'#1a7a6e':'#c0392b'};color:#fff;padding:1px 5px;border-radius:3px;text-transform:uppercase;letter-spacing:.4px">${isCI?'Check-in':'Check-out'}</span>
+        <span style="font-size:10px">${statusDot}${j.scheduledTime?` ${j.scheduledTime}`:''}</span>
+      </div>
+      <div style="font-weight:700;font-size:11px;margin-bottom:2px">${j.propertyName||'—'}</div>
+      <div style="color:#333">👤 ${j.guestName||'—'}${j.guests?` (${j.guests})`:''}${j.adults?`<span style="color:#888;font-size:9px"> · ${j.adults}A ${j.children||0}C ${j.infants||0}I</span>`:''}</div>
+      ${infantFlag?`<div style="color:#856404;font-weight:600">🚼 Baby cot / High chair</div>`:''}
+      ${j.returningGuest?`<div style="color:#c9a84c;font-weight:600">⭐ Returning guest</div>`:''}
+      ${j.moneyToReceive>0?`<div style="color:#1a7a6e;font-weight:600">💶 Collect ${eur(j.moneyToReceive)}</div>`:''}
+      ${j.specialRequests?`<div style="color:#555">📝 ${j.specialRequests}</div>`:''}
+      ${agName&&agName!=='—'?`<div style="color:#888;border-top:1px solid #e0e0e0;margin-top:4px;padding-top:3px">👷 ${agName}</div>`:''}
+    </div>`;
+  }
+
+  const DAY_NAMES=['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+  const colsHTML=days.map((d,i)=>{
     const ds=ciDateStr(d);
     const dayJobs=ciJobs.filter(j=>j.date===ds)
       .sort((a,b)=>(a.scheduledTime||'99:99')<(b.scheduledTime||'99:99')?-1:1);
-    for(const j of dayJobs){
-      const agId=j.agentId||'_unassigned';
-      if(!agentGroups[agId]) agentGroups[agId]={};
-      if(!agentGroups[agId][ds]) agentGroups[agId][ds]=[];
-      agentGroups[agId][ds].push(j);
-    }
-  }
+    const isWeekend=i>=5;
+    return `<div style="border:1px solid #ddd;border-radius:6px;overflow:hidden;">
+      <div style="background:${isWeekend?'#6b7280':'#1a7a6e'};color:#fff;padding:8px 10px;">
+        <div style="font-size:10px;opacity:.8;text-transform:uppercase;letter-spacing:.7px">${DAY_NAMES[i]}</div>
+        <div style="font-size:22px;font-weight:700;line-height:1.1">${d.getDate()}</div>
+        ${dayJobs.length?`<div style="font-size:9px;opacity:.7">${dayJobs.length} job${dayJobs.length>1?'s':''}</div>`:''}
+      </div>
+      <div style="padding:6px;min-height:60px;background:#fff;">
+        ${dayJobs.length?dayJobs.map(j=>jobCard(j)).join(''):'<div style="text-align:center;padding:16px 0;color:#ccc;font-size:11px">—</div>'}
+      </div>
+    </div>`;
+  }).join('');
 
-  let html=`<!DOCTYPE html><html><head><meta charset="UTF-8">
+  const html=`<!DOCTYPE html><html><head><meta charset="UTF-8">
   <title>Check-in Weekly Plan — ${weekLabel}</title>
   <style>
     *{box-sizing:border-box;margin:0;padding:0;}
-    body{font-family:Arial,sans-serif;font-size:12px;color:#1e2a28;padding:20px;}
-    h1{font-size:18px;margin-bottom:4px;color:#115950;}
-    .sub{color:#888;font-size:12px;margin-bottom:20px;}
-    h2{font-size:13px;margin:18px 0 8px;color:#1a7a6e;border-bottom:2px solid #1a7a6e;padding-bottom:4px;}
-    h3{font-size:11px;font-weight:700;color:#333;margin:10px 0 4px;background:#f5f5f5;padding:4px 8px;border-radius:4px;}
-    table{width:100%;border-collapse:collapse;font-size:11px;margin-bottom:8px;}
-    th{background:#115950;color:#fff;padding:5px 8px;text-align:left;font-size:10px;text-transform:uppercase;}
-    td{padding:5px 8px;border-bottom:1px solid #e0e0e0;vertical-align:top;}
-    .ci{background:#e8f6f3;color:#1a7a6e;padding:1px 5px;border-radius:3px;font-weight:700;font-size:10px;}
-    .co{background:#fdebd0;color:#c0392b;padding:1px 5px;border-radius:3px;font-weight:700;font-size:10px;}
-    .alert{color:#856404;font-weight:600;}
-    .ret{color:#c9a84c;font-weight:600;}
-    @media print{body{padding:8px;}}
+    body{font-family:Arial,Helvetica,sans-serif;font-size:11px;color:#1e2a28;background:#fff;}
+    @media print{@page{size:A4 landscape;margin:10mm 12mm;}}
   </style></head><body>
-  <h1>🗝 Check-in Weekly Plan</h1>
-  <div class="sub">${weekLabel}</div>`;
+  <div style="padding:14px 16px 8px;">
+    <div style="font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:#555;margin-bottom:2px">ZESTY RENTALS — WEEKLY CHECK-IN SCHEDULE · ${monthLabel}</div>
+    <div style="font-size:22px;font-weight:700;color:#1a7a6e;margin-bottom:12px">${weekLabel}</div>
+    <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:6px;">
+      ${colsHTML}
+    </div>
+  </div>
+  </body></html>`;
 
-  const agentIds=Object.keys(agentGroups);
-  if(!agentIds.length){
-    html+='<p style="color:#888;margin-top:20px">No jobs scheduled for this week.</p>';
-  } else {
-    for(const agId of agentIds){
-      const agName=agId==='_unassigned'?'⚠ Unassigned':getAgentName(agId);
-      html+=`<h2>👷 ${agName}</h2>`;
-      for(const d of days){
-        const ds=ciDateStr(d);
-        const dayJ=agentGroups[agId][ds]; if(!dayJ||!dayJ.length) continue;
-        const dayLabel=d.toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long'});
-        html+=`<h3>${dayLabel}</h3><table><thead><tr>
-          <th>Time</th><th>Type</th><th>Property</th><th>Guest</th>
-          <th>Guests</th><th>Alerts / Notes</th><th>Collect</th>
-        </tr></thead><tbody>`;
-        for(const j of dayJ){
-          const infantFlag=(parseInt(j.infants)||0)>0;
-          const alerts=[
-            infantFlag?'<span class="alert">🚼 Baby cot / High chair</span>':'',
-            j.returningGuest?'<span class="ret">⭐ Returning guest</span>':'',
-            j.specialRequests?'📝 '+j.specialRequests:'',
-            j.notes?'💬 '+j.notes:'',
-          ].filter(Boolean).join('<br>');
-          html+=`<tr>
-            <td>${j.scheduledTime||'—'}</td>
-            <td><span class="${j.type==='checkin'?'ci':'co'}">${j.type==='checkin'?'CHECK-IN':'CHECK-OUT'}</span></td>
-            <td><strong>${j.propertyName||'—'}</strong></td>
-            <td>${j.guestName||'—'}</td>
-            <td style="text-align:center">${j.guests||'—'}${j.adults?`<br><small>${j.adults}A ${j.children||0}C ${j.infants||0}I</small>`:''}</td>
-            <td>${alerts||'—'}</td>
-            <td>${j.moneyToReceive>0?eur(j.moneyToReceive):'—'}</td>
-          </tr>`;
-        }
-        html+='</tbody></table>';
-      }
-    }
-  }
-  html+='</body></html>';
   const w=window.open('','_blank');
+  if(!w){ciShowToast('Allow popups to print','error');return;}
   w.document.write(html); w.document.close();
-  setTimeout(()=>w.print(),400);
+  setTimeout(()=>w.print(),600);
 }
 
 // ═══════════════════════════════════════════════════════════════

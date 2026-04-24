@@ -91,13 +91,13 @@ td input:focus,td select:focus{outline:none;border-color:var(--accent);backgroun
 .comp-sec-title{font-family:'DM Serif Display',serif;font-size:16px;}
 .comp-card{background:var(--surface);border:1px solid var(--border);border-bottom:none;padding:13px 15px;}
 .comp-card:last-child{border-bottom:1px solid var(--border);}
-.comp-months{display:grid;grid-template-columns:repeat(9,1fr);gap:4px;margin-top:8px;}
+.comp-months{display:grid;grid-template-columns:repeat(12,1fr);gap:4px;margin-top:8px;}
 .comp-m{display:flex;flex-direction:column;gap:3px;text-align:center;}
 .comp-m-lbl{font-size:10px;color:var(--text-3);font-weight:600;text-transform:uppercase;}
 .comp-m-inp{text-align:center;border:1px solid var(--border);border-radius:4px;padding:4px 2px;font-size:13px;font-weight:500;color:#1a56db;font-family:'DM Sans',sans-serif;width:100%;}
 .comp-m-inp:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-light);}
 .comp-avg-bar{background:var(--surface2);border:1px solid var(--border);border-top:2px solid var(--accent);border-radius:0 0 var(--radius) var(--radius);padding:10px 15px;}
-.comp-avg-grid{display:grid;grid-template-columns:repeat(9,1fr);gap:4px;margin-top:5px;}
+.comp-avg-grid{display:grid;grid-template-columns:repeat(12,1fr);gap:4px;margin-top:5px;}
 .comp-avg-cell{text-align:center;padding:4px 2px;background:#fff;border:1px solid var(--border);border-radius:4px;}
 .cac-lbl{font-size:10px;color:var(--text-3);font-weight:600;text-transform:uppercase;}
 .cac-val{font-size:13px;font-weight:700;color:var(--accent-dark);}
@@ -135,7 +135,7 @@ td input:focus,td select:focus{outline:none;border-color:var(--accent);backgroun
 .print-report-header{display:none;padding:24px 0 16px;border-bottom:3px solid var(--accent);margin-bottom:24px;}
 .report-cover{display:none;flex-direction:column;align-items:center;justify-content:center;min-height:300px;text-align:center;padding:40px;}
 .hint{display:inline-block;width:15px;height:15px;background:var(--border);border-radius:50%;font-size:10px;font-weight:700;text-align:center;line-height:15px;color:var(--text-2);cursor:help;margin-left:3px;}
-@media(max-width:768px){.main{padding:14px;}.g2,.g3,.g4{grid-template-columns:1fr;}.comp-months{grid-template-columns:repeat(3,1fr);}.stats-row{grid-template-columns:repeat(2,1fr);}}
+@media(max-width:768px){.main{padding:14px;}.g2,.g3,.g4{grid-template-columns:1fr;}.comp-months{grid-template-columns:repeat(4,1fr);}.stats-row{grid-template-columns:repeat(2,1fr);}}
 
 /* ── DASHBOARD ── */
 /* Use --z-sidebar-w injected by erp-nav.js so the dashboard sits to the right of the ERP sidebar */
@@ -581,7 +581,16 @@ function restoreData(d){
   if(d.S_rates)Object.assign(S.rates,d.S_rates);
   if(d.S_occ_basic)S.occ_basic=[...d.S_occ_basic];
   if(d.S_costs)S.costs=d.S_costs.map(c=>({...c}));
-  if(d.S_comps)S.comps=d.S_comps.map(c=>({...c}));
+  if(d.S_comps)S.comps=d.S_comps.map(c=>{
+    const cp={...c};
+    // Migrate old 9-value comp rates (Mar–Nov) to new 12-value (Jan–Dec)
+    if(cp.rates&&cp.rates.length===9){
+      const nr=Array(12).fill('');
+      [2,3,4,5,6,7,8,9,10].forEach((ni,oi)=>{if(cp.rates[oi]!==undefined)nr[ni]=cp.rates[oi];});
+      cp.rates=nr;
+    }
+    return cp;
+  });
   if(d.S_props)S.props=d.S_props.map(p=>({...p}));
   if(d.S_taxBrackets){S.taxBrackets.personal=d.S_taxBrackets.personal||[];S.taxBrackets.str=d.S_taxBrackets.str||[];}
   document.getElementById('hdr-proj-name').textContent=d.name||'Untitled';
@@ -593,7 +602,7 @@ function projStats(data){
   try{
     const r=data.S_rates||{},o=data.S_occ_basic||[],pr=data.S_props||[];
     const UB={'Studio':1,'2 Bedroom':2,'3 Bedroom':3,'4 Bedroom':4,'5 Bedroom':5,'6 Bedroom':6};
-    const PD=[91,60,30,20,31,11,30,31,61];
+    const PD=[90,30,31,30,31,31,30,31,61];
     let rev=0;
     pr.forEach(p=>{const b=UB[p.unitType]||1,ra=r[b]||[];PD.forEach((d,i)=>{rev+=(ra[i]||0)*(p.multiplier||1)*d*(o[i]||0);});});
     return{props:pr.length,rev:Math.round(rev)};
@@ -732,7 +741,7 @@ const DEF_COSTS_RESET=[{cat:'Linens',name:'Σεντόνια (sheets)',price:1.92
 
 function resetState(){
   Object.keys(DEF_RATES_RESET).forEach(k=>{S.rates[k]=[...DEF_RATES_RESET[k]];});
-  S.occ_basic=[0.05,0.20,0.65,0.80,0.90,0.90,0.70,0.15,0.05];
+  S.occ_basic=[0.05,0.25,0.55,0.70,0.85,0.95,0.70,0.25,0.05];
   S.costs=DEF_COSTS_RESET.map(c=>({...c}));
   S.comps=[];S.props=[];
   S.taxBrackets={personal:[{from:0,to:12000,rate:15},{from:12000,to:35000,rate:35},{from:35000,to:Infinity,rate:45}],str:[{from:0,to:10000,rate:9},{from:10000,to:20000,rate:22},{from:20000,to:30000,rate:28},{from:30000,to:40000,rate:36},{from:40000,to:Infinity,rate:44}]};
@@ -785,24 +794,24 @@ async function startApp(){
 // CONSTANTS
 // ══════════════════════════════════════════════════════
 const PERIODS=[
-  {label:'Jan 1 – Apr 1',  short:'Jan–Mar',days:91},
-  {label:'Apr 2 – May 31', short:'Apr–May',days:60},
-  {label:'Jun 1 – Jun 30', short:'Jun',    days:30},
-  {label:'Jul 1 – Jul 20', short:'Jul-1',  days:20},
-  {label:'Jul 21 – Aug 20',short:'Jul/Aug',days:31},
-  {label:'Aug 21 – Aug 31',short:'Aug-3',  days:11},
-  {label:'Sep 1 – Sep 30', short:'Sep',    days:30},
-  {label:'Oct 1 – Oct 31', short:'Oct',    days:31},
-  {label:'Nov 1 – Dec 31', short:'Nov–Dec',days:61},
+  {label:'January – March',    short:'Jan–Mar',days:90},
+  {label:'April',              short:'Apr',    days:30},
+  {label:'May',                short:'May',    days:31},
+  {label:'June',               short:'Jun',    days:30},
+  {label:'July',               short:'Jul',    days:31},
+  {label:'August',             short:'Aug',    days:31},
+  {label:'September',          short:'Sep',    days:30},
+  {label:'October',            short:'Oct',    days:31},
+  {label:'November – December',short:'Nov–Dec',days:61},
 ];
 const TOTAL_DAYS=365;
-const COMP_MONTHS=['Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov'];
+const COMP_MONTHS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 const BED_GROUPS=[1,2,3,4,5,6];
 const BED_LABELS={1:'Studio / 1 Bedroom',2:'2 Bedrooms',3:'3 Bedrooms',4:'4 Bedrooms',5:'5 Bedrooms',6:'6 Bedrooms'};
 const UNIT_TYPES=['Studio','2 Bedroom','3 Bedroom','4 Bedroom','5 Bedroom','6 Bedroom'];
 const UNIT_BEDS={'Studio':1,'2 Bedroom':2,'3 Bedroom':3,'4 Bedroom':4,'5 Bedroom':5,'6 Bedroom':6};
 const DEF_RATES={1:[0,160,180,225,270,290,230,200,160],2:[0,170,195,230,275,295,255,205,165],3:[0,190,215,265,310,365,290,240,190],4:[0,0,0,0,0,0,0,0,0],5:[0,0,0,0,0,0,0,0,0],6:[0,0,0,0,0,0,0,0,0]};
-const DEF_OCC_BASIC=[0.05,0.20,0.65,0.80,0.90,0.90,0.70,0.15,0.05];
+const DEF_OCC_BASIC=[0.05,0.25,0.55,0.70,0.85,0.95,0.70,0.25,0.05];
 const DEF_COSTS=[
   {cat:'Linens',    name:'Σεντόνια (sheets)',       price:1.92,qpb:2},
   {cat:'Linens',    name:'Μαξιλάκια (pillowcases)', price:1.08,qpb:2},
@@ -888,7 +897,7 @@ function compAvgForBeds(beds){
   return COMP_MONTHS.map((_,mi)=>{const v=m.map(c=>parseFloat(c.rates[mi])).filter(v=>!isNaN(v)&&v>0);return v.length?v.reduce((a,b)=>a+b,0)/v.length:0;});
 }
 function fillFromComps(){
-  const m2p=[0,1,1,2,3,4,6,7,8];
+  const m2p=[0,0,0,1,2,3,4,5,6,7,8,8];
   BED_GROUPS.forEach(beds=>{const avgs=compAvgForBeds(beds);m2p.forEach((pi,mi)=>{if(avgs[mi]>0)S.rates[beds][pi]=Math.round(avgs[mi]);});});
   buildRateTable();
 }
@@ -942,7 +951,7 @@ function seasonClr(pi){return['#7f8c8d','#27ae60','#f39c12','#e74c3c','#c0392b',
 function addComp(data){
   const id=data?data.id:(Date.now()+(Math.random()*99|0));
   const beds=data?data.beds:parseInt(document.getElementById('comp-add-beds').value);
-  const comp=data||{id,name:'',link:'',beds,maxPeople:beds*2,rates:Array(9).fill('')};
+  const comp=data||{id,name:'',link:'',beds,maxPeople:beds*2,rates:Array(12).fill('')};
   S.comps.push(comp);renderComps();
 }
 function removeComp(id){S.comps=S.comps.filter(c=>c.id!==id);renderComps();}
@@ -1834,12 +1843,12 @@ function init(){
   buildRateTable();buildOccupancy();buildCostTable();renderProps();
   buildTaxBracketTable('personal');buildTaxBracketTable('str');
   // Pre-load comparables from Excel
-  [{id:1,name:'Armonia',link:'https://www.airbnb.gr/rooms/572391417149392556',beds:3,maxPeople:6,rates:[149,151,172,211,211,230,211,177,154]},
-   {id:2,name:"Nonda's Mansion",link:'https://www.booking.com/hotel/gr/nonda-39-s-mansion.en-gb.html',beds:3,maxPeople:6,rates:['',190,190,210,225,222,223,210,177]},
-   {id:3,name:'Villa Smaragdi',link:'https://www.booking.com/hotel/gr/villa-smaragdi.en-gb.html',beds:3,maxPeople:6,rates:[207,207,245,364,402,427,352,270,203]},
-   {id:4,name:"Zoe's Place — 2BD Beachfront",link:'https://www.booking.com/',beds:2,maxPeople:6,rates:['',205,205,265,295,295,205,195,'']},
-   {id:5,name:"Chrisanna's Residences",link:'https://www.airbnb.gr/',beds:2,maxPeople:6,rates:['',130,150,150,'',228,212,194,179]},
-   {id:6,name:'Dream Sea House Falassarna',link:'https://www.booking.com/hotel/gr/dream-sea-house.en-gb.html',beds:3,maxPeople:6,rates:[164,163,195,240,355,357,255,213,166]},
+  [{id:1,name:'Armonia',link:'https://www.airbnb.gr/rooms/572391417149392556',beds:3,maxPeople:6,rates:['','',149,151,172,211,211,230,211,177,154,'']},
+   {id:2,name:"Nonda's Mansion",link:'https://www.booking.com/hotel/gr/nonda-39-s-mansion.en-gb.html',beds:3,maxPeople:6,rates:['','','',190,190,210,225,222,223,210,177,'']},
+   {id:3,name:'Villa Smaragdi',link:'https://www.booking.com/hotel/gr/villa-smaragdi.en-gb.html',beds:3,maxPeople:6,rates:['','',207,207,245,364,402,427,352,270,203,'']},
+   {id:4,name:"Zoe's Place — 2BD Beachfront",link:'https://www.booking.com/',beds:2,maxPeople:6,rates:['','','',205,205,265,295,295,205,195,'','']},
+   {id:5,name:"Chrisanna's Residences",link:'https://www.airbnb.gr/',beds:2,maxPeople:6,rates:['','','',130,150,150,'',228,212,194,179,'']},
+   {id:6,name:'Dream Sea House Falassarna',link:'https://www.booking.com/hotel/gr/dream-sea-house.en-gb.html',beds:3,maxPeople:6,rates:['','',164,163,195,240,355,357,255,213,166,'']},
   ].forEach(c=>S.comps.push(c));
   renderComps();
   // Demo property

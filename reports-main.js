@@ -1,4 +1,5 @@
 let properties=[],owners=[],jobs=[],cleanJobs=[],checkinJobs=[];
+let currentReportNotes='';
 
 async function init(){
   const[rp,ro,rj,rc,rci]=await Promise.all([
@@ -92,6 +93,9 @@ function matchProp(r,prop){
 
 /* ═══ OWNER STATEMENT ═══ */
 function generateOwner(){
+  // Preserve any typed notes across regenerations (e.g. after editing a booking row)
+  const _existingNotes = document.getElementById('rpt-section-notes');
+  if (_existingNotes) currentReportNotes = _existingNotes.value;
   const propId=document.getElementById('s-prop').value;
   const month=document.getElementById('s-month').value;
   if(!propId||!month){showToast('Select property and month','error');return;}
@@ -211,16 +215,15 @@ function generateOwner(){
   const tCleanCharge=cleans.reduce((s,j)=>{
     const actualH=j.cleanerHours?Object.values(j.cleanerHours).reduce((s2,h)=>s2+(parseFloat(h)||0),0):(j.hours||0);
     const jTransportFee=parseFloat(j.propertyTransport||prop.propertyTransport||0);
-    const tickedCount=Object.values(j.cleanerTransport||{}).filter(v=>v===true).length;
-    return s+cleaningFeeRate*actualH+jTransportFee*tickedCount;
+    return s+cleaningFeeRate*actualH+jTransportFee;
   },0);
   const cRows=cleans.map(j=>{
     const cls=(j.cleanerIds||[]).map(id=>staffC.find(s=>s.id===id)).filter(Boolean);
     // Use actual per-cleaner hours from j.cleanerHours (Hours module); fall back to j.hours if not recorded
     const actualJobHours=j.cleanerHours?Object.values(j.cleanerHours).reduce((s2,h)=>s2+(parseFloat(h)||0),0):(j.hours||0);
-    // Transport charge TO OWNER from property
+    // Transport charge TO OWNER: flat fee per cleaning session (when property has transport fee set)
     const jobTransportFee=parseFloat(j.propertyTransport||prop.propertyTransport||0);
-    const transportOwnerCharge=cls.filter(cl=>cl.hasCar==='Yes'&&j.cleanerTransport?.[cl.id]===true).length*jobTransportFee;
+    const transportOwnerCharge=jobTransportFee;
     const cleaningCost=cleaningFeeRate*actualJobHours;
     const rowTotal=cleaningCost+transportOwnerCharge;
     const typeColors={checkout:['#fdebd0','#a04000'],deep:['#e8d5f5','#6c3483']};
@@ -236,26 +239,33 @@ function generateOwner(){
     </tr>`;
   }).join('');
 
-  // Check-in jobs (confirmed=done only, for this property+month)
+  // Check-in jobs for this property+month (show all, charge only confirmed=done)
   const propNameKey=(prop.shortName||prop.propertyName||'').toLowerCase().split(' ')[0];
   const ciJobsMonth=checkinJobs.filter(j=>{
     const cp=(j.propertyName||'').toLowerCase();
-    return cp.includes(propNameKey)&&(j.date||'').startsWith(month)&&j.confirmed==='done';
+    return cp.includes(propNameKey)&&(j.date||'').startsWith(month);
   });
   const ciCharge=parseFloat(prop.checkinCharge||0);
-  const tCICharge=ciJobsMonth.length*ciCharge;
+  const tCICharge=ciJobsMonth.filter(j=>j.confirmed==='done').length*ciCharge;
   const ciRows=ciJobsMonth.sort((a,b)=>((a.date||'')+(a.scheduledTime||''))<((b.date||'')+(b.scheduledTime||''))?-1:1).map(j=>{
     const isCI=j.type==='checkin';
     const [tbg,tcol]=isCI?['#e8f6f3','#1a7a6e']:['#fdebd0','#a04000'];
     const tLabel=isCI?'Check-in':'Check-out';
     const infantFlag=(parseInt(j.infants)||0)>0;
-    return`<tr>
+    const isDone=j.confirmed==='done', isSkipped=j.confirmed==='skipped';
+    const statusBadge=isDone
+      ?'<span style="font-size:10px;background:#d5f5e3;color:#1e8449;padding:1px 5px;border-radius:6px">✅</span>'
+      :isSkipped
+      ?'<span style="font-size:10px;background:#fdebd0;color:#a04000;padding:1px 5px;border-radius:6px">⏭</span>'
+      :'<span style="font-size:10px;background:#fef9e7;color:#9a7d0a;padding:1px 5px;border-radius:6px">🟡 Pending</span>';
+    return`<tr style="${isSkipped?'opacity:.5':''}">
       <td style="font-size:12px">${fmtDate(j.actualDate||j.date)}</td>
       <td><span style="font-size:11px;font-weight:600;padding:2px 6px;border-radius:8px;background:${tbg};color:${tcol}">${tLabel}</span></td>
       <td style="font-size:12px">${j.guestName||'—'}${infantFlag?' <span style="font-size:10px;background:#fff3cd;color:#856404;padding:1px 4px;border-radius:4px">🚼</span>':''}</td>
       <td style="text-align:center">${j.guests||'—'}</td>
       <td style="font-size:11px">${j.scheduledTime||'—'}</td>
-      <td style="text-align:right;font-weight:600;color:var(--teal-dark)">${ciCharge>0?eur(ciCharge):'—'}</td>
+      <td style="text-align:center">${statusBadge}</td>
+      <td style="text-align:right;font-weight:600;color:var(--teal-dark)">${isDone&&ciCharge>0?eur(ciCharge):'—'}</td>
     </tr>`;
   }).join('');
 
@@ -345,11 +355,11 @@ function generateOwner(){
     </div>`:''}
 
     ${ciJobsMonth.length>0?`<div class="rpt-section">
-      <div class="rpt-section-title">Check-in / Check-out — ${ciJobsMonth.length} visits${tCICharge>0?' · '+eur(tCICharge)+' charged':''}</div>
+      <div class="rpt-section-title">Check-in / Check-out — ${ciJobsMonth.length} visit${ciJobsMonth.length>1?'s':''}${tCICharge>0?' · '+eur(tCICharge)+' charged':' · confirm jobs to charge'}</div>
       <table class="rpt-table">
-        <thead><tr><th>Date</th><th>Type</th><th>Guest</th><th style="text-align:center">Guests</th><th style="text-align:center">Time</th><th style="text-align:right">Charge</th></tr></thead>
+        <thead><tr><th>Date</th><th>Type</th><th>Guest</th><th style="text-align:center">Guests</th><th style="text-align:center">Time</th><th style="text-align:center">Status</th><th style="text-align:right">Charge</th></tr></thead>
         <tbody>${ciRows}</tbody>
-        ${tCICharge>0?`<tfoot><tr><td colspan="5" style="text-align:right">TOTAL CHECK-IN CHARGE</td><td style="text-align:right;font-weight:700">${eur(tCICharge)}</td></tr></tfoot>`:''}
+        ${tCICharge>0?`<tfoot><tr><td colspan="6" style="text-align:right">TOTAL CHECK-IN CHARGE</td><td style="text-align:right;font-weight:700">${eur(tCICharge)}</td></tr></tfoot>`:''}
       </table>
     </div>`:''}
 
@@ -384,9 +394,10 @@ function generateOwner(){
     <!-- Notes section -->
     <div class="rpt-section">
       <div class="rpt-section-title" style="margin-bottom:8px">Notes</div>
-      <div style="min-height:80px;border:1px dashed #ccc;border-radius:8px;padding:12px;color:var(--text-muted);font-size:12px;line-height:1.6">
-        <span style="color:#ccc;font-style:italic">Add notes here...</span>
-      </div>
+      <textarea id="rpt-section-notes" rows="4"
+        style="width:100%;border:1px solid #d4e0de;border-radius:8px;padding:12px;font-size:13px;font-family:'DM Sans',sans-serif;line-height:1.6;resize:vertical;outline:none;color:var(--text);"
+        placeholder="Add notes for this statement (saved with the report)..."
+        oninput="currentReportNotes=this.value">${currentReportNotes}</textarea>
     </div>
   </div>
     <div class="no-print" style="margin-top:20px;padding:16px 20px;background:var(--cream);border:1px solid var(--border);border-radius:10px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
@@ -454,9 +465,7 @@ function generateOccupancy(){
     <!-- Notes section -->
     <div class="rpt-section">
       <div class="rpt-section-title" style="margin-bottom:8px">Notes</div>
-      <div style="min-height:80px;border:1px dashed #ccc;border-radius:8px;padding:12px;color:var(--text-muted);font-size:12px;line-height:1.6">
-        <span style="color:#ccc;font-style:italic">Add notes here...</span>
-      </div>
+      <textarea rows="4" style="width:100%;border:1px solid #d4e0de;border-radius:8px;padding:12px;font-size:13px;font-family:'DM Sans',sans-serif;line-height:1.6;resize:vertical;outline:none;color:var(--text);" placeholder="Add notes for this occupancy report..."></textarea>
     </div>
   </div>`;
 }
@@ -493,8 +502,9 @@ async function supaStmt(path, method='GET', body=null) {
   const opts = {method, headers:{'apikey':KEY_S,'Authorization':'Bearer '+KEY_S,'Content-Type':'application/json','Prefer':'resolution=merge-duplicates,return=representation'}};
   if (body) opts.body = JSON.stringify(body);
   const r = await fetch(SUPA_S+'/rest/v1/'+path, opts);
-  if (!r.ok) throw new Error(await r.text());
-  return r.json();
+  if (!r.ok) { const t=await r.text(); throw new Error(t||('HTTP '+r.status)); }
+  const t = await r.text();
+  return t ? JSON.parse(t) : [];
 }
 
 function updateStatementStatusBadge(status) {
@@ -519,7 +529,7 @@ async function saveStatement(status) {
     month:         currentStatementData.month||'',
     status,
     data:          currentStatementData,
-    notes:         document.getElementById('stmt-notes')?.value||'',
+    notes:         (document.getElementById('rpt-section-notes')?.value || document.getElementById('stmt-notes')?.value || currentReportNotes || ''),
     updated_at:    new Date().toISOString(),
     sent_at:       status==='sent'?new Date().toISOString():null,
   };
@@ -610,6 +620,7 @@ async function openStatement(id) {
     updateStatementStatusBadge(stmt.status);
     const notesEl = document.getElementById('stmt-notes');
     if (notesEl) notesEl.value = stmt.notes||'';
+    currentReportNotes = stmt.notes||'';
   } catch(e) { showToast('Open error: '+e.message,'error'); }
 }
 
