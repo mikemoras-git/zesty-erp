@@ -43,7 +43,7 @@
     <div class="db-info">
       <div><strong>Project:</strong> whuytfjwdjjepayeiohj.supabase.co</div>
       <div style="margin-top:6px"><strong>Status:</strong> <span id="dbStatus">Checking…</span></div>
-      <div style="margin-top:6px"><strong>Tables:</strong> owners · properties · guests · jobs · employees · staff · tasks · cleaning · contacts · leave · onboardings · tickets · laundry_customers · laundry_orders · laundry_receipts · laundry_pricelists</div>
+      <div style="margin-top:6px"><strong>Tables:</strong> owners · properties · guests · jobs · employees · staff · tasks · cleaning · contacts · leave · onboardings · tickets · laundry_customers · laundry_orders · laundry_receipts · laundry_pricelists · review_entries</div>
     </div>
     <button class="btn btn-teal btn-sm" style="margin-top:14px" onclick="testConnection()">🔌 Test Connection</button>
   </div>
@@ -189,6 +189,14 @@ create table if not exists laundry_pricelists (
   updated_at timestamptz default now()
 );
 
+-- Reviews & Comments
+create table if not exists review_entries (
+  id text primary key,
+  data jsonb,
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
+);
+
 -- Enable RLS and allow anon access on all new tables
 alter table contacts enable row level security;
 alter table leave enable row level security;
@@ -197,6 +205,7 @@ alter table laundry_customers enable row level security;
 alter table laundry_orders enable row level security;
 alter table laundry_receipts enable row level security;
 alter table laundry_pricelists enable row level security;
+alter table review_entries enable row level security;
 
 create policy if not exists "anon_all" on contacts for all using (true) with check (true);
 create policy if not exists "anon_all" on leave for all using (true) with check (true);
@@ -204,7 +213,8 @@ create policy if not exists "anon_all" on onboardings for all using (true) with 
 create policy if not exists "anon_all" on laundry_customers for all using (true) with check (true);
 create policy if not exists "anon_all" on laundry_orders for all using (true) with check (true);
 create policy if not exists "anon_all" on laundry_receipts for all using (true) with check (true);
-create policy if not exists "anon_all" on laundry_pricelists for all using (true) with check (true);</pre>
+create policy if not exists "anon_all" on laundry_pricelists for all using (true) with check (true);
+create policy if not exists "anon_all" on review_entries for all using (true) with check (true);</pre>
       <button class="btn btn-teal btn-sm" style="margin-top:10px" onclick="copySql()">📋 Copy SQL</button>
       <span id="sqlCopied" style="font-size:12px;color:var(--success);margin-left:10px;display:none">✓ Copied!</span>
     </details>
@@ -393,6 +403,7 @@ const ALL_TABLES = [
   { name: 'laundry_orders', label: 'Laundry Orders' },
   { name: 'laundry_receipts', label: 'Laundry Receipts' },
   { name: 'laundry_pricelists', label: 'Laundry Pricelists' },
+  { name: 'review_entries', label: 'Reviews & Comments' },
 ];
 
 const SB_URL = 'https://whuytfjwdjjepayeiohj.supabase.co';

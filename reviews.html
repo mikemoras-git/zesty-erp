@@ -1,0 +1,1099 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Zesty ERP — Reviews &amp; Comments</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --teal:#1a7a6e;--teal-light:#23a090;--teal-dark:#115950;--teal-deep:#0a3330;
+  --gold:#c9a84c;--gold-light:#e8c97a;
+  --cream:#f8f5f0;--white:#fff;
+  --text:#1e2a28;--text-muted:#6b7e7b;--border:#d4e0de;
+  --danger:#c0392b;--danger-bg:#fdf0ef;
+  --success:#27ae60;--success-bg:#eafaf1;
+  --warning:#e67e22;--warning-bg:#fef9ec;
+  --info:#2471a3;--info-bg:#eaf2fb;
+  --purple:#8e44ad;--purple-bg:#f5eafb;
+  --radius:12px;--shadow:0 2px 16px rgba(26,122,110,.10);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--text);min-height:100vh}
+
+/* HEADER */
+header{background:var(--teal-dark);padding:0 28px;display:flex;align-items:center;justify-content:space-between;height:64px;position:sticky;top:0;z-index:100;box-shadow:0 2px 20px rgba(0,0,0,.2)}
+.logo{font-family:'Cormorant Garamond',serif;font-size:21px;font-weight:500;color:#fff}
+.logo span{color:var(--gold-light)}
+.tabs{display:flex;gap:4px;background:rgba(255,255,255,.1);border-radius:8px;padding:4px}
+.htab{padding:7px 18px;border-radius:6px;border:none;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;color:rgba(255,255,255,.7);background:transparent;transition:all .2s}
+.htab.active{background:#fff;color:var(--teal-dark)}
+.htab:hover:not(.active){color:#fff;background:rgba(255,255,255,.15)}
+.back-btn{color:rgba(255,255,255,.6);font-size:13px;text-decoration:none;display:flex;align-items:center;gap:6px;transition:color .2s}
+.back-btn:hover{color:#fff}
+
+/* LAYOUT */
+.container{max-width:1300px;margin:0 auto;padding:24px 20px 80px}
+.page{display:none}.page.active{display:block}
+
+/* STATS */
+.stats{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:24px}
+.stat{background:var(--white);border-radius:var(--radius);padding:14px 18px;box-shadow:var(--shadow);border-left:4px solid var(--teal)}
+.stat.danger{border-color:var(--danger)}.stat.warning{border-color:var(--warning)}
+.stat.success{border-color:var(--success)}.stat.purple{border-color:var(--purple)}
+.stat-val{font-size:28px;font-weight:700;color:var(--teal)}
+.stat.danger .stat-val{color:var(--danger)}.stat.warning .stat-val{color:var(--warning)}
+.stat.success .stat-val{color:var(--success)}.stat.purple .stat-val{color:var(--purple)}
+.stat-lbl{font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted);margin-top:4px}
+
+/* TOOLBAR */
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:16px}
+.toolbar input,.toolbar select{padding:8px 12px;border:1px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;background:#fff;outline:none;color:var(--text)}
+.toolbar input:focus,.toolbar select:focus{border-color:var(--teal)}
+.toolbar input[type=text]{min-width:200px}
+.ml-auto{margin-left:auto}
+
+/* BUTTONS */
+.btn{padding:8px 16px;border-radius:8px;border:none;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.btn-primary{background:var(--gold);color:var(--teal-deep)}.btn-primary:hover{background:var(--gold-light)}
+.btn-teal{background:var(--teal);color:#fff}.btn-teal:hover{background:var(--teal-light)}
+.btn-outline{background:transparent;border:1px solid var(--border);color:var(--text-muted)}.btn-outline:hover{border-color:var(--teal);color:var(--teal)}
+.btn-danger{background:var(--danger-bg);color:var(--danger);border:1px solid #f5c6c2}.btn-danger:hover{background:var(--danger);color:#fff}
+.btn-success{background:var(--success-bg);color:var(--success);border:1px solid #a9dfbf}.btn-success:hover{background:var(--success);color:#fff}
+.btn-purple{background:var(--purple-bg);color:var(--purple);border:1px solid #d2b4de}.btn-purple:hover{background:var(--purple);color:#fff}
+.btn-sm{padding:4px 10px;font-size:11px}
+.btn-lg{padding:11px 24px;font-size:14px}
+
+/* ENTRIES TABLE */
+.entries-table{width:100%;border-collapse:separate;border-spacing:0 6px}
+.entries-table th{font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted);font-weight:600;padding:6px 12px;text-align:left;background:transparent}
+.entry-row{background:var(--white);box-shadow:var(--shadow);transition:all .2s;cursor:pointer}
+.entry-row:hover{box-shadow:0 4px 24px rgba(26,122,110,.14);transform:translateY(-1px)}
+.entry-row td{padding:12px 14px;border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+.entry-row td:first-child{border-left:1px solid var(--border);border-radius:10px 0 0 10px}
+.entry-row td:last-child{border-right:1px solid var(--border);border-radius:0 10px 10px 0}
+
+/* BADGES */
+.badge{display:inline-flex;align-items:center;padding:2px 10px;border-radius:12px;font-size:11px;font-weight:600;gap:4px;white-space:nowrap}
+.badge-damage{background:var(--danger-bg);color:var(--danger)}
+.badge-comment{background:var(--warning-bg);color:var(--warning)}
+.badge-improvement{background:var(--info-bg);color:var(--info)}
+.badge-operational{background:var(--purple-bg);color:var(--purple)}
+.badge-review{background:#fef3e2;color:#b7770d}
+.badge-private{background:#e8f6f3;color:var(--teal-dark)}
+.badge-direct{background:var(--cream);color:var(--text-muted);border:1px solid var(--border)}
+.badge-open{background:var(--danger-bg);color:var(--danger)}
+.badge-actioned{background:var(--warning-bg);color:var(--warning)}
+.badge-resolved{background:var(--success-bg);color:var(--success)}
+
+/* EMPTY STATE */
+.empty{text-align:center;padding:60px 20px;color:var(--text-muted)}
+.empty-icon{font-size:48px;margin-bottom:12px}
+
+/* MODAL */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;align-items:center;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal{background:var(--white);border-radius:16px;width:680px;max-width:96vw;max-height:92vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.22)}
+.modal-sm{width:420px}
+.modal-hdr{display:flex;justify-content:space-between;align-items:center;padding:20px 24px;border-bottom:1px solid var(--border);position:sticky;top:0;background:#fff;z-index:1}
+.modal-title{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:500;color:var(--teal-dark)}
+.modal-close{background:none;border:none;font-size:20px;cursor:pointer;color:var(--text-muted);padding:4px;line-height:1}
+.modal-body{padding:24px}
+.modal-footer{padding:16px 24px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:10px;position:sticky;bottom:0;background:#fff}
+
+/* FORM */
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+.form-row.full{grid-template-columns:1fr}
+.form-group{display:flex;flex-direction:column;gap:5px}
+.form-label{font-size:12px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em}
+.form-control{padding:9px 12px;border:1px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;background:var(--cream);outline:none;color:var(--text);transition:border-color .2s;width:100%}
+.form-control:focus{border-color:var(--teal);background:#fff}
+textarea.form-control{resize:vertical;min-height:90px}
+.autocomplete-wrap{position:relative}
+.autocomplete-list{position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid var(--border);border-radius:8px;box-shadow:var(--shadow);z-index:50;max-height:200px;overflow-y:auto;display:none}
+.autocomplete-item{padding:9px 12px;cursor:pointer;font-size:13px;border-bottom:1px solid var(--border)}
+.autocomplete-item:last-child{border:none}
+.autocomplete-item:hover{background:var(--cream)}
+.autocomplete-sub{font-size:11px;color:var(--text-muted);margin-top:1px}
+
+/* REPORT */
+.report-controls{background:var(--white);border-radius:var(--radius);padding:20px 24px;box-shadow:var(--shadow);margin-bottom:20px}
+.report-controls-row{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end}
+.api-key-row{margin-top:14px;padding-top:14px;border-top:1px solid var(--border);display:flex;gap:10px;align-items:center}
+.api-key-row label{font-size:12px;font-weight:600;color:var(--text-muted);white-space:nowrap}
+.api-key-row input{flex:1;padding:7px 11px;border:1px solid var(--border);border-radius:7px;font-size:12px;font-family:'DM Mono',monospace;background:var(--cream);outline:none}
+.api-key-row input:focus{border-color:var(--teal);background:#fff}
+.api-note{font-size:11px;color:var(--text-muted);margin-top:6px}
+
+#report-preview{background:var(--white);border-radius:var(--radius);padding:32px 36px;box-shadow:var(--shadow);min-height:300px;position:relative}
+.report-cover{text-align:center;padding:60px 20px;color:var(--text-muted)}
+.report-cover-icon{font-size:48px;margin-bottom:16px}
+
+/* REPORT DOCUMENT STYLES */
+.rpt-header{display:flex;justify-content:space-between;align-items:flex-start;padding-bottom:20px;border-bottom:3px solid var(--teal);margin-bottom:24px}
+.rpt-logo{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:500;color:var(--teal-dark)}
+.rpt-logo span{color:var(--gold)}
+.rpt-meta{text-align:right;font-size:12px;color:var(--text-muted);line-height:1.8}
+.rpt-title{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:500;color:var(--teal-dark);margin-bottom:4px}
+.rpt-period{font-size:13px;color:var(--text-muted);margin-bottom:24px}
+.rpt-section{margin-bottom:28px}
+.rpt-section-title{font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:600;color:var(--teal-dark);margin-bottom:12px;padding-bottom:6px;border-bottom:1px solid var(--border)}
+.rpt-summary-box{background:var(--cream);border-left:4px solid var(--teal);padding:16px 18px;border-radius:0 8px 8px 0;font-size:13px;line-height:1.7;color:var(--text);margin-bottom:16px}
+.rpt-summary-box.greek{background:#f0f8f6;border-color:var(--gold)}
+.rpt-stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px}
+.rpt-stat{background:var(--cream);border-radius:8px;padding:12px 14px;text-align:center}
+.rpt-stat-val{font-size:24px;font-weight:700;color:var(--teal)}
+.rpt-stat-lbl{font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted);margin-top:3px}
+.rpt-entry{border:1px solid var(--border);border-radius:8px;padding:12px 14px;margin-bottom:8px;border-left-width:3px}
+.rpt-entry.damage{border-left-color:var(--danger)}
+.rpt-entry.bad_comment{border-left-color:var(--warning)}
+.rpt-entry.improvement{border-left-color:var(--info)}
+.rpt-entry.operational{border-left-color:var(--purple)}
+.rpt-entry-hdr{display:flex;gap:8px;align-items:center;margin-bottom:6px;flex-wrap:wrap}
+.rpt-entry-desc{font-size:13px;color:var(--text);line-height:1.6}
+.rpt-recommendations{background:#f0f8f6;border-radius:8px;padding:16px 18px}
+.rpt-recommendations li{font-size:13px;color:var(--text);line-height:1.6;margin-bottom:6px;margin-left:20px}
+
+/* SPINNER */
+.spinner{display:inline-block;width:18px;height:18px;border:2px solid rgba(26,122,110,.2);border-top-color:var(--teal);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;right:24px;padding:12px 20px;border-radius:10px;background:var(--teal-dark);color:#fff;font-size:13px;font-weight:500;box-shadow:0 8px 30px rgba(0,0,0,.2);z-index:9999;transform:translateY(20px);opacity:0;transition:all .3s;pointer-events:none;max-width:320px}
+.toast.show{transform:translateY(0);opacity:1}
+.toast.error{background:var(--danger)}
+
+/* PRINT */
+@media print{
+  header,.toolbar,.stats,.modal-overlay,.toast{display:none!important}
+  #report-preview{box-shadow:none;padding:0}
+  body{background:#fff}
+  .rpt-entry{break-inside:avoid}
+}
+
+@media(max-width:768px){
+  .stats{grid-template-columns:repeat(2,1fr)}
+  .form-row{grid-template-columns:1fr}
+  .rpt-stats-grid{grid-template-columns:repeat(2,1fr)}
+  header{padding:0 14px}
+  .tabs{gap:2px}
+  .htab{padding:6px 10px;font-size:12px}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Zesty <span>Reviews</span></div>
+  <div class="tabs">
+    <button class="htab active" onclick="showPage('entries',this)">📋 Entries</button>
+    <button class="htab" onclick="showPage('report',this)">📊 Owner Report</button>
+  </div>
+  <a href="index.html" class="back-btn">← Dashboard</a>
+</header>
+
+<div class="container">
+
+  <!-- STATS -->
+  <div class="stats" id="statsBar">
+    <div class="stat"><div class="stat-val" id="s-total">—</div><div class="stat-lbl">Total Entries</div></div>
+    <div class="stat danger"><div class="stat-val" id="s-open">—</div><div class="stat-lbl">Open</div></div>
+    <div class="stat warning"><div class="stat-val" id="s-damage">—</div><div class="stat-lbl">Damages</div></div>
+    <div class="stat purple"><div class="stat-val" id="s-improvement">—</div><div class="stat-lbl">Improvements</div></div>
+    <div class="stat success"><div class="stat-val" id="s-resolved">—</div><div class="stat-lbl">Resolved</div></div>
+  </div>
+
+  <!-- ══ ENTRIES PAGE ══ -->
+  <div class="page active" id="page-entries">
+
+    <div class="toolbar">
+      <button class="btn btn-primary" onclick="openAddEntry()">＋ Add Entry</button>
+      <input type="text" id="search" placeholder="🔍 Search guest, property, description…" oninput="renderEntries()">
+      <select id="flt-cat" onchange="renderEntries()">
+        <option value="">All Categories</option>
+        <option value="damage">🔴 Damage</option>
+        <option value="bad_comment">🟠 Bad Comment</option>
+        <option value="improvement">🔵 Improvement</option>
+        <option value="operational">🟣 Operational Issue</option>
+      </select>
+      <select id="flt-src" onchange="renderEntries()">
+        <option value="">All Sources</option>
+        <option value="review">⭐ Review</option>
+        <option value="private_comment">💌 Private Comment</option>
+        <option value="direct_contact">📞 Direct Contact</option>
+      </select>
+      <select id="flt-status" onchange="renderEntries()">
+        <option value="">All Statuses</option>
+        <option value="open">🔴 Open</option>
+        <option value="actioned">🟡 Actioned</option>
+        <option value="resolved">✅ Resolved</option>
+      </select>
+      <select id="flt-prop" onchange="renderEntries()">
+        <option value="">All Properties</option>
+      </select>
+      <div class="ml-auto" style="display:flex;gap:8px">
+        <button class="btn btn-outline btn-sm" onclick="openCSVImport()" title="Import guest list from Lodgify CSV">📥 Import Guests</button>
+        <span style="font-size:12px;color:var(--text-muted);display:flex;align-items:center;gap:4px" id="guest-count-label"></span>
+      </div>
+    </div>
+
+    <table class="entries-table">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Guest</th>
+          <th>Property</th>
+          <th>Category</th>
+          <th>Source</th>
+          <th>Title / Description</th>
+          <th>Status</th>
+          <th style="text-align:right">Actions</th>
+        </tr>
+      </thead>
+      <tbody id="entries-tbody">
+        <tr><td colspan="8"><div class="empty"><div class="empty-icon">💬</div>Loading entries…</div></td></tr>
+      </tbody>
+    </table>
+  </div><!-- /entries -->
+
+  <!-- ══ REPORT PAGE ══ -->
+  <div class="page" id="page-report">
+
+    <div class="report-controls">
+      <div class="report-controls-row">
+        <div class="form-group">
+          <label class="form-label">Property</label>
+          <select id="rpt-prop" class="form-control" style="min-width:220px">
+            <option value="">All Properties</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Period From</label>
+          <input type="date" id="rpt-from" class="form-control">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Period To</label>
+          <input type="date" id="rpt-to" class="form-control">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Language</label>
+          <select id="rpt-lang" class="form-control">
+            <option value="en">English</option>
+            <option value="el">Greek (Ελληνικά)</option>
+          </select>
+        </div>
+        <div style="display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap">
+          <button class="btn btn-primary btn-lg" onclick="generateReport()">
+            <span id="rpt-btn-txt">📊 Generate Report</span>
+          </button>
+          <button class="btn btn-outline" onclick="printReport()">🖨 Print</button>
+        </div>
+      </div>
+      <div class="api-key-row">
+        <label>🤖 Anthropic API Key (for AI summary):</label>
+        <input type="password" id="api-key-input" placeholder="sk-ant-…" oninput="saveApiKey()">
+        <span style="font-size:11px;color:var(--text-muted)">Optional — enables AI narrative &amp; Greek translation</span>
+      </div>
+      <div class="api-note">Without API key: structured template report is generated. With key: AI writes narrative summary + recommendations in the chosen language.</div>
+    </div>
+
+    <div id="report-preview">
+      <div class="report-cover">
+        <div class="report-cover-icon">📄</div>
+        <div style="font-size:15px;font-weight:600;color:var(--teal-dark);margin-bottom:8px">Owner Feedback Report</div>
+        <div style="font-size:13px;color:var(--text-muted)">Select a property and period, then click Generate Report.<br>Add an Anthropic API key above for AI-generated summaries and Greek translation.</div>
+      </div>
+    </div>
+
+  </div><!-- /report -->
+</div><!-- /container -->
+
+<!-- ══ ADD / EDIT MODAL ══ -->
+<div class="modal-overlay" id="editModal">
+  <div class="modal">
+    <div class="modal-hdr">
+      <div class="modal-title" id="editModalTitle">Add Entry</div>
+      <button class="modal-close" onclick="closeModal('editModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="em-id">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Date *</label>
+          <input type="date" id="em-date" class="form-control">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Status</label>
+          <select id="em-status" class="form-control">
+            <option value="open">🔴 Open</option>
+            <option value="actioned">🟡 Actioned</option>
+            <option value="resolved">✅ Resolved</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Guest Name *</label>
+          <div class="autocomplete-wrap">
+            <input type="text" id="em-guest" class="form-control" placeholder="Type to search guest…" autocomplete="off" oninput="guestAutocomplete(this.value)">
+            <div class="autocomplete-list" id="guest-dropdown"></div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Booking Ref / Dates</label>
+          <input type="text" id="em-booking" class="form-control" placeholder="e.g. BK-1234 / 10–17 Jul">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Property *</label>
+          <select id="em-prop" class="form-control">
+            <option value="">— Select property —</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Category *</label>
+          <select id="em-cat" class="form-control">
+            <option value="damage">🔴 Damage</option>
+            <option value="bad_comment">🟠 Bad Comment</option>
+            <option value="improvement">🔵 Improvement</option>
+            <option value="operational">🟣 Operational Issue</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Source</label>
+          <select id="em-src" class="form-control">
+            <option value="review">⭐ Review (public)</option>
+            <option value="private_comment">💌 Private Comment to Review</option>
+            <option value="direct_contact">📞 Direct Contact (text/call)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Brief Title</label>
+          <input type="text" id="em-title" class="form-control" placeholder="e.g. AC not working, Noise complaint…">
+        </div>
+      </div>
+      <div class="form-row full">
+        <div class="form-group">
+          <label class="form-label">Description / Full Comment *</label>
+          <textarea id="em-desc" class="form-control" rows="5" placeholder="Paste or type the full review text or description of the issue…"></textarea>
+        </div>
+      </div>
+      <div class="form-row full">
+        <div class="form-group">
+          <label class="form-label">Internal Note (not shown in owner report)</label>
+          <textarea id="em-note" class="form-control" rows="3" placeholder="Your internal notes, follow-up actions taken…"></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('editModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveEntry()">💾 Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ DELETE PASSWORD MODAL ══ -->
+<div class="modal-overlay" id="deleteModal">
+  <div class="modal modal-sm">
+    <div class="modal-hdr">
+      <div class="modal-title">🔒 Confirm Delete</div>
+      <button class="modal-close" onclick="closeModal('deleteModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px">Enter the management password to permanently delete this entry.</p>
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <input type="password" id="del-pwd" class="form-control" placeholder="Enter password…" onkeydown="if(event.key==='Enter')confirmDelete()">
+      </div>
+      <div id="del-err" style="color:var(--danger);font-size:12px;margin-top:8px;display:none">❌ Incorrect password</div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('deleteModal')">Cancel</button>
+      <button class="btn btn-danger" onclick="confirmDelete()">🗑 Delete</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ CSV IMPORT MODAL ══ -->
+<div class="modal-overlay" id="csvModal">
+  <div class="modal modal-sm">
+    <div class="modal-hdr">
+      <div class="modal-title">📥 Import Guest List</div>
+      <button class="modal-close" onclick="closeModal('csvModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px">Upload a Lodgify booking CSV. Guest names and properties will be available for autocomplete when adding entries.</p>
+      <div id="csv-drop-zone"
+        onclick="document.getElementById('csv-file').click()"
+        ondragover="event.preventDefault();this.style.borderColor='var(--teal)'"
+        ondragleave="this.style.borderColor='var(--border)'"
+        ondrop="csvDrop(event)"
+        style="border:2px dashed var(--border);border-radius:10px;padding:28px;text-align:center;cursor:pointer;transition:border-color .2s">
+        <div style="font-size:32px;margin-bottom:8px">📄</div>
+        <div style="font-size:13px;font-weight:500;color:var(--text-muted)">Click or drag &amp; drop CSV file</div>
+        <div style="font-size:11px;color:var(--text-muted);margin-top:4px">Lodgify BookingReport_*.csv</div>
+        <input type="file" id="csv-file" accept=".csv" style="display:none" onchange="csvFileSelected(this.files[0])">
+      </div>
+      <div id="csv-result" style="margin-top:14px;font-size:13px;display:none"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('csvModal')">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script src="cleaning-db.js"></script>
+<script>
+// ══════════════════════════════════════════════
+// CONSTANTS
+// ══════════════════════════════════════════════
+const SUPA_URL='https://whuytfjwdjjepayeiohj.supabase.co';
+const SUPA_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndodXl0Zmp3ZGpqZXBheWVpb2hqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIyODQxMzQsImV4cCI6MjA4Nzg2MDEzNH0.pTDAqw_Cnzc9D3tJU-tU7Ch5qpapKmteiqI_ooSCufY';
+const DELETE_PASSWORD='Zesty2025!';
+
+// Category config
+const CAT_CFG={
+  damage:      {label:'Damage',         icon:'🔴', cls:'badge-damage'},
+  bad_comment: {label:'Bad Comment',    icon:'🟠', cls:'badge-comment'},
+  improvement: {label:'Improvement',   icon:'🔵', cls:'badge-improvement'},
+  operational: {label:'Operational',   icon:'🟣', cls:'badge-operational'},
+};
+const SRC_CFG={
+  review:          {label:'Review',          icon:'⭐', cls:'badge-review'},
+  private_comment: {label:'Private Comment', icon:'💌', cls:'badge-private'},
+  direct_contact:  {label:'Direct Contact',  icon:'📞', cls:'badge-direct'},
+};
+const STATUS_CFG={
+  open:     {label:'Open',     cls:'badge-open'},
+  actioned: {label:'Actioned', cls:'badge-actioned'},
+  resolved: {label:'Resolved', cls:'badge-resolved'},
+};
+
+// ══════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════
+let entries=[];
+let properties=[];
+let importedGuests=[]; // [{name, property, checkIn, checkOut, bookingRef}]
+let pendingDeleteId=null;
+
+// ══════════════════════════════════════════════
+// SUPABASE HELPERS
+// ══════════════════════════════════════════════
+async function sbFetch(method, path, body){
+  const opts={method, headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY,'Content-Type':'application/json','Prefer':'return=minimal'}};
+  if(body) opts.body=JSON.stringify(body);
+  const r=await fetch(SUPA_URL+'/rest/v1/'+path, opts);
+  if(!r.ok){const t=await r.text(); throw new Error(t||'HTTP '+r.status);}
+  const t=await r.text(); return t?JSON.parse(t):[];
+}
+async function loadEntries(){
+  try{
+    const rows=await sbFetch('GET','review_entries?select=*&order=created_at.desc');
+    entries=rows.map(r=>({...(r.data||{}),_id:r.id}));
+    // Merge id fields
+    entries=entries.map(e=>({...e,id:e.id||e._id}));
+  }catch(e){
+    console.warn('Supabase load failed, using localStorage',e);
+    entries=JSON.parse(localStorage.getItem('rc_entries')||'[]');
+  }
+}
+async function saveEntry_db(entry){
+  const row={id:entry.id, data:entry, updated_at:new Date().toISOString()};
+  const existing=entries.find(e=>e.id===entry.id&&!entry._isNew);
+  if(existing){
+    await sbFetch('PATCH','review_entries?id=eq.'+entry.id, row);
+  } else {
+    await sbFetch('POST','review_entries', {...row, created_at:new Date().toISOString()});
+  }
+  // Also cache locally
+  const ls=JSON.parse(localStorage.getItem('rc_entries')||'[]');
+  const idx=ls.findIndex(e=>e.id===entry.id);
+  if(idx>=0) ls[idx]=entry; else ls.unshift(entry);
+  localStorage.setItem('rc_entries', JSON.stringify(ls));
+}
+async function deleteEntry_db(id){
+  try{ await sbFetch('DELETE','review_entries?id=eq.'+id); }catch(e){console.warn(e);}
+  const ls=JSON.parse(localStorage.getItem('rc_entries')||'[]');
+  localStorage.setItem('rc_entries', JSON.stringify(ls.filter(e=>e.id!==id)));
+}
+
+// ══════════════════════════════════════════════
+// PAGE SWITCHING
+// ══════════════════════════════════════════════
+function showPage(name, btn){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.htab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  if(btn) btn.classList.add('active');
+}
+
+// ══════════════════════════════════════════════
+// RENDER ENTRIES
+// ══════════════════════════════════════════════
+function renderEntries(){
+  const search=(document.getElementById('search').value||'').toLowerCase();
+  const fCat=document.getElementById('flt-cat').value;
+  const fSrc=document.getElementById('flt-src').value;
+  const fStatus=document.getElementById('flt-status').value;
+  const fProp=document.getElementById('flt-prop').value;
+
+  let list=entries.filter(e=>{
+    if(fCat && e.category!==fCat) return false;
+    if(fSrc && e.source!==fSrc) return false;
+    if(fStatus && e.status!==fStatus) return false;
+    if(fProp && e.propertyName!==fProp) return false;
+    if(search){
+      const hay=[e.guestName,e.propertyName,e.description,e.title,e.bookingRef].join(' ').toLowerCase();
+      if(!hay.includes(search)) return false;
+    }
+    return true;
+  });
+
+  const tbody=document.getElementById('entries-tbody');
+  if(!list.length){
+    tbody.innerHTML=`<tr><td colspan="8"><div class="empty"><div class="empty-icon">💬</div>${entries.length?'No entries match your filters.':'No entries yet. Click + Add Entry to start.'}</div></td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML=list.map(e=>{
+    const cat=CAT_CFG[e.category]||CAT_CFG.bad_comment;
+    const src=SRC_CFG[e.source]||SRC_CFG.review;
+    const sts=STATUS_CFG[e.status]||STATUS_CFG.open;
+    const desc=(e.title||e.description||'').substring(0,80)+(((e.title||e.description)||'').length>80?'…':'');
+    const dt=e.date?new Date(e.date+'T12:00:00').toLocaleDateString('el-GR'):'—';
+    return `<tr class="entry-row" onclick="openEditEntry('${e.id}')">
+      <td style="font-size:12px;white-space:nowrap">${dt}</td>
+      <td style="font-size:13px;font-weight:500">${esc(e.guestName||'—')}<div style="font-size:11px;color:var(--text-muted)">${esc(e.bookingRef||'')}</div></td>
+      <td style="font-size:13px">${esc(e.propertyName||'—')}</td>
+      <td><span class="badge ${cat.cls}">${cat.icon} ${cat.label}</span></td>
+      <td><span class="badge ${src.cls}">${src.icon} ${src.label}</span></td>
+      <td style="font-size:12px;color:var(--text-muted);max-width:280px">${esc(desc)}</td>
+      <td><span class="badge ${sts.cls}">${sts.label}</span></td>
+      <td style="text-align:right;white-space:nowrap" onclick="event.stopPropagation()">
+        <button class="btn btn-outline btn-sm" onclick="openEditEntry('${e.id}')">✏️</button>
+        <button class="btn btn-danger btn-sm" onclick="askDelete('${e.id}')">🗑</button>
+      </td>
+    </tr>`;
+  }).join('');
+
+  updateStats();
+}
+
+function updateStats(){
+  document.getElementById('s-total').textContent=entries.length;
+  document.getElementById('s-open').textContent=entries.filter(e=>e.status==='open').length;
+  document.getElementById('s-damage').textContent=entries.filter(e=>e.category==='damage').length;
+  document.getElementById('s-improvement').textContent=entries.filter(e=>e.category==='improvement').length;
+  document.getElementById('s-resolved').textContent=entries.filter(e=>e.status==='resolved').length;
+}
+
+function populatePropFilters(){
+  const names=[...new Set(entries.map(e=>e.propertyName).filter(Boolean))].sort();
+  ['flt-prop','rpt-prop'].forEach(id=>{
+    const sel=document.getElementById(id);
+    const cur=sel.value;
+    while(sel.options.length>1) sel.remove(1);
+    names.forEach(n=>{const o=document.createElement('option');o.value=n;o.textContent=n;sel.appendChild(o);});
+    // Also add from loaded properties
+    properties.filter(p=>!p.archived).forEach(p=>{
+      const n=p.shortName||p.propertyName;
+      if(n&&!names.includes(n)){const o=document.createElement('option');o.value=n;o.textContent=n;sel.appendChild(o);}
+    });
+    sel.value=cur;
+  });
+  // Also populate em-prop in modal
+  const emp=document.getElementById('em-prop');
+  while(emp.options.length>1) emp.remove(1);
+  const all=[...new Set([...names,...properties.filter(p=>!p.archived).map(p=>p.shortName||p.propertyName)])].filter(Boolean).sort();
+  all.forEach(n=>{const o=document.createElement('option');o.value=n;o.textContent=n;emp.appendChild(o);});
+}
+
+// ══════════════════════════════════════════════
+// MODAL — ADD / EDIT
+// ══════════════════════════════════════════════
+function openAddEntry(){
+  document.getElementById('editModalTitle').textContent='➕ Add Entry';
+  document.getElementById('em-id').value='';
+  document.getElementById('em-date').value=new Date().toISOString().slice(0,10);
+  document.getElementById('em-guest').value='';
+  document.getElementById('em-booking').value='';
+  document.getElementById('em-prop').value='';
+  document.getElementById('em-cat').value='bad_comment';
+  document.getElementById('em-src').value='review';
+  document.getElementById('em-title').value='';
+  document.getElementById('em-desc').value='';
+  document.getElementById('em-note').value='';
+  document.getElementById('em-status').value='open';
+  openModal('editModal');
+}
+function openEditEntry(id){
+  const e=entries.find(x=>x.id===id); if(!e) return;
+  document.getElementById('editModalTitle').textContent='✏️ Edit Entry';
+  document.getElementById('em-id').value=e.id;
+  document.getElementById('em-date').value=e.date||'';
+  document.getElementById('em-guest').value=e.guestName||'';
+  document.getElementById('em-booking').value=e.bookingRef||'';
+  document.getElementById('em-prop').value=e.propertyName||'';
+  document.getElementById('em-cat').value=e.category||'bad_comment';
+  document.getElementById('em-src').value=e.source||'review';
+  document.getElementById('em-title').value=e.title||'';
+  document.getElementById('em-desc').value=e.description||'';
+  document.getElementById('em-note').value=e.internalNote||'';
+  document.getElementById('em-status').value=e.status||'open';
+  openModal('editModal');
+}
+async function saveEntry(){
+  const id=document.getElementById('em-id').value;
+  const guestName=document.getElementById('em-guest').value.trim();
+  const propertyName=document.getElementById('em-prop').value;
+  const description=document.getElementById('em-desc').value.trim();
+  if(!guestName||!propertyName||!description){showToast('Please fill in Guest, Property and Description','error');return;}
+  const isNew=!id;
+  const entry={
+    id: id||('rev_'+Date.now()),
+    date: document.getElementById('em-date').value,
+    guestName,
+    bookingRef: document.getElementById('em-booking').value.trim(),
+    propertyName,
+    category: document.getElementById('em-cat').value,
+    source: document.getElementById('em-src').value,
+    title: document.getElementById('em-title').value.trim(),
+    description,
+    internalNote: document.getElementById('em-note').value.trim(),
+    status: document.getElementById('em-status').value,
+    updatedAt: new Date().toISOString(),
+    createdAt: isNew ? new Date().toISOString() : (entries.find(e=>e.id===id)||{}).createdAt,
+    _isNew: isNew,
+  };
+  try{
+    await saveEntry_db(entry);
+    if(isNew) entries.unshift(entry); else {const idx=entries.findIndex(e=>e.id===entry.id);if(idx>=0)entries[idx]=entry;}
+    closeModal('editModal');
+    populatePropFilters();
+    renderEntries();
+    showToast(isNew?'✓ Entry added':'✓ Entry saved');
+  }catch(err){showToast('Save failed: '+err.message,'error');console.error(err);}
+}
+
+// ══════════════════════════════════════════════
+// DELETE (password protected)
+// ══════════════════════════════════════════════
+function askDelete(id){
+  pendingDeleteId=id;
+  document.getElementById('del-pwd').value='';
+  document.getElementById('del-err').style.display='none';
+  openModal('deleteModal');
+  setTimeout(()=>document.getElementById('del-pwd').focus(),200);
+}
+async function confirmDelete(){
+  const pwd=document.getElementById('del-pwd').value;
+  if(pwd!==DELETE_PASSWORD){document.getElementById('del-err').style.display='block';return;}
+  try{
+    await deleteEntry_db(pendingDeleteId);
+    entries=entries.filter(e=>e.id!==pendingDeleteId);
+    closeModal('deleteModal');
+    populatePropFilters();
+    renderEntries();
+    showToast('🗑 Entry deleted');
+  }catch(err){showToast('Delete failed: '+err.message,'error');}
+}
+
+// ══════════════════════════════════════════════
+// GUEST AUTOCOMPLETE
+// ══════════════════════════════════════════════
+function guestAutocomplete(val){
+  const dd=document.getElementById('guest-dropdown');
+  if(!val||val.length<2){dd.style.display='none';return;}
+  const q=val.toLowerCase();
+  // Combine imported guests + existing entries
+  const fromEntries=[...new Set(entries.map(e=>e.guestName).filter(Boolean))].map(n=>({name:n,sub:''}));
+  const fromImport=importedGuests.map(g=>({name:g.name, sub:[g.property,g.checkIn?g.checkIn+' – ':''+(g.checkOut||'')].filter(Boolean).join(' · ')}));
+  const combined=[...fromImport,...fromEntries].filter(g=>g.name.toLowerCase().includes(q));
+  // Deduplicate by name
+  const seen=new Set(); const uniq=combined.filter(g=>{if(seen.has(g.name))return false;seen.add(g.name);return true;});
+  if(!uniq.length){dd.style.display='none';return;}
+  dd.innerHTML=uniq.slice(0,10).map(g=>`
+    <div class="autocomplete-item" onclick="selectGuest(${JSON.stringify(g.name)},${JSON.stringify(g)})">
+      <div>${esc(g.name)}</div>
+      ${g.sub?`<div class="autocomplete-sub">${esc(g.sub)}</div>`:''}
+    </div>`).join('');
+  dd.style.display='block';
+}
+function selectGuest(name, guest){
+  document.getElementById('em-guest').value=name;
+  document.getElementById('guest-dropdown').style.display='none';
+  // Auto-fill property if available
+  if(guest.property){
+    const propSel=document.getElementById('em-prop');
+    for(let i=0;i<propSel.options.length;i++){
+      if(propSel.options[i].value.toLowerCase()===guest.property.toLowerCase()){
+        propSel.value=propSel.options[i].value; break;
+      }
+    }
+  }
+  if(guest.bookingRef) document.getElementById('em-booking').value=guest.bookingRef;
+}
+document.addEventListener('click',e=>{
+  if(!e.target.closest('.autocomplete-wrap')) document.getElementById('guest-dropdown').style.display='none';
+});
+
+// ══════════════════════════════════════════════
+// CSV IMPORT
+// ══════════════════════════════════════════════
+function openCSVImport(){openModal('csvModal');}
+function csvDrop(ev){ev.preventDefault();const f=ev.dataTransfer.files[0];if(f)csvFileSelected(f);}
+function csvFileSelected(file){
+  if(!file)return;
+  const reader=new FileReader();
+  reader.onload=e=>parseGuestCSV(e.target.result, file.name);
+  reader.readAsText(file,'UTF-8');
+}
+function parseGuestCSV(text, filename){
+  const lines=text.trim().split(/\r?\n/);
+  if(lines.length<2){showResult('CSV appears empty.');return;}
+  const headers=parseCSVLine(lines[0]).map(h=>h.trim().toLowerCase());
+  // Flexible column detection
+  const idx=(candidates)=>candidates.map(c=>headers.findIndex(h=>h.includes(c))).find(i=>i>=0)??-1;
+  const iGuest=idx(['guest name','guest','customer name','client','first name','full name','name']);
+  const iProp=idx(['property','unit','accommodation','listing','villa']);
+  const iCI=idx(['check-in','check in','arrival','from']);
+  const iCO=idx(['check-out','check out','departure','to']);
+  const iRef=idx(['booking','reference','reservation','booking id','ref']);
+  if(iGuest<0){showResult('❌ Could not find a "Guest Name" column. Headers found: '+headers.slice(0,8).join(', '));return;}
+  const guests=[];
+  for(let i=1;i<lines.length;i++){
+    const cols=parseCSVLine(lines[i]);
+    const name=(cols[iGuest]||'').trim();
+    if(!name)continue;
+    guests.push({
+      name,
+      property: iProp>=0?(cols[iProp]||'').trim():'',
+      checkIn:  iCI>=0?(cols[iCI]||'').trim():'',
+      checkOut: iCO>=0?(cols[iCO]||'').trim():'',
+      bookingRef: iRef>=0?(cols[iRef]||'').trim():'',
+    });
+  }
+  importedGuests=guests;
+  localStorage.setItem('rc_guests',JSON.stringify(guests));
+  const el=document.getElementById('guest-count-label');
+  if(el) el.textContent=guests.length+' guests loaded';
+  showResult(`✅ Imported <strong>${guests.length}</strong> guests from <em>${esc(filename)}</em>. Close this dialog and start typing a guest name to use autocomplete.`);
+}
+function parseCSVLine(line){
+  const result=[]; let field=''; let inQ=false;
+  for(let i=0;i<line.length;i++){
+    const c=line[i];
+    if(c==='"'){if(inQ&&line[i+1]==='"'){field+='"';i++;}else inQ=!inQ;}
+    else if(c===','&&!inQ){result.push(field);field='';}
+    else field+=c;
+  }
+  result.push(field); return result;
+}
+function showResult(html){
+  const el=document.getElementById('csv-result');
+  el.innerHTML=html; el.style.display='block';
+}
+
+// ══════════════════════════════════════════════
+// REPORT GENERATION
+// ══════════════════════════════════════════════
+async function generateReport(){
+  const prop=document.getElementById('rpt-prop').value;
+  const from=document.getElementById('rpt-from').value;
+  const to=document.getElementById('rpt-to').value;
+  const lang=document.getElementById('rpt-lang').value;
+  if(!from||!to){showToast('Please set a period (from / to dates)','error');return;}
+
+  // Filter entries
+  let data=entries.filter(e=>{
+    if(prop&&e.propertyName!==prop) return false;
+    if(e.date<from||e.date>to) return false;
+    return true;
+  });
+
+  const btnTxt=document.getElementById('rpt-btn-txt');
+  btnTxt.innerHTML='<span class="spinner"></span> Generating…';
+  document.querySelector('[onclick="generateReport()"]').disabled=true;
+
+  const apiKey=localStorage.getItem('rc_anthropic_key')||'';
+  let summaryText='';
+  let recommendationsText='';
+
+  if(apiKey&&data.length>0){
+    try{
+      const res=await callClaude(apiKey, buildAIPrompt(prop,from,to,data,lang));
+      // Extract summary and recommendations from response
+      summaryText=res.summary||'';
+      recommendationsText=res.recommendations||'';
+    }catch(err){
+      console.warn('AI generation failed:',err);
+      showToast('AI generation failed — using template','error');
+    }
+  }
+
+  renderReport(prop,from,to,data,summaryText,recommendationsText,lang);
+  btnTxt.textContent='📊 Generate Report';
+  document.querySelector('[onclick="generateReport()"]').disabled=false;
+}
+
+function buildAIPrompt(prop, from, to, data, lang){
+  const catCounts={damage:0,bad_comment:0,improvement:0,operational:0};
+  data.forEach(e=>{if(catCounts[e.category]!==undefined)catCounts[e.category]++;});
+  const entries_text=data.map(e=>`[${e.date}] [${e.category}] [${e.source}] ${e.title?e.title+': ':''}${e.description}`).join('\n');
+  const isGreek=lang==='el';
+  return `You are a professional property management consultant writing a feedback report for a vacation rental owner.
+
+PROPERTY: ${prop||'All Properties'}
+PERIOD: ${from} to ${to}
+TOTAL FEEDBACK ENTRIES: ${data.length}
+BREAKDOWN: Damages: ${catCounts.damage}, Bad Comments: ${catCounts.bad_comment}, Improvements suggested: ${catCounts.improvement}, Operational Issues: ${catCounts.operational}
+
+ENTRIES:
+${entries_text}
+
+Please write in ${isGreek?'Greek (Ελληνικά)':'English'}:
+1. An executive SUMMARY paragraph (3-5 sentences) that objectively describes the overall guest feedback landscape for this period, mentioning the main themes.
+2. A RECOMMENDATIONS section with 3-6 concrete, actionable bullet points derived from the feedback.
+
+Respond ONLY with valid JSON in this exact format (no markdown, no extra text):
+{"summary":"...","recommendations":"• Point one\n• Point two\n• Point three"}`;
+}
+
+async function callClaude(apiKey, prompt){
+  const r=await fetch('https://api.anthropic.com/v1/messages',{
+    method:'POST',
+    headers:{
+      'x-api-key':apiKey,
+      'anthropic-version':'2023-06-01',
+      'anthropic-dangerous-direct-browser-access':'true',
+      'content-type':'application/json',
+    },
+    body:JSON.stringify({
+      model:'claude-3-5-sonnet-20241022',
+      max_tokens:1500,
+      messages:[{role:'user',content:prompt}]
+    })
+  });
+  if(!r.ok){const t=await r.text();throw new Error(t);}
+  const d=await r.json();
+  const raw=d.content?.[0]?.text||'{}';
+  // Strip any markdown code blocks if present
+  const cleaned=raw.replace(/^```[a-z]*\n?/,'').replace(/\n?```$/,'').trim();
+  return JSON.parse(cleaned);
+}
+
+function renderReport(prop, from, to, data, summaryText, recommendationsText, lang){
+  const isGreek=lang==='el';
+  const propLabel=prop||(isGreek?'Όλα τα Ακίνητα':'All Properties');
+  const fromLabel=from?new Date(from+'T12:00:00').toLocaleDateString('el-GR'):'—';
+  const toLabel=to?new Date(to+'T12:00:00').toLocaleDateString('el-GR'):'—';
+  const genDate=new Date().toLocaleDateString('el-GR');
+
+  // Category groups
+  const groups={damage:[],bad_comment:[],improvement:[],operational:[]};
+  data.forEach(e=>{if(groups[e.category])groups[e.category].push(e);});
+  const total=data.length;
+
+  // Category titles in English / Greek
+  const catTitle={
+    damage:      isGreek?'Ζημιές':'Damages',
+    bad_comment: isGreek?'Αρνητικά Σχόλια':'Bad Comments',
+    improvement: isGreek?'Βελτιώσεις':'Improvement Suggestions',
+    operational: isGreek?'Λειτουργικά Ζητήματα':'Operational Issues',
+  };
+  const statLabels={
+    total:isGreek?'Σύνολο':'Total Entries',
+    open: isGreek?'Ανοιχτά':'Open',
+    actioned: isGreek?'Υπό Ενέργεια':'Actioned',
+    resolved: isGreek?'Επιλυμένα':'Resolved',
+  };
+  const sectionHeaders={
+    summary:       isGreek?'Γενική Επισκόπηση':'Executive Summary',
+    stats:         isGreek?'Στατιστικά':'Statistics at a Glance',
+    details:       isGreek?'Αναλυτικές Εγγραφές':'Detailed Entries',
+    recs:          isGreek?'Συστάσεις':'Recommendations',
+  };
+  const titleLabel=isGreek?'Αναφορά Ανατροφοδότησης Επισκεπτών':'Guest Feedback Report';
+  const periodLabel=isGreek?'Περίοδος':'Period';
+  const generatedLabel=isGreek?'Δημιουργήθηκε':'Generated';
+  const sourceLabel=isGreek?'Πηγή':'Source';
+  const guestLabel=isGreek?'Επισκέπτης':'Guest';
+  const dateLabel=isGreek?'Ημερομηνία':'Date';
+  const noEntriesLabel=isGreek?'Δεν υπάρχουν εγγραφές σε αυτή την κατηγορία.':'No entries in this category.';
+
+  // Default summary if no AI
+  if(!summaryText){
+    if(!total){
+      summaryText=isGreek
+        ?'Δεν υπάρχουν καταγεγραμμένες ανατροφοδοτήσεις για την επιλεγμένη περίοδο και ακίνητο.'
+        :'No feedback entries recorded for the selected period and property.';
+    } else {
+      const dominant=Object.entries(groups).sort((a,b)=>b[1].length-a[1].length)[0];
+      const domLabel=catTitle[dominant[0]];
+      summaryText=isGreek
+        ?`Για την περίοδο ${fromLabel} – ${toLabel} καταγράφηκαν συνολικά ${total} σχόλια/παρατηρήσεις. Η κύρια κατηγορία ήταν "${domLabel}" με ${dominant[1].length} εγγραφές. Παρακαλούμε δείτε την αναλυτική παρουσίαση παρακάτω.`
+        :`For the period ${fromLabel} – ${toLabel}, a total of ${total} feedback entries were recorded. The most common category was "${domLabel}" with ${dominant[1].length} entries. Please see the detailed breakdown below.`;
+    }
+  }
+  if(!recommendationsText&&total>0){
+    recommendationsText=isGreek
+      ?'• Εξετάστε τα αρνητικά σχόλια και ορίστε υπεύθυνο για κάθε κατηγορία\n• Δώστε προτεραιότητα στις βελτιώσεις με βάση τη συχνότητα εμφάνισης\n• Ενημερώστε τους επισκέπτες για τις αλλαγές που έγιναν'
+      :'• Review each entry category and assign a responsible team member\n• Prioritise improvements by frequency of recurrence\n• Consider proactively communicating resolved issues to future guests';
+  }
+
+  const srcBreakdown=['review','private_comment','direct_contact'].map(s=>{
+    const cnt=data.filter(e=>e.source===s).length;
+    const cfg=SRC_CFG[s];
+    return cnt?`<span class="badge ${cfg.cls}" style="margin-right:6px">${cfg.icon} ${cfg.label}: ${cnt}</span>`:'';
+  }).join('');
+
+  const detailSections=Object.entries(groups).filter(([,arr])=>arr.length>0).map(([cat,arr])=>{
+    const cfg=CAT_CFG[cat];
+    const items=arr.map(e=>`
+      <div class="rpt-entry ${cat}">
+        <div class="rpt-entry-hdr">
+          <span class="badge ${cfg.cls}">${cfg.icon} ${cfg.label}</span>
+          <span class="badge ${(SRC_CFG[e.source]||SRC_CFG.review).cls}">${(SRC_CFG[e.source]||SRC_CFG.review).icon} ${(SRC_CFG[e.source]||SRC_CFG.review).label}</span>
+          <span style="font-size:11px;color:var(--text-muted)">${dateLabel}: ${e.date?new Date(e.date+'T12:00:00').toLocaleDateString('el-GR'):'—'} &nbsp;|&nbsp; ${guestLabel}: ${esc(e.guestName||'—')}</span>
+          ${e.status==='resolved'?`<span class="badge badge-resolved" style="margin-left:auto">✅ ${isGreek?'Επιλύθηκε':'Resolved'}</span>`:''}
+        </div>
+        ${e.title?`<div style="font-size:13px;font-weight:600;margin-bottom:4px">${esc(e.title)}</div>`:''}
+        <div class="rpt-entry-desc">${esc(e.description||'').replace(/\n/g,'<br>')}</div>
+      </div>`).join('');
+    return `<div class="rpt-section">
+      <div class="rpt-section-title">${cfg.icon} ${catTitle[cat]} (${arr.length})</div>
+      ${items}
+    </div>`;
+  }).join('');
+
+  const open=data.filter(e=>e.status==='open').length;
+  const actioned=data.filter(e=>e.status==='actioned').length;
+  const resolved=data.filter(e=>e.status==='resolved').length;
+
+  document.getElementById('report-preview').innerHTML=`
+    <div class="rpt-header">
+      <div>
+        <div class="rpt-logo">Zesty <span>Rentals</span></div>
+        <div style="font-size:12px;color:var(--text-muted);margin-top:4px">Property Management</div>
+      </div>
+      <div class="rpt-meta">
+        <div><strong>${periodLabel}:</strong> ${fromLabel} – ${toLabel}</div>
+        <div><strong>${isGreek?'Ακίνητο':'Property'}:</strong> ${esc(propLabel)}</div>
+        <div><strong>${generatedLabel}:</strong> ${genDate}</div>
+      </div>
+    </div>
+
+    <div class="rpt-title">${titleLabel}</div>
+    <div class="rpt-period">${propLabel} &nbsp;·&nbsp; ${fromLabel} – ${toLabel}</div>
+
+    <div class="rpt-section">
+      <div class="rpt-section-title">📝 ${sectionHeaders.summary}</div>
+      <div class="rpt-summary-box ${isGreek?'greek':''}">${esc(summaryText).replace(/\n/g,'<br>')}</div>
+    </div>
+
+    <div class="rpt-section">
+      <div class="rpt-section-title">📊 ${sectionHeaders.stats}</div>
+      <div class="rpt-stats-grid">
+        <div class="rpt-stat"><div class="rpt-stat-val">${total}</div><div class="rpt-stat-lbl">${statLabels.total}</div></div>
+        <div class="rpt-stat" style="--teal:var(--danger)"><div class="rpt-stat-val" style="color:var(--danger)">${open}</div><div class="rpt-stat-lbl">${statLabels.open}</div></div>
+        <div class="rpt-stat" style="--teal:var(--warning)"><div class="rpt-stat-val" style="color:var(--warning)">${actioned}</div><div class="rpt-stat-lbl">${statLabels.actioned}</div></div>
+        <div class="rpt-stat" style="--teal:var(--success)"><div class="rpt-stat-val" style="color:var(--success)">${resolved}</div><div class="rpt-stat-lbl">${statLabels.resolved}</div></div>
+      </div>
+      <div style="margin-top:8px">${srcBreakdown||'—'}</div>
+    </div>
+
+    ${total>0?`<div class="rpt-section">
+      <div class="rpt-section-title">📋 ${sectionHeaders.details}</div>
+      ${detailSections}
+    </div>`:''}
+
+    ${recommendationsText?`<div class="rpt-section">
+      <div class="rpt-section-title">💡 ${sectionHeaders.recs}</div>
+      <div class="rpt-recommendations">
+        ${recommendationsText.split('\n').filter(Boolean).map(l=>`<div style="margin-bottom:6px;font-size:13px">${esc(l).replace(/^•\s*/,'• ')}</div>`).join('')}
+      </div>
+    </div>`:''}
+
+    <div style="margin-top:32px;padding-top:16px;border-top:1px solid var(--border);font-size:11px;color:var(--text-muted);display:flex;justify-content:space-between">
+      <span>Zesty Rentals &amp; Investments — Confidential Owner Report</span>
+      <span>${genDate}</span>
+    </div>
+  `;
+}
+
+function printReport(){
+  const preview=document.getElementById('report-preview');
+  if(preview.querySelector('.report-cover')){showToast('Please generate the report first','error');return;}
+  window.print();
+}
+
+// ══════════════════════════════════════════════
+// MODAL HELPERS
+// ══════════════════════════════════════════════
+function openModal(id){document.getElementById(id).classList.add('open');}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+document.querySelectorAll('.modal-overlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open');}));
+
+// ══════════════════════════════════════════════
+// API KEY PERSISTENCE
+// ══════════════════════════════════════════════
+function saveApiKey(){
+  const k=document.getElementById('api-key-input').value.trim();
+  if(k) localStorage.setItem('rc_anthropic_key',k);
+}
+
+// ══════════════════════════════════════════════
+// TOAST
+// ══════════════════════════════════════════════
+function showToast(msg, type=''){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.className='toast'+(type?' '+type:'');
+  t.classList.add('show');
+  clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('show'),3000);
+}
+
+// ══════════════════════════════════════════════
+// UTILITY
+// ══════════════════════════════════════════════
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+// ══════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════
+async function init(){
+  // Load API key
+  const k=localStorage.getItem('rc_anthropic_key')||'';
+  if(k) document.getElementById('api-key-input').value=k;
+
+  // Load imported guests from localStorage
+  importedGuests=JSON.parse(localStorage.getItem('rc_guests')||'[]');
+  const gcl=document.getElementById('guest-count-label');
+  if(gcl&&importedGuests.length) gcl.textContent=importedGuests.length+' guests loaded';
+
+  // Load properties from SyncStore
+  try{
+    const pr=await SyncStore.load('zesty_properties','properties');
+    properties=pr.data||[];
+  }catch(e){console.warn('Could not load properties',e);}
+
+  // Set default report period (current year)
+  const now=new Date();
+  document.getElementById('rpt-from').value=now.getFullYear()+'-01-01';
+  document.getElementById('rpt-to').value=now.toISOString().slice(0,10);
+
+  // Load entries
+  await loadEntries();
+  populatePropFilters();
+  renderEntries();
+}
+init();
+</script>
+</body>
+</html>
