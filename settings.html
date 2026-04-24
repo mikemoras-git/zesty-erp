@@ -43,7 +43,7 @@
     <div class="db-info">
       <div><strong>Project:</strong> whuytfjwdjjepayeiohj.supabase.co</div>
       <div style="margin-top:6px"><strong>Status:</strong> <span id="dbStatus">Checking…</span></div>
-      <div style="margin-top:6px"><strong>Tables:</strong> owners · properties · guests · jobs · employees · staff · tasks · cleaning · contacts · leave · onboardings · tickets · laundry_customers · laundry_orders · laundry_receipts · laundry_pricelists · review_entries</div>
+      <div style="margin-top:6px"><strong>Tables:</strong> owners · properties · guests · jobs · employees · staff · tasks · cleaning_jobs · contacts · leave · onboardings · tickets · laundry_customers · laundry_orders · laundry_receipts · laundry_pricelists · review_entries</div>
     </div>
     <button class="btn btn-teal btn-sm" style="margin-top:14px" onclick="testConnection()">🔌 Test Connection</button>
   </div>
@@ -129,9 +129,17 @@
     <h2>Create Missing Supabase Tables</h2>
     <p>If modules show "database offline", run this SQL once in your <a href="https://supabase.com/dashboard/project/whuytfjwdjjepayeiohj/editor" target="_blank" style="color:var(--teal)">Supabase SQL Editor</a> to create the missing tables.</p>
     <details style="margin-bottom:14px">
-      <summary style="cursor:pointer;font-size:13px;font-weight:600;color:var(--teal);padding:8px 0">▶ Show SQL for: contacts · leave · laundry tables</summary>
+      <summary style="cursor:pointer;font-size:13px;font-weight:600;color:var(--teal);padding:8px 0">▶ Show SQL for all missing tables</summary>
       <pre id="sqlBlock" style="background:var(--cream);border:1px solid var(--border);border-radius:8px;padding:14px;font-size:11px;font-family:monospace;overflow-x:auto;white-space:pre;margin-top:10px;line-height:1.6">-- Run this once in Supabase SQL Editor
 -- https://supabase.com/dashboard/project/whuytfjwdjjepayeiohj/editor
+
+-- Cleaning Jobs
+create table if not exists cleaning_jobs (
+  id text primary key,
+  data jsonb,
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
+);
 
 -- Contacts
 create table if not exists contacts (
@@ -149,7 +157,7 @@ create table if not exists leave (
   updated_at timestamptz default now()
 );
 
--- Onboardings (if not exists)
+-- Onboardings
 create table if not exists onboardings (
   id text primary key,
   data jsonb,
@@ -197,7 +205,8 @@ create table if not exists review_entries (
   updated_at timestamptz default now()
 );
 
--- Enable RLS and allow anon access on all new tables
+-- Enable RLS on all tables
+alter table cleaning_jobs enable row level security;
 alter table contacts enable row level security;
 alter table leave enable row level security;
 alter table onboardings enable row level security;
@@ -207,14 +216,33 @@ alter table laundry_receipts enable row level security;
 alter table laundry_pricelists enable row level security;
 alter table review_entries enable row level security;
 
-create policy if not exists "anon_all" on contacts for all using (true) with check (true);
-create policy if not exists "anon_all" on leave for all using (true) with check (true);
-create policy if not exists "anon_all" on onboardings for all using (true) with check (true);
-create policy if not exists "anon_all" on laundry_customers for all using (true) with check (true);
-create policy if not exists "anon_all" on laundry_orders for all using (true) with check (true);
-create policy if not exists "anon_all" on laundry_receipts for all using (true) with check (true);
-create policy if not exists "anon_all" on laundry_pricelists for all using (true) with check (true);
-create policy if not exists "anon_all" on review_entries for all using (true) with check (true);</pre>
+-- Create access policies (drop first to avoid duplicate errors)
+drop policy if exists "anon_all" on cleaning_jobs;
+create policy "anon_all" on cleaning_jobs for all using (true) with check (true);
+
+drop policy if exists "anon_all" on contacts;
+create policy "anon_all" on contacts for all using (true) with check (true);
+
+drop policy if exists "anon_all" on leave;
+create policy "anon_all" on leave for all using (true) with check (true);
+
+drop policy if exists "anon_all" on onboardings;
+create policy "anon_all" on onboardings for all using (true) with check (true);
+
+drop policy if exists "anon_all" on laundry_customers;
+create policy "anon_all" on laundry_customers for all using (true) with check (true);
+
+drop policy if exists "anon_all" on laundry_orders;
+create policy "anon_all" on laundry_orders for all using (true) with check (true);
+
+drop policy if exists "anon_all" on laundry_receipts;
+create policy "anon_all" on laundry_receipts for all using (true) with check (true);
+
+drop policy if exists "anon_all" on laundry_pricelists;
+create policy "anon_all" on laundry_pricelists for all using (true) with check (true);
+
+drop policy if exists "anon_all" on review_entries;
+create policy "anon_all" on review_entries for all using (true) with check (true);</pre>
       <button class="btn btn-teal btn-sm" style="margin-top:10px" onclick="copySql()">📋 Copy SQL</button>
       <span id="sqlCopied" style="font-size:12px;color:var(--success);margin-left:10px;display:none">✓ Copied!</span>
     </details>
@@ -394,7 +422,7 @@ const ALL_TABLES = [
   { name: 'employees', label: 'Employees' },
   { name: 'staff', label: 'Staff' },
   { name: 'tasks', label: 'Tasks' },
-  { name: 'cleaning', label: 'Cleaning' },
+  { name: 'cleaning_jobs', label: 'Cleaning' },
   { name: 'contacts', label: 'Contacts' },
   { name: 'leave', label: 'Leave' },
   { name: 'onboardings', label: 'Onboardings' },
