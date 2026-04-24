@@ -21,16 +21,12 @@
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--text);min-height:100vh}
 
-/* HEADER */
-header{background:var(--teal-dark);padding:0 28px;display:flex;align-items:center;justify-content:space-between;height:64px;position:sticky;top:0;z-index:100;box-shadow:0 2px 20px rgba(0,0,0,.2)}
-.logo{font-family:'Cormorant Garamond',serif;font-size:21px;font-weight:500;color:#fff}
-.logo span{color:var(--gold-light)}
-.tabs{display:flex;gap:4px;background:rgba(255,255,255,.1);border-radius:8px;padding:4px}
-.htab{padding:7px 18px;border-radius:6px;border:none;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;color:rgba(255,255,255,.7);background:transparent;transition:all .2s}
-.htab.active{background:#fff;color:var(--teal-dark)}
+/* PAGE TABS (inside content, below topbar) */
+.tabs{display:flex;gap:0;border-bottom:2px solid var(--border);margin-bottom:20px}
+.htab{padding:10px 20px;cursor:pointer;font-size:13px;font-weight:500;color:var(--text-muted);border-bottom:2px solid transparent;margin-bottom:-2px;background:transparent;border-top:none;border-left:none;border-right:none;font-family:'DM Sans',sans-serif;transition:all .2s}
+.htab.active{color:var(--teal);border-bottom-color:var(--teal);font-weight:600}
+.htab:hover:not(.active){color:var(--teal);background:rgba(26,122,110,.04)}
 .htab:hover:not(.active){color:#fff;background:rgba(255,255,255,.15)}
-.back-btn{color:rgba(255,255,255,.6);font-size:13px;text-decoration:none;display:flex;align-items:center;gap:6px;transition:color .2s}
-.back-btn:hover{color:#fff}
 
 /* LAYOUT */
 .container{max-width:1300px;margin:0 auto;padding:24px 20px 80px}
@@ -183,16 +179,12 @@ textarea.form-control{resize:vertical;min-height:90px}
 </head>
 <body>
 
-<header>
-  <div class="logo">Zesty <span>Reviews</span></div>
+<div class="container">
+  <!-- Module tab bar -->
   <div class="tabs">
     <button class="htab active" onclick="showPage('entries',this)">📋 Entries</button>
     <button class="htab" onclick="showPage('report',this)">📊 Owner Report</button>
   </div>
-  <a href="index.html" class="back-btn">← Dashboard</a>
-</header>
-
-<div class="container">
 
   <!-- STATS -->
   <div class="stats" id="statsBar">
@@ -1095,5 +1087,6 @@ async function init(){
 }
 init();
 </script>
+<script src="erp-nav.js"></script>
 </body>
 </html>

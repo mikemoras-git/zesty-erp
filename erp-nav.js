@@ -28,6 +28,7 @@
     { url: 'settings.html',        icon: '⚙',  label: 'Settings' },
     { url: 'tickets.html',         icon: '◈',  label: 'Tickets' },
     { url: 'reports.html',         icon: '📊', label: 'Reports' },
+    { url: 'reviews.html',         icon: '💬', label: 'Reviews & Comments' },
   ];
 
   /* ── UTILS ───────────────────────────────────────────────── */
