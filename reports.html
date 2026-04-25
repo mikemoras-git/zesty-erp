@@ -143,7 +143,7 @@
   <div class="report-subnav">
     <button class="report-tab active" onclick="showTab('owner',this)">📄 Owner Statement</button>
     <button class="report-tab" onclick="showTab('occupancy',this)">📊 Occupancy</button>
-    <button class="report-tab" onclick="showTab('history',this)">💼 Statement History</button>
+    <button class="report-tab" onclick="showTab('history',this);loadHistory()">💼 Statement History</button>
     <button class="report-tab" onclick="showTab('period',this)">📊 Period Report</button>
   </div>
 
@@ -181,9 +181,6 @@
     </div>
   </div>
 
-</div>
-<script src="erp-base.js"></script>
-
   <!-- ═══ STATEMENT HISTORY ═══ -->
   <div class="report-panel" id="panel-history">
     <div class="filter-bar" style="flex-wrap:wrap;gap:10px;margin-bottom:18px">
@@ -193,6 +190,7 @@
       <select id="h-year" onchange="loadHistory()">
         <option value="">All Years</option>
       </select>
+      <button onclick="loadHistory()" class="btn btn-outline btn-sm">🔄 Refresh</button>
       <div style="margin-left:auto;font-size:12px;color:var(--text-muted)" id="h-summary-line"></div>
     </div>
     <!-- Status count pills -->
@@ -203,40 +201,9 @@
     </div>
     <!-- Statement list -->
     <div id="h-list" style="border:1px solid var(--border);border-radius:10px;overflow:hidden;background:#fff">
-      <div style="padding:20px;text-align:center;color:var(--text-muted)">Select an owner or year to load statements, or click Refresh.</div>
-    </div>
-    <div style="margin-top:12px;text-align:right">
-      <button onclick="loadHistory()" class="btn btn-outline btn-sm">🔄 Refresh</button>
-    </div>
-
-    <!-- Earnings Summary Cards -->
-    <div class="stats-bar" id="h-stats" style="margin-bottom:20px">
-      <div class="stat-card"><div class="stat-label">Total Statements</div><div class="stat-value" id="h-total-stmts">—</div></div>
-      <div class="stat-card"><div class="stat-label">Zesty Earnings</div><div class="stat-value" id="h-zesty-total">—</div></div>
-      <div class="stat-card"><div class="stat-label">Paid</div><div class="stat-value" id="h-paid-total" style="color:var(--teal)">—</div></div>
-      <div class="stat-card"><div class="stat-label">Outstanding</div><div class="stat-value" id="h-outstanding" style="color:var(--danger)">—</div></div>
-    </div>
-
-    <div class="table-wrap">
-      <div class="table-header">
-        <h3>Finalised Statements</h3>
-        <div style="font-size:12px;color:var(--text-muted)">Click a row to download the statement</div>
-      </div>
-      <div style="overflow-x:auto">
-        <table>
-          <thead><tr>
-            <th>Period</th><th>Owner / Property</th><th>Bookings</th>
-            <th>Total Rent</th><th>OTA Comm</th><th>Zesty Comm</th>
-            <th>Net Income</th><th>Finalised</th><th>Status</th><th>Actions</th>
-          </tr></thead>
-          <tbody id="h-tbody">
-            <tr class="empty-row"><td colspan="10">No finalised statements yet.</td></tr>
-          </tbody>
-        </table>
-      </div>
+      <div style="padding:20px;text-align:center;color:var(--text-muted)">Loading…</div>
     </div>
   </div>
-
 
   <!-- ═══ PERIOD REPORT ═══ -->
   <div class="report-panel" id="panel-period">
@@ -267,6 +234,9 @@
     </div>
     <div id="period-out"></div>
   </div>
+
+</div><!-- /container -->
+<script src="erp-base.js"></script>
 <script src="reports-main.js"></script>
 <script src="erp-nav.js">
 
