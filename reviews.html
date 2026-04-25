@@ -237,13 +237,14 @@ textarea.form-control{resize:vertical;min-height:90px}
           <th>Property</th>
           <th>Category</th>
           <th>Source</th>
+          <th style="text-align:center">Score</th>
           <th>Title / Description</th>
           <th>Status</th>
           <th style="text-align:right">Actions</th>
         </tr>
       </thead>
       <tbody id="entries-tbody">
-        <tr><td colspan="8"><div class="empty"><div class="empty-icon">💬</div>Loading entries…</div></td></tr>
+        <tr><td colspan="9"><div class="empty"><div class="empty-icon">💬</div>Loading entries…</div></td></tr>
       </tbody>
     </table>
   </div><!-- /entries -->
@@ -332,17 +333,23 @@ textarea.form-control{resize:vertical;min-height:90px}
           </div>
         </div>
         <div class="form-group">
-          <label class="form-label">Booking Ref / Dates</label>
-          <input type="text" id="em-booking" class="form-control" placeholder="e.g. BK-1234 / 10–17 Jul">
-        </div>
-      </div>
-      <div class="form-row">
-        <div class="form-group">
           <label class="form-label">Property *</label>
           <select id="em-prop" class="form-control">
             <option value="">— Select property —</option>
           </select>
         </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Booking Reference</label>
+          <input type="text" id="em-bookingRef" class="form-control" placeholder="e.g. BK-1234 or Lodgify booking ID">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Stay Dates</label>
+          <input type="text" id="em-bookingDates" class="form-control" placeholder="e.g. 10–17 Jul 2025">
+        </div>
+      </div>
+      <div class="form-row">
         <div class="form-group">
           <label class="form-label">Category *</label>
           <select id="em-cat" class="form-control">
@@ -352,8 +359,6 @@ textarea.form-control{resize:vertical;min-height:90px}
             <option value="operational">🟣 Operational Issue</option>
           </select>
         </div>
-      </div>
-      <div class="form-row">
         <div class="form-group">
           <label class="form-label">Source</label>
           <select id="em-src" class="form-control">
@@ -361,6 +366,12 @@ textarea.form-control{resize:vertical;min-height:90px}
             <option value="private_comment">💌 Private Comment to Review</option>
             <option value="direct_contact">📞 Direct Contact (text/call)</option>
           </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Guest Score (0–10)</label>
+          <input type="number" id="em-score" class="form-control" min="0" max="10" step="1" placeholder="Score the guest gave (e.g. 6)">
         </div>
         <div class="form-group">
           <label class="form-label">Brief Title</label>
@@ -398,7 +409,7 @@ textarea.form-control{resize:vertical;min-height:90px}
       <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px">Enter the management password to permanently delete this entry.</p>
       <div class="form-group">
         <label class="form-label">Password</label>
-        <input type="password" id="del-pwd" class="form-control" placeholder="Enter password…" onkeydown="if(event.key==='Enter')confirmDelete()">
+        <input type="password" id="del-pwd" class="form-control" placeholder="Enter password…" autocomplete="new-password" onkeydown="if(event.key==='Enter')confirmDelete()">
       </div>
       <div id="del-err" style="color:var(--danger);font-size:12px;margin-top:8px;display:none">❌ Incorrect password</div>
     </div>
@@ -542,7 +553,7 @@ function renderEntries(){
     if(fStatus && e.status!==fStatus) return false;
     if(fProp && e.propertyName!==fProp) return false;
     if(search){
-      const hay=[e.guestName,e.propertyName,e.description,e.title,e.bookingRef].join(' ').toLowerCase();
+      const hay=[e.guestName,e.propertyName,e.description,e.title,e.bookingRef,e.bookingDates].join(' ').toLowerCase();
       if(!hay.includes(search)) return false;
     }
     return true;
@@ -550,7 +561,7 @@ function renderEntries(){
 
   const tbody=document.getElementById('entries-tbody');
   if(!list.length){
-    tbody.innerHTML=`<tr><td colspan="8"><div class="empty"><div class="empty-icon">💬</div>${entries.length?'No entries match your filters.':'No entries yet. Click + Add Entry to start.'}</div></td></tr>`;
+    tbody.innerHTML=`<tr><td colspan="9"><div class="empty"><div class="empty-icon">💬</div>${entries.length?'No entries match your filters.':'No entries yet. Click + Add Entry to start.'}</div></td></tr>`;
     return;
   }
 
@@ -560,13 +571,16 @@ function renderEntries(){
     const sts=STATUS_CFG[e.status]||STATUS_CFG.open;
     const desc=(e.title||e.description||'').substring(0,80)+(((e.title||e.description)||'').length>80?'…':'');
     const dt=e.date?new Date(e.date+'T12:00:00').toLocaleDateString('el-GR'):'—';
+    const scoreDisp=e.score!=null&&e.score!==''?`<span style="font-weight:700;color:var(--teal)">★ ${e.score}<span style="font-size:10px;font-weight:400;color:var(--text-muted)">/10</span></span>`:'<span style="color:var(--border)">—</span>';
+    const refLine=[e.bookingRef,e.bookingDates].filter(Boolean).join(' · ');
     return `<tr class="entry-row" onclick="openEditEntry('${e.id}')">
       <td style="font-size:12px;white-space:nowrap">${dt}</td>
-      <td style="font-size:13px;font-weight:500">${esc(e.guestName||'—')}<div style="font-size:11px;color:var(--text-muted)">${esc(e.bookingRef||'')}</div></td>
+      <td style="font-size:13px;font-weight:500">${esc(e.guestName||'—')}<div style="font-size:11px;color:var(--text-muted)">${esc(refLine)}</div></td>
       <td style="font-size:13px">${esc(e.propertyName||'—')}</td>
       <td><span class="badge ${cat.cls}">${cat.icon} ${cat.label}</span></td>
       <td><span class="badge ${src.cls}">${src.icon} ${src.label}</span></td>
-      <td style="font-size:12px;color:var(--text-muted);max-width:280px">${esc(desc)}</td>
+      <td style="text-align:center;font-size:13px">${scoreDisp}</td>
+      <td style="font-size:12px;color:var(--text-muted);max-width:260px">${esc(desc)}</td>
       <td><span class="badge ${sts.cls}">${sts.label}</span></td>
       <td style="text-align:right;white-space:nowrap" onclick="event.stopPropagation()">
         <button class="btn btn-outline btn-sm" onclick="openEditEntry('${e.id}')">✏️</button>
@@ -615,10 +629,12 @@ function openAddEntry(){
   document.getElementById('em-id').value='';
   document.getElementById('em-date').value=new Date().toISOString().slice(0,10);
   document.getElementById('em-guest').value='';
-  document.getElementById('em-booking').value='';
+  document.getElementById('em-bookingRef').value='';
+  document.getElementById('em-bookingDates').value='';
   document.getElementById('em-prop').value='';
   document.getElementById('em-cat').value='bad_comment';
   document.getElementById('em-src').value='review';
+  document.getElementById('em-score').value='';
   document.getElementById('em-title').value='';
   document.getElementById('em-desc').value='';
   document.getElementById('em-note').value='';
@@ -631,10 +647,12 @@ function openEditEntry(id){
   document.getElementById('em-id').value=e.id;
   document.getElementById('em-date').value=e.date||'';
   document.getElementById('em-guest').value=e.guestName||'';
-  document.getElementById('em-booking').value=e.bookingRef||'';
+  document.getElementById('em-bookingRef').value=e.bookingRef||'';
+  document.getElementById('em-bookingDates').value=e.bookingDates||'';
   document.getElementById('em-prop').value=e.propertyName||'';
   document.getElementById('em-cat').value=e.category||'bad_comment';
   document.getElementById('em-src').value=e.source||'review';
+  document.getElementById('em-score').value=e.score!=null?e.score:'';
   document.getElementById('em-title').value=e.title||'';
   document.getElementById('em-desc').value=e.description||'';
   document.getElementById('em-note').value=e.internalNote||'';
@@ -648,14 +666,17 @@ async function saveEntry(){
   const description=document.getElementById('em-desc').value.trim();
   if(!guestName||!propertyName||!description){showToast('Please fill in Guest, Property and Description','error');return;}
   const isNew=!id;
+  const scoreVal=document.getElementById('em-score').value;
   const entry={
     id: id||('rev_'+Date.now()),
     date: document.getElementById('em-date').value,
     guestName,
-    bookingRef: document.getElementById('em-booking').value.trim(),
+    bookingRef: document.getElementById('em-bookingRef').value.trim(),
+    bookingDates: document.getElementById('em-bookingDates').value.trim(),
     propertyName,
     category: document.getElementById('em-cat').value,
     source: document.getElementById('em-src').value,
+    score: scoreVal!==''?Number(scoreVal):null,
     title: document.getElementById('em-title').value.trim(),
     description,
     internalNote: document.getElementById('em-note').value.trim(),
@@ -726,18 +747,38 @@ function selectGuestByIndex(i){
   const g=_acGuests[i]; if(!g) return;
   document.getElementById('em-guest').value=g.name;
   document.getElementById('guest-dropdown').style.display='none';
-  // Auto-fill property
+  // Auto-fill date from guest's check-in date
+  if(g.checkIn) document.getElementById('em-date').value=g.checkIn;
+  // Auto-fill property with multi-level fuzzy matching
   if(g.property){
     const propSel=document.getElementById('em-prop');
-    for(let j=0;j<propSel.options.length;j++){
-      if(propSel.options[j].value.toLowerCase()===g.property.toLowerCase()){
-        propSel.value=propSel.options[j].value; break;
+    const gProp=g.property.toLowerCase().trim();
+    let matched=false;
+    // 1. Exact match
+    for(let j=1;j<propSel.options.length&&!matched;j++){
+      if(propSel.options[j].value.toLowerCase()===gProp){propSel.selectedIndex=j;matched=true;}
+    }
+    // 2. Dropdown option is a prefix of the CSV value (e.g. "Plagia Room 3" vs "Plagia Room 3 (Studio)")
+    if(!matched){
+      for(let j=1;j<propSel.options.length&&!matched;j++){
+        const optLow=propSel.options[j].value.toLowerCase();
+        if(gProp.startsWith(optLow)||gProp.includes(optLow)){propSel.selectedIndex=j;matched=true;}
+      }
+    }
+    // 3. CSV value starts with or is contained in dropdown option
+    if(!matched){
+      for(let j=1;j<propSel.options.length&&!matched;j++){
+        const optLow=propSel.options[j].value.toLowerCase();
+        if(optLow.startsWith(gProp)||optLow.includes(gProp)){propSel.selectedIndex=j;matched=true;}
       }
     }
   }
-  // Auto-fill booking ref and dates
-  if(g.bookingRef) document.getElementById('em-booking').value=g.bookingRef;
-  else if(g.checkIn||g.checkOut) document.getElementById('em-booking').value=[g.checkIn,g.checkOut].filter(Boolean).join(' – ');
+  // Auto-fill booking reference (separate field)
+  if(g.bookingRef) document.getElementById('em-bookingRef').value=g.bookingRef;
+  // Auto-fill stay dates (separate field)
+  if(g.checkIn||g.checkOut){
+    document.getElementById('em-bookingDates').value=[g.checkIn,g.checkOut].filter(Boolean).join(' – ');
+  }
 }
 document.addEventListener('click',e=>{
   if(!e.target.closest('.autocomplete-wrap')) document.getElementById('guest-dropdown').style.display='none';
@@ -1004,7 +1045,8 @@ function renderReport(prop, from, to, data, summaryText, recommendationsText, la
         <div class="rpt-entry-hdr">
           <span class="badge ${cfg.cls}">${cfg.icon} ${cfg.label}</span>
           <span class="badge ${(SRC_CFG[e.source]||SRC_CFG.review).cls}">${(SRC_CFG[e.source]||SRC_CFG.review).icon} ${(SRC_CFG[e.source]||SRC_CFG.review).label}</span>
-          <span style="font-size:11px;color:var(--text-muted)">${dateLabel}: ${e.date?new Date(e.date+'T12:00:00').toLocaleDateString('el-GR'):'—'} &nbsp;|&nbsp; ${guestLabel}: ${esc(e.guestName||'—')}</span>
+          <span style="font-size:11px;color:var(--text-muted)">${dateLabel}: ${e.date?new Date(e.date+'T12:00:00').toLocaleDateString('el-GR'):'—'} &nbsp;|&nbsp; ${guestLabel}: ${esc(e.guestName||'—')}${e.bookingDates?' &nbsp;|&nbsp; '+esc(e.bookingDates):''}</span>
+          ${e.score!=null&&e.score!==''?`<span style="font-size:12px;font-weight:700;color:var(--teal);background:var(--cream);padding:1px 8px;border-radius:10px">★ ${e.score}/10</span>`:''}
           ${e.status==='resolved'?`<span class="badge badge-resolved" style="margin-left:auto">✅ ${isGreek?'Επιλύθηκε':'Resolved'}</span>`:''}
         </div>
         ${e.title?`<div style="font-size:13px;font-weight:600;margin-bottom:4px">${esc(e.title)}</div>`:''}
@@ -1074,7 +1116,54 @@ function renderReport(prop, from, to, data, summaryText, recommendationsText, la
 function printReport(){
   const preview=document.getElementById('report-preview');
   if(preview.querySelector('.report-cover')){showToast('Please generate the report first','error');return;}
-  window.print();
+  const css=`
+    @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=DM+Sans:wght@300;400;500;600&display=swap');
+    :root{--teal:#1a7a6e;--teal-light:#23a090;--teal-dark:#115950;--gold:#c9a84c;--cream:#f8f5f0;--text:#1e2a28;--text-muted:#6b7e7b;--border:#d4e0de;--danger:#c0392b;--danger-bg:#fdf0ef;--success:#27ae60;--success-bg:#eafaf1;--warning:#e67e22;--warning-bg:#fef9ec;--info:#2471a3;--info-bg:#eaf2fb;--purple:#8e44ad;--purple-bg:#f5eafb;}
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'DM Sans',sans-serif;color:var(--text);background:#fff;padding:28px 36px;font-size:13px}
+    .badge{display:inline-flex;align-items:center;padding:2px 10px;border-radius:12px;font-size:11px;font-weight:600;gap:4px;white-space:nowrap}
+    .badge-damage{background:var(--danger-bg);color:var(--danger)}
+    .badge-comment{background:var(--warning-bg);color:var(--warning)}
+    .badge-improvement{background:var(--info-bg);color:var(--info)}
+    .badge-operational{background:var(--purple-bg);color:var(--purple)}
+    .badge-review{background:#fef3e2;color:#b7770d}
+    .badge-private{background:#e8f6f3;color:var(--teal-dark)}
+    .badge-direct{background:#f0f0f0;color:#555;border:1px solid #ddd}
+    .badge-open{background:var(--danger-bg);color:var(--danger)}
+    .badge-actioned{background:var(--warning-bg);color:var(--warning)}
+    .badge-resolved{background:var(--success-bg);color:var(--success)}
+    .rpt-header{display:flex;justify-content:space-between;align-items:flex-start;padding-bottom:18px;border-bottom:3px solid var(--teal);margin-bottom:22px}
+    .rpt-logo{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:500;color:var(--teal-dark)}
+    .rpt-logo span{color:var(--gold)}
+    .rpt-meta{text-align:right;font-size:12px;color:var(--text-muted);line-height:1.8}
+    .rpt-title{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:500;color:var(--teal-dark);margin-bottom:4px}
+    .rpt-period{font-size:13px;color:var(--text-muted);margin-bottom:22px}
+    .rpt-section{margin-bottom:24px}
+    .rpt-section-title{font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:600;color:var(--teal-dark);margin-bottom:10px;padding-bottom:5px;border-bottom:1px solid var(--border)}
+    .rpt-summary-box{background:var(--cream);border-left:4px solid var(--teal);padding:14px 16px;border-radius:0 8px 8px 0;font-size:13px;line-height:1.7;color:var(--text);margin-bottom:14px}
+    .rpt-summary-box.greek{background:#f0f8f6;border-color:var(--gold)}
+    .rpt-stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px}
+    .rpt-stat{background:var(--cream);border-radius:8px;padding:10px 12px;text-align:center}
+    .rpt-stat-val{font-size:22px;font-weight:700;color:var(--teal)}
+    .rpt-stat-lbl{font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted);margin-top:3px}
+    .rpt-entry{border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin-bottom:8px;border-left-width:3px;break-inside:avoid;page-break-inside:avoid}
+    .rpt-entry.damage{border-left-color:var(--danger)}
+    .rpt-entry.bad_comment{border-left-color:var(--warning)}
+    .rpt-entry.improvement{border-left-color:var(--info)}
+    .rpt-entry.operational{border-left-color:var(--purple)}
+    .rpt-entry-hdr{display:flex;gap:8px;align-items:center;margin-bottom:6px;flex-wrap:wrap}
+    .rpt-entry-desc{font-size:13px;color:var(--text);line-height:1.6}
+    .rpt-recommendations{background:#f0f8f6;border-radius:8px;padding:14px 16px}
+    @media print{
+      body{padding:0}
+      .rpt-entry{break-inside:avoid;page-break-inside:avoid}
+      .rpt-section{break-inside:avoid;page-break-inside:avoid}
+    }
+  `;
+  const win=window.open('','_blank','width=900,height=750');
+  if(!win){showToast('Pop-up blocked — please allow pop-ups for this site','error');return;}
+  win.document.write('<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>Zesty Rentals \u2014 Guest Feedback Report</title><style>'+css+'</style></head><body>'+preview.innerHTML+'<script>setTimeout(function(){window.print();},900);<\/script></body></html>');
+  win.document.close();
 }
 
 // ══════════════════════════════════════════════
