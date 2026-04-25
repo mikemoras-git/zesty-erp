@@ -294,7 +294,9 @@ function generateOwner(){
   if (_fb) { _fb.style.display=''; _fb.textContent='\u2713 Finalise & Record'; _fb.style.background=''; _fb.disabled=false; }
     currentStatementData={
     id:currentStatementData?.id||null,
-    propId,month,bookings,tRent,tTaxFees,tOTA,tRec,tZesty,tNet,tJobs,tCleanH,tCleanCharge,mgmt
+    propId,month,bookings,tRent,tTaxFees,tOTA,tRec,tZesty,tNet,tJobs,tCleanH,tCleanCharge,mgmt,
+    ownerName,
+    propName: prop.shortName||prop.propertyName||''
   };
   document.getElementById('owner-out').innerHTML=`
   <div class="rpt-wrap">
@@ -533,7 +535,7 @@ async function saveStatement(status) {
         property_id:   currentStatementData.propId||'',
         property_name: prop?.shortName||prop?.propertyName||'',
         owner_id:      prop?.owner||'',
-        owner_name:    owner?((owner.firstName||'')+' '+(owner.lastName||owner.companyName||'')).trim():'',
+        // owner_name is embedded inside data.ownerName (column may not exist in older DB installs)
         month:         currentStatementData.month||'',
         status,
         data:          currentStatementData,
@@ -608,7 +610,7 @@ async function loadHistory() {
       <div style="display:flex;align-items:center;gap:12px;padding:13px 16px;border-bottom:1px solid var(--border);flex-wrap:wrap">
         <div style="flex:1;min-width:180px">
           <div style="font-weight:600;font-size:14px">${s.property_name||'Unknown'}</div>
-          <div style="font-size:12px;color:var(--text-muted)">${s.owner_name||''} &middot; ${s.month||''}</div>
+          <div style="font-size:12px;color:var(--text-muted)">${s.data?.ownerName||s.owner_name||''} &middot; ${s.month||''}</div>
           ${s.notes?'<div style="font-size:11px;color:#999;margin-top:2px">'+s.notes+'</div>':''}
         </div>
         <div style="font-size:14px;font-weight:700;color:var(--teal-dark)">&euro;${(parseFloat(s.data?.tNet)||0).toFixed(2)}</div>
