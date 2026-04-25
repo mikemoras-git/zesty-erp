@@ -47,7 +47,7 @@ function generatePeriodReport() {
   const fromDt = new Date(fromVal);
   const toDt   = new Date(toVal + 'T23:59:59');
   const allB   = getCSVBookings ? getCSVBookings() : [];
-  const eur    = n => '\u20AC' + (parseFloat(n)||0).toFixed(2);
+  const eur    = n => '\u20AC' + (parseFloat(n)||0).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,',');
   const fmtD   = d => {
     if (!d) return '\u2014';
     try { return new Date(d).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}); }

@@ -294,7 +294,7 @@ function generateOwner(){
   if (_fb) { _fb.style.display=''; _fb.textContent='\u2713 Finalise & Record'; _fb.style.background=''; _fb.disabled=false; }
     currentStatementData={
     id:currentStatementData?.id||null,
-    propId,month,bookings,tRent,tTaxFees,tOTA,tRec,tZesty,tNet,tJobs,tCleanH,tCleanCharge,mgmt,
+    propId,month,bookings,tRent,tTaxFees,tOTA,tRec,tZesty,tNet,tJobs,tCleanH,tCleanCharge,tCICharge,mgmt,
     ownerName,
     propName: prop.shortName||prop.propertyName||''
   };
@@ -571,13 +571,11 @@ async function loadHistory() {
   const ownerF = document.getElementById('h-owner')?.value||'';
   const yearF  = document.getElementById('h-year')?.value||'';
   const listEl = document.getElementById('h-list');
-  if (listEl) listEl.innerHTML = '<div style="padding:20px;color:var(--text-muted)">Loading...</div>';
+  if (listEl) listEl.innerHTML = '<div style="padding:20px;color:var(--text-muted)">Loading\u2026</div>';
   try {
     let stmts = await supaStmt('zesty_statements?order=updated_at.desc&limit=300');
-    if (ownerF) stmts = stmts.filter(s=>s.owner_id===ownerF);
-    if (yearF)  stmts = stmts.filter(s=>(s.month||'').startsWith(yearF));
 
-    // Populate owner dropdown once
+    // Populate owner dropdown once (before filtering)
     const ownerSel = document.getElementById('h-owner');
     if (ownerSel && ownerSel.options.length<=1) {
       owners.sort((a,b)=>(a.lastName||'').localeCompare(b.lastName||'')).forEach(o=>{
@@ -587,45 +585,89 @@ async function loadHistory() {
         ownerSel.appendChild(opt);
       });
     }
-    // Populate year dropdown once
+    // Populate year dropdown once (from actual data, before filtering)
     const yearSel = document.getElementById('h-year');
     if (yearSel && yearSel.options.length<=1) {
-      const allStmts = await supaStmt('zesty_statements?select=month');
-      const years=[...new Set(allStmts.map(s=>(s.month||'').substring(0,4)).filter(Boolean))].sort().reverse();
+      const years=[...new Set(stmts.map(s=>(s.month||'').substring(0,4)).filter(Boolean))].sort().reverse();
       years.forEach(y=>{const opt=document.createElement('option');opt.value=y;opt.textContent=y;yearSel.appendChild(opt);});
     }
-    // Stats
-    const totalNet=stmts.reduce((s,x)=>s+(parseFloat(x.data?.tNet)||0),0);
-    const el=document.getElementById('h-summary-line');
-    if (el) el.textContent=stmts.length+' statements \u00B7 Net total: \u20AC'+totalNet.toFixed(2);
+
+    // Apply filters
+    if (ownerF) stmts = stmts.filter(s=>s.owner_id===ownerF);
+    if (yearF)  stmts = stmts.filter(s=>(s.month||'').startsWith(yearF));
+
+    // "Due to Zesty" = mgmt commission + job orders + cleaning + check-in charges
+    const dueToZesty = d => (parseFloat(d?.tZesty)||0)+(parseFloat(d?.tJobs)||0)+(parseFloat(d?.tCleanCharge)||0)+(parseFloat(d?.tCICharge)||0);
+
+    // Aggregate totals across filtered statements
+    const totRent  = stmts.reduce((s,x)=>s+(parseFloat(x.data?.tRent)||0),0);
+    const totNet   = stmts.reduce((s,x)=>s+(parseFloat(x.data?.tNet)||0),0);
+    const totZesty = stmts.reduce((s,x)=>s+dueToZesty(x.data),0);
+
+    // Summary line
+    const sumEl=document.getElementById('h-summary-line');
+    if (sumEl) sumEl.textContent=stmts.length+' statement'+(stmts.length!==1?'s':'')+' \u00B7 Total rent: '+eur(totRent);
+
+    // Status pill counts
     const counts={draft:0,review:0,sent:0};
     stmts.forEach(s=>{if(counts[s.status]!==undefined)counts[s.status]++;});
     ['draft','review','sent'].forEach(st=>{const e=document.getElementById('h-count-'+st);if(e)e.textContent=counts[st];});
+
+    // Stats cards
+    const statsEl=document.getElementById('h-stats-cards');
+    if (statsEl) statsEl.innerHTML=`
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-bottom:18px">
+        <div style="background:#fff;border:1px solid var(--border);border-radius:10px;padding:14px 18px;border-left:4px solid var(--teal)">
+          <div style="font-size:22px;font-weight:700;color:var(--teal)">${stmts.length}</div>
+          <div style="font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted);margin-top:3px">Statements</div>
+        </div>
+        <div style="background:#fff;border:1px solid var(--border);border-radius:10px;padding:14px 18px;border-left:4px solid var(--teal)">
+          <div style="font-size:22px;font-weight:700;color:var(--teal)">${eur(totRent)}</div>
+          <div style="font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted);margin-top:3px">Total Rent</div>
+        </div>
+        <div style="background:#fff;border:1px solid var(--border);border-radius:10px;padding:14px 18px;border-left:4px solid var(--gold)">
+          <div style="font-size:22px;font-weight:700;color:var(--teal-dark)">${eur(totZesty)}</div>
+          <div style="font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted);margin-top:3px">Due to Zesty</div>
+        </div>
+        <div style="background:#fff;border:1px solid var(--border);border-radius:10px;padding:14px 18px;border-left:4px solid var(--success)">
+          <div style="font-size:22px;font-weight:700;color:var(--success)">${eur(totNet)}</div>
+          <div style="font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted);margin-top:3px">Net to Owners</div>
+        </div>
+      </div>`;
 
     if (!listEl) return;
     if (!stmts.length){listEl.innerHTML='<div style="padding:30px;text-align:center;color:var(--text-muted)">No saved statements yet. Generate a report and click Draft / Under Review / Sent to Client.</div>';return;}
     const sColors={draft:'#888',review:'#e67e22',sent:'#27ae60'};
     const sLabels={draft:'\uD83D\uDCDD Draft',review:'\uD83D\uDD0D Review',sent:'\u2705 Sent'};
-    listEl.innerHTML=stmts.map(s=>`
+    listEl.innerHTML=stmts.map(s=>{
+      const d=s.data||{};
+      const dtz=dueToZesty(d);
+      const netInc=parseFloat(d.tNet)||0;
+      return `
       <div style="display:flex;align-items:center;gap:12px;padding:13px 16px;border-bottom:1px solid var(--border);flex-wrap:wrap">
         <div style="flex:1;min-width:180px">
           <div style="font-weight:600;font-size:14px">${s.property_name||'Unknown'}</div>
-          <div style="font-size:12px;color:var(--text-muted)">${s.data?.ownerName||s.owner_name||''} &middot; ${s.month||''}</div>
-          ${s.notes?'<div style="font-size:11px;color:#999;margin-top:2px">'+s.notes+'</div>':''}
+          <div style="font-size:12px;color:var(--text-muted)">${d.ownerName||s.owner_name||''} &middot; ${s.month||''}</div>
+          ${s.notes?'<div style="font-size:11px;color:#999;margin-top:2px">'+String(s.notes||'').replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</div>':''}
         </div>
-        <div style="font-size:14px;font-weight:700;color:var(--teal-dark)">&euro;${(parseFloat(s.data?.tNet)||0).toFixed(2)}</div>
+        <div style="text-align:right;min-width:140px">
+          <div style="font-size:15px;font-weight:700;color:var(--teal-dark)">${eur(dtz)}</div>
+          <div style="font-size:11px;color:var(--text-muted)">Due to Zesty</div>
+          ${netInc>0?`<div style="font-size:11px;color:var(--success);margin-top:1px">${eur(netInc)} net to owner</div>`:''}
+        </div>
         <span style="background:${sColors[s.status]||'#888'};color:#fff;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:700">${sLabels[s.status]||s.status}</span>
         <div style="display:flex;gap:6px;align-items:center">
           <button onclick="openStatement('${s.id}')" class="btn btn-sm btn-outline" style="font-size:12px">&#128196; Open</button>
           <select onchange="changeStatementStatus('${s.id}',this.value)" style="font-size:11px;padding:4px 6px;border:1px solid var(--border);border-radius:6px;background:#fff">
-            <option value="">Change&hellip;</option>
+            <option value="">Change\u2026</option>
             <option value="draft">&#128221; Draft</option>
             <option value="review">&#128269; Under Review</option>
             <option value="sent">&#9989; Sent</option>
           </select>
           <button onclick="deleteStatement('${s.id}')" class="btn btn-sm" style="background:#fdf0ef;color:var(--danger);border:1px solid var(--danger);font-size:12px">&#128465;</button>
         </div>
-      </div>`).join('');
+      </div>`;
+    }).join('');
   } catch(e) {
     if(listEl) listEl.innerHTML='<div style="padding:20px;color:var(--danger)">Error: '+e.message+'</div>';
   }
