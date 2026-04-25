@@ -700,37 +700,44 @@ async function confirmDelete(){
 // ══════════════════════════════════════════════
 // GUEST AUTOCOMPLETE
 // ══════════════════════════════════════════════
+// Lookup table for autocomplete items (avoids JSON-in-HTML-attribute quoting bugs)
+let _acGuests = [];
+
 function guestAutocomplete(val){
   const dd=document.getElementById('guest-dropdown');
   if(!val||val.length<2){dd.style.display='none';return;}
   const q=val.toLowerCase();
   // Combine imported guests + existing entries
-  const fromEntries=[...new Set(entries.map(e=>e.guestName).filter(Boolean))].map(n=>({name:n,sub:''}));
-  const fromImport=importedGuests.map(g=>({name:g.name, sub:[g.property,g.checkIn?g.checkIn+' – ':''+(g.checkOut||'')].filter(Boolean).join(' · ')}));
+  const fromEntries=[...new Set(entries.map(e=>e.guestName).filter(Boolean))].map(n=>({name:n,property:'',checkIn:'',checkOut:'',bookingRef:'',sub:''}));
+  const fromImport=importedGuests.map(g=>({...g, sub:[g.property,g.checkIn?g.checkIn+(g.checkOut?' – '+g.checkOut:''):''].filter(Boolean).join(' · ')}));
   const combined=[...fromImport,...fromEntries].filter(g=>g.name.toLowerCase().includes(q));
   // Deduplicate by name
   const seen=new Set(); const uniq=combined.filter(g=>{if(seen.has(g.name))return false;seen.add(g.name);return true;});
   if(!uniq.length){dd.style.display='none';return;}
-  dd.innerHTML=uniq.slice(0,10).map(g=>`
-    <div class="autocomplete-item" onclick="selectGuest(${JSON.stringify(g.name)},${JSON.stringify(g)})">
+  _acGuests=uniq.slice(0,10);
+  dd.innerHTML=_acGuests.map((g,i)=>`
+    <div class="autocomplete-item" onclick="selectGuestByIndex(${i})">
       <div>${esc(g.name)}</div>
       ${g.sub?`<div class="autocomplete-sub">${esc(g.sub)}</div>`:''}
     </div>`).join('');
   dd.style.display='block';
 }
-function selectGuest(name, guest){
-  document.getElementById('em-guest').value=name;
+function selectGuestByIndex(i){
+  const g=_acGuests[i]; if(!g) return;
+  document.getElementById('em-guest').value=g.name;
   document.getElementById('guest-dropdown').style.display='none';
-  // Auto-fill property if available
-  if(guest.property){
+  // Auto-fill property
+  if(g.property){
     const propSel=document.getElementById('em-prop');
-    for(let i=0;i<propSel.options.length;i++){
-      if(propSel.options[i].value.toLowerCase()===guest.property.toLowerCase()){
-        propSel.value=propSel.options[i].value; break;
+    for(let j=0;j<propSel.options.length;j++){
+      if(propSel.options[j].value.toLowerCase()===g.property.toLowerCase()){
+        propSel.value=propSel.options[j].value; break;
       }
     }
   }
-  if(guest.bookingRef) document.getElementById('em-booking').value=guest.bookingRef;
+  // Auto-fill booking ref and dates
+  if(g.bookingRef) document.getElementById('em-booking').value=g.bookingRef;
+  else if(g.checkIn||g.checkOut) document.getElementById('em-booking').value=[g.checkIn,g.checkOut].filter(Boolean).join(' – ');
 }
 document.addEventListener('click',e=>{
   if(!e.target.closest('.autocomplete-wrap')) document.getElementById('guest-dropdown').style.display='none';
