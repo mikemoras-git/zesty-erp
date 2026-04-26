@@ -258,11 +258,9 @@ function generateOwner(){
     const typeColors={checkout:['#fdebd0','#a04000'],deep:['#e8d5f5','#6c3483']};
     const [tbg,tcol]=typeColors[j.type]||['#fdf6e3','#8e6b23'];
     const tLabel=j.type==='checkout'?'Checkout':j.type==='deep'?'Deep Clean':'Mid-Stay';
-    const cleanerNames=cls.length?cls.map(c=>c.firstName||c.name||'?').join(', '):'—';
     return`<tr>
       <td style="font-size:12px">${fmtDate(j.date)}</td>
       <td><span style="font-size:11px;font-weight:600;padding:2px 6px;border-radius:8px;background:${tbg};color:${tcol}">${tLabel}</span></td>
-      <td style="font-size:11px;color:var(--text-muted)">${cleanerNames}</td>
       <td style="text-align:center">${actualJobHours||'—'}</td>
       <td style="text-align:right;color:var(--teal-dark)">${cleaningCost>0?eur(cleaningCost):'—'}</td>
       <td style="text-align:right;color:var(--teal-dark)">${transportOwnerCharge>0?eur(transportOwnerCharge):'—'}</td>
@@ -381,7 +379,7 @@ function generateOwner(){
     ${cleans.length>0?`<div class="rpt-section">
       <div class="rpt-section-title">Cleaning — ${cleans.length} session${cleans.length!==1?'s':''} · ${tCleanH}h total · ${eur(tCleanCharge)} charged</div>
       <table class="rpt-table">
-        <thead><tr><th>Date</th><th>Type</th><th>Cleaners</th><th style="text-align:center">Hours</th><th style="text-align:right">Cleaning Cost</th><th style="text-align:right">Transport</th><th style="text-align:right">Total</th></tr></thead>
+        <thead><tr><th>Date</th><th>Type</th><th style="text-align:center">Hours</th><th style="text-align:right">Cleaning Cost</th><th style="text-align:right">Transport</th><th style="text-align:right">Total</th></tr></thead>
         <tbody>${cRows}</tbody>
         <tfoot><tr>
           <td colspan="3" style="text-align:right;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em">TOTAL</td>
