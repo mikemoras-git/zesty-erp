@@ -206,32 +206,63 @@ function generateOwner(){
   });
   const staffC=JSON.parse(localStorage.getItem('zesty_staff')||'[]');
   const cleaningFeeRate=parseFloat(prop.cleaningFee||0); // fee per hour charged to owner
-  // Total actual hours: sum j.cleanerHours (actual from Hours module); fall back to j.hours if not yet recorded
+  // prop.transportCharge is the per-trip transport fee defined in the property settings
+  const propTransportRate=parseFloat(prop.transportCharge||0);
+
+  // Helper: resolve transport fee for a job (stored on job; fall back to property)
+  const jobTransportRate = j => parseFloat(j.propertyTransport||0) || propTransportRate;
+
+  // Helper: count cleaners with transport ticked for a job
+  // If j.cleanerTransport exists use it; otherwise count assigned cleaners who have a car
+  const tickedTransportCount = j => {
+    const fee = jobTransportRate(j);
+    if(!fee) return 0;
+    if(j.cleanerTransport){
+      const n=Object.values(j.cleanerTransport).filter(v=>v===true).length;
+      return n>0?n:0;
+    }
+    // No explicit ticking data — count assigned cleaners with hasCar='Yes' (same default as cleaning module)
+    const ids=(j.cleanerIds||[]);
+    if(!ids.length) return 1; // at least 1 if property has transport and job has no cleaner data
+    const n=ids.filter(id=>{const st=staffC.find(s=>s.id===id);return st&&st.hasCar==='Yes';}).length;
+    return n>0?n:1;
+  };
+
+  // Total actual hours: sum j.cleanerHours (actual from Hours module); fall back to j.hours
   const tCleanH=cleans.reduce((s,j)=>{
     const actualH=j.cleanerHours?Object.values(j.cleanerHours).reduce((s2,h)=>s2+(parseFloat(h)||0),0):(j.hours||0);
     return s+actualH;
   },0);
-  // Total charge = (fee rate × actual hours) + (property transport fee × ticked cleaners) across all cleans
+  // Separate hour-cost and transport totals for footer display
+  let tCleanHoursCost=0, tCleanTransportCharge=0;
   const tCleanCharge=cleans.reduce((s,j)=>{
     const actualH=j.cleanerHours?Object.values(j.cleanerHours).reduce((s2,h)=>s2+(parseFloat(h)||0),0):(j.hours||0);
-    const jTransportFee=parseFloat(j.propertyTransport||prop.propertyTransport||0);
-    return s+cleaningFeeRate*actualH+jTransportFee;
+    const tFee=jobTransportRate(j);
+    const tCount=tickedTransportCount(j);
+    const hourCost=cleaningFeeRate*actualH;
+    const transCost=tFee*tCount;
+    tCleanHoursCost+=hourCost;
+    tCleanTransportCharge+=transCost;
+    return s+hourCost+transCost;
   },0);
   const cRows=cleans.map(j=>{
     const cls=(j.cleanerIds||[]).map(id=>staffC.find(s=>s.id===id)).filter(Boolean);
-    // Use actual per-cleaner hours from j.cleanerHours (Hours module); fall back to j.hours if not recorded
+    // Use actual per-cleaner hours from j.cleanerHours (Hours module); fall back to j.hours
     const actualJobHours=j.cleanerHours?Object.values(j.cleanerHours).reduce((s2,h)=>s2+(parseFloat(h)||0),0):(j.hours||0);
-    // Transport charge TO OWNER: flat fee per cleaning session (when property has transport fee set)
-    const jobTransportFee=parseFloat(j.propertyTransport||prop.propertyTransport||0);
-    const transportOwnerCharge=jobTransportFee;
+    // Transport charge TO OWNER: fee × number of ticked cleaners
+    const tFee=jobTransportRate(j);
+    const tCount=tickedTransportCount(j);
+    const transportOwnerCharge=tFee*tCount;
     const cleaningCost=cleaningFeeRate*actualJobHours;
     const rowTotal=cleaningCost+transportOwnerCharge;
     const typeColors={checkout:['#fdebd0','#a04000'],deep:['#e8d5f5','#6c3483']};
     const [tbg,tcol]=typeColors[j.type]||['#fdf6e3','#8e6b23'];
     const tLabel=j.type==='checkout'?'Checkout':j.type==='deep'?'Deep Clean':'Mid-Stay';
+    const cleanerNames=cls.length?cls.map(c=>c.firstName||c.name||'?').join(', '):'—';
     return`<tr>
       <td style="font-size:12px">${fmtDate(j.date)}</td>
       <td><span style="font-size:11px;font-weight:600;padding:2px 6px;border-radius:8px;background:${tbg};color:${tcol}">${tLabel}</span></td>
+      <td style="font-size:11px;color:var(--text-muted)">${cleanerNames}</td>
       <td style="text-align:center">${actualJobHours||'—'}</td>
       <td style="text-align:right;color:var(--teal-dark)">${cleaningCost>0?eur(cleaningCost):'—'}</td>
       <td style="text-align:right;color:var(--teal-dark)">${transportOwnerCharge>0?eur(transportOwnerCharge):'—'}</td>
@@ -348,11 +379,17 @@ function generateOwner(){
     </div>`:''}
 
     ${cleans.length>0?`<div class="rpt-section">
-      <div class="rpt-section-title">Cleaning — ${cleans.length} sessions · ${tCleanH}h total${tCleanCharge>0?' · '+eur(tCleanCharge)+' charged':''}</div>
+      <div class="rpt-section-title">Cleaning — ${cleans.length} session${cleans.length!==1?'s':''} · ${tCleanH}h total · ${eur(tCleanCharge)} charged</div>
       <table class="rpt-table">
-        <thead><tr><th>Date</th><th>Type</th><th style="text-align:center">Hours</th><th style="text-align:right">Cleaning Cost</th><th style="text-align:right">Transport</th><th style="text-align:right">Total</th></tr></thead>
+        <thead><tr><th>Date</th><th>Type</th><th>Cleaners</th><th style="text-align:center">Hours</th><th style="text-align:right">Cleaning Cost</th><th style="text-align:right">Transport</th><th style="text-align:right">Total</th></tr></thead>
         <tbody>${cRows}</tbody>
-        ${tCleanCharge>0?`<tfoot><tr><td colspan="3" style="text-align:right">TOTAL CLEANING CHARGE</td><td style="text-align:right;font-weight:700"></td><td style="text-align:right;font-weight:700"></td><td style="text-align:right;font-weight:700">${eur(tCleanCharge)}</td></tr></tfoot>`:''}
+        <tfoot><tr>
+          <td colspan="3" style="text-align:right;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em">TOTAL</td>
+          <td style="text-align:center;font-weight:700">${tCleanH}h</td>
+          <td style="text-align:right;font-weight:700">${tCleanHoursCost>0?eur(tCleanHoursCost):'—'}</td>
+          <td style="text-align:right;font-weight:700">${tCleanTransportCharge>0?eur(tCleanTransportCharge):'—'}</td>
+          <td style="text-align:right;font-weight:700;color:var(--teal-dark)">${eur(tCleanCharge)}</td>
+        </tr></tfoot>
       </table>
     </div>`:''}
 
