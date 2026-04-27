@@ -382,7 +382,7 @@ function generateOwner(){
         <thead><tr><th>Date</th><th>Type</th><th style="text-align:center">Hours</th><th style="text-align:right">Cleaning Cost</th><th style="text-align:right">Transport</th><th style="text-align:right">Total</th></tr></thead>
         <tbody>${cRows}</tbody>
         <tfoot><tr>
-          <td colspan="3" style="text-align:right;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em">TOTAL</td>
+          <td colspan="2" style="text-align:right;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em">TOTAL</td>
           <td style="text-align:center;font-weight:700">${tCleanH}h</td>
           <td style="text-align:right;font-weight:700">${tCleanHoursCost>0?eur(tCleanHoursCost):'—'}</td>
           <td style="text-align:right;font-weight:700">${tCleanTransportCharge>0?eur(tCleanTransportCharge):'—'}</td>
