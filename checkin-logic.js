@@ -41,14 +41,16 @@ function ciGetCsvStatuses() {
   } catch(e) { return {}; }
 }
 
-function ciBookingWarning(job) {
-  if (!job.bookingId) return null;
+function ciIsValidBooking(job) {
+  // Jobs with no bookingId are manual entries — always show
+  if (!job.bookingId) return true;
   const csv = ciGetCsvStatuses();
-  if (!Object.keys(csv).length) return null; // no CSV loaded
+  // If no CSV loaded, show everything (can't validate)
+  if (!Object.keys(csv).length) return true;
   const status = csv[job.bookingId];
-  if (status === undefined) return { level:'warning', msg:'⚠️ No matching reservation in CSV' };
-  if (status !== 'Booked') return { level:'error', msg:`⚠️ Booking is ${status}` };
-  return null;
+  // Hide if not found in CSV or not Booked
+  if (status === undefined) return false;
+  return status === 'Booked';
 }
 
 function ciHasSameDayOtherType(job) {
@@ -260,7 +262,7 @@ function renderCICalendar() {
   grid.innerHTML = days.map(d => {
     const ds = ciDateStr(d);
     const isToday = ds === today;
-    const dayJobs = ciJobs.filter(j => j.date===ds)
+    const dayJobs = ciJobs.filter(j => j.date===ds && ciIsValidBooking(j))
       .sort((a,b) => (a.scheduledTime||'99:99') < (b.scheduledTime||'99:99') ? -1 : 1);
 
     return `<div class="ci-day-col ${isToday?'ci-today':''}">
@@ -282,19 +284,15 @@ function ciJobCard(j) {
   const infantFlag= (parseInt(j.infants)||0)>0;
   const statusDot = j.confirmed==='done'?'🟢':j.confirmed==='skipped'?'🔴':'🟡';
 
-  // Booking validation
-  const bookingWarn = ciBookingWarning(j);
+  // Same-day check-in + check-out border
   const sameDayWarn = ciHasSameDayOtherType(j);
-  const cardBorder  = bookingWarn?.level==='error' ? 'border:2px solid #e74c3c;'
-                    : (bookingWarn?.level==='warning'||sameDayWarn) ? 'border:2px solid #f39c12;' : '';
+  const cardBorder  = sameDayWarn ? 'border:2px solid #f39c12;' : '';
 
   return `<div class="ci-card" onclick="editCIJob('${j.id}')" style="${cardBorder}">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
       <span style="font-size:10px;font-weight:700;padding:2px 6px;border-radius:6px;background:${typeBg};color:${typeColor}">${typeLabel}</span>
       <span style="font-size:11px">${statusDot} ${j.scheduledTime||'—'}</span>
     </div>
-    ${bookingWarn?`<div style="font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px;margin-bottom:4px;background:${bookingWarn.level==='error'?'#fdecea':'#fef9e7'};color:${bookingWarn.level==='error'?'#c0392b':'#856404'}">${bookingWarn.msg}</div>`:''}
-    ${sameDayWarn?`<div style="font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px;margin-bottom:4px;background:#fef9e7;color:#856404">⚠️ Check-in &amp; check-out same day</div>`:''}
     <div style="font-weight:600;font-size:12px;margin-bottom:2px">${j.propertyName||'—'}</div>
     <div style="font-size:11px;color:#555">👤 ${j.guestName||'—'}${j.guests?' ('+j.guests+')':''}</div>
     ${infantFlag?'<div style="font-size:11px;background:#fff3cd;color:#856404;padding:2px 5px;border-radius:4px;margin-top:3px">🚼 Baby cot / High chair!</div>':''}
