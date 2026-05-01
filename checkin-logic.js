@@ -7,6 +7,60 @@ let ciAgents  = [];   // independent list — stored in checkin_agents table
 let ciImportPreviewData = [];
 let ciCurrentWeekStart  = null;
 
+// ─── CSV BOOKING VALIDATION ─────────────────────────────────────
+let _ciCsvCache = null;
+let _ciCsvCacheAt = 0;
+
+function ciGetCsvStatuses() {
+  try {
+    const raw = JSON.parse(localStorage.getItem('zesty_raw_lodgify_csv') || 'null');
+    if (!raw || !raw.text) return {};
+    const savedAt = new Date(raw.savedAt||0).getTime();
+    if (_ciCsvCache && _ciCsvCacheAt === savedAt) return _ciCsvCache;
+    const splitLine = s => {
+      const r=[]; let f='',q=false;
+      for(const c of s){if(c==='"'){q=!q;}else if(c===','&&!q){r.push(f.trim());f='';}else{f+=c;}}
+      r.push(f.trim()); return r;
+    };
+    const lines = raw.text.split('\n').filter(l => l.trim());
+    if (lines.length < 2) return {};
+    const headers = splitLine(lines[0]).map(h => h.replace(/^"|"$/g,'').trim());
+    const idIdx = headers.indexOf('Id');
+    const statusIdx = headers.indexOf('Status');
+    if (idIdx < 0 || statusIdx < 0) return {};
+    const cache = {};
+    lines.slice(1).forEach(line => {
+      const cols = splitLine(line);
+      const id = (cols[idIdx]||'').replace(/^"|"$/g,'').trim();
+      const status = (cols[statusIdx]||'').replace(/^"|"$/g,'').trim();
+      if (id) cache[id] = status;
+    });
+    _ciCsvCache = cache;
+    _ciCsvCacheAt = savedAt;
+    return cache;
+  } catch(e) { return {}; }
+}
+
+function ciBookingWarning(job) {
+  if (!job.bookingId) return null;
+  const csv = ciGetCsvStatuses();
+  if (!Object.keys(csv).length) return null; // no CSV loaded
+  const status = csv[job.bookingId];
+  if (status === undefined) return { level:'warning', msg:'⚠️ No matching reservation in CSV' };
+  if (status !== 'Booked') return { level:'error', msg:`⚠️ Booking is ${status}` };
+  return null;
+}
+
+function ciHasSameDayOtherType(job) {
+  return ciJobs.some(other =>
+    other.id !== job.id &&
+    other.date === job.date &&
+    (other.propertyId ? other.propertyId === job.propertyId : other.propertyName === job.propertyName) &&
+    ((job.type === 'checkin' && other.type === 'checkout') ||
+     (job.type === 'checkout' && other.type === 'checkin'))
+  );
+}
+
 // ─── HELPERS ────────────────────────────────────────────────────
 function ciOpenModal(id)  { const el=document.getElementById(id); if(el){el.style.opacity='1';el.style.pointerEvents='auto';} }
 function ciCloseModal(id) { const el=document.getElementById(id); if(el){el.style.opacity='0';el.style.pointerEvents='none';} }
@@ -228,11 +282,19 @@ function ciJobCard(j) {
   const infantFlag= (parseInt(j.infants)||0)>0;
   const statusDot = j.confirmed==='done'?'🟢':j.confirmed==='skipped'?'🔴':'🟡';
 
-  return `<div class="ci-card" onclick="editCIJob('${j.id}')">
+  // Booking validation
+  const bookingWarn = ciBookingWarning(j);
+  const sameDayWarn = ciHasSameDayOtherType(j);
+  const cardBorder  = bookingWarn?.level==='error' ? 'border:2px solid #e74c3c;'
+                    : (bookingWarn?.level==='warning'||sameDayWarn) ? 'border:2px solid #f39c12;' : '';
+
+  return `<div class="ci-card" onclick="editCIJob('${j.id}')" style="${cardBorder}">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
       <span style="font-size:10px;font-weight:700;padding:2px 6px;border-radius:6px;background:${typeBg};color:${typeColor}">${typeLabel}</span>
       <span style="font-size:11px">${statusDot} ${j.scheduledTime||'—'}</span>
     </div>
+    ${bookingWarn?`<div style="font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px;margin-bottom:4px;background:${bookingWarn.level==='error'?'#fdecea':'#fef9e7'};color:${bookingWarn.level==='error'?'#c0392b':'#856404'}">${bookingWarn.msg}</div>`:''}
+    ${sameDayWarn?`<div style="font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px;margin-bottom:4px;background:#fef9e7;color:#856404">⚠️ Check-in &amp; check-out same day</div>`:''}
     <div style="font-weight:600;font-size:12px;margin-bottom:2px">${j.propertyName||'—'}</div>
     <div style="font-size:11px;color:#555">👤 ${j.guestName||'—'}${j.guests?' ('+j.guests+')':''}</div>
     ${infantFlag?'<div style="font-size:11px;background:#fff3cd;color:#856404;padding:2px 5px;border-radius:4px;margin-top:3px">🚼 Baby cot / High chair!</div>':''}
