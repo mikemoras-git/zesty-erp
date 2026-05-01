@@ -562,6 +562,9 @@ async function saveStatement(status) {
   const notes = document.getElementById('rpt-section-notes')?.value
              || document.getElementById('stmt-notes')?.value
              || currentReportNotes || '';
+  // Always use the current month input as source of truth
+  const currentMonth = document.getElementById('s-month')?.value || currentStatementData.month || '';
+  currentStatementData.month = currentMonth;
   try {
     if (isNew) {
       // INSERT new statement
@@ -584,6 +587,7 @@ async function saveStatement(status) {
       // PATCH existing statement
       const patch = {
         status,
+        month:      currentMonth,
         data:       currentStatementData,
         notes,
         updated_at: new Date().toISOString(),
