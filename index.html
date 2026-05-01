@@ -612,9 +612,9 @@ function csvFileSelected(file) {
     localStorage.setItem('zesty_raw_lodgify_csv', JSON.stringify({
       text: e.target.result, filename: file.name, savedAt: new Date().toISOString()
     }));
-    const el = document.getElementById('csv-status');
-    if (el) el.innerHTML = `✓ <strong>${file.name}</strong> saved — go to <a href="cleaning-system.html" style="color:var(--gold-light)">Cleaning</a> and click ⚡ Import Now`;
     document.getElementById('csv-file-input').value = '';
+    // Redirect straight to Cleaning import tab — checkAutoImport() will pre-load the data
+    window.location.href = 'cleaning-system.html?tab=import';
   };
   reader.readAsText(file, 'utf-8');
 }

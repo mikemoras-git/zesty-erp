@@ -186,6 +186,10 @@ async function init() {
     }
   } catch(e) { /* keep localStorage cache */ }
   checkAutoImport();
+  // If redirected from dashboard CSV upload, go straight to import tab
+  if (new URLSearchParams(window.location.search).get('tab') === 'import') {
+    runAutoImport();
+  }
 }
 
 async function syncCleaningData() {
@@ -559,6 +563,10 @@ function processCSV(file) {
   const reader = new FileReader();
   reader.onload = async e => {
     const text = e.target.result;
+    // Save to shared localStorage so all modules (check-in, reports) can use it
+    localStorage.setItem('zesty_raw_lodgify_csv', JSON.stringify({
+      text, filename: file.name, savedAt: new Date().toISOString()
+    }));
     const lines = text.split('\n').filter(l => l.trim());
     const headers = parseCSVLine(lines[0]);
     const rows = lines.slice(1).map(l => {
