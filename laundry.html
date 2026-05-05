@@ -363,15 +363,15 @@
 
 <!-- ═══ PROPOSAL MODAL ═══ -->
 <div class="modal-overlay" id="proposalModal">
-  <div class="modal" style="max-width:520px">
+  <div class="modal" style="max-width:680px;width:90%">
     <div class="modal-header"><h2>Pricelist Proposal</h2><button class="modal-close" onclick="closeModal('proposalModal')">✕</button></div>
-    <div class="modal-body">
-      <div class="form-grid">
-        <div class="form-group"><label>Pricelist *</label><select id="prop-pl"><option value="">— Select —</option></select></div>
-        <div class="form-group"><label>Client *</label><select id="prop-client"><option value="">— Select —</option></select></div>
-        <div class="form-group"><label>Date</label><input type="date" id="prop-date"></div>
-        <div class="form-group"><label>Valid Until</label><input type="date" id="prop-valid"></div>
-        <div class="form-group form-span-2"><label>Custom Note</label><textarea id="prop-note" rows="2" placeholder="Optional note…"></textarea></div>
+    <div class="modal-body" style="padding:28px 32px">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px 28px">
+        <div class="form-group" style="margin:0"><label>Pricelist *</label><select id="prop-pl"><option value="">— Select —</option></select></div>
+        <div class="form-group" style="margin:0"><label>Client *</label><select id="prop-client"><option value="">— Select —</option></select></div>
+        <div class="form-group" style="margin:0"><label>Date</label><input type="date" id="prop-date"></div>
+        <div class="form-group" style="margin:0"><label>Valid Until</label><input type="date" id="prop-valid"></div>
+        <div class="form-group" style="margin:0;grid-column:1/-1"><label>Custom Note</label><textarea id="prop-note" rows="3" placeholder="Optional note…" style="width:100%;box-sizing:border-box;resize:vertical"></textarea></div>
       </div>
     </div>
     <div class="modal-footer">
