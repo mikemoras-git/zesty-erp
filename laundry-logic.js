@@ -1003,15 +1003,128 @@ async function savePricelist() {
   showToast('\u2713 Pricelist saved', 'success');
 }
 
-// ══ REPORT / PROPOSAL STUBS ════════════════════════════════════════════
+// ══ REPORT / PROPOSAL ════════════════════════════════════════════════
 function openProposalModal() {
-  showToast('Proposal module coming soon', 'info');
+  populateSelects();
+  const today = new Date().toISOString().slice(0, 10);
+  const validEl = document.getElementById('prop-valid');
+  const dateEl  = document.getElementById('prop-date');
+  if (dateEl)  dateEl.value  = today;
+  if (validEl) {
+    const d = new Date(); d.setDate(d.getDate() + 30);
+    validEl.value = d.toISOString().slice(0, 10);
+  }
+  openModal('proposalModal');
 }
+
 function generateProposal() {
-  showToast('Proposal module coming soon', 'info');
+  const plId     = document.getElementById('prop-pl')?.value;
+  const clientId = document.getElementById('prop-client')?.value;
+  const date     = document.getElementById('prop-date')?.value || new Date().toISOString().slice(0,10);
+  const validUntil = document.getElementById('prop-valid')?.value || '';
+  const note     = document.getElementById('prop-note')?.value || '';
+
+  if (!plId)     { showToast('Please select a pricelist', 'error'); return; }
+  if (!clientId) { showToast('Please select a client', 'error'); return; }
+
+  const pl     = pricelists.find(p => p.id === plId);
+  const client = customers.find(c => c.id === clientId);
+  if (!pl || !client) { showToast('Invalid pricelist or client', 'error'); return; }
+
+  // Build printable table rows for all items that have a price
+  const rows = ITEMS.filter(it => pl.prices[it.code] != null).map(it => {
+    const price = parseFloat(pl.prices[it.code] || 0).toFixed(2);
+    return `<tr>
+      <td style="padding:6px 10px;border:1px solid #ddd;">${it.en}</td>
+      <td style="padding:6px 10px;border:1px solid #ddd;">${it.gr}</td>
+      <td style="padding:6px 10px;border:1px solid #ddd;text-align:right;">€${price}</td>
+    </tr>`;
+  }).join('');
+
+  const validLine = validUntil ? `<p style="margin:4px 0;"><strong>Valid until:</strong> ${validUntil}</p>` : '';
+  const noteLine  = note ? `<p style="margin:12px 0;font-style:italic;">${note}</p>` : '';
+
+  const printHtml = `<!DOCTYPE html><html><head><meta charset="utf-8">
+    <title>Laundry Pricelist Proposal</title>
+    <style>body{font-family:Arial,sans-serif;margin:30px;color:#222;}
+    h1{font-size:20px;margin-bottom:4px;}
+    h2{font-size:15px;font-weight:normal;margin-bottom:2px;}
+    table{border-collapse:collapse;width:100%;margin-top:16px;}
+    th{background:#2d6a4f;color:#fff;padding:8px 10px;text-align:left;border:1px solid #2d6a4f;}
+    @media print{button{display:none!important}}</style>
+  </head><body>
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;">
+      <div>
+        <h1>Pricelist Proposal</h1>
+        <h2>Pricelist: ${pl.id} — ${pl.name}</h2>
+        <p style="margin:4px 0;"><strong>Client:</strong> ${client.name}</p>
+        <p style="margin:4px 0;"><strong>Date:</strong> ${date}</p>
+        ${validLine}
+      </div>
+    </div>
+    ${noteLine}
+    <table>
+      <thead><tr>
+        <th>Item (EN)</th>
+        <th>Item (GR)</th>
+        <th style="text-align:right;">Unit Price</th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+    <p style="margin-top:20px;font-size:12px;color:#888;">All prices are per piece unless stated otherwise. VAT not included.</p>
+    <div style="margin-top:24px;text-align:center;">
+      <button onclick="window.print()" style="padding:10px 24px;background:#2d6a4f;color:#fff;border:none;border-radius:6px;font-size:15px;cursor:pointer;">🖨 Print / Save as PDF</button>
+    </div>
+  </body></html>`;
+
+  // Save to proposal history
+  const proposals = JSON.parse(localStorage.getItem('zesty_laundry_proposals') || '[]');
+  proposals.unshift({
+    id: 'PROP-' + Date.now(),
+    date,
+    validUntil,
+    clientId,
+    clientName: client.name,
+    plId,
+    plName: pl.name,
+    note,
+    createdAt: new Date().toISOString()
+  });
+  localStorage.setItem('zesty_laundry_proposals', JSON.stringify(proposals));
+
+  closeModal('proposalModal');
+  document.getElementById('prop-note').value = '';
+
+  // Open print window
+  const w = window.open('', '_blank', 'width=800,height=700');
+  if (w) { w.document.write(printHtml); w.document.close(); }
+  else   { showToast('Pop-up blocked — please allow pop-ups', 'error'); return; }
+
+  showToast('✓ Proposal printed and saved', 'success');
 }
+
 function openExportHistory() {
-  showToast('Export history coming soon', 'info');
+  const proposals = JSON.parse(localStorage.getItem('zesty_laundry_proposals') || '[]');
+  const section = document.getElementById('proposal-history-section');
+  const tbody   = document.getElementById('proposal-history-tbody');
+  if (!section || !tbody) return;
+
+  if (!proposals.length) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:16px;color:#888;">No proposals yet.</td></tr>';
+  } else {
+    tbody.innerHTML = proposals.map(p => `
+      <tr>
+        <td>${p.id}</td>
+        <td>${p.clientName}</td>
+        <td>${p.plId} — ${p.plName}</td>
+        <td>${p.date}</td>
+        <td>${p.validUntil || '—'}</td>
+        <td>${p.createdAt ? p.createdAt.slice(0,16).replace('T',' ') : '—'}</td>
+      </tr>`).join('');
+  }
+
+  section.style.display = 'block';
+  section.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 function generateReport() {
   const fCustId = document.getElementById('rpt-cust')?.value || '';
