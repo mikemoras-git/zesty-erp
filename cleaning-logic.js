@@ -1458,7 +1458,8 @@ async function saveJob() {
   cleaningJobs[idx].hours = parseFloat(document.getElementById('j_hours').value) || null;
   cleaningJobs[idx].propertyTransport = parseFloat(document.getElementById('j_transport').value) || null;
   cleaningJobs[idx].notes = document.getElementById('j_notes').value.trim();
-  await save();
+  // Use saveOne (just this record) \u2014 avoids a slow bulk upsert that races with the 30s poll
+  await SyncStore.saveOne('zesty_cleaning_jobs', 'cleaning_jobs', cleaningJobs[idx], cleaningJobs);
   closeModal('jobModal');
   renderJobs();
   renderCalendar();
@@ -1886,7 +1887,8 @@ async function saveManualJobFromModal() {
     zone:              prop?.zone || '',
   };
   cleaningJobs.push(job);
-  await SyncStore.saveAll('zesty_cleaning_jobs', 'cleaning_jobs', cleaningJobs);
+  // Use saveOne (just this record) \u2014 avoids a slow bulk upsert that races with the 30s poll
+  await SyncStore.saveOne('zesty_cleaning_jobs', 'cleaning_jobs', job, cleaningJobs);
   closeModal('addManualJobModal');
   renderJobs();
   renderCalendar();

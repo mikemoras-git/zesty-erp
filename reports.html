@@ -262,15 +262,15 @@
         </div>
         <div class="form-group">
           <label>Check-in</label>
-          <input type="date" id="eb-checkin">
+          <input type="date" id="eb-checkin" oninput="calcEbNights()">
         </div>
         <div class="form-group">
           <label>Check-out</label>
-          <input type="date" id="eb-checkout">
+          <input type="date" id="eb-checkout" oninput="calcEbNights()">
         </div>
         <div class="form-group">
-          <label>Nights</label>
-          <input type="number" id="eb-nights" min="1" step="1">
+          <label>Nights <small style="color:var(--text-muted);font-weight:400">(auto)</small></label>
+          <input type="number" id="eb-nights" min="1" step="1" readonly style="background:var(--cream);color:var(--text-muted)">
         </div>
         <div class="form-group">
           <label>Source / Channel</label>

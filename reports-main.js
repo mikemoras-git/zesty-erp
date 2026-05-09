@@ -126,6 +126,22 @@ function generateOwner(){
     if(!matchProp(r,prop))return false;
     return new Date(r.DateArrival)<=mEnd&&new Date(r.DateDeparture)>=mStart;
   });
+  // Preserve manual overrides (_override) and manual rows (_manual) from a previous generate
+  if(currentStatementData?.bookings){
+    const prev=currentStatementData.bookings;
+    // Restore per-row overrides (edits made via pencil)
+    bookings.forEach(b=>{
+      const p=prev.find(pb=>pb.Id===b.Id&&pb._override);
+      if(!p)return;
+      b._override=true;
+      Object.assign(b,{Name:p.Name,DateArrival:p.DateArrival,DateDeparture:p.DateDeparture,
+        Nights:p.Nights,Source:p.Source,_rent:p._rent,_taxFees:p._taxFees,
+        _ota:p._ota,_zesty:p._zesty,_note:p._note});
+    });
+    // Re-attach manually-added rows (not in CSV)
+    const manuals=prev.filter(b=>b._manual);
+    bookings.push(...manuals);
+  }
 
   let tRent=0,tOTA=0,tTaxFees=0,tRec=0,tZesty=0,tNet=0;
   const bySource={};
@@ -179,12 +195,13 @@ function generateOwner(){
   }).join('');
 
   // Jobs
+  const _propShort=(prop.shortName||prop.propertyName||'').toLowerCase();
   const propJobs=jobs.filter(j=>{
     // Only completed jobs
     if(j.status!=='Completed'&&j.status!=='Paid') return false;
-    // Match by property: try propertyId first, then name
+    // Match by propertyId first (most reliable), then exact name match
     const matchesProp = (prop.propertyId && String(j.propertyId)===String(prop.propertyId)) ||
-      (j.propertyName||'').toLowerCase().includes((prop.shortName||'').toLowerCase().split(' ')[0]);
+      (_propShort && (j.propertyName||'').toLowerCase()===_propShort);
     if(!matchesProp) return false;
     // Match by month: check completed date or started date
     const d=j.dateCompleted||j.dateStarted||j.dateInvoiced||'';
@@ -199,10 +216,10 @@ function generateOwner(){
     <td style="font-size:12px;color:var(--text-muted)">${j.notes||''}</td>
   </tr>`).join('');
 
-  // Cleaning
+  // Cleaning — exact property name match to prevent "Villa X" from matching "Villa Y"
   const cleans=cleanJobs.filter(j=>{
-    const cp=(j.propertyName||'').toLowerCase(), ps=(prop.shortName||prop.propertyName||'').toLowerCase().split(' ')[0];
-    return cp.includes(ps)&&(j.date||'').startsWith(month);
+    const cp=(j.propertyName||'').toLowerCase();
+    return cp===_propShort&&(j.date||'').startsWith(month);
   });
   const staffC=JSON.parse(localStorage.getItem('zesty_staff')||'[]');
   const cleaningFeeRate=parseFloat(prop.cleaningFee||0); // fee per hour charged to owner
@@ -268,11 +285,10 @@ function generateOwner(){
     </tr>`;
   }).join('');
 
-  // Check-in jobs for this property+month (show all, charge only confirmed=done)
-  const propNameKey=(prop.shortName||prop.propertyName||'').toLowerCase().split(' ')[0];
+  // Check-in jobs for this property+month — exact name match
   const ciJobsMonth=checkinJobs.filter(j=>{
     const cp=(j.propertyName||'').toLowerCase();
-    return cp.includes(propNameKey)&&(j.date||'').startsWith(month);
+    return cp===_propShort&&(j.date||'').startsWith(month);
   });
   const ciCharge=parseFloat(prop.checkinCharge||0);
   const tCICharge=ciJobsMonth.filter(j=>j.confirmed==='done').length*ciCharge;
@@ -753,6 +769,15 @@ async function deleteStatement(id) {
   });
   showToast('Statement deleted','error');
   loadHistory();
+}
+
+// ── Auto-calculate nights from check-in / check-out ──────────────────
+function calcEbNights(){
+  const ci=document.getElementById('eb-checkin')?.value;
+  const co=document.getElementById('eb-checkout')?.value;
+  if(!ci||!co)return;
+  const n=Math.round((new Date(co)-new Date(ci))/(1000*60*60*24));
+  if(n>0)document.getElementById('eb-nights').value=n;
 }
 
 // ── Edit booking row ─────────────────────────────────────────────────
