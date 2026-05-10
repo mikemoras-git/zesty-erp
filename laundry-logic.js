@@ -171,8 +171,7 @@ function populateSelects() {
   });
   const propPl = document.getElementById('prop-pl');
   if (propPl) propPl.innerHTML = '<option value="">— Select —</option>' + plOpts;
-  const omPl = document.getElementById('om-pl');
-  if (omPl) { omPl.innerHTML = '<option value="">— Select —</option>' + plOpts; }
+  // om-pl is now a hidden input driven by the customer selection — no dropdown to populate
 }
 
 /* ── RENDER ALL ── */
@@ -471,6 +470,7 @@ function openOrderModal() {
   document.getElementById('om-cust').value = '';
   document.getElementById('om-date').value = today();
   document.getElementById('om-pl').value = '';
+  updateOrderPlDisplay();
   document.getElementById('om-status').value = 'Pending';
   document.getElementById('om-notes').value = '';
   renderOrderItems();
@@ -487,18 +487,33 @@ function editOrder(id) {
   document.getElementById('om-cust').value = o.customerId || '';
   document.getElementById('om-date').value = o.date || today();
   document.getElementById('om-pl').value = o.pricelistId || '';
+  updateOrderPlDisplay();
   document.getElementById('om-status').value = o.status || 'Pending';
   document.getElementById('om-notes').value = o.notes || '';
   renderOrderItems(o.items);
   openModal('orderModal');
 }
+function updateOrderPlDisplay() {
+  const plId = document.getElementById('om-pl')?.value || '';
+  const display = document.getElementById('om-pl-display');
+  if (!display) return;
+  if (!plId) {
+    display.innerHTML = '<span style="color:var(--text-muted,#999)">— select a customer first —</span>';
+    return;
+  }
+  const pl = pricelists.find(p => p.id === plId);
+  if (pl) {
+    display.innerHTML = `<span style="font-weight:600;color:var(--teal)">${pl.id}</span><span style="color:var(--text-muted);margin:0 6px">—</span><span>${pl.name}</span>`;
+  } else {
+    display.innerHTML = `<span style="color:var(--text-muted)">${plId}</span>`;
+  }
+}
 function onOrderCustChange() {
   const custId = document.getElementById('om-cust').value;
   const cust = customers.find(c => c.id === custId);
-  if (cust?.pricelistId && !document.getElementById('om-pl').value) {
-    document.getElementById('om-pl').value = cust.pricelistId;
-    renderOrderItems();
-  }
+  document.getElementById('om-pl').value = cust?.pricelistId || '';
+  updateOrderPlDisplay();
+  renderOrderItems();
 }
 function onOrderDateChange() { /* year auto-changes handled elsewhere */ }
 function renderOrderItems(savedItems = {}) {

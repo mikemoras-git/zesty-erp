@@ -262,7 +262,11 @@
         <div class="form-group"><label>Order ID</label><input id="om-order-id" placeholder="Auto-generated" readonly style="background:#f8f8f8"></div>
         <div class="form-group"><label>Customer *</label><select id="om-cust" onchange="onOrderCustChange()"><option value="">— Select —</option></select></div>
         <div class="form-group"><label>Date *</label><input type="date" id="om-date" onchange="onOrderDateChange()"></div>
-        <div class="form-group"><label>Pricelist</label><select id="om-pl" onchange="renderOrderItems()"><option value="">— Select —</option></select></div>
+        <div class="form-group">
+          <label>Pricelist</label>
+          <input type="hidden" id="om-pl">
+          <div id="om-pl-display" style="padding:8px 12px;background:var(--cream,#faf8f5);border:1px solid var(--border,#e0d9d0);border-radius:6px;font-size:14px;min-height:38px;display:flex;align-items:center;color:var(--text-muted,#999)">— select a customer first —</div>
+        </div>
         <div class="form-group"><label>Status</label><select id="om-status">
           <option value="Pending">Pending</option>
           <option value="Ready">Ready</option>
