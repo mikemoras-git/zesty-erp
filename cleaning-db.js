@@ -56,12 +56,17 @@ const DB={
 };
 const SyncStore={
   _pendingDeletes:{},
+  _pendingInserts:{}, // IDs currently being saved — poll must not drop them
   async load(lsKey,table){
     const cached=this._getLocal(lsKey);
     const result=await DB.loadAll(table);
     if(result.ok&&result.rows!==null){
-      const pending=this._pendingDeletes[table]||new Set();
-      const rows=result.rows.filter(r=>!pending.has(r.id));
+      const pendDel=this._pendingDeletes[table]||new Set();
+      const dbRows=result.rows.filter(r=>!pendDel.has(r.id));
+      // Merge: keep locally-held records that DB doesn't have yet
+      const dbIds=new Set(dbRows.map(r=>r.id));
+      const localOnly=cached.filter(r=>!dbIds.has(r.id)&&!pendDel.has(r.id));
+      const rows=localOnly.length?[...dbRows,...localOnly]:dbRows;
       localStorage.setItem(lsKey,JSON.stringify(rows));
       return{data:rows,fromCache:false,online:true};
     }
@@ -69,8 +74,15 @@ const SyncStore={
   },
   async saveOne(lsKey,table,record,all){
     localStorage.setItem(lsKey,JSON.stringify(all));
+    if(!this._pendingInserts[table])this._pendingInserts[table]=new Set();
+    this._pendingInserts[table].add(record.id);
     const r=await DB.upsertOne(table,record);
-    if(!r.ok)showSyncErr(r.err);
+    this._pendingInserts[table].delete(record.id);
+    if(!r.ok){
+      showSyncErr(r.err);
+      // Fall back to full upsert so the record is not silently lost
+      await DB.upsertMany(table,all);
+    }
     return r;
   },
   async saveAll(lsKey,table,records){
@@ -99,8 +111,15 @@ function startPoll(table,lsKey,ms,onData){
   const poll=async()=>{
     const result=await DB.loadAll(table);
     if(!result.ok||!result.rows)return;
-    const pending=SyncStore._pendingDeletes[table]||new Set();
-    const rows=result.rows.filter(r=>!pending.has(r.id));
+    const pendDel=SyncStore._pendingDeletes[table]||new Set();
+    const pendIns=SyncStore._pendingInserts[table]||new Set();
+    const dbRows=result.rows.filter(r=>!pendDel.has(r.id));
+    // Preserve locally-held records that DB hasn't confirmed yet
+    // (failed saveOne, in-flight upsert, or init race)
+    const local=SyncStore._getLocal(lsKey);
+    const dbIds=new Set(dbRows.map(r=>r.id));
+    const localOnly=local.filter(r=>!dbIds.has(r.id)&&!pendDel.has(r.id));
+    const rows=localOnly.length?[...dbRows,...localOnly]:dbRows;
     const hash=rows.length+'|'+rows.map(r=>r.id).join(',');
     if(hash!==lastHash){lastHash=hash;localStorage.setItem(lsKey,JSON.stringify(rows));onData(rows)}
   };
