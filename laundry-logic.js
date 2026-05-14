@@ -142,11 +142,16 @@ function fixDuplicateOrderIds() {
     console.log('Fixed duplicate order IDs');
   }
 }
+function getOrderSurcharge(order) {
+  const cust = customers.find(c => c.id === order.customerId);
+  return cust?.customerType === 'leasing' ? (parseFloat(cust.leasingSurcharge) || 0) / 100 : 0;
+}
 function calcOrderTotal(order) {
   const pl = pricelists.find(p => p.id === order.pricelistId);
   if (!pl || !order.items) return 0;
+  const surcharge = getOrderSurcharge(order);
   return Object.entries(order.items).reduce((s, [code, qty]) => {
-    return s + (parseFloat(qty) || 0) * (pl.prices[code] || 0);
+    return s + (parseFloat(qty) || 0) * (pl.prices[code] || 0) * (1 + surcharge);
   }, 0);
 }
 
@@ -242,11 +247,18 @@ function renderCustomers() {
   tbody.innerHTML = list.map(c => {
     const pl = pricelists.find(p => p.id === c.pricelistId);
     const oCount = orders.filter(o => o.customerId === c.id).length;
+    const isLeasing = c.customerType === 'leasing';
+    const typeBadge = isLeasing
+      ? `<span style="background:#fef3cd;color:#856404;border-radius:4px;padding:1px 6px;font-size:11px;font-weight:600">🏷 Leasing +${c.leasingSurcharge||0}%</span>`
+      : `<span style="background:#d1f2eb;color:#0b5345;border-radius:4px;padding:1px 6px;font-size:11px;font-weight:600">🧺 Cleaning</span>`;
+    const plCell = pl
+      ? `<span class="badge b-individual">${pl.id} ${pl.name}</span>${isLeasing&&c.leasingSurcharge?` <span style="font-size:10px;color:#856404">+${c.leasingSurcharge}%</span>`:''}`
+      : '—';
     return `<tr>
-      <td><strong>${c.name}</strong></td>
+      <td><strong>${c.name}</strong><br>${typeBadge}</td>
       <td style="font-size:12px">${c.phone || '—'}</td>
       <td style="font-size:12px">${c.email || '—'}</td>
-      <td>${pl ? `<span class="badge b-individual">${pl.id} ${pl.name}</span>` : '—'}</td>
+      <td>${plCell}</td>
       <td style="font-size:12px">${c.payMethod || '—'}</td>
       <td style="text-align:center">${oCount}</td>
       <td><div class="table-actions">
@@ -401,6 +413,11 @@ function renderPLCompare() {
 }
 
 /* ══ CUSTOMER MODAL ══ */
+function toggleLeasingFields() {
+  const isLeasing = document.getElementById('cm-type')?.value === 'leasing';
+  const sg = document.getElementById('cm-surcharge-group');
+  if (sg) sg.style.display = isLeasing ? '' : 'none';
+}
 function openCustomerModal() {
   document.getElementById('cust-modal-title').textContent = 'Add Customer';
   document.getElementById('cm-del-btn').style.display = 'none';
@@ -408,6 +425,9 @@ function openCustomerModal() {
     const el = document.getElementById(id); if (el) el.value = '';
   });
   document.getElementById('cm-pricelist').value = '';
+  const typeEl = document.getElementById('cm-type'); if (typeEl) typeEl.value = 'cleaning';
+  const srcEl = document.getElementById('cm-surcharge'); if (srcEl) srcEl.value = '';
+  toggleLeasingFields();
   openModal('custModal');
 }
 function editCustomer(id) {
@@ -420,6 +440,9 @@ function editCustomer(id) {
     const el = document.getElementById('cm-' + f); if (el) el.value = c[f] || '';
   });
   document.getElementById('cm-pricelist').value = c.pricelistId || '';
+  const typeEl = document.getElementById('cm-type'); if (typeEl) typeEl.value = c.customerType || 'cleaning';
+  const srcEl = document.getElementById('cm-surcharge'); if (srcEl) srcEl.value = c.leasingSurcharge != null ? c.leasingSurcharge : '';
+  toggleLeasingFields();
   const pmEl = document.getElementById('cm-payMethod'); if(pmEl) pmEl.value = c.payMethod || '';
   const fbEl = document.getElementById('cm-forwardBalance'); if(fbEl) fbEl.value = c.forwardBalance || '';
   openModal('custModal');
@@ -433,6 +456,9 @@ async function saveCustomer() {
     record[f] = document.getElementById('cm-' + f)?.value || '';
   });
   record.pricelistId = document.getElementById('cm-pricelist').value;
+  record.customerType = document.getElementById('cm-type')?.value || 'cleaning';
+  record.leasingSurcharge = record.customerType === 'leasing'
+    ? (parseFloat(document.getElementById('cm-surcharge')?.value) || 0) : 0;
   record.payMethod = document.getElementById('cm-payMethod')?.value || '';
   record.forwardBalance = parseFloat(document.getElementById('cm-forwardBalance')?.value) || 0;
   const existing = customers.find(c => c.id === id);
@@ -495,6 +521,7 @@ function editOrder(id) {
 }
 function updateOrderPlDisplay() {
   const plId = document.getElementById('om-pl')?.value || '';
+  const custId = document.getElementById('om-cust')?.value || '';
   const display = document.getElementById('om-pl-display');
   if (!display) return;
   if (!plId) {
@@ -502,10 +529,15 @@ function updateOrderPlDisplay() {
     return;
   }
   const pl = pricelists.find(p => p.id === plId);
+  const cust = customers.find(c => c.id === custId);
+  const surcharge = cust?.customerType === 'leasing' ? (parseFloat(cust.leasingSurcharge) || 0) : 0;
+  const surchargeTag = surcharge > 0
+    ? `<span style="background:#fef3cd;color:#856404;border-radius:4px;padding:2px 8px;font-size:11px;font-weight:600;margin-left:8px">🏷 +${surcharge}% leasing</span>`
+    : '';
   if (pl) {
-    display.innerHTML = `<span style="font-weight:600;color:var(--teal)">${pl.id}</span><span style="color:var(--text-muted);margin:0 6px">—</span><span>${pl.name}</span>`;
+    display.innerHTML = `<span style="font-weight:600;color:var(--teal)">${pl.id}</span><span style="color:var(--text-muted);margin:0 6px">—</span><span>${pl.name}</span>${surchargeTag}`;
   } else {
-    display.innerHTML = `<span style="color:var(--text-muted)">${plId}</span>`;
+    display.innerHTML = `<span style="color:var(--text-muted)">${plId}</span>${surchargeTag}`;
   }
 }
 function onOrderCustChange() {
@@ -521,22 +553,29 @@ function renderOrderItems(savedItems = {}) {
   const pl = pricelists.find(p => p.id === plId);
   const tbody = document.getElementById('om-items-tbody');
   if (!pl) {
-    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;padding:20px;color:var(--text-muted)">Select a pricelist to enter items</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;padding:20px;color:var(--text-muted)">Select a customer to load items</td></tr>`;
     document.getElementById('om-grand-total').textContent = '€0.00';
     return;
   }
+  const custId = document.getElementById('om-cust')?.value || '';
+  const cust = customers.find(c => c.id === custId);
+  const surcharge = cust?.customerType === 'leasing' ? (parseFloat(cust.leasingSurcharge) || 0) / 100 : 0;
   tbody.innerHTML = ITEMS.map(item => {
-    const price = pl.prices[item.code] || 0;
+    const basePrice = pl.prices[item.code] || 0;
+    const price = parseFloat((basePrice * (1 + surcharge)).toFixed(4));
     const savedQty = savedItems[item.code] || '';
-    const rowStyle = price > 0 ? '' : 'opacity:.35';
+    const rowStyle = basePrice > 0 ? '' : 'opacity:.35';
+    const priceLabel = basePrice > 0
+      ? (surcharge > 0 ? `<span style="text-decoration:line-through;color:#bbb;font-size:11px">${eur(basePrice)}</span> ${eur(price)}` : eur(price))
+      : '—';
     return `<tr style="${rowStyle}">
       <td>${iname(item)}</td>
       <td style="text-align:center">
         <input type="number" min="0" step="1" value="${savedQty}" data-code="${item.code}" data-price="${price}"
           oninput="updateOrderTotal()" style="width:70px;text-align:center"
-          ${price === 0 ? 'disabled' : ''}>
+          ${basePrice === 0 ? 'disabled' : ''}>
       </td>
-      <td style="text-align:right;color:var(--text-muted)">${price > 0 ? eur(price) : '—'}</td>
+      <td style="text-align:right;color:var(--text-muted)">${priceLabel}</td>
       <td style="text-align:right;font-weight:600;color:var(--teal)" id="sub-${item.code}">—</td>
     </tr>`;
   }).join('');
@@ -717,6 +756,7 @@ function confirmDeleteReceipt(id) {
     async () => {
       receipts = receipts.filter(x => x.id !== id);
       await SyncStore.deleteOne('zesty_laundry_receipts', 'laundry_receipts', id, receipts);
+      closeModal('receiptModal');
       renderReceipts();
       renderDashboard();
       showToast('Receipt deleted', 'error');
@@ -855,22 +895,6 @@ function editReceipt(id) {
   openReceiptModal(id);
 }
 
-function confirmDeleteReceipt(id) {
-  const r = receipts.find(x => x.id === id);
-  const label = r ? (r.receiptId || id) + ' — €' + (r.grossAmount || 0) : id;
-  showConfirm('\uD83D\uDDD1', 'Delete Receipt?',
-    'Delete ' + label + '? This cannot be undone.',
-    'btn-danger', 'Delete',
-    async () => {
-      receipts = receipts.filter(x => x.id !== id);
-      await SyncStore.saveAll('zesty_laundry_receipts', 'laundry_receipts', receipts);
-      closeModal('receiptModal');
-      renderReceipts();
-      renderDashboard();
-      showToast('Receipt deleted', 'error');
-    }
-  );
-}
 
 function openReceiptModal(id) {
   const isEdit = !!id;

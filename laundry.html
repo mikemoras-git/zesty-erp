@@ -223,7 +223,21 @@
         <div class="form-group"><label>Phone</label><input id="cm-phone" type="tel" placeholder="+30 69..."></div>
         <div class="form-group"><label>Email</label><input id="cm-email" type="email" placeholder="email@example.com"></div>
         <div class="form-group"><label>Contact Person</label><input id="cm-contact" placeholder="Contact name"></div>
-        <div class="form-group"><label>Default Pricelist</label><select id="cm-pricelist"><option value="">— Select —</option></select></div>
+        <div class="form-group">
+          <label>Customer Type</label>
+          <select id="cm-type" onchange="toggleLeasingFields()">
+            <option value="cleaning">🧺 Cleaning (service)</option>
+            <option value="leasing">🏷 Leasing (linen rental)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Default Pricelist</label>
+          <select id="cm-pricelist"><option value="">— Select —</option></select>
+        </div>
+        <div class="form-group" id="cm-surcharge-group" style="display:none">
+          <label>Leasing Surcharge (%)</label>
+          <input type="number" id="cm-surcharge" min="0" max="100" step="1" placeholder="e.g. 25" title="Applied on top of the pricelist prices">
+        </div>
         <div class="form-group form-span-2"><label>Address</label><input id="cm-address" placeholder="Address"></div>
         <div class="form-group"><label>Tax Number</label><input id="cm-tax" placeholder="AFM"></div>
         <div class="form-group"><label>Forward Balance (€)</label>
