@@ -159,8 +159,8 @@ function generateOwner(){
       netInc=parseFloat((rec-zesty).toFixed(2));
     } else {
       const roomRates=parseFloat(r.RoomRatesTotal||r.TotalAmount||0);
-      const promotions=parseFloat(r.PromotionsTotal||0);
-      rent=parseFloat((roomRates-promotions).toFixed(2));
+      const promotions=parseFloat(r.PromotionsTotal||0); // Lodgify exports discounts as negative values
+      rent=parseFloat((roomRates+promotions).toFixed(2)); // add (not subtract) since promotions are already negative
       taxesFees=parseFloat(((parseFloat(r.FeesTotal||0))+(parseFloat(r.TaxesTotal||0))).toFixed(2));
       const otaBase=Math.max(0,rent-taxesFees);const otaRate=getCommRate(prop,r.Source);
       ota=parseFloat((otaBase*otaRate/100).toFixed(2));
