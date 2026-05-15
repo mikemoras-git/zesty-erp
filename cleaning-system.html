@@ -91,7 +91,8 @@ tr:hover td { background: #f5faf9; }
 .cleaner-avatar { width: 34px; height: 34px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-weight: 600; font-size: 13px; color: white; flex-shrink: 0; }
 
 /* CALENDAR */
-.calendar-wrap { background: white; border-radius: 12px; box-shadow: var(--shadow); overflow: hidden; }
+.calendar-wrap { background: white; border-radius: 12px; box-shadow: var(--shadow); overflow-x: auto; overflow-y: hidden; min-width: 0; }
+.calendar-wrap > * { min-width: 700px; }
 .cal-header { background: var(--teal-dark); color: white; padding: 16px 20px; display: flex; align-items: center; justify-content: space-between; }
 .cal-header h3 { font-family: 'Cormorant Garamond', serif; font-size: 20px; font-weight: 500; }
 .cal-nav { display: flex; gap: 8px; align-items: center; }
@@ -593,7 +594,6 @@ body.erp-layout {
       <button onclick="printWeeklySchedule()" style="padding:8px 16px;background:#115950;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif">📅 Weekly Print</button>
       <button class="btn btn-outline no-print" onclick="printManagerSummary()" style="background:#1a7a6e;color:#fff;border-color:#1a7a6e">📋 Manager PDF</button>
       <button class="btn btn-outline no-print" onclick="exportManagerExcel()" style="background:#217346;color:#fff;border-color:#217346">📊 Manager Excel</button>
-      <button class="btn btn-outline btn-sm no-print" onclick="removeNoFeeJobs()" style="background:#c0392b;color:#fff;border-color:#c0392b;margin-left:8px" title="Remove jobs for properties with no cleaning fee">🗑 Remove No-Fee Props</button>
       <button class="btn btn-teal no-print" onclick="exportScheduleCSV()">⬇ Export CSV</button>
     </div>
   </div>

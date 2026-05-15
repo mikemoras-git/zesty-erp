@@ -1108,25 +1108,25 @@ async function confirmImport() {
   } catch(e) { /* use existing cache */ }
   
   const activeRows = importPreviewData.filter(r => r.Status === 'Booked');
-  // Cancelled bookings that have existing jobs \u2014 remove them
-  // All non-Booked statuses: Declined, Cancelled, Open enquiries - remove their jobs
-  const cancelledIds = new Set(
-    importPreviewData.filter(r => r.Status !== 'Booked')
-      .map(r => r.Id)
-  );
-  const jobsToDelete = cleaningJobs.filter(j => j.bookingId && cancelledIds.has(j.bookingId));
-  const existingBookingIds = new Set(cleaningJobs.map(j => j.bookingId));
+  // IDs of ALL currently-Booked bookings in this CSV
+  const bookedIds = new Set(activeRows.map(r => r.Id));
+  // Remove jobs for ANY booking not currently Booked:
+  //   - declined/cancelled (in CSV with non-Booked status)
+  //   - deleted from Lodgify entirely (not in CSV at all)
+  // Manual jobs (no bookingId) are never touched.
+  const jobsToDelete = cleaningJobs.filter(j => j.bookingId && !bookedIds.has(j.bookingId));
+  const existingBookingIds = new Set(cleaningJobs.filter(j => j.bookingId).map(j => j.bookingId));
   const newRows = activeRows.filter(r => !existingBookingIds.has(r.Id));
   const updateRows = activeRows.filter(r => existingBookingIds.has(r.Id));
-  const cancelMsg = jobsToDelete.length > 0 ? ` ${jobsToDelete.length} cancelled jobs will be removed.` : '';
+  const cleanMsg = jobsToDelete.length > 0 ? ` ${jobsToDelete.length} stale/cancelled jobs will be removed.` : '';
   showConfirm('\u{1F4E5}', 'Import Bookings?',
-    `${newRows.length} new bookings will get cleaning jobs. ${updateRows.length} existing will be updated.${cancelMsg}`,
+    `${newRows.length} new bookings \u00b7 ${updateRows.length} updates.${cleanMsg}`,
     'btn-primary', 'Import',
     async () => {
       let created = 0;
       let updated = 0;
       let deleted = 0;
-      // Delete jobs for cancelled bookings (memory + Supabase)
+      // Delete all stale jobs (cancelled, declined, or deleted from Lodgify)
       if (jobsToDelete.length > 0) {
         const delIds = new Set(jobsToDelete.map(j => j.id));
         cleaningJobs = cleaningJobs.filter(j => !delIds.has(j.id));
@@ -1138,48 +1138,50 @@ async function confirmImport() {
       // Process all active rows: create for new, update for existing
       const allRows = [...newRows, ...updateRows];
       allRows.forEach(r => {
-        const propName = r.HouseInternalName || r.HouseName;
+        // Use HouseInternalName if it has a real value, otherwise fall back to HouseName
+        const propName = (r.HouseInternalName && r.HouseInternalName.trim() && r.HouseInternalName !== 'N/A')
+          ? r.HouseInternalName : r.HouseName;
         const propId = r.House_Id;
-        // Item 3: ONLY import properties with cleaningFee > 0
+        // Only import properties that have a cleaning fee set
         if (!getPropertyHasCleaning(propId || propName)) return;
         const nights = parseInt(r.Nights) || 0;
         const checkoutDate = r.DateDeparture;
         const bookingId = r.Id;
         const cleanType = getPropertyCleanType(propId || propName);
         const zone = getPropertyZone(propId || propName);
-
-        // Checkout clean
-        const checkoutJobId = `job_${bookingId}_checkout`;
-        const existingCheckout = cleaningJobs.findIndex(j => j.id === checkoutJobId);
         const propTransport = getPropertyTransport(propId || propName);
-        const propHasCleaning = getPropertyHasCleaning(propId || propName);
-        if (!propHasCleaning) return; // Skip properties not managed for cleaning
+
+        // \u2500\u2500 Checkout clean \u2500\u2500
+        const checkoutJobId = `job_${bookingId}_checkout`;
+        const existingCheckoutIdx = cleaningJobs.findIndex(j => j.id === checkoutJobId);
         const checkoutJob = { id: checkoutJobId, bookingId, propertyName: propName, propertyId: propId, date: checkoutDate, type: 'checkout', nights, zone, cleanerIds: [], hours: null, propertyTransport: propTransport, notes: '', source: r.Source, guestName: r.Name, guests: parseInt(r.People||r.Guests||0)||null, adults: parseInt(r.Adults||0)||null, children: parseInt(r.Children||0)||null, infants: parseInt(r.Infants||0)||null };
-        if (existingCheckout >= 0) {
-          // Preserve manually assigned cleaners, hours, and notes \u2014 only update scheduling data
-          const existing = cleaningJobs[existingCheckout];
-          cleaningJobs[existingCheckout] = {
+        if (existingCheckoutIdx >= 0) {
+          // Manual edits are the master \u2014 preserve cleaners/hours/notes set by user
+          const existing = cleaningJobs[existingCheckoutIdx];
+          cleaningJobs[existingCheckoutIdx] = {
             ...existing,
-            ...checkoutJob,
+            ...checkoutJob, // update scheduling fields (date, nights, guest, etc.)
             cleanerIds: existing.cleanerIds?.length ? existing.cleanerIds : checkoutJob.cleanerIds,
             hours: existing.hours !== null ? existing.hours : checkoutJob.hours,
             notes: existing.notes || checkoutJob.notes,
           };
           updated++;
+        } else {
+          cleaningJobs.push(checkoutJob); created++;
         }
-        else { cleaningJobs.push(checkoutJob); created++; }
 
-        // Mid-stay cleans
+        // \u2500\u2500 Mid-stay cleans \u2500\u2500
         const midDays = getCleanDays(cleanType, nights);
         midDays.forEach((day, idx) => {
           const cleanDate = new Date(r.DateArrival);
           cleanDate.setDate(cleanDate.getDate() + day);
           const midJobId = `job_${bookingId}_mid_${idx}`;
-          const existing = cleaningJobs.findIndex(j => j.id === midJobId);
+          const existingIdx = cleaningJobs.findIndex(j => j.id === midJobId);
           const midJob = { id: midJobId, bookingId, propertyName: propName, propertyId: propId, date: cleanDate.toISOString().slice(0,10), type: 'midstay', nights, zone, cleanerIds: [], hours: null, propertyTransport: propTransport, notes: '', source: r.Source, guestName: r.Name, midStayDay: day, guests: parseInt(r.People||r.Guests||0)||null, adults: parseInt(r.Adults||0)||null, children: parseInt(r.Children||0)||null, infants: parseInt(r.Infants||0)||null };
-          if (existing >= 0) {
-            const existingMid = cleaningJobs[existing];
-            cleaningJobs[existing] = {
+          if (existingIdx >= 0) {
+            // Manual edits are the master
+            const existingMid = cleaningJobs[existingIdx];
+            cleaningJobs[existingIdx] = {
               ...existingMid,
               ...midJob,
               cleanerIds: existingMid.cleanerIds?.length ? existingMid.cleanerIds : midJob.cleanerIds,
@@ -1187,9 +1189,17 @@ async function confirmImport() {
               notes: existingMid.notes || midJob.notes,
             };
             updated++;
+          } else {
+            cleaningJobs.push(midJob); created++;
           }
-          else { cleaningJobs.push(midJob); created++; }
         });
+        // Remove stale mid-stay jobs for this booking if stay was shortened
+        // (e.g., was 14 nights \u2192 7 nights: old mid_1, mid_2 become orphans)
+        const validMidIds = new Set(midDays.map((_, i) => `job_${bookingId}_mid_${i}`));
+        const staleMids = cleaningJobs.filter(j =>
+          j.bookingId === bookingId && j.type === 'midstay' && !validMidIds.has(j.id)
+        );
+        staleMids.forEach(j => { cleaningJobs = cleaningJobs.filter(x => x.id !== j.id); deleted++; });
       });
 
       // Add to history
@@ -2131,33 +2141,6 @@ function showConfirm(icon, title, msg, btnClass, btnLabel, onConfirm) {
   openModal('confirmOverlay');
 }
 
-// ── Remove no-fee jobs ────────────────────────────────────────────────────
-async function removeNoFeeJobs() {
-  try {
-    const freshProps = await SyncStore.load('zesty_properties', 'properties');
-    if (freshProps.data && freshProps.data.length > 0) window._propCache = freshProps.data;
-  } catch(e) {}
-  const toRemove = cleaningJobs.filter(j => {
-    if (!j.propertyName && !j.propertyId) return false;
-    return !getPropertyHasCleaning(j.propertyId || j.propertyName);
-  });
-  if (!toRemove.length) { showToast('No jobs found for no-fee properties', 'success'); return; }
-  const propNames = [...new Set(toRemove.map(j => j.propertyName))].sort().join(', ');
-  showConfirm('🗑️', 'Remove No-Fee Property Jobs?',
-    'Remove ' + toRemove.length + ' jobs for: ' + propNames + '?',
-    'btn-danger', 'Remove All',
-    async () => {
-      const removeIds = new Set(toRemove.map(j => j.id));
-      cleaningJobs = cleaningJobs.filter(j => !removeIds.has(j.id));
-      for (const j of toRemove) {
-        await SyncStore.deleteOne('zesty_cleaning_jobs', 'cleaning_jobs', j.id, cleaningJobs);
-      }
-      localStorage.setItem('zesty_cleaning_jobs', JSON.stringify(cleaningJobs));
-      renderCalendar(); renderJobs(); updateJobStats();
-      showToast('✓ Removed ' + toRemove.length + ' jobs', 'success');
-    }
-  );
-}
 
 // ── Hours print & export ──────────────────────────────────────────────────
 function printHoursSheet() {
