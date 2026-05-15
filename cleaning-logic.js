@@ -8,6 +8,8 @@ let currentCalMonth;
 let jobPage = 1;
 const JOB_PAGE_SIZE = 20;
 let jobSortDir = -1;
+// Finalized (locked) months — persisted in localStorage + Supabase meta record
+window._finalizedMonths = new Set(JSON.parse(localStorage.getItem('zesty_finalized_months') || '[]'));
 let confirmCb = null;
 
 // Cleaner colors
@@ -126,7 +128,11 @@ async function init() {
   const _j = SyncStore._getLocal('zesty_cleaning_jobs');
   const _h = JSON.parse(localStorage.getItem('zesty_import_history') || '[]');
   if (_s.length) staff = _s;
-  if (_j.length) cleaningJobs = _j;
+  if (_j.length) {
+    const _metaFin = _j.find(r => r.id === '_meta_finalized');
+    if (_metaFin?.months) window._finalizedMonths = new Set(_metaFin.months);
+    cleaningJobs = _j.filter(r => !r.id?.startsWith('_meta_'));
+  }
   if (_h.length) importHistory = _h;
 
   const now = new Date();
@@ -169,7 +175,9 @@ async function init() {
 
   // 30-second poll for all cleaning data
   startPoll('cleaning_jobs', 'zesty_cleaning_jobs', 30000, (rows) => {
-    cleaningJobs = rows;
+    const _metaFin = rows.find(r => r.id === '_meta_finalized');
+    if (_metaFin?.months) window._finalizedMonths = new Set(_metaFin.months);
+    cleaningJobs = rows.filter(r => !r.id?.startsWith('_meta_'));
     renderCalendar(); renderJobs(); updateJobStats();
   });
   startPoll('cleaning_staff', 'zesty_staff', 30000, (rows) => {
@@ -216,7 +224,12 @@ async function syncCleaningData() {
     // Only update if Supabase returned actual data (not just empty from failed request)
     if (!rs.fromCache && rs.data && rs.data.length > 0) { staff = rs.data; changed = true; }
     else if (!rs.fromCache && rs.data && rs.data.length === 0 && staff.length === 0) { staff = []; }
-    if (!rj.fromCache && rj.data) { cleaningJobs = rj.data; changed = true; }
+    if (!rj.fromCache && rj.data) {
+      const _metaFin = rj.data.find(r => r.id === '_meta_finalized');
+      if (_metaFin?.months) window._finalizedMonths = new Set(_metaFin.months);
+      cleaningJobs = rj.data.filter(r => !r.id?.startsWith('_meta_'));
+      changed = true;
+    }
     if (changed) {
       renderStaff(); renderCalendar(); renderJobs(); renderImportHistory();
       updateStaffDropdowns(); updateStaffStats(); updateJobStats();
@@ -698,6 +711,34 @@ function renderHoursSheet() {
   }
   const [yr, mo] = monthVal.split('-');
   const monthName = new Date(yr, parseInt(mo)-1, 1).toLocaleDateString('en-GB',{month:'long',year:'numeric'});
+  const isLocked = window._finalizedMonths?.has(monthVal);
+
+  // Update lock banner
+  const banner = document.getElementById('hoursLockBanner');
+  if (banner) {
+    if (isLocked) {
+      banner.innerHTML = `<span style="font-size:18px">🔒</span> <strong>${monthName}</strong> is finalized and locked.
+        <button onclick="unfinalizeMonth()" style="margin-left:14px;padding:4px 14px;border-radius:8px;border:1px solid rgba(255,255,255,.5);background:rgba(255,255,255,.15);color:#fff;cursor:pointer;font-size:12px;font-weight:600">🔓 Unlock</button>`;
+      banner.style.display = 'flex';
+    } else {
+      banner.style.display = 'none';
+    }
+  }
+
+  // Update toolbar button states
+  const btnSave = document.getElementById('hoursBtnSave');
+  const btnAdd = document.getElementById('hoursBtnAdd');
+  const btnFinalize = document.getElementById('hoursBtnFinalize');
+  if (btnSave) btnSave.style.display = isLocked ? 'none' : '';
+  if (btnAdd) btnAdd.style.display = isLocked ? 'none' : '';
+  if (btnFinalize) {
+    btnFinalize.textContent = isLocked ? '🔓 Unlock Month' : '🔒 Finalize Month';
+    btnFinalize.onclick = isLocked ? unfinalizeMonth : finalizeMonth;
+    btnFinalize.style.background = isLocked ? '#fdf6e3' : '#eafaf1';
+    btnFinalize.style.color = isLocked ? '#8e6b23' : '#1a7a4a';
+    btnFinalize.style.borderColor = isLocked ? '#f0c040' : '#27ae60';
+  }
+
   const titleEl = document.getElementById('hoursTableTitle');
   if (titleEl) titleEl.textContent = 'Hours Sheet — ' + monthName;
 
@@ -781,16 +822,16 @@ function renderHoursSheet() {
         staffTotals[s.id].transport += transportPay;
       }
       // Checkbox shows staff's own transport cost; tooltip shows what gets charged to owner
-      const transportCheckbox = hasTransport
+      const transportCheckbox = (!isLocked && hasTransport)
         ? `<div style="font-size:10px;color:var(--teal);margin-top:2px;white-space:nowrap;text-align:center" title="Staff cost: €${staffTransportCost} | Owner charge: €${jobTransportFee}">
             <input type="checkbox" ${transportTicked?'checked':''} data-jobid="${j.id}" data-staffid="${s.id}" onchange="onTransportChange(this)" style="margin-right:2px;cursor:pointer">🚗${staffTransportCost>0?'€'+staffTransportCost:''}
            </div>`
-        : '';
+        : (isLocked && hasTransport && transportTicked ? `<div style="font-size:10px;color:var(--teal);margin-top:2px;text-align:center">🚗${staffTransportCost>0?'€'+staffTransportCost:''}</div>` : '');
       return `<td style="text-align:center;padding:4px">
         <input type="number" min="0" max="24" step="0.5" value="${hrs}"
           data-jobid="${j.id}" data-staffid="${s.id}"
-          onchange="onHoursChange(this)"
-          style="width:58px;padding:5px;border:1px solid var(--border);border-radius:6px;text-align:center;font-size:13px;background:${hrsNum>0?'#e0f5f1':'#fff'}">
+          ${isLocked ? 'disabled' : 'onchange="onHoursChange(this)"'}
+          style="width:58px;padding:5px;border:1px solid var(--border);border-radius:6px;text-align:center;font-size:13px;background:${hrsNum>0?'#e0f5f1':'#fff'};${isLocked?'opacity:.75;cursor:not-allowed':''}">
         ${transportCheckbox}
       </td>`;
     }).join('');
@@ -816,7 +857,8 @@ function renderHoursSheet() {
       <td style="text-align:right;font-size:12px;font-weight:600;color:${rowCharge>0&&rowCharge>=rowPay?'var(--teal-dark)':'var(--danger)'}">${rowCharge>0?fmtAmt(rowCharge):'—'}</td>
       <td style="font-size:11px;color:var(--text-muted)">${j.notes||''}</td>
       <td style="text-align:center;padding:4px">
-        <button onclick="editManualHoursJob('${j.id}')" title="Edit" style="background:none;border:none;cursor:pointer;font-size:14px;padding:2px 5px;border-radius:6px" onmouseenter="this.style.background='#f0f0f0'" onmouseleave="this.style.background='none'">✏️</button>
+        ${isLocked ? '<span style="font-size:14px;opacity:.4">🔒</span>' :
+          `<button onclick="editManualHoursJob('${j.id}')" title="Edit" style="background:none;border:none;cursor:pointer;font-size:14px;padding:2px 5px;border-radius:6px" onmouseenter="this.style.background='#f0f0f0'" onmouseleave="this.style.background='none'">✏️</button>`}
       </td>
     </tr>`;
   }).join('');
@@ -878,17 +920,86 @@ function onTransportChange(checkbox) {
 }
 
 async function saveHoursSheet() {
-  const msg = document.getElementById('hoursSavedMsg');
-  if (msg) msg.textContent = 'Saving…';
-  await SyncStore.saveAll('zesty_cleaning_jobs', 'cleaning_jobs', cleaningJobs);
-  if (msg) {
-    msg.textContent = '✓ Saved ' + new Date().toLocaleTimeString('en-GB');
-    setTimeout(()=>{ if(msg) msg.textContent=''; }, 3000);
+  const monthVal = document.getElementById('hoursMonth')?.value || '';
+  if (window._finalizedMonths?.has(monthVal)) {
+    showToast('🔒 Month is locked — unlock to edit', 'error'); return;
   }
-  showToast('✓ Hours saved', 'success');
+  const msg = document.getElementById('hoursSavedMsg');
+  if (msg) { msg.textContent = 'Saving…'; msg.style.color = 'var(--text-muted)'; }
+  // Save only jobs for the current month (fast individual upserts, each protected by _pendingInserts)
+  const jobsToSave = monthVal
+    ? cleaningJobs.filter(j => j.date && j.date.startsWith(monthVal))
+    : cleaningJobs;
+  if (!jobsToSave.length) { if (msg) msg.textContent = ''; return; }
+  // Write full array to localStorage once up-front
+  localStorage.setItem('zesty_cleaning_jobs', JSON.stringify(cleaningJobs));
+  // Fire all saves concurrently — each job is added to _pendingInserts so poll won't overwrite it
+  const results = await Promise.all(
+    jobsToSave.map(job => SyncStore.saveOne('zesty_cleaning_jobs', 'cleaning_jobs', job, cleaningJobs))
+  );
+  const allOk = results.every(r => r.ok);
+  if (msg) {
+    msg.textContent = allOk ? '✓ Saved ' + new Date().toLocaleTimeString('en-GB') : '⚠ Some saves failed';
+    msg.style.color = allOk ? '#27ae60' : '#e74c3c';
+    setTimeout(() => { if (msg) msg.textContent = ''; }, 4000);
+  }
+  if (allOk) showToast('✓ Hours saved', 'success');
+}
+
+// ── Finalize Month (lock/unlock) ──────────────────────────────────────────────
+async function saveFinalizedMonths() {
+  const months = [...window._finalizedMonths];
+  localStorage.setItem('zesty_finalized_months', JSON.stringify(months));
+  // Persist to Supabase as a meta record in cleaning_jobs table
+  await DB.upsertOne('cleaning_jobs', { id: '_meta_finalized', _isMeta: true, months });
+}
+
+async function finalizeMonth() {
+  const monthVal = document.getElementById('hoursMonth')?.value;
+  if (!monthVal) { showToast('Select a month first', 'error'); return; }
+  if (window._finalizedMonths?.has(monthVal)) { showToast('Month already locked', 'info'); return; }
+  const [yr, mo] = monthVal.split('-');
+  const monthName = new Date(yr, parseInt(mo)-1, 1).toLocaleDateString('en-GB', {month:'long', year:'numeric'});
+  showConfirm('🔒', 'Finalize ' + monthName + '?',
+    'All jobs for this month will be saved and locked from further editing. You can unlock later if needed.',
+    'btn-primary', 'Finalize & Lock', async () => {
+      const msg = document.getElementById('hoursSavedMsg');
+      if (msg) { msg.textContent = 'Saving & locking…'; msg.style.color = 'var(--text-muted)'; }
+      const jobsToSave = cleaningJobs.filter(j => j.date && j.date.startsWith(monthVal));
+      if (jobsToSave.length) {
+        localStorage.setItem('zesty_cleaning_jobs', JSON.stringify(cleaningJobs));
+        await Promise.all(jobsToSave.map(job =>
+          SyncStore.saveOne('zesty_cleaning_jobs', 'cleaning_jobs', job, cleaningJobs)
+        ));
+      }
+      window._finalizedMonths.add(monthVal);
+      await saveFinalizedMonths();
+      renderHoursSheet();
+      showToast('🔒 ' + monthName + ' is now locked', 'success');
+      if (msg) msg.textContent = '';
+    }
+  );
+}
+
+async function unfinalizeMonth() {
+  const monthVal = document.getElementById('hoursMonth')?.value;
+  if (!monthVal || !window._finalizedMonths?.has(monthVal)) return;
+  const [yr, mo] = monthVal.split('-');
+  const monthName = new Date(yr, parseInt(mo)-1, 1).toLocaleDateString('en-GB', {month:'long', year:'numeric'});
+  showConfirm('🔓', 'Unlock ' + monthName + '?',
+    'This will allow editing of hours for this month again.',
+    'btn-outline', 'Unlock', async () => {
+      window._finalizedMonths.delete(monthVal);
+      await saveFinalizedMonths();
+      renderHoursSheet();
+      showToast('🔓 ' + monthName + ' unlocked', 'success');
+    }
+  );
 }
 
 function addManualHoursJob() {
+  const _mv = document.getElementById('hoursMonth')?.value || '';
+  if (window._finalizedMonths?.has(_mv)) { showToast('🔒 Month is locked — unlock to add jobs', 'error'); return; }
   // Populate property dropdown
   const propSel = document.getElementById('mj-property');
   if (propSel) {

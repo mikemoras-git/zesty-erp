@@ -897,12 +897,16 @@ body.erp-layout {
   <div class="toolbar" style="flex-wrap:wrap;gap:10px">
     <input type="month" id="hoursMonth" onchange="renderHoursSheet()">
     <select id="hoursPropFilter" onchange="renderHoursSheet()"><option value="">All Properties</option></select>
-    <button class="btn btn-primary btn-sm" onclick="saveHoursSheet()">💾 Save Sheet</button>
+    <button id="hoursBtnSave" class="btn btn-primary btn-sm" onclick="saveHoursSheet()">💾 Save Sheet</button>
     <button class="btn btn-print btn-sm no-print" onclick="printHoursSheet()">🖨 Print</button>
     <button class="btn btn-outline btn-sm" onclick="exportHoursCSV()">⬇ Export CSV</button>
-    <button class="btn btn-outline btn-sm" onclick="addManualHoursJob()" style="background:#fdf6e3;color:#8e6b23;border-color:#f0c040">＋ Add Job</button>
+    <button id="hoursBtnAdd" class="btn btn-outline btn-sm" onclick="addManualHoursJob()" style="background:#fdf6e3;color:#8e6b23;border-color:#f0c040">＋ Add Job</button>
+    <button id="hoursBtnFinalize" class="btn btn-outline btn-sm" onclick="finalizeMonth()" style="background:#eafaf1;color:#1a7a4a;border-color:#27ae60">🔒 Finalize Month</button>
     <div style="margin-left:auto;font-size:12px;color:var(--text-muted)" id="hoursSavedMsg"></div>
   </div>
+
+  <!-- Lock banner (shown when month is finalized) -->
+  <div id="hoursLockBanner" style="display:none;align-items:center;gap:8px;background:linear-gradient(90deg,#115950,#27ae60);color:#fff;padding:10px 18px;border-radius:10px;margin-bottom:14px;font-size:14px;font-weight:500"></div>
 
   <!-- Summary cards -->
   <div class="stats-bar" style="margin-bottom:18px">
