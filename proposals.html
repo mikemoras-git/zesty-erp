@@ -1090,6 +1090,32 @@ async function exportDocx() {
   }
 }
 
+function buildLaundryAnnexRows(p, isEl, para, teal, grey, allBorders, ShadingType, WidthType, AlignmentType, Paragraph, TextRun, Table, TableRow, TableCell) {
+  var plId = p.laundryPricelistId;
+  if (!plId) return [para(isEl ? 'Δεν έχει επιλεγεί τιμοκατάλογος.' : 'No pricelist selected for this proposal.', { italics: true, color: grey })];
+  var pls = getLaundryPricelists();
+  var pl = pls.find(function(x){ return x.id === plId; });
+  if (!pl || !pl.prices) return [para('Pricelist not found.', { italics: true, color: grey })];
+  var priceItems = LAUNDRY_ITEMS.filter(function(i){ return pl.prices[i.code] !== undefined; });
+  if (!priceItems.length) return [];
+  var plLabel = pl.nameEn ? (pl.id + ' — ' + pl.nameEn + ' (' + pl.name + ')') : (pl.id + ' — ' + pl.name);
+  var headerRow = new TableRow({ tableHeader: true, children: [
+    new TableCell({ width:{size:7200,type:WidthType.DXA}, shading:{fill:teal,type:ShadingType.CLEAR}, borders:allBorders(teal), margins:{top:70,bottom:70,left:120,right:120}, children:[new Paragraph({children:[new TextRun({text:isEl?'Είδος':'Item',font:'Calibri',size:20,bold:true,color:'FFFFFF'})]})] }),
+    new TableCell({ width:{size:2160,type:WidthType.DXA}, shading:{fill:teal,type:ShadingType.CLEAR}, borders:allBorders(teal), margins:{top:70,bottom:70,left:120,right:120}, children:[new Paragraph({alignment:AlignmentType.RIGHT,children:[new TextRun({text:isEl?'Τιμή (€)':'Price (€)',font:'Calibri',size:20,bold:true,color:'FFFFFF'})]})] })
+  ]});
+  var dataRows = priceItems.map(function(item, ri) {
+    var shade = ri % 2 === 1 ? {fill:'F8FAF9',type:ShadingType.CLEAR} : undefined;
+    return new TableRow({ children: [
+      new TableCell({ width:{size:7200,type:WidthType.DXA}, shading:shade, borders:allBorders('DDEEEC'), margins:{top:55,bottom:55,left:120,right:120}, children:[new Paragraph({children:[new TextRun({text:item.en,font:'Calibri',size:20})]})] }),
+      new TableCell({ width:{size:2160,type:WidthType.DXA}, shading:shade, borders:allBorders('DDEEEC'), margins:{top:55,bottom:55,left:120,right:120}, children:[new Paragraph({alignment:AlignmentType.RIGHT,children:[new TextRun({text:'€'+parseFloat(pl.prices[item.code]).toFixed(2),font:'Calibri',size:20})]})] })
+    ]});
+  });
+  return [
+    new Paragraph({ children: [new TextRun({ text: plLabel, font: 'Calibri', size: 22, bold: true, color: teal })], spacing: { before: 160, after: 160 } }),
+    new Table({ width: { size: 9360, type: WidthType.DXA }, columnWidths: [7200, 2160], rows: [headerRow].concat(dataRows) })
+  ];
+}
+
 function buildDocxDocument(p) {
   const { Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell,
           AlignmentType, HeadingLevel, BorderStyle, WidthType, ShadingType,
@@ -1314,33 +1340,7 @@ function buildDocxDocument(p) {
     new Paragraph({ children: [new docx.PageBreak()] }),
     h(isEl ? 'Annex B — Υπηρεσίες Πλυντηρίου' : 'Annex B — Laundry Services', HeadingLevel.HEADING_1),
     para(isEl ? 'Η Zesty παρέχει πλήρεις υπηρεσίες πλυντηρίου για τα λευκά του ακινήτου. Τα είδη συλλέγονται μετά από κάθε check-out και επιστρέφονται έτοιμα για την επόμενη άφιξη.' : 'Zesty provides full laundry services for property linens. Items are collected after each check-out and returned ready for the next arrival.'),
-    ...((() => {
-      const plId = p.laundryPricelistId;
-      if (!plId) return [para(isEl ? 'Δεν έχει επιλεγεί τιμοκατάλογος.' : 'No pricelist selected for this proposal.', { italics: true, color: grey })];
-      const pls = getLaundryPricelists();
-      const pl = pls.find(x => x.id === plId);
-      if (!pl || !pl.prices) return [para('Pricelist not found.', { italics: true, color: grey })];
-      const priceItems = LAUNDRY_ITEMS.filter(i => pl.prices[i.code] !== undefined);
-      if (!priceItems.length) return [];
-      const plLabel = pl.nameEn ? `${pl.id} — ${pl.nameEn} (${pl.name})` : `${pl.id} — ${pl.name}`;
-      return [
-        new Paragraph({ children: [new TextRun({ text: plLabel, font: 'Calibri', size: 22, bold: true, color: teal })], spacing: { before: 160, after: 160 } }),
-        new Table({
-          width: { size: 9360, type: WidthType.DXA },
-          columnWidths: [7200, 2160],
-          rows: [
-            new TableRow({ tableHeader: true, children: [
-              new TableCell({ width:{size:7200,type:WidthType.DXA}, shading:{fill:teal,type:ShadingType.CLEAR}, borders:allBorders(teal), margins:{top:70,bottom:70,left:120,right:120}, children:[new Paragraph({children:[new TextRun({text:isEl?'Είδος':'Item',font:'Calibri',size:20,bold:true,color:'FFFFFF'})]})] }),
-              new TableCell({ width:{size:2160,type:WidthType.DXA}, shading:{fill:teal,type:ShadingType.CLEAR}, borders:allBorders(teal), margins:{top:70,bottom:70,left:120,right:120}, children:[new Paragraph({alignment:AlignmentType.RIGHT,children:[new TextRun({text:isEl?'Τιμή (€)':'Price (€)',font:'Calibri',size:20,bold:true,color:'FFFFFF'})]})] }),
-            ]}),
-            ...priceItems.map((item, ri) => new TableRow({ children: [
-              new TableCell({ width:{size:7200,type:WidthType.DXA}, shading:ri%2===1?{fill:'F8FAF9',type:ShadingType.CLEAR}:undefined, borders:allBorders('DDEEEC'), margins:{top:55,bottom:55,left:120,right:120}, children:[new Paragraph({children:[new TextRun({text:item.en,font:'Calibri',size:20})]})] }),
-              new TableCell({ width:{size:2160,type:WidthType.DXA}, shading:ri%2===1?{fill:'F8FAF9',type:ShadingType.CLEAR}:undefined, borders:allBorders('DDEEEC'), margins:{top:55,bottom:55,left:120,right:120}, children:[new Paragraph({alignment:AlignmentType.RIGHT,children:[new TextRun({text:'€'+parseFloat(pl.prices[item.code]).toFixed(2),font:'Calibri',size:20})]})] }),
-            ]}))
-          ]
-        })
-      ];
-    })()),
+    ...buildLaundryAnnexRows(p, isEl, para, teal, grey, allBorders, ShadingType, WidthType, AlignmentType, Paragraph, TextRun, Table, TableRow, TableCell),
     sectionBreak(),
 
     // Annex C — Consumables
