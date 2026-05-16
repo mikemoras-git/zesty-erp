@@ -1,0 +1,1418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Proposals — Zesty ERP</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=DM+Sans:wght@300;400;500;600&family=DM+Mono&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:#f0f4f3;color:#1a2e2b;min-height:100vh}
+
+/* ── PAGE ── */
+.page-wrap{padding:28px 32px 60px;max-width:1200px}
+.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;gap:16px;flex-wrap:wrap}
+.page-title{font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:600;color:#0f4a42;line-height:1}
+.page-title span{color:#c9a84c}
+.page-sub{font-size:13px;color:#6b8e86;margin-top:4px;font-family:'DM Mono',monospace}
+
+/* ── BUTTONS ── */
+.btn{display:inline-flex;align-items:center;gap:7px;padding:9px 18px;border-radius:10px;border:none;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;white-space:nowrap}
+.btn-primary{background:#1a7a6e;color:#fff}
+.btn-primary:hover{background:#15695e}
+.btn-gold{background:#c9a84c;color:#0f4a42}
+.btn-gold:hover{background:#d4b460}
+.btn-ghost{background:#e8f0ee;color:#1a7a6e;border:1px solid #c8dbd8}
+.btn-ghost:hover{background:#d4e6e2}
+.btn-danger{background:#fdf0ef;color:#c0392b;border:1px solid #f5c6c2}
+.btn-danger:hover{background:#fce4e2}
+.btn-sm{padding:6px 12px;font-size:12px;border-radius:8px}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+
+/* ── STATUS BADGES ── */
+.status-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;letter-spacing:.3px;text-transform:uppercase}
+.status-draft{background:#e8f0ee;color:#4a7a70}
+.status-approved{background:#e8f4fd;color:#1a6fad}
+.status-sent{background:#fdf6e3;color:#856a1c}
+.status-agreed{background:#eafaf1;color:#1e8449}
+.status-legal{background:#f0e6ff;color:#6b2fa0}
+
+/* ── PROPOSALS LIST ── */
+.proposals-grid{display:grid;gap:14px}
+.proposal-card{background:#fff;border-radius:14px;padding:18px 22px;border:1px solid #dde8e5;box-shadow:0 2px 8px rgba(0,0,0,.04);cursor:pointer;transition:all .15s;display:grid;grid-template-columns:1fr auto;align-items:center;gap:16px}
+.proposal-card:hover{border-color:#1a7a6e;box-shadow:0 4px 18px rgba(26,122,110,.12);transform:translateY(-1px)}
+.proposal-card-main{}
+.proposal-card-owner{font-size:16px;font-weight:600;color:#0f4a42;margin-bottom:3px}
+.proposal-card-prop{font-size:13px;color:#6b8e86}
+.proposal-card-meta{font-size:11px;color:#9ab0ab;margin-top:6px;display:flex;gap:12px;align-items:center}
+.proposal-card-right{display:flex;flex-direction:column;align-items:flex-end;gap:8px}
+.proposal-card-lang{font-size:10px;font-family:'DM Mono',monospace;color:#9ab0ab;background:#f4f7f6;padding:2px 7px;border-radius:5px;text-transform:uppercase}
+.empty-state{text-align:center;padding:64px 32px;color:#9ab0ab}
+.empty-state-icon{font-size:48px;margin-bottom:16px;opacity:.5}
+.empty-state-text{font-size:15px;color:#6b8e86;margin-bottom:20px}
+
+/* ── MODAL OVERLAY ── */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:1000;align-items:flex-start;justify-content:center;padding:24px;overflow-y:auto;backdrop-filter:blur(3px)}
+.modal-overlay.open{display:flex}
+.modal-box{background:#fff;border-radius:20px;width:100%;max-width:820px;box-shadow:0 24px 80px rgba(0,0,0,.3);animation:modal-in .2s ease;margin:auto}
+@keyframes modal-in{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+.modal-head{padding:22px 28px 0;display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.modal-title{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:600;color:#0f4a42}
+.modal-close{background:none;border:none;font-size:22px;color:#9ab0ab;cursor:pointer;line-height:1;padding:0 4px;transition:color .15s}
+.modal-close:hover{color:#0f4a42}
+.modal-tabs{display:flex;gap:4px;padding:16px 28px 0;border-bottom:1px solid #e8f0ee;margin-bottom:0}
+.modal-tab{padding:8px 16px;border-radius:8px 8px 0 0;font-size:13px;font-weight:500;cursor:pointer;color:#6b8e86;border:none;background:none;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .15s}
+.modal-tab.active{color:#1a7a6e;border-bottom-color:#1a7a6e;font-weight:600}
+.modal-body{padding:24px 28px 28px;max-height:75vh;overflow-y:auto}
+
+/* ── PIPELINE BAR ── */
+.pipeline-bar{display:flex;align-items:center;gap:0;margin-bottom:24px;overflow-x:auto;padding-bottom:4px}
+.pipeline-step{display:flex;align-items:center;flex-shrink:0}
+.pipeline-node{padding:7px 14px;border-radius:20px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;background:#f0f4f3;color:#9ab0ab;border:2px solid #e0e8e5;white-space:nowrap}
+.pipeline-node.done{background:#e8f4e8;color:#1e8449;border-color:#a8dba8}
+.pipeline-node.current{background:#1a7a6e;color:#fff;border-color:#1a7a6e;box-shadow:0 2px 10px rgba(26,122,110,.35)}
+.pipeline-arrow{color:#c8dbd8;margin:0 4px;font-size:14px;flex-shrink:0}
+.pipeline-actions{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;align-items:center}
+.tbn-warning{background:#fdf6e3;border:1px solid #e8c97a;border-radius:10px;padding:10px 14px;font-size:12px;color:#856a1c;margin-bottom:16px;display:none}
+.tbn-warning.show{display:block}
+
+/* ── FORM ── */
+.form-section{margin-bottom:24px}
+.form-section-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:#9ab0ab;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.form-section-title::after{content:'';flex:1;height:1px;background:#e8f0ee}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.form-row-3{grid-template-columns:1fr 1fr 1fr}
+.form-row-1{grid-template-columns:1fr}
+.form-group{display:flex;flex-direction:column;gap:5px}
+.form-label{font-size:12px;font-weight:600;color:#4a7a70}
+.form-label-sub{font-size:10px;color:#9ab0ab;font-weight:400;margin-left:4px}
+.form-input{padding:9px 12px;border:1.5px solid #d4e0de;border-radius:9px;font-family:'DM Sans',sans-serif;font-size:13px;color:#1a2e2b;outline:none;transition:border-color .15s;background:#fff}
+.form-input:focus{border-color:#1a7a6e}
+.form-input:disabled{background:#f4f7f6;color:#9ab0ab;cursor:not-allowed}
+.form-input.tbn-active{background:#fdf6e3;border-color:#e8c97a;color:#856a1c;font-style:italic}
+.input-with-suffix{position:relative}
+.input-suffix{position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:12px;color:#9ab0ab;pointer-events:none}
+.tbn-row{display:flex;align-items:center;gap:8px;margin-top:3px}
+.tbn-check{accent-color:#c9a84c;width:14px;height:14px;cursor:pointer}
+.tbn-label{font-size:11px;color:#9ab0ab;cursor:pointer;user-select:none}
+.tbn-label.active{color:#c9a84c;font-weight:600}
+
+/* ── SUPPLY ARRANGEMENTS ── */
+.supply-table{width:100%;border-collapse:collapse;margin-top:8px}
+.supply-table th{font-size:11px;font-weight:600;color:#6b8e86;padding:6px 10px;text-align:left;border-bottom:2px solid #e8f0ee;background:#f8faf9}
+.supply-table td{padding:8px 10px;border-bottom:1px solid #f0f4f3;vertical-align:middle}
+.supply-table tr:last-child td{border-bottom:none}
+.supply-table input{width:100%;padding:6px 8px;border:1.5px solid #e0e8e5;border-radius:7px;font-size:12px;font-family:'DM Sans',sans-serif;outline:none}
+.supply-table input:focus{border-color:#1a7a6e}
+.supply-calc{font-size:12px;font-weight:600;color:#1a7a6e;min-width:60px;text-align:right}
+.supply-remove{background:none;border:none;color:#c0392b;cursor:pointer;font-size:16px;padding:0 4px;opacity:.6}
+.supply-remove:hover{opacity:1}
+.add-supply-btn{margin-top:8px}
+
+/* ── LANGUAGE SELECTOR ── */
+.lang-selector{display:flex;gap:6px;margin-bottom:20px}
+.lang-btn{padding:7px 16px;border-radius:8px;border:2px solid #e0e8e5;background:#fff;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;color:#6b8e86;display:flex;align-items:center;gap:6px}
+.lang-btn.active{border-color:#1a7a6e;background:#e8f4f0;color:#1a7a6e}
+
+/* ── VIEW MODE ── */
+.view-field{margin-bottom:14px}
+.view-field-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:#9ab0ab;margin-bottom:3px}
+.view-field-value{font-size:15px;color:#1a2e2b;font-weight:500}
+.view-field-value.tbn{color:#c9a84c;font-style:italic}
+.view-row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.view-row-3{grid-template-columns:1fr 1fr 1fr}
+
+/* ── PREVIEW ── */
+#previewDoc{font-family:'Cormorant Garamond',serif;background:#fff;padding:48px 60px;max-width:780px;margin:0 auto;box-shadow:0 4px 30px rgba(0,0,0,.12);border-radius:4px;line-height:1.6;color:#1a1a1a;font-size:14px}
+.doc-cover{text-align:center;padding:40px 0 60px;border-bottom:2px solid #c9a84c;margin-bottom:40px}
+.doc-cover-logo{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:600;color:#1a7a6e;letter-spacing:2px;margin-bottom:4px}
+.doc-cover-subtitle{font-size:12px;color:#9ab0ab;letter-spacing:3px;text-transform:uppercase;margin-bottom:32px;font-family:'DM Sans',sans-serif}
+.doc-cover-title{font-size:36px;font-weight:600;color:#0f4a42;line-height:1.2;margin-bottom:8px}
+.doc-cover-title-el{font-size:22px;color:#6b8e86;margin-bottom:32px}
+.doc-cover-owner{font-size:16px;color:#1a2e2b;margin-bottom:4px}
+.doc-cover-prop{font-size:20px;font-weight:600;color:#1a7a6e;margin-bottom:4px}
+.doc-cover-date{font-size:13px;color:#9ab0ab;font-family:'DM Sans',sans-serif;margin-top:20px}
+.doc-section{margin-bottom:32px}
+.doc-h1{font-size:20px;font-weight:600;color:#1a7a6e;border-bottom:1px solid #e0e8e5;padding-bottom:6px;margin-bottom:14px}
+.doc-h2{font-size:16px;font-weight:600;color:#0f4a42;margin-bottom:10px;margin-top:20px}
+.doc-p{margin-bottom:10px;font-size:14px;line-height:1.7;color:#2a2a2a}
+.doc-table{width:100%;border-collapse:collapse;margin-bottom:16px;font-size:13px}
+.doc-table th{background:#0f4a42;color:#fff;padding:10px 14px;text-align:left;font-family:'DM Sans',sans-serif;font-weight:600;font-size:11px;letter-spacing:.5px}
+.doc-table td{padding:9px 14px;border-bottom:1px solid #e8f0ee;color:#2a2a2a}
+.doc-table tr:nth-child(even) td{background:#f8faf9}
+.doc-table td.tbn-cell{color:#c9a84c;font-style:italic;font-weight:600}
+.doc-at-glance{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:#e0e8e5;border:1px solid #e0e8e5;border-radius:6px;overflow:hidden;margin-bottom:24px}
+.doc-glance-item{background:#fff;padding:12px 16px}
+.doc-glance-label{font-size:11px;color:#9ab0ab;font-family:'DM Sans',sans-serif;text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px}
+.doc-glance-val{font-size:15px;font-weight:600;color:#0f4a42}
+.doc-glance-val.tbn{color:#c9a84c;font-style:italic}
+.doc-annex-title{font-size:18px;font-weight:600;color:#1a7a6e;margin:40px 0 14px;padding-top:32px;border-top:2px solid #c9a84c}
+.doc-static{font-size:13px;color:#555;font-family:'DM Sans',sans-serif;line-height:1.6}
+.doc-static p{margin-bottom:8px}
+
+/* ── HISTORY ── */
+.history-list{display:flex;flex-direction:column;gap:10px}
+.history-item{background:#f8faf9;border-radius:10px;padding:12px 16px;border-left:3px solid #e0e8e5}
+.history-item.status-change{border-left-color:#c9a84c}
+.history-item.created{border-left-color:#1a7a6e}
+.history-meta{font-size:11px;color:#9ab0ab;margin-bottom:4px;font-family:'DM Mono',monospace}
+.history-text{font-size:13px;color:#1a2e2b}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#0f4a42;color:#fff;padding:12px 24px;border-radius:12px;font-size:13px;font-weight:600;z-index:9999;box-shadow:0 8px 30px rgba(0,0,0,.25);animation:toast-in .2s ease;white-space:nowrap}
+.toast.error{background:#c0392b}
+@keyframes toast-in{from{opacity:0;transform:translateX(-50%) translateY(12px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+
+/* ── RESPONSIVE ── */
+@media(max-width:700px){
+  .page-wrap{padding:16px 16px 60px}
+  .form-row{grid-template-columns:1fr}
+  .form-row-3{grid-template-columns:1fr}
+  .view-row{grid-template-columns:1fr}
+  .view-row-3{grid-template-columns:1fr}
+  #previewDoc{padding:24px 20px}
+  .modal-body{padding:16px 16px 20px}
+  .modal-head{padding:16px 16px 0}
+}
+</style>
+</head>
+<body>
+<div class="page-wrap">
+  <div class="page-header">
+    <div>
+      <div class="page-title">Proposals <span>·</span> Management</div>
+      <div class="page-sub">Owner management proposals &amp; agreements</div>
+    </div>
+    <button class="btn btn-primary" onclick="openNewProposal()">＋ New Proposal</button>
+  </div>
+
+  <!-- Filter bar -->
+  <div style="display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap">
+    <button class="btn btn-ghost btn-sm active-filter" id="filterAll" onclick="setFilter('all',this)">All</button>
+    <button class="btn btn-ghost btn-sm" id="filterDraft" onclick="setFilter('draft',this)">Draft</button>
+    <button class="btn btn-ghost btn-sm" id="filterApproved" onclick="setFilter('approved',this)">Approved</button>
+    <button class="btn btn-ghost btn-sm" id="filterSent" onclick="setFilter('sent',this)">Sent</button>
+    <button class="btn btn-ghost btn-sm" id="filterAgreed" onclick="setFilter('agreed',this)">Agreed</button>
+    <button class="btn btn-ghost btn-sm" id="filterLegal" onclick="setFilter('legal',this)">Legal</button>
+  </div>
+
+  <div id="proposalsList"></div>
+</div>
+
+<!-- ── PROPOSAL MODAL ── -->
+<div class="modal-overlay" id="proposalModal">
+  <div class="modal-box">
+    <div class="modal-head">
+      <div>
+        <div class="modal-title" id="modalTitle">New Proposal</div>
+        <div id="modalMeta" style="font-size:12px;color:#9ab0ab;font-family:'DM Mono',monospace;margin-top:3px"></div>
+      </div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-tabs">
+      <button class="modal-tab active" id="tabDetails" onclick="switchTab('details')">Details</button>
+      <button class="modal-tab" id="tabPreview" onclick="switchTab('preview')">Preview</button>
+      <button class="modal-tab" id="tabHistory" onclick="switchTab('history')">History</button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+  </div>
+</div>
+
+<script src="erp-base.js"></script>
+<script>
+'use strict';
+
+/* ── DATA ── */
+let proposals = [];
+let currentFilter = 'all';
+let editingId = null;
+let viewMode = true; // view-first pattern
+let currentTab = 'details';
+
+const PIPELINE = ['draft','approved','sent','agreed','legal'];
+const PIPELINE_LABELS = { draft:'Draft', approved:'Approved', sent:'Sent', agreed:'Agreed', legal:'Legal Agreement' };
+const PIPELINE_ICONS = { draft:'📝', approved:'✅', sent:'📤', agreed:'🤝', legal:'⚖️' };
+
+const LS_KEY = 'zesty_proposals';
+const TABLE = 'proposals';
+
+/* ── LAUNDRY ITEM CATALOGUE (mirrors laundry-logic.js) ── */
+const LAUNDRY_ITEMS = [
+  {code:"SEN_M",     en:"Single Sheet"},
+  {code:"SEN_M_L",   en:"Single Sheet (elastic)"},
+  {code:"SEN_D",     en:"Double Sheet (≤1.60m)"},
+  {code:"SEN_D_L",   en:"Double Sheet elastic (≤1.60m)"},
+  {code:"SEN_YD",    en:"Super Double Sheet (≥1.80m)"},
+  {code:"SEN_YD_L",  en:"Super Double Sheet elastic (≥1.80m)"},
+  {code:"MAX",       en:"Pillowcases"},
+  {code:"PET_PS",    en:"Towels (face/body)"},
+  {code:"PET_X",     en:"Hand Towels"},
+  {code:"PET_PIS",   en:"Pool Towels"},
+  {code:"PATAK",     en:"Floor Mat"},
+  {code:"BOUR_P",    en:"Pique Bathrobe"},
+  {code:"BOUR_V",    en:"Velvet Bathrobe"},
+  {code:"KOV_PM",    en:"Single Pique Blanket"},
+  {code:"KOV_PD",    en:"Double Pique Blanket"},
+  {code:"KOV_KM",    en:"Classic Single Blanket"},
+  {code:"KOV_KD",    en:"Classic Double Blanket"},
+  {code:"PAP_M",     en:"Single Quilt"},
+  {code:"PAP_D",     en:"Double Quilt"},
+  {code:"TRAP_M",    en:"Tablecloth"},
+  {code:"PET_SERV",  en:"Serving Napkins"},
+  {code:"PET_KOZ",   en:"Kitchen Towels"},
+  {code:"YPOST",     en:"Substrate"},
+  {code:"PAP_TH_M",  en:"Single Duvet Cover"},
+  {code:"PAP_TH_D",  en:"Double Duvet Cover"},
+  {code:"PAP_TH_YD", en:"Super Double Duvet Cover"},
+  {code:"ROUCH_K",   en:"Clothes by the kilo"},
+  {code:"ROUCH_5",   en:"Clothes bag up to 5 kg"},
+  {code:"PUP_MD",    en:"Goose Down Quilt S/D"},
+  {code:"XALI_K",    en:"Carpet Cleaning"},
+  {code:"XALI_KF",   en:"Carpet Cleaning & Storage"},
+  {code:"KAL_M",     en:"Single Cover"},
+  {code:"KAL_D",     en:"Double Cover"},
+  {code:"SIDER",     en:"Ironing Sheets"},
+  {code:"MAXIL",     en:"Pillow"},
+];
+const LAUNDRY_ITEM_MAP = Object.fromEntries(LAUNDRY_ITEMS.map(i => [i.code, i.en]));
+
+function getLaundryPricelists() {
+  try { return JSON.parse(localStorage.getItem('zesty_laundry_pricelists') || '[]') || []; }
+  catch { return []; }
+}
+
+/* ── FIELD DEFINITIONS ── */
+const FIELDS = [
+  { key:'ownerName',         en:'Owner Name',                  el:'Ονοματεπώνυμο Ιδιοκτήτη',       type:'text',   required:true },
+  { key:'propertyName',      en:'Property Name',               el:'Όνομα Ακινήτου',                  type:'text',   required:true },
+  { key:'managementFee',     en:'Management Fee',              el:'Αμοιβή Διαχείρισης',              type:'number', suffix:'%' },
+  { key:'directBookingFee',  en:'Direct Booking Fee',          el:'Αμοιβή Άμεσης Κράτησης',          type:'number', suffix:'%' },
+  { key:'checkinFee',        en:'Check-in / Check-out Fee',    el:'Χρέωση Check-in/Check-out',       type:'number', suffix:'€' },
+  { key:'cleaningRate',      en:'Cleaning Rate (per hour)',    el:'Κόστος Καθαρισμού (ανά ώρα)',     type:'number', suffix:'€/hr' },
+  { key:'transport',         en:'Transport Fee',               el:'Κόστος Μεταφοράς',                type:'number', suffix:'€' },
+  { key:'maintenanceVisit',  en:'Maintenance (per visit)',     el:'Συντήρηση (ανά επίσκεψη)',        type:'number', suffix:'€' },
+  { key:'maintenanceExtraHr',en:'Maintenance Extra Hour',      el:'Επιπλέον Ώρα Συντήρησης',        type:'number', suffix:'€/hr' },
+  { key:'poolMonthly',       en:'Pool Maintenance (monthly)',  el:'Συντήρηση Πισίνας (μηνιαία)',     type:'text',   placeholder:'e.g. €150–€200' },
+  { key:'poolSeason',        en:'Pool Season',                 el:'Σεζόν Πισίνας',                   type:'text',   placeholder:'e.g. May–October' },
+  { key:'linenLeasing',      en:'Linen Leasing Fee',           el:'Αμοιβή Μίσθωσης Λευκών',         type:'number', suffix:'%' },
+  { key:'supplyFee',         en:'Supply Arrangement Fee',      el:'Αμοιβή Προμήθειας Εφοδίων',      type:'number', suffix:'%' },
+];
+
+/* ── INIT ── */
+async function init() {
+  const cached = getLocal();
+  if (cached.length) { proposals = cached; renderList(); }
+  const r = await DB.loadAll(TABLE);
+  if (r.ok && r.rows) {
+    proposals = r.rows;
+    localStorage.setItem(LS_KEY, JSON.stringify(proposals));
+    renderList();
+  }
+}
+
+function getLocal() {
+  try { return JSON.parse(localStorage.getItem(LS_KEY) || '[]') || []; } catch { return []; }
+}
+
+/* ── LIST ── */
+function renderList() {
+  const list = document.getElementById('proposalsList');
+  let items = proposals;
+  if (currentFilter !== 'all') items = proposals.filter(p => p.status === currentFilter);
+  items = [...items].sort((a,b) => new Date(b.createdAt||0) - new Date(a.createdAt||0));
+
+  if (!items.length) {
+    list.innerHTML = `<div class="empty-state">
+      <div class="empty-state-icon">📋</div>
+      <div class="empty-state-text">${currentFilter === 'all' ? 'No proposals yet. Create your first one.' : 'No proposals with this status.'}</div>
+      ${currentFilter === 'all' ? '<button class="btn btn-primary" onclick="openNewProposal()">＋ New Proposal</button>' : ''}
+    </div>`;
+    return;
+  }
+
+  list.innerHTML = '<div class="proposals-grid">' + items.map(p => {
+    const hasTbn = hasTbnFields(p);
+    return `<div class="proposal-card" onclick="openProposal('${p.id}')">
+      <div class="proposal-card-main">
+        <div class="proposal-card-owner">${esc(p.ownerName||'(No owner)')}</div>
+        <div class="proposal-card-prop">${esc(p.propertyName||'(No property)')}</div>
+        <div class="proposal-card-meta">
+          <span>${formatDate(p.createdAt)}</span>
+          ${p.updatedAt ? `<span>· Updated ${formatDate(p.updatedAt)}</span>` : ''}
+          ${hasTbn ? '<span style="color:#c9a84c">· TBN fields</span>' : ''}
+        </div>
+      </div>
+      <div class="proposal-card-right">
+        <span class="status-badge status-${p.status||'draft'}">${PIPELINE_ICONS[p.status||'draft']} ${PIPELINE_LABELS[p.status||'draft']}</span>
+        <span class="proposal-card-lang">${p.language||'EN'}</span>
+      </div>
+    </div>`;
+  }).join('') + '</div>';
+}
+
+function setFilter(f, btn) {
+  currentFilter = f;
+  document.querySelectorAll('.active-filter').forEach(b => b.classList.remove('active-filter'));
+  btn.classList.add('active-filter');
+  renderList();
+}
+
+/* ── OPEN / CREATE ── */
+function openNewProposal() {
+  try {
+    editingId = null;
+    viewMode = false;
+    currentTab = 'details';
+    switchTabUI('details');
+    document.getElementById('modalTitle').textContent = 'New Proposal';
+    document.getElementById('modalMeta').textContent = '';
+    renderDetailsTab({ status: 'draft', language: 'en', supplyItems: [] });
+    document.getElementById('proposalModal').classList.add('open');
+  } catch(e) {
+    console.error('openNewProposal error:', e);
+    showToast('Error opening form: ' + e.message, true);
+  }
+}
+
+function openProposal(id) {
+  const p = proposals.find(x => x.id === id);
+  if (!p) return;
+  editingId = id;
+  viewMode = true;
+  currentTab = 'details';
+  switchTabUI('details');
+  document.getElementById('modalTitle').textContent = p.ownerName || 'Proposal';
+  document.getElementById('modalMeta').textContent = (p.propertyName ? p.propertyName + ' · ' : '') + formatDate(p.createdAt);
+  renderDetailsTab(p);
+  document.getElementById('proposalModal').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('proposalModal').classList.remove('open');
+  editingId = null;
+  viewMode = true;
+}
+
+/* ── TABS ── */
+function switchTab(tab) {
+  currentTab = tab;
+  switchTabUI(tab);
+  const p = editingId ? proposals.find(x => x.id === editingId) : null;
+  if (tab === 'details') renderDetailsTab(p || { status:'draft', language:'en', supplyItems:[] });
+  if (tab === 'preview') renderPreviewTab(p || collectFormData());
+  if (tab === 'history') renderHistoryTab(p);
+}
+
+function switchTabUI(tab) {
+  document.querySelectorAll('.modal-tab').forEach(t => t.classList.remove('active'));
+  const el = document.getElementById('tab' + tab.charAt(0).toUpperCase() + tab.slice(1));
+  if (el) el.classList.add('active');
+}
+
+/* ── DETAILS TAB ── */
+function renderDetailsTab(p) {
+  const isNew = !editingId;
+  const locked = viewMode && !isNew;
+  const status = p.status || 'draft';
+  const lang = p.language || 'en';
+  const supplyItems = p.supplyItems || [];
+  const tbn = p.tbn || {};
+
+  // Pipeline
+  const pipelineHtml = PIPELINE.map((s, i) => {
+    const idx = PIPELINE.indexOf(status);
+    const cls = i < idx ? 'done' : i === idx ? 'current' : '';
+    return `<div class="pipeline-step">
+      ${i > 0 ? '<span class="pipeline-arrow">›</span>' : ''}
+      <div class="pipeline-node ${cls}">${PIPELINE_ICONS[s]} ${PIPELINE_LABELS[s]}</div>
+    </div>`;
+  }).join('');
+
+  // Pipeline action buttons
+  const idx = PIPELINE.indexOf(status);
+  const canAdvance = idx < PIPELINE.length - 1;
+  const canRevert = idx > 0;
+  const hasTbn = hasTbnFields(p);
+  const nextStep = canAdvance ? PIPELINE[idx + 1] : null;
+  const blockLegal = nextStep === 'legal' && hasTbn;
+
+  let actionsHtml = '';
+  if (editingId) {
+    if (canAdvance) actionsHtml += `<button class="btn btn-gold btn-sm" onclick="advancePipeline()" ${blockLegal?'disabled':''}>→ Move to ${PIPELINE_LABELS[nextStep]}</button>`;
+    if (canRevert) actionsHtml += `<button class="btn btn-ghost btn-sm" onclick="revertPipeline()">← Back to ${PIPELINE_LABELS[PIPELINE[idx-1]]}</button>`;
+    if (!locked) actionsHtml += `<button class="btn btn-primary btn-sm" onclick="saveProposal()">💾 Save</button>`;
+    if (locked) actionsHtml += `<button class="btn btn-ghost btn-sm" onclick="enterEditMode()">✏️ Edit</button>`;
+    actionsHtml += `<button class="btn btn-sm" onclick="switchTab('preview');switchTabUI('preview')" style="background:#f0e6ff;color:#6b2fa0;border:none">👁 Preview</button>`;
+    actionsHtml += `<button class="btn btn-sm btn-ghost" onclick="exportDocx()">📄 Export DOCX</button>`;
+    actionsHtml += `<button class="btn btn-danger btn-sm" onclick="deleteProposal('${p.id||''}')">🗑</button>`;
+  } else {
+    actionsHtml = `<button class="btn btn-primary btn-sm" onclick="saveProposal()">💾 Create Proposal</button>`;
+  }
+
+  const tbnWarning = blockLegal ? `<div class="tbn-warning show">⚠️ Cannot advance to Legal Agreement — there are TBN (To Be Negotiated) fields. All values must be confirmed first.</div>` : '<div class="tbn-warning" id="tbnWarn"></div>';
+
+  // Language selector (only in edit mode)
+  const langHtml = !locked ? `<div class="lang-selector">
+    <button class="lang-btn ${lang==='en'?'active':''}" onclick="setLang('en',this)">🇬🇧 English</button>
+    <button class="lang-btn ${lang==='el'?'active':''}" onclick="setLang('el',this)">🇬🇷 Greek</button>
+  </div>` : `<div style="margin-bottom:16px"><span class="proposal-card-lang" style="font-size:12px">${lang==='el'?'🇬🇷 Greek':'🇬🇧 English'}</span></div>`;
+
+  // Fields
+  const fieldsHtml = locked ? renderViewFields(p, tbn) : renderFormFields(p, tbn);
+
+  // Supply items
+  const supplyHtml = locked ? renderViewSupply(supplyItems, p.supplyFee, tbn) : renderFormSupply(supplyItems);
+
+  document.getElementById('modalBody').innerHTML = `
+    <div class="pipeline-bar">${pipelineHtml}</div>
+    ${tbnWarning}
+    <div class="pipeline-actions">${actionsHtml}</div>
+    ${langHtml}
+    <input type="hidden" id="fLang" value="${lang}">
+    <input type="hidden" id="fStatus" value="${status}">
+    ${fieldsHtml}
+    <div class="form-section">
+      <div class="form-section-title">Other Supply Arrangements</div>
+      <div style="font-size:12px;color:#6b8e86;margin-bottom:10px">Items purchased for the owner. Fee % applied on net invoice amount.</div>
+      ${supplyHtml}
+      ${!locked ? `<button class="btn btn-ghost btn-sm add-supply-btn" onclick="addSupplyRow()">＋ Add Item</button>` : ''}
+    </div>
+    <div class="form-section">
+      <div class="form-section-title">Annex B — Laundry Pricelist</div>
+      <div style="font-size:12px;color:#6b8e86;margin-bottom:10px">Select a pricelist from the Laundry module to include in Annex B of the proposal.</div>
+      ${renderLaundryPricelistField(p, locked)}
+    </div>
+    <div class="form-section">
+      <div class="form-section-title">Notes</div>
+      ${locked
+        ? `<div style="font-size:14px;color:#1a2e2b;white-space:pre-wrap">${esc(p.notes||'—')}</div>`
+        : `<textarea id="fNotes" class="form-input" style="height:80px;resize:vertical;width:100%">${esc(p.notes||'')}</textarea>`
+      }
+    </div>
+  `;
+}
+
+function renderLaundryPricelistField(p, locked) {
+  const pls = getLaundryPricelists();
+  const selected = p.laundryPricelistId || '';
+  const selectedPl = pls.find(x => x.id === selected);
+  if (locked) {
+    if (!selectedPl) return '<div style="font-size:13px;color:#9ab0ab;font-style:italic">None selected — pricelist will not appear in Annex B.</div>';
+    return `<div style="font-size:14px;color:#1a2e2b;font-weight:500">${esc(selectedPl.nameEn||selectedPl.name||selectedPl.id)}</div>
+      <div style="font-size:12px;color:#6b8e86;margin-top:2px">${esc(selectedPl.name||'')} · ${Object.keys(selectedPl.prices||{}).length} items</div>`;
+  }
+  if (!pls.length) {
+    return `<div style="font-size:12px;color:#c0392b;background:#fdf0ef;padding:10px 14px;border-radius:8px;border:1px solid #f5c6c2">
+      No laundry pricelists found. Visit the <a href="laundry.html" style="color:#c0392b">Laundry module</a> to create pricelists first.
+    </div>
+    <input type="hidden" id="fLaundryPl" value="">`;
+  }
+  return `<div class="form-group">
+    <label class="form-label">Pricelist <span class="form-label-sub">Leave blank to omit from Annex B</span></label>
+    <select id="fLaundryPl" class="form-input">
+      <option value="">— None (omit Annex B pricelist) —</option>
+      ${pls.filter(pl => pl.status !== 'inactive').map(pl =>
+        `<option value="${esc(pl.id)}" ${pl.id === selected ? 'selected' : ''}>${esc(pl.id)} — ${esc(pl.nameEn || pl.name || '')}</option>`
+      ).join('')}
+    </select>
+  </div>`;
+}
+
+function renderViewFields(p, tbn) {
+  const rows = [
+    ['ownerName','propertyName'],
+    ['managementFee','directBookingFee'],
+    ['checkinFee','cleaningRate'],
+    ['transport','maintenanceVisit'],
+    ['maintenanceExtraHr','linenLeasing'],
+    ['poolMonthly','poolSeason'],
+    ['supplyFee'],
+  ];
+  return rows.map(row => {
+    const cells = row.map(key => {
+      const f = FIELDS.find(x => x.key === key);
+      if (!f) return '';
+      const isTbn = tbn[key];
+      const val = isTbn ? 'TBN' : ((p[key] !== undefined && p[key] !== '') ? p[key] + (f.suffix ? ' ' + f.suffix : '') : '—');
+      return `<div class="view-field">
+        <div class="view-field-label">${f.en}</div>
+        <div class="view-field-value ${isTbn?'tbn':''}">${esc(String(val))}</div>
+      </div>`;
+    }).join('');
+    return `<div class="view-row${row.length===1?' form-row-1':''}" style="margin-bottom:0">${cells}</div>`;
+  }).join('');
+}
+
+function renderFormFields(p, tbn) {
+  const rows = [
+    ['ownerName','propertyName'],
+    ['managementFee','directBookingFee'],
+    ['checkinFee','cleaningRate'],
+    ['transport','maintenanceVisit'],
+    ['maintenanceExtraHr','linenLeasing'],
+    ['poolMonthly','poolSeason'],
+    ['supplyFee'],
+  ];
+  return `<div class="form-section">
+    <div class="form-section-title">Proposal Fields</div>
+    ${rows.map(row => {
+      const cells = row.map(key => {
+        const f = FIELDS.find(x => x.key === key);
+        if (!f) return '';
+        const isTbn = tbn[key];
+        const val = p[key] !== undefined ? p[key] : '';
+        return `<div class="form-group">
+          <label class="form-label">${f.en}${f.el !== f.en ? `<span class="form-label-sub">${f.el}</span>` : ''}</label>
+          <div class="input-with-suffix">
+            <input class="form-input${isTbn?' tbn-active':''}" id="f_${key}" type="${f.type||'text'}"
+              value="${esc(String(isTbn?'TBN':val))}"
+              placeholder="${f.placeholder||''}"
+              ${isTbn?'disabled':''}>
+            ${f.suffix ? `<span class="input-suffix">${f.suffix}</span>` : ''}
+          </div>
+          <div class="tbn-row">
+            <input type="checkbox" class="tbn-check" id="tbn_${key}" ${isTbn?'checked':''}
+              onchange="toggleTbn('${key}',this)">
+            <label class="tbn-label ${isTbn?'active':''}" for="tbn_${key}" id="tbnlbl_${key}">TBN — To Be Negotiated</label>
+          </div>
+        </div>`;
+      }).join('');
+      return `<div class="form-row${row.length===1?' form-row-1':''}" style="margin-bottom:14px">${cells}</div>`;
+    }).join('')}
+  </div>`;
+}
+
+function renderViewSupply(items, feeDefault, tbn) {
+  if (!items || !items.length) return '<div style="font-size:13px;color:#9ab0ab">No supply arrangements added.</div>';
+  return `<table class="supply-table">
+    <thead><tr><th>Item</th><th>Net Cost</th><th>Fee %</th><th>Fee Amount</th></tr></thead>
+    <tbody>${items.map(item => {
+      const fee = parseFloat(item.fee || feeDefault || 0);
+      const cost = parseFloat(item.cost || 0);
+      const amount = (cost * fee / 100).toFixed(2);
+      return `<tr>
+        <td>${esc(item.description||'')}</td>
+        <td>€${parseFloat(item.cost||0).toFixed(2)}</td>
+        <td>${fee}%</td>
+        <td class="supply-calc">€${amount}</td>
+      </tr>`;
+    }).join('')}</tbody>
+  </table>`;
+}
+
+function renderFormSupply(items) {
+  if (!items || !items.length) {
+    return '<div id="supplyRows" style="margin-bottom:6px"></div>';
+  }
+  return `<table class="supply-table" id="supplyTable">
+    <thead><tr><th>Item Description</th><th>Net Cost €</th><th>Fee %</th><th>= Fee Amount</th><th></th></tr></thead>
+    <tbody id="supplyRows">${items.map((item, i) => supplyRowHtml(item, i)).join('')}</tbody>
+  </table>`;
+}
+
+function supplyRowHtml(item, i) {
+  const fee = parseFloat(item.fee || 0);
+  const cost = parseFloat(item.cost || 0);
+  const amount = fee && cost ? (cost * fee / 100).toFixed(2) : '—';
+  return `<tr id="srow_${i}">
+    <td><input type="text" value="${esc(item.description||'')}" oninput="updateSupplyCalc(${i})" id="sdesc_${i}" placeholder="e.g. Sunbed"></td>
+    <td><input type="number" value="${item.cost||''}" oninput="updateSupplyCalc(${i})" id="scost_${i}" placeholder="200" style="width:90px"></td>
+    <td><input type="number" value="${item.fee||''}" oninput="updateSupplyCalc(${i})" id="sfee_${i}" placeholder="10" style="width:70px"></td>
+    <td class="supply-calc" id="scalc_${i}">€${amount}</td>
+    <td><button class="supply-remove" onclick="removeSupplyRow(${i})">✕</button></td>
+  </tr>`;
+}
+
+function addSupplyRow() {
+  let tbody = document.getElementById('supplyRows');
+  const hasTable = !!document.getElementById('supplyTable');
+  if (!hasTable && tbody) {
+    // Replace placeholder div with a proper table
+    tbody.outerHTML = `<table class="supply-table" id="supplyTable">
+      <thead><tr><th>Item Description</th><th>Net Cost €</th><th>Fee %</th><th>= Fee Amount</th><th></th></tr></thead>
+      <tbody id="supplyRows"></tbody>
+    </table>`;
+    tbody = document.getElementById('supplyRows');
+  }
+  if (!tbody) return;
+  const i = Date.now();
+  tbody.insertAdjacentHTML('beforeend', supplyRowHtml({}, i));
+}
+
+function removeSupplyRow(i) {
+  const row = document.getElementById('srow_' + i);
+  if (row) row.remove();
+}
+
+function updateSupplyCalc(i) {
+  const cost = parseFloat(document.getElementById('scost_' + i)?.value || 0);
+  const fee = parseFloat(document.getElementById('sfee_' + i)?.value || 0);
+  const calc = document.getElementById('scalc_' + i);
+  if (calc) calc.textContent = (cost && fee) ? '€' + (cost * fee / 100).toFixed(2) : '—';
+}
+
+/* ── TBN TOGGLE ── */
+function toggleTbn(key, cb) {
+  const inp = document.getElementById('f_' + key);
+  const lbl = document.getElementById('tbnlbl_' + key);
+  if (cb.checked) {
+    inp.value = 'TBN';
+    inp.disabled = true;
+    inp.classList.add('tbn-active');
+    if (lbl) { lbl.classList.add('active'); }
+  } else {
+    inp.value = '';
+    inp.disabled = false;
+    inp.classList.remove('tbn-active');
+    if (lbl) { lbl.classList.remove('active'); }
+  }
+}
+
+function setLang(lang, btn) {
+  const el = document.getElementById('fLang');
+  if (el) el.value = lang;
+  document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+}
+
+function enterEditMode() {
+  viewMode = false;
+  const p = proposals.find(x => x.id === editingId);
+  if (p) renderDetailsTab(p);
+}
+
+/* ── COLLECT FORM DATA ── */
+function collectFormData() {
+  const p = editingId ? { ...proposals.find(x => x.id === editingId) } : {};
+  p.language = document.getElementById('fLang')?.value || 'en';
+  p.status = document.getElementById('fStatus')?.value || 'draft';
+  p.tbn = p.tbn || {};
+  FIELDS.forEach(f => {
+    const cb = document.getElementById('tbn_' + f.key);
+    const inp = document.getElementById('f_' + f.key);
+    if (cb) p.tbn[f.key] = cb.checked;
+    if (inp && !cb?.checked) p[f.key] = inp.value;
+    else if (cb?.checked) p[f.key] = '';
+  });
+  p.notes = document.getElementById('fNotes')?.value || p.notes || '';
+  const plEl = document.getElementById('fLaundryPl');
+  if (plEl !== null) p.laundryPricelistId = plEl.value || '';
+  // Supply items
+  const rows = document.querySelectorAll('#supplyRows tr');
+  p.supplyItems = [];
+  rows.forEach(row => {
+    const id = row.id?.replace('srow_', '');
+    if (!id) return;
+    const desc = document.getElementById('sdesc_' + id)?.value || '';
+    const cost = document.getElementById('scost_' + id)?.value || '';
+    const fee = document.getElementById('sfee_' + id)?.value || '';
+    if (desc || cost) p.supplyItems.push({ description: desc, cost, fee });
+  });
+  return p;
+}
+
+/* ── SAVE ── */
+async function saveProposal() {
+  const p = collectFormData();
+  if (!p.ownerName?.trim() && !p.tbn?.ownerName) { showToast('Owner name is required', true); return; }
+  if (!p.propertyName?.trim() && !p.tbn?.propertyName) { showToast('Property name is required', true); return; }
+
+  const now = new Date().toISOString();
+  const isNew = !editingId;
+  if (isNew) {
+    p.id = 'prop_' + Date.now() + '_' + Math.random().toString(36).slice(2, 5);
+    p.createdAt = now;
+    p.history = [{ at: now, action: 'created', status: 'draft' }];
+  } else {
+    p.updatedAt = now;
+    if (!p.history) p.history = [];
+    p.history.push({ at: now, action: 'updated', status: p.status });
+  }
+
+  if (isNew) proposals.unshift(p);
+  else { const idx = proposals.findIndex(x => x.id === p.id); if (idx >= 0) proposals[idx] = p; }
+  localStorage.setItem(LS_KEY, JSON.stringify(proposals));
+  renderList();
+
+  const r = await DB.upsertOne(TABLE, p);
+  if (!r.ok) showToast('Save error: ' + r.err, true);
+  else { showToast(isNew ? '✓ Proposal created' : '✓ Saved'); editingId = p.id; viewMode = true; renderDetailsTab(p); }
+}
+
+/* ── PIPELINE ── */
+async function advancePipeline() {
+  const p = proposals.find(x => x.id === editingId);
+  if (!p) return;
+  const idx = PIPELINE.indexOf(p.status || 'draft');
+  if (idx >= PIPELINE.length - 1) return;
+  if (PIPELINE[idx + 1] === 'legal' && hasTbnFields(p)) { showToast('⚠️ Remove all TBN fields before advancing to Legal Agreement', true); return; }
+  p.status = PIPELINE[idx + 1];
+  p.updatedAt = new Date().toISOString();
+  if (!p.history) p.history = [];
+  p.history.push({ at: p.updatedAt, action: 'status_change', status: p.status });
+  const propIdx = proposals.findIndex(x => x.id === editingId);
+  if (propIdx >= 0) proposals[propIdx] = p;
+  localStorage.setItem(LS_KEY, JSON.stringify(proposals));
+  renderList();
+  await DB.upsertOne(TABLE, p);
+  document.getElementById('modalTitle').textContent = p.ownerName || 'Proposal';
+  renderDetailsTab(p);
+  showToast('→ Moved to ' + PIPELINE_LABELS[p.status]);
+}
+
+async function revertPipeline() {
+  const p = proposals.find(x => x.id === editingId);
+  if (!p) return;
+  const idx = PIPELINE.indexOf(p.status || 'draft');
+  if (idx <= 0) return;
+  p.status = PIPELINE[idx - 1];
+  p.updatedAt = new Date().toISOString();
+  if (!p.history) p.history = [];
+  p.history.push({ at: p.updatedAt, action: 'status_change', status: p.status });
+  const propIdx = proposals.findIndex(x => x.id === editingId);
+  if (propIdx >= 0) proposals[propIdx] = p;
+  localStorage.setItem(LS_KEY, JSON.stringify(proposals));
+  renderList();
+  await DB.upsertOne(TABLE, p);
+  renderDetailsTab(p);
+  showToast('← Reverted to ' + PIPELINE_LABELS[p.status]);
+}
+
+/* ── DELETE ── */
+async function deleteProposal(id) {
+  if (!confirm('Delete this proposal? This cannot be undone.')) return;
+  proposals = proposals.filter(p => p.id !== id);
+  localStorage.setItem(LS_KEY, JSON.stringify(proposals));
+  renderList();
+  closeModal();
+  const r = await DB.deleteOne(TABLE, id);
+  if (!r.ok) showToast('Delete error: ' + r.err, true);
+  else showToast('🗑 Proposal deleted');
+}
+
+/* ── TBN HELPER ── */
+function hasTbnFields(p) {
+  if (!p || !p.tbn) return false;
+  return Object.values(p.tbn).some(v => v === true);
+}
+
+/* ── PREVIEW TAB ── */
+function renderPreviewTab(p) {
+  if (!p) { document.getElementById('modalBody').innerHTML = '<div style="color:#9ab0ab;padding:32px;text-align:center">No data to preview.</div>'; return; }
+  document.getElementById('modalBody').innerHTML = `<div style="background:#f0f4f3;padding:24px;margin:-24px -28px -28px;border-radius:0 0 20px 20px">
+    <div style="display:flex;justify-content:flex-end;gap:8px;margin-bottom:16px">
+      <button class="btn btn-ghost btn-sm" onclick="exportDocx()">📄 Export DOCX</button>
+    </div>
+    ${buildDocPreview(p)}
+  </div>`;
+}
+
+function buildDocPreview(p) {
+  const isEl = (p.language || 'en') === 'el';
+  const tbn = p.tbn || {};
+  const fv = (key, suffix) => {
+    if (tbn[key]) return '<span class="tbn-cell" style="color:#c9a84c;font-style:italic">TBN</span>';
+    const v = p[key];
+    return v !== undefined && v !== '' ? esc(v) + (suffix ? ' ' + suffix : '') : '—';
+  };
+
+  const today = new Date().toLocaleDateString('en-GB', { day:'numeric', month:'long', year:'numeric' });
+  const supply = (p.supplyItems || []);
+
+  return `<div id="previewDoc">
+    <div class="doc-cover">
+      <div class="doc-cover-logo">ZESTY</div>
+      <div class="doc-cover-subtitle">Property Management</div>
+      <div class="doc-cover-title">${isEl ? 'ΠΡΟΤΑΣΗ ΣΥΝΕΡΓΑΣΙΑΣ' : 'MANAGEMENT PROPOSAL'}</div>
+      ${!isEl ? '<div class="doc-cover-title-el">ΠΡΟΤΑΣΗ ΣΥΝΕΡΓΑΣΙΑΣ</div>' : ''}
+      <div style="margin:24px 0 8px;font-size:13px;color:#9ab0ab;font-family:\'DM Sans\',sans-serif">${isEl ? 'Υποβάλλεται σε:' : 'Prepared for:'}</div>
+      <div class="doc-cover-owner">${tbn.ownerName ? '<span style="color:#c9a84c;font-style:italic">TBN</span>' : esc(p.ownerName||'')}</div>
+      <div class="doc-cover-prop">${tbn.propertyName ? '<span style="color:#c9a84c;font-style:italic">TBN</span>' : esc(p.propertyName||'')}</div>
+      <div class="doc-cover-date">${isEl ? 'Ημερομηνία:' : 'Date:'} ${today}</div>
+    </div>
+
+    <div class="doc-section">
+      <div class="doc-h1">${isEl ? 'ΜΕ ΜΙΑ ΜΑΤΙΑ' : 'AT A GLANCE'}</div>
+      <div class="doc-at-glance">
+        <div class="doc-glance-item"><div class="doc-glance-label">${isEl?'Ιδιοκτήτης':'Owner'}</div><div class="doc-glance-val ${tbn.ownerName?'tbn':''}">${fv('ownerName')}</div></div>
+        <div class="doc-glance-item"><div class="doc-glance-label">${isEl?'Ακίνητο':'Property'}</div><div class="doc-glance-val ${tbn.propertyName?'tbn':''}">${fv('propertyName')}</div></div>
+        <div class="doc-glance-item"><div class="doc-glance-label">${isEl?'Αμοιβή Διαχείρισης':'Management Fee'}</div><div class="doc-glance-val ${tbn.managementFee?'tbn':''}">${fv('managementFee','%')}</div></div>
+        <div class="doc-glance-item"><div class="doc-glance-label">${isEl?'Άμεσες Κρατήσεις':'Direct Bookings'}</div><div class="doc-glance-val ${tbn.directBookingFee?'tbn':''}">${fv('directBookingFee','%')}</div></div>
+      </div>
+    </div>
+
+    <div class="doc-section">
+      <div class="doc-h1">1. ${isEl ? 'ΕΙΣΑΓΩΓΗ' : 'INTRODUCTION'}</div>
+      <p class="doc-p">${isEl
+        ? `Η <strong>Zesty Property Management</strong> χαίρεται να παρουσιάσει αυτή την πρόταση συνεργασίας για τη διαχείριση του ακινήτου <strong>${tbn.propertyName?'TBN':esc(p.propertyName||'')}</strong>.`
+        : `<strong>Zesty Property Management</strong> is pleased to present this management proposal for <strong>${tbn.propertyName?'TBN':esc(p.propertyName||'')}</strong>.`
+      }</p>
+      <p class="doc-p">${isEl
+        ? 'Αναλαμβάνουμε την πλήρη διαχείριση του ακινήτου σας, από τη διαφήμιση και τις κρατήσεις έως την καθαριότητα, τη συντήρηση και την εξυπηρέτηση των επισκεπτών.'
+        : 'We provide full-service property management, from listing and bookings through guest services, cleaning coordination, maintenance oversight, and financial reporting.'
+      }</p>
+    </div>
+
+    <div class="doc-section">
+      <div class="doc-h1">2. ${isEl ? 'ΥΠΗΡΕΣΙΕΣ' : 'SERVICES'}</div>
+      <p class="doc-p">${isEl ? 'Οι υπηρεσίες μας περιλαμβάνουν:' : 'Our comprehensive management services include:'}</p>
+      <table class="doc-table">
+        <tbody>
+          ${[
+            [isEl?'Διαχείριση Αγγελιών':'Listing Management', isEl?'Καταχώρηση και βελτιστοποίηση σε Airbnb, Booking.com, VRBO κ.ά.':'Listing creation and optimisation across Airbnb, Booking.com, VRBO and more'],
+            [isEl?'Επικοινωνία Επισκεπτών':'Guest Communication', isEl?'24/7 απόκριση σε ερωτήματα και αιτήματα':'24/7 response to guest enquiries and requests'],
+            [isEl?'Διαχείριση Check-in/out':'Check-in / Check-out', isEl?'Συντονισμός άφιξης, παράδοσης κλειδιών και αναχώρησης':'Arrival coordination, key handover and departure management'],
+            [isEl?'Καθαριότητα':'Cleaning', isEl?'Επαγγελματικός καθαρισμός μεταξύ διαμονών':'Professional cleaning between stays'],
+            [isEl?'Συντήρηση':'Maintenance', isEl?'Προληπτική και διορθωτική συντήρηση':'Preventive and corrective maintenance'],
+            [isEl?'Οικονομική Αναφορά':'Financial Reporting', isEl?'Μηνιαίες καταστάσεις εσόδων και δαπανών':'Monthly income and expense statements'],
+          ].map(([a,b]) => `<tr><td style="font-weight:600;white-space:nowrap;width:38%">${a}</td><td>${b}</td></tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="doc-section">
+      <div class="doc-h1">3. ${isEl ? 'ΑΜΟΙΒΗ ΔΙΑΧΕΙΡΙΣΗΣ' : 'MANAGEMENT FEE'}</div>
+      <p class="doc-p">${isEl
+        ? `Η αμοιβή διαχείρισης για κρατήσεις μέσω πλατφορμών ανέρχεται σε <strong>${fv('managementFee','%')}</strong> επί των καθαρών εσόδων.`
+        : `The management fee for platform bookings is <strong>${fv('managementFee','%')}</strong> of net rental income.`
+      }</p>
+      <p class="doc-p">${isEl
+        ? `Για άμεσες κρατήσεις (χωρίς πλατφόρμα) η αμοιβή ανέρχεται σε <strong>${fv('directBookingFee','%')}</strong>.`
+        : `For direct bookings (outside platforms) the fee is <strong>${fv('directBookingFee','%')}</strong>.`
+      }</p>
+    </div>
+
+    <div class="doc-section">
+      <div class="doc-h1">4. ${isEl ? 'ΠΡΌΣΘΕΤΕΣ ΥΠΗΡΕΣΊΕΣ & ΧΡΕΏΣΕΙΣ' : 'ADDITIONAL SERVICES & FEES'}</div>
+      <table class="doc-table">
+        <thead><tr><th>${isEl?'Υπηρεσία':'Service'}</th><th>${isEl?'Χρέωση':'Fee'}</th></tr></thead>
+        <tbody>
+          <tr><td>${isEl?'Check-in / Check-out':'Check-in / Check-out'}</td><td class="${tbn.checkinFee?'tbn-cell':''}">${fv('checkinFee','€')}</td></tr>
+          <tr><td>${isEl?'Καθαρισμός (ανά ώρα)':'Cleaning (per hour)'}</td><td class="${tbn.cleaningRate?'tbn-cell':''}">${fv('cleaningRate','€/hr')}</td></tr>
+          <tr><td>${isEl?'Μεταφορά':'Transport'}</td><td class="${tbn.transport?'tbn-cell':''}">${fv('transport','€')}</td></tr>
+          <tr><td>${isEl?'Μίσθωση Λευκών':'Linen Leasing'}</td><td class="${tbn.linenLeasing?'tbn-cell':''}">${fv('linenLeasing','%')}</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="doc-section">
+      <div class="doc-h1">5. ${isEl ? 'ΣΥΝΤΗΡΗΣΗ' : 'MAINTENANCE'}</div>
+      <table class="doc-table">
+        <thead><tr><th>${isEl?'Υπηρεσία':'Service'}</th><th>${isEl?'Χρέωση':'Fee'}</th></tr></thead>
+        <tbody>
+          <tr><td>${isEl?'Επίσκεψη Συντήρησης':'Maintenance Visit'}</td><td class="${tbn.maintenanceVisit?'tbn-cell':''}">${fv('maintenanceVisit','€')}</td></tr>
+          <tr><td>${isEl?'Επιπλέον Ώρα':'Additional Hour'}</td><td class="${tbn.maintenanceExtraHr?'tbn-cell':''}">${fv('maintenanceExtraHr','€/hr')}</td></tr>
+          <tr><td>${isEl?'Συντήρηση Πισίνας (μηνιαία)':'Pool Maintenance (monthly)'}</td><td class="${tbn.poolMonthly?'tbn-cell':''}">${fv('poolMonthly')}</td></tr>
+          <tr><td>${isEl?'Σεζόν Πισίνας':'Pool Season'}</td><td class="${tbn.poolSeason?'tbn-cell':''}">${fv('poolSeason')}</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="doc-section">
+      <div class="doc-h1">6. ${isEl ? 'ΆΛΛΕΣ ΠΑΡΟΧΕΣ ΠΡΟΜΗΘΕΙΩΝ' : 'OTHER SUPPLY ARRANGEMENTS'}</div>
+      <p class="doc-p">${isEl
+        ? `Όταν η Zesty αγοράζει αντικείμενα ή υλικά για λογαριασμό του ιδιοκτήτη, εφαρμόζεται αμοιβή <strong>${fv('supplyFee','%')}</strong> επί του καθαρού τιμολογίου.`
+        : `When Zesty purchases items or materials on behalf of the owner, a fee of <strong>${fv('supplyFee','%')}</strong> is applied on the net invoice amount.`
+      }</p>
+      <p class="doc-p" style="font-size:12px;color:#6b6b6b;font-family:'DM Sans',sans-serif">${isEl
+        ? 'Παράδειγμα: Ξαπλώστρα €200 + αμοιβή 10% = €20 (χρέωση ιδιοκτήτη €220)'
+        : 'Example: Sunbed €200 + 10% fee = €20 (owner invoiced €220)'
+      }</p>
+      ${supply.length ? `<table class="doc-table" style="margin-top:12px">
+        <thead><tr>
+          <th>${isEl?'Αντικείμενο':'Item'}</th>
+          <th>${isEl?'Καθαρό Κόστος':'Net Cost'}</th>
+          <th>${isEl?'Αμοιβή %':'Fee %'}</th>
+          <th>${isEl?'Ποσό Αμοιβής':'Fee Amount'}</th>
+          <th>${isEl?'Σύνολο Χρέωσης':'Total Charged'}</th>
+        </tr></thead>
+        <tbody>${supply.map(item => {
+          const fee = parseFloat(item.fee || p.supplyFee || 0);
+          const cost = parseFloat(item.cost || 0);
+          const feeAmt = (cost * fee / 100).toFixed(2);
+          const total = (cost + parseFloat(feeAmt)).toFixed(2);
+          return `<tr>
+            <td>${esc(item.description||'')}</td>
+            <td>€${cost.toFixed(2)}</td>
+            <td>${fee}%</td>
+            <td>€${feeAmt}</td>
+            <td style="font-weight:600">€${total}</td>
+          </tr>`;
+        }).join('')}</tbody>
+      </table>` : `<p class="doc-p" style="color:#9ab0ab;font-style:italic">${isEl?'Δεν έχουν καταχωρηθεί προμήθειες.':'No supply arrangements specified.'}</p>`}
+    </div>
+
+    <div class="doc-section">
+      <div class="doc-h1">7. ${isEl ? 'ΟΡΟΙ & ΠΡΟΫΠΟΘΕΣΕΙΣ' : 'TERMS & CONDITIONS'}</div>
+      <p class="doc-p">${isEl
+        ? 'Αυτή η πρόταση ισχύει για 30 ημέρες από την ημερομηνία έκδοσης. Κατόπιν αμοιβαίας αποδοχής, θα καταρτιστεί επίσημη Σύμβαση Διαχείρισης.'
+        : 'This proposal is valid for 30 days from the date of issue. Upon mutual acceptance, a formal Management Agreement will be prepared.'
+      }</p>
+      <p class="doc-p">${isEl
+        ? 'Όλες οι χρεώσεις προστίθεται ΦΠΑ όπου εφαρμόζεται. Η αμοιβή διαχείρισης καταβάλλεται μηνιαία βάσει των πραγματικών εσόδων.'
+        : 'All fees are subject to applicable VAT. The management fee is invoiced monthly based on actual rental income.'
+      }</p>
+      ${p.notes ? `<div style="margin-top:12px;padding:12px 16px;background:#f8faf9;border-left:3px solid #c9a84c;border-radius:0 8px 8px 0">
+        <div style="font-size:11px;color:#9ab0ab;margin-bottom:4px;font-family:'DM Sans',sans-serif;text-transform:uppercase;letter-spacing:.5px">${isEl?'Σημειώσεις':'Notes'}</div>
+        <div style="font-size:13px;white-space:pre-wrap">${esc(p.notes)}</div>
+      </div>` : ''}
+    </div>
+
+    <div class="doc-section">
+      <div class="doc-annex-title">Annex A — ${isEl ? 'Πίνακας Αμοιβών' : 'Fee Schedule'}</div>
+      <table class="doc-table">
+        <thead><tr><th>${isEl?'Υπηρεσία':'Service'}</th><th>${isEl?'Χρέωση':'Fee'}</th><th>${isEl?'Βάση':'Basis'}</th></tr></thead>
+        <tbody>
+          <tr><td>${isEl?'Διαχείριση (πλατφόρμες)':'Management (platforms)'}</td><td class="${tbn.managementFee?'tbn-cell':''}">${fv('managementFee','%')}</td><td>${isEl?'% καθαρών εσόδων':'% of net income'}</td></tr>
+          <tr><td>${isEl?'Άμεσες κρατήσεις':'Direct bookings'}</td><td class="${tbn.directBookingFee?'tbn-cell':''}">${fv('directBookingFee','%')}</td><td>${isEl?'% καθαρών εσόδων':'% of net income'}</td></tr>
+          <tr><td>Check-in/out</td><td class="${tbn.checkinFee?'tbn-cell':''}">${fv('checkinFee','€')}</td><td>${isEl?'ανά ανάθεση':'per assignment'}</td></tr>
+          <tr><td>${isEl?'Καθαρισμός':'Cleaning'}</td><td class="${tbn.cleaningRate?'tbn-cell':''}">${fv('cleaningRate','€/hr')}</td><td>${isEl?'ανά ώρα':'per hour'}</td></tr>
+          <tr><td>${isEl?'Μεταφορά':'Transport'}</td><td class="${tbn.transport?'tbn-cell':''}">${fv('transport','€')}</td><td>${isEl?'ανά επίσκεψη':'per trip'}</td></tr>
+          <tr><td>${isEl?'Συντήρηση':'Maintenance'}</td><td class="${tbn.maintenanceVisit?'tbn-cell':''}">${fv('maintenanceVisit','€')}</td><td>${isEl?'ανά επίσκεψη':'per visit'}</td></tr>
+          <tr><td>${isEl?'Επιπλέον ώρα συντήρησης':'Maintenance extra hour'}</td><td class="${tbn.maintenanceExtraHr?'tbn-cell':''}">${fv('maintenanceExtraHr','€/hr')}</td><td>${isEl?'ανά ώρα':'per hour'}</td></tr>
+          <tr><td>${isEl?'Πισίνα':'Pool maintenance'}</td><td class="${tbn.poolMonthly?'tbn-cell':''}">${fv('poolMonthly')}</td><td>${isEl?'ανά μήνα':'per month'}</td></tr>
+          <tr><td>${isEl?'Μίσθωση λευκών':'Linen leasing'}</td><td class="${tbn.linenLeasing?'tbn-cell':''}">${fv('linenLeasing','%')}</td><td>${isEl?'% κόστους':'% of cost'}</td></tr>
+          <tr><td>${isEl?'Αμοιβή προμήθειας':'Supply arrangement fee'}</td><td class="${tbn.supplyFee?'tbn-cell':''}">${fv('supplyFee','%')}</td><td>${isEl?'% καθαρού τιμολογίου':'% of net invoice'}</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="doc-section">
+      <div class="doc-annex-title">Annex B — ${isEl ? 'Υπηρεσίες Πλυντηρίου' : 'Laundry Services'}</div>
+      <div class="doc-static">
+        <p>${isEl
+          ? 'Η Zesty παρέχει πλήρεις υπηρεσίες πλυντηρίου για τα λευκά του ακινήτου. Τα είδη συλλέγονται μετά από κάθε check-out, πλένονται επαγγελματικά και επιστρέφονται έτοιμα για την επόμενη άφιξη.'
+          : 'Zesty provides full laundry services for property linens. Items are collected after each check-out, professionally laundered and returned ready for the next arrival.'
+        }</p>
+      </div>
+      ${buildLaundryPreviewTable(p, isEl)}
+    </div>
+
+    <div class="doc-section">
+      <div class="doc-annex-title">Annex C — ${isEl ? 'Αναλώσιμα' : 'Consumables'}</div>
+      <div class="doc-static">
+        <p>${isEl
+          ? 'Η Zesty προμηθεύεται και διαχειρίζεται τα αναλώσιμα του ακινήτου (καθαριστικά, χαρτί υγείας, σαπούνια, καλωσόρισμα επισκεπτών κ.ά.) για λογαριασμό του ιδιοκτήτη.'
+          : 'Zesty sources and manages property consumables (cleaning supplies, toiletries, guest welcome items, etc.) on behalf of the owner.'
+        }</p>
+        <p>${isEl
+          ? 'Τα αναλώσιμα χρεώνονται στο ακριβές κόστος αγοράς, με προσθήκη της αμοιβής προμήθειας εφοδίων βάσει του Παραρτήματος Α.'
+          : 'Consumables are charged at exact procurement cost, plus the supply arrangement fee as per Annex A.'
+        }</p>
+      </div>
+    </div>
+
+    <div style="margin-top:60px;padding-top:24px;border-top:1px solid #e0e8e5;display:grid;grid-template-columns:1fr 1fr;gap:40px;font-family:'DM Sans',sans-serif;font-size:12px;color:#6b6b6b">
+      <div>
+        <div style="font-weight:600;margin-bottom:32px">${isEl?'Για λογαριασμό της Zesty Property Management:':'On behalf of Zesty Property Management:'}</div>
+        <div style="border-top:1px solid #1a2e2b;padding-top:6px;color:#1a2e2b">Zesty Property Management</div>
+      </div>
+      <div>
+        <div style="font-weight:600;margin-bottom:32px">${isEl?'Ιδιοκτήτης:':'Owner:'}</div>
+        <div style="border-top:1px solid #1a2e2b;padding-top:6px;color:#1a2e2b">${tbn.ownerName ? 'TBN' : esc(p.ownerName||'')}</div>
+      </div>
+    </div>
+  </div>`;
+}
+
+/* ── HISTORY TAB ── */
+function renderHistoryTab(p) {
+  if (!p || !p.history || !p.history.length) {
+    document.getElementById('modalBody').innerHTML = '<div style="color:#9ab0ab;padding:32px;text-align:center">No history yet.</div>';
+    return;
+  }
+  const items = [...p.history].reverse().map(h => `
+    <div class="history-item ${h.action === 'status_change' ? 'status-change' : h.action === 'created' ? 'created' : ''}">
+      <div class="history-meta">${formatDate(h.at, true)}</div>
+      <div class="history-text">${h.action === 'created' ? '✓ Proposal created' : h.action === 'status_change' ? '→ Status changed to <strong>' + PIPELINE_LABELS[h.status] + '</strong>' : '✏️ Proposal updated'}</div>
+    </div>`).join('');
+  document.getElementById('modalBody').innerHTML = `<div class="history-list">${items}</div>`;
+}
+
+/* ── LAUNDRY PRICELIST TABLE (shared by preview + DOCX) ── */
+function buildLaundryPreviewTable(p, isEl) {
+  const plId = p.laundryPricelistId;
+  if (!plId) return `<p class="doc-p" style="color:#9ab0ab;font-style:italic">${isEl ? 'Δεν έχει επιλεγεί τιμοκατάλογος.' : 'No pricelist selected.'}</p>`;
+  const pls = getLaundryPricelists();
+  const pl = pls.find(x => x.id === plId);
+  if (!pl) return `<p class="doc-p" style="color:#c0392b;font-style:italic">${isEl ? 'Τιμοκατάλογος δεν βρέθηκε.' : 'Pricelist not found — it may have been deleted.'}</p>`;
+  const prices = pl.prices || {};
+  const items = LAUNDRY_ITEMS.filter(i => prices[i.code] !== undefined);
+  if (!items.length) return `<p class="doc-p" style="color:#9ab0ab;font-style:italic">${isEl ? 'Δεν υπάρχουν τιμές.' : 'No prices defined.'}</p>`;
+  const plLabel = pl.nameEn ? `${pl.id} — ${pl.nameEn} (${pl.name})` : `${pl.id} — ${pl.name}`;
+  return `<div style="margin-top:10px;margin-bottom:4px;font-size:12px;color:#1a7a6e;font-weight:600">${esc(plLabel)}</div>
+  <table class="doc-table">
+    <thead><tr>
+      <th>${isEl ? 'Είδος' : 'Item'}</th>
+      <th style="text-align:right">${isEl ? 'Τιμή (€)' : 'Price (€)'}</th>
+    </tr></thead>
+    <tbody>${items.map(i =>
+      `<tr><td>${esc(i.en)}</td><td style="text-align:right">€${parseFloat(prices[i.code]).toFixed(2)}</td></tr>`
+    ).join('')}</tbody>
+  </table>`;
+}
+
+/* ── DOCX EXPORT ── */
+let _docxLoading = false;
+async function loadDocxLib() {
+  if (typeof docx !== 'undefined') return true;
+  if (_docxLoading) { showToast('Library still loading…', true); return false; }
+  _docxLoading = true;
+  showToast('⏳ Loading export library…');
+  return new Promise(resolve => {
+    const s = document.createElement('script');
+    s.src = 'https://unpkg.com/docx@8/build/index.js';
+    s.onload = () => { _docxLoading = false; resolve(true); };
+    s.onerror = () => { _docxLoading = false; showToast('Failed to load export library', true); resolve(false); };
+    document.head.appendChild(s);
+  });
+}
+
+async function exportDocx() {
+  const p = editingId ? proposals.find(x => x.id === editingId) : collectFormData();
+  if (!p) return;
+  const ready = await loadDocxLib();
+  if (!ready) return;
+  showToast('⏳ Generating DOCX…');
+  try {
+    const doc = buildDocxDocument(p);
+    const buf = await docx.Packer.toBlob(doc);
+    const url = URL.createObjectURL(buf);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Proposal_${(p.ownerName||'').replace(/\s+/g,'_') || 'Zesty'}_${(p.propertyName||'').replace(/\s+/g,'_') || 'Property'}.docx`;
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast('✓ DOCX downloaded');
+  } catch (e) {
+    console.error(e);
+    showToast('Export error: ' + e.message, true);
+  }
+}
+
+function buildDocxDocument(p) {
+  const { Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell,
+          AlignmentType, HeadingLevel, BorderStyle, WidthType, ShadingType,
+          PageNumber, Header, Footer, VerticalAlign, LevelFormat } = docx;
+
+  const isEl = (p.language || 'en') === 'el';
+  const tbn = p.tbn || {};
+  const supply = p.supplyItems || [];
+  const today = new Date().toLocaleDateString('en-GB', { day:'numeric', month:'long', year:'numeric' });
+
+  const fv = (key, suffix) => {
+    if (tbn[key]) return 'TBN';
+    const v = p[key];
+    return (v !== undefined && v !== '') ? String(v) + (suffix ? ' ' + suffix : '') : '—';
+  };
+
+  const teal = '0F4A42';
+  const gold = 'C9A84C';
+  const grey = '6B8E86';
+
+  const border = (color) => ({ style: BorderStyle.SINGLE, size: 1, color: color || 'DDEEEC' });
+  const noBorder = { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' };
+  const allBorders = (c) => ({ top: border(c), bottom: border(c), left: border(c), right: border(c) });
+
+  const h = (text, level) => new Paragraph({
+    heading: level,
+    children: [new TextRun({ text, bold: true, color: teal, font: 'Cormorant Garamond', size: level === HeadingLevel.HEADING_1 ? 32 : 26 })]
+  });
+
+  const para = (text, opts) => new Paragraph({
+    children: [new TextRun({ text, font: 'Calibri', size: 22, color: '2A2A2A', ...opts })],
+    spacing: { after: 120 }
+  });
+
+  const tbnRun = (isTbn, val) => new TextRun({
+    text: isTbn ? 'TBN' : val,
+    font: 'Calibri', size: 22,
+    color: isTbn ? gold : '1A2E2B',
+    italics: !!isTbn, bold: !!isTbn
+  });
+
+  const tableRow = (label, key, suffix) => new TableRow({
+    children: [
+      new TableCell({
+        width: { size: 5000, type: WidthType.DXA },
+        borders: allBorders('DDEEEC'),
+        shading: { fill: 'F8FAF9', type: ShadingType.CLEAR },
+        margins: { top: 80, bottom: 80, left: 120, right: 120 },
+        children: [new Paragraph({ children: [new TextRun({ text: label, font: 'Calibri', size: 20, bold: true, color: teal })] })]
+      }),
+      new TableCell({
+        width: { size: 4360, type: WidthType.DXA },
+        borders: allBorders('DDEEEC'),
+        margins: { top: 80, bottom: 80, left: 120, right: 120 },
+        children: [new Paragraph({ children: [tbnRun(tbn[key], fv(key, suffix))] })]
+      })
+    ]
+  });
+
+  const sectionBreak = () => new Paragraph({ children: [] });
+
+  const sections = [
+    // Cover
+    new Paragraph({
+      alignment: AlignmentType.CENTER,
+      children: [new TextRun({ text: 'ZESTY PROPERTY MANAGEMENT', font: 'Cormorant Garamond', size: 52, bold: true, color: teal })],
+      spacing: { before: 1440, after: 120 }
+    }),
+    new Paragraph({
+      alignment: AlignmentType.CENTER,
+      children: [new TextRun({ text: isEl ? 'ΠΡΟΤΑΣΗ ΣΥΝΕΡΓΑΣΙΑΣ' : 'MANAGEMENT PROPOSAL', font: 'Cormorant Garamond', size: 40, color: gold })],
+      spacing: { after: 720 }
+    }),
+    new Paragraph({
+      alignment: AlignmentType.CENTER,
+      children: [new TextRun({ text: (isEl ? 'Υποβάλλεται σε: ' : 'Prepared for: ') + fv('ownerName'), font: 'Calibri', size: 24, color: '2A2A2A' })],
+      spacing: { after: 120 }
+    }),
+    new Paragraph({
+      alignment: AlignmentType.CENTER,
+      children: [new TextRun({ text: fv('propertyName'), font: 'Cormorant Garamond', size: 32, bold: true, color: teal })],
+      spacing: { after: 360 }
+    }),
+    new Paragraph({
+      alignment: AlignmentType.CENTER,
+      children: [new TextRun({ text: (isEl ? 'Ημερομηνία: ' : 'Date: ') + today, font: 'Calibri', size: 20, color: grey })],
+      spacing: { after: 1440 },
+      pageBreakBefore: false
+    }),
+    new Paragraph({ children: [new docx.PageBreak()] }),
+
+    // Glance table
+    h(isEl ? '1. ΕΙΣΑΓΩΓΗ' : '1. INTRODUCTION', HeadingLevel.HEADING_1),
+    para(isEl ? `Η Zesty Property Management χαίρεται να παρουσιάσει αυτή την πρόταση συνεργασίας για τη διαχείριση του ακινήτου ${fv('propertyName')}.` : `Zesty Property Management is pleased to present this management proposal for ${fv('propertyName')}.`),
+    para(isEl ? 'Αναλαμβάνουμε την πλήρη διαχείριση του ακινήτου σας — από τη διαφήμιση και τις κρατήσεις έως τον καθαρισμό, τη συντήρηση και την εξυπηρέτηση επισκεπτών.' : 'We provide full-service property management — from listing and bookings through guest services, cleaning coordination, maintenance and financial reporting.'),
+    sectionBreak(),
+
+    h(isEl ? '2. ΥΠΗΡΕΣΙΕΣ' : '2. SERVICES', HeadingLevel.HEADING_1),
+    para(isEl ? 'Οι υπηρεσίες μας περιλαμβάνουν:' : 'Our comprehensive management services include:'),
+    ...[
+      [isEl?'Διαχείριση Αγγελιών':'Listing Management', isEl?'Airbnb, Booking.com, VRBO κ.ά.':'Airbnb, Booking.com, VRBO and more'],
+      [isEl?'Επικοινωνία Επισκεπτών':'Guest Communication', isEl?'24/7 απόκριση':'24/7 response'],
+      [isEl?'Check-in / Check-out':'Check-in / Check-out', isEl?'Συντονισμός & παράδοση κλειδιών':'Coordination & key handover'],
+      [isEl?'Καθαριότητα':'Cleaning', isEl?'Επαγγελματικός καθαρισμός':'Professional cleaning between stays'],
+      [isEl?'Συντήρηση':'Maintenance', isEl?'Προληπτική & διορθωτική':'Preventive and corrective'],
+      [isEl?'Οικονομική Αναφορά':'Financial Reporting', isEl?'Μηνιαίες καταστάσεις':'Monthly statements'],
+    ].map(([svc, desc]) => new Table({
+      width: { size: 9360, type: WidthType.DXA },
+      columnWidths: [3000, 6360],
+      rows: [new TableRow({ children: [
+        new TableCell({ width: { size: 3000, type: WidthType.DXA }, borders: allBorders('DDEEEC'), shading: { fill: 'F8FAF9', type: ShadingType.CLEAR }, margins: { top: 60, bottom: 60, left: 120, right: 120 }, children: [new Paragraph({ children: [new TextRun({ text: svc, font: 'Calibri', size: 20, bold: true, color: teal })] })] }),
+        new TableCell({ width: { size: 6360, type: WidthType.DXA }, borders: allBorders('DDEEEC'), margins: { top: 60, bottom: 60, left: 120, right: 120 }, children: [new Paragraph({ children: [new TextRun({ text: desc, font: 'Calibri', size: 20, color: '2A2A2A' })] })] }),
+      ]})],
+    })),
+    sectionBreak(),
+
+    h(isEl ? '3. ΑΜΟΙΒΗ ΔΙΑΧΕΙΡΙΣΗΣ' : '3. MANAGEMENT FEE', HeadingLevel.HEADING_1),
+    new Paragraph({ children: [new TextRun({ text: isEl ? 'Αμοιβή διαχείρισης (πλατφόρμες): ' : 'Management fee (platforms): ', font: 'Calibri', size: 22 }), tbnRun(tbn.managementFee, fv('managementFee', '%'))], spacing: { after: 120 } }),
+    new Paragraph({ children: [new TextRun({ text: isEl ? 'Άμεσες κρατήσεις: ' : 'Direct bookings: ', font: 'Calibri', size: 22 }), tbnRun(tbn.directBookingFee, fv('directBookingFee', '%'))], spacing: { after: 240 } }),
+
+    h(isEl ? '4. ΠΡΟΣΘΕΤΕΣ ΥΠΗΡΕΣΙΕΣ & ΧΡΕΩΣΕΙΣ' : '4. ADDITIONAL SERVICES & FEES', HeadingLevel.HEADING_1),
+    new Table({
+      width: { size: 9360, type: WidthType.DXA },
+      columnWidths: [5000, 4360],
+      rows: [
+        new TableRow({ tableHeader: true, children: [
+          new TableCell({ width: { size: 5000, type: WidthType.DXA }, shading: { fill: teal, type: ShadingType.CLEAR }, borders: allBorders(teal), margins: { top: 80, bottom: 80, left: 120, right: 120 }, children: [new Paragraph({ children: [new TextRun({ text: isEl?'Υπηρεσία':'Service', font: 'Calibri', size: 20, bold: true, color: 'FFFFFF' })] })] }),
+          new TableCell({ width: { size: 4360, type: WidthType.DXA }, shading: { fill: teal, type: ShadingType.CLEAR }, borders: allBorders(teal), margins: { top: 80, bottom: 80, left: 120, right: 120 }, children: [new Paragraph({ children: [new TextRun({ text: isEl?'Χρέωση':'Fee', font: 'Calibri', size: 20, bold: true, color: 'FFFFFF' })] })] }),
+        ]}),
+        tableRow(isEl?'Check-in / Check-out':'Check-in / Check-out', 'checkinFee', '€'),
+        tableRow(isEl?'Καθαρισμός (ανά ώρα)':'Cleaning (per hour)', 'cleaningRate', '€/hr'),
+        tableRow(isEl?'Μεταφορά':'Transport', 'transport', '€'),
+        tableRow(isEl?'Μίσθωση Λευκών':'Linen Leasing', 'linenLeasing', '%'),
+      ]
+    }),
+    sectionBreak(),
+
+    h(isEl ? '5. ΣΥΝΤΗΡΗΣΗ' : '5. MAINTENANCE', HeadingLevel.HEADING_1),
+    new Table({
+      width: { size: 9360, type: WidthType.DXA },
+      columnWidths: [5000, 4360],
+      rows: [
+        new TableRow({ tableHeader: true, children: [
+          new TableCell({ width: { size: 5000, type: WidthType.DXA }, shading: { fill: teal, type: ShadingType.CLEAR }, borders: allBorders(teal), margins: { top: 80, bottom: 80, left: 120, right: 120 }, children: [new Paragraph({ children: [new TextRun({ text: isEl?'Υπηρεσία':'Service', font: 'Calibri', size: 20, bold: true, color: 'FFFFFF' })] })] }),
+          new TableCell({ width: { size: 4360, type: WidthType.DXA }, shading: { fill: teal, type: ShadingType.CLEAR }, borders: allBorders(teal), margins: { top: 80, bottom: 80, left: 120, right: 120 }, children: [new Paragraph({ children: [new TextRun({ text: isEl?'Χρέωση':'Fee', font: 'Calibri', size: 20, bold: true, color: 'FFFFFF' })] })] }),
+        ]}),
+        tableRow(isEl?'Επίσκεψη Συντήρησης':'Maintenance Visit', 'maintenanceVisit', '€'),
+        tableRow(isEl?'Επιπλέον Ώρα':'Additional Hour', 'maintenanceExtraHr', '€/hr'),
+        tableRow(isEl?'Πισίνα (μηνιαία)':'Pool (monthly)', 'poolMonthly', ''),
+        tableRow(isEl?'Σεζόν Πισίνας':'Pool Season', 'poolSeason', ''),
+      ]
+    }),
+    sectionBreak(),
+
+    h(isEl ? '6. ΑΛΛΕΣ ΠΑΡΟΧΕΣ ΠΡΟΜΗΘΕΙΩΝ' : '6. OTHER SUPPLY ARRANGEMENTS', HeadingLevel.HEADING_1),
+    new Paragraph({ children: [new TextRun({ text: isEl ? 'Αμοιβή επί καθαρού τιμολογίου: ' : 'Fee on net invoice: ', font: 'Calibri', size: 22 }), tbnRun(tbn.supplyFee, fv('supplyFee', '%'))], spacing: { after: 120 } }),
+    para(isEl ? 'Παράδειγμα: Ξαπλώστρα €200 + αμοιβή 10% = €20 (χρέωση ιδιοκτήτη €220).' : 'Example: Sunbed €200 + 10% fee = €20 (owner invoiced €220).'),
+    ...(supply.length ? [new Table({
+      width: { size: 9360, type: WidthType.DXA },
+      columnWidths: [3500, 1500, 1000, 1500, 1860],
+      rows: [
+        new TableRow({ tableHeader: true, children: ['Item/Αντικείμενο', 'Net Cost/Κόστος', 'Fee %', 'Fee Amt/Αμοιβή', 'Total/Σύνολο'].map((txt, ci) => new TableCell({
+          width: { size: [3500,1500,1000,1500,1860][ci], type: WidthType.DXA },
+          shading: { fill: teal, type: ShadingType.CLEAR }, borders: allBorders(teal),
+          margins: { top: 60, bottom: 60, left: 100, right: 100 },
+          children: [new Paragraph({ children: [new TextRun({ text: txt, font: 'Calibri', size: 18, bold: true, color: 'FFFFFF' })] })]
+        })) }),
+        ...supply.map(item => {
+          const fee = parseFloat(item.fee || p.supplyFee || 0);
+          const cost = parseFloat(item.cost || 0);
+          const feeAmt = (cost * fee / 100).toFixed(2);
+          const total = (cost + parseFloat(feeAmt)).toFixed(2);
+          return new TableRow({ children: [item.description, '€'+cost.toFixed(2), fee+'%', '€'+feeAmt, '€'+total].map((txt, ci) => new TableCell({
+            width: { size: [3500,1500,1000,1500,1860][ci], type: WidthType.DXA },
+            borders: allBorders('DDEEEC'),
+            margins: { top: 60, bottom: 60, left: 100, right: 100 },
+            children: [new Paragraph({ children: [new TextRun({ text: txt, font: 'Calibri', size: 20, bold: ci === 4 })] })]
+          })) });
+        })
+      ]
+    })] : [para(isEl ? 'Δεν έχουν καταχωρηθεί προμήθειες.' : 'No supply arrangements specified.', { italics: true, color: grey })]),
+    sectionBreak(),
+
+    h(isEl ? '7. ΟΡΟΙ & ΠΡΟΫΠΟΘΕΣΕΙΣ' : '7. TERMS & CONDITIONS', HeadingLevel.HEADING_1),
+    para(isEl ? 'Αυτή η πρόταση ισχύει για 30 ημέρες από την ημερομηνία έκδοσης. Κατόπιν αποδοχής, θα καταρτιστεί επίσημη Σύμβαση Διαχείρισης.' : 'This proposal is valid for 30 days from the date of issue. Upon acceptance, a formal Management Agreement will be prepared.'),
+    para(isEl ? 'Όλες οι χρεώσεις προστίθεται ΦΠΑ όπου εφαρμόζεται.' : 'All fees are subject to applicable VAT.'),
+    ...(p.notes ? [sectionBreak(), para(isEl ? 'Σημειώσεις: ' + p.notes : 'Notes: ' + p.notes, { italics: true })] : []),
+
+    // Annex A — Fee Schedule
+    new Paragraph({ children: [new docx.PageBreak()] }),
+    h(isEl ? 'Annex A — Πίνακας Αμοιβών' : 'Annex A — Fee Schedule', HeadingLevel.HEADING_1),
+    new Table({
+      width: { size: 9360, type: WidthType.DXA },
+      columnWidths: [4500, 2800, 2060],
+      rows: [
+        new TableRow({ tableHeader: true, children: [
+          new TableCell({ width:{size:4500,type:WidthType.DXA}, shading:{fill:teal,type:ShadingType.CLEAR}, borders:allBorders(teal), margins:{top:80,bottom:80,left:120,right:120}, children:[new Paragraph({children:[new TextRun({text:isEl?'Υπηρεσία':'Service',font:'Calibri',size:20,bold:true,color:'FFFFFF'})]})] }),
+          new TableCell({ width:{size:2800,type:WidthType.DXA}, shading:{fill:teal,type:ShadingType.CLEAR}, borders:allBorders(teal), margins:{top:80,bottom:80,left:120,right:120}, children:[new Paragraph({children:[new TextRun({text:isEl?'Χρέωση':'Fee',font:'Calibri',size:20,bold:true,color:'FFFFFF'})]})] }),
+          new TableCell({ width:{size:2060,type:WidthType.DXA}, shading:{fill:teal,type:ShadingType.CLEAR}, borders:allBorders(teal), margins:{top:80,bottom:80,left:120,right:120}, children:[new Paragraph({children:[new TextRun({text:isEl?'Βάση':'Basis',font:'Calibri',size:20,bold:true,color:'FFFFFF'})]})] }),
+        ]}),
+        ...[
+          ['managementFee',  '%', isEl?'Διαχείριση (πλατφόρμες)':'Management (platforms)',  isEl?'% καθαρών εσόδων':'% of net income'],
+          ['directBookingFee','%', isEl?'Άμεσες κρατήσεις':'Direct bookings',               isEl?'% καθαρών εσόδων':'% of net income'],
+          ['checkinFee',      '€', 'Check-in/out',                                           isEl?'ανά ανάθεση':'per assignment'],
+          ['cleaningRate',  '€/hr', isEl?'Καθαρισμός':'Cleaning',                           isEl?'ανά ώρα':'per hour'],
+          ['transport',       '€', isEl?'Μεταφορά':'Transport',                              isEl?'ανά επίσκεψη':'per trip'],
+          ['maintenanceVisit','€', isEl?'Συντήρηση':'Maintenance',                           isEl?'ανά επίσκεψη':'per visit'],
+          ['maintenanceExtraHr','€/hr',isEl?'Επιπλέον ώρα συντήρησης':'Maintenance extra hr',isEl?'ανά ώρα':'per hour'],
+          ['poolMonthly',     '',  isEl?'Πισίνα':'Pool maintenance',                         isEl?'ανά μήνα':'per month'],
+          ['linenLeasing',    '%', isEl?'Μίσθωση λευκών':'Linen leasing',                   isEl?'% κόστους':'% of cost'],
+          ['supplyFee',       '%', isEl?'Αμοιβή προμήθειας':'Supply arrangement fee',       isEl?'% καθαρού τιμολογίου':'% of net invoice'],
+        ].map(([key, sfx, label, basis], ri) => new TableRow({ children: [
+          new TableCell({ width:{size:4500,type:WidthType.DXA}, shading:ri%2===1?{fill:'F8FAF9',type:ShadingType.CLEAR}:undefined, borders:allBorders('DDEEEC'), margins:{top:70,bottom:70,left:120,right:120}, children:[new Paragraph({children:[new TextRun({text:label,font:'Calibri',size:20})]})] }),
+          new TableCell({ width:{size:2800,type:WidthType.DXA}, shading:ri%2===1?{fill:'F8FAF9',type:ShadingType.CLEAR}:undefined, borders:allBorders('DDEEEC'), margins:{top:70,bottom:70,left:120,right:120}, children:[new Paragraph({children:[tbnRun(tbn[key], fv(key,sfx))]})] }),
+          new TableCell({ width:{size:2060,type:WidthType.DXA}, shading:ri%2===1?{fill:'F8FAF9',type:ShadingType.CLEAR}:undefined, borders:allBorders('DDEEEC'), margins:{top:70,bottom:70,left:120,right:120}, children:[new Paragraph({children:[new TextRun({text:basis,font:'Calibri',size:20,color:grey})]})] }),
+        ]}))
+      ]
+    }),
+    sectionBreak(),
+
+    // Annex B — Laundry Services
+    new Paragraph({ children: [new docx.PageBreak()] }),
+    h(isEl ? 'Annex B — Υπηρεσίες Πλυντηρίου' : 'Annex B — Laundry Services', HeadingLevel.HEADING_1),
+    para(isEl ? 'Η Zesty παρέχει πλήρεις υπηρεσίες πλυντηρίου για τα λευκά του ακινήτου. Τα είδη συλλέγονται μετά από κάθε check-out και επιστρέφονται έτοιμα για την επόμενη άφιξη.' : 'Zesty provides full laundry services for property linens. Items are collected after each check-out and returned ready for the next arrival.'),
+    ...((() => {
+      const plId = p.laundryPricelistId;
+      if (!plId) return [para(isEl ? 'Δεν έχει επιλεγεί τιμοκατάλογος.' : 'No pricelist selected for this proposal.', { italics: true, color: grey })];
+      const pls = getLaundryPricelists();
+      const pl = pls.find(x => x.id === plId);
+      if (!pl || !pl.prices) return [para('Pricelist not found.', { italics: true, color: grey })];
+      const priceItems = LAUNDRY_ITEMS.filter(i => pl.prices[i.code] !== undefined);
+      if (!priceItems.length) return [];
+      const plLabel = pl.nameEn ? `${pl.id} — ${pl.nameEn} (${pl.name})` : `${pl.id} — ${pl.name}`;
+      return [
+        new Paragraph({ children: [new TextRun({ text: plLabel, font: 'Calibri', size: 22, bold: true, color: teal })], spacing: { before: 160, after: 160 } }),
+        new Table({
+          width: { size: 9360, type: WidthType.DXA },
+          columnWidths: [7200, 2160],
+          rows: [
+            new TableRow({ tableHeader: true, children: [
+              new TableCell({ width:{size:7200,type:WidthType.DXA}, shading:{fill:teal,type:ShadingType.CLEAR}, borders:allBorders(teal), margins:{top:70,bottom:70,left:120,right:120}, children:[new Paragraph({children:[new TextRun({text:isEl?'Είδος':'Item',font:'Calibri',size:20,bold:true,color:'FFFFFF'})]})] }),
+              new TableCell({ width:{size:2160,type:WidthType.DXA}, shading:{fill:teal,type:ShadingType.CLEAR}, borders:allBorders(teal), margins:{top:70,bottom:70,left:120,right:120}, children:[new Paragraph({alignment:AlignmentType.RIGHT,children:[new TextRun({text:isEl?'Τιμή (€)':'Price (€)',font:'Calibri',size:20,bold:true,color:'FFFFFF'})]})] }),
+            ]}),
+            ...priceItems.map((item, ri) => new TableRow({ children: [
+              new TableCell({ width:{size:7200,type:WidthType.DXA}, shading:ri%2===1?{fill:'F8FAF9',type:ShadingType.CLEAR}:undefined, borders:allBorders('DDEEEC'), margins:{top:55,bottom:55,left:120,right:120}, children:[new Paragraph({children:[new TextRun({text:item.en,font:'Calibri',size:20})]})] }),
+              new TableCell({ width:{size:2160,type:WidthType.DXA}, shading:ri%2===1?{fill:'F8FAF9',type:ShadingType.CLEAR}:undefined, borders:allBorders('DDEEEC'), margins:{top:55,bottom:55,left:120,right:120}, children:[new Paragraph({alignment:AlignmentType.RIGHT,children:[new TextRun({text:'€'+parseFloat(pl.prices[item.code]).toFixed(2),font:'Calibri',size:20})]})] }),
+            ]}))
+          ]
+        })
+      ];
+    })()),
+    sectionBreak(),
+
+    // Annex C — Consumables
+    new Paragraph({ children: [new docx.PageBreak()] }),
+    h(isEl ? 'Annex C — Αναλώσιμα' : 'Annex C — Consumables', HeadingLevel.HEADING_1),
+    para(isEl ? 'Η Zesty προμηθεύεται και διαχειρίζεται τα αναλώσιμα του ακινήτου (καθαριστικά, χαρτί υγείας, σαπούνια, καλωσόρισμα επισκεπτών) για λογαριασμό του ιδιοκτήτη.' : 'Zesty sources and manages property consumables (cleaning supplies, toiletries, guest welcome items, etc.) on behalf of the owner.'),
+    para(isEl ? 'Τα αναλώσιμα χρεώνονται στο ακριβές κόστος αγοράς, με προσθήκη της αμοιβής προμήθειας εφοδίων βάσει του Παραρτήματος Α.' : 'Consumables are charged at exact procurement cost, plus the supply arrangement fee as per Annex A.'),
+    sectionBreak(),
+
+    // Signature block
+    sectionBreak(), sectionBreak(),
+    new Table({
+      width: { size: 9360, type: WidthType.DXA },
+      columnWidths: [4500, 4860],
+      rows: [new TableRow({ children: [
+        new TableCell({ width: { size: 4500, type: WidthType.DXA }, borders: { top: noBorder, bottom: noBorder, left: noBorder, right: noBorder }, children: [
+          new Paragraph({ children: [new TextRun({ text: isEl?'Για λογαριασμό της Zesty:':'On behalf of Zesty:', font: 'Calibri', size: 20, color: grey })], spacing: { after: 720 } }),
+          new Paragraph({ border: { bottom: { style: BorderStyle.SINGLE, size: 4, color: teal } }, children: [new TextRun({ text: ' ' })], spacing: { after: 80 } }),
+          new Paragraph({ children: [new TextRun({ text: 'Zesty Property Management', font: 'Calibri', size: 18, color: teal })] })
+        ]}),
+        new TableCell({ width: { size: 4860, type: WidthType.DXA }, borders: { top: noBorder, bottom: noBorder, left: noBorder, right: noBorder }, children: [
+          new Paragraph({ children: [new TextRun({ text: isEl?('Ιδιοκτήτης: ' + fv('ownerName')):('Owner: ' + fv('ownerName')), font: 'Calibri', size: 20, color: grey })], spacing: { after: 720 } }),
+          new Paragraph({ border: { bottom: { style: BorderStyle.SINGLE, size: 4, color: teal } }, children: [new TextRun({ text: ' ' })], spacing: { after: 80 } }),
+          new Paragraph({ children: [new TextRun({ text: fv('ownerName'), font: 'Calibri', size: 18, color: teal })] })
+        ]})
+      ]})]
+    })
+  ];
+
+  return new Document({
+    styles: {
+      default: { document: { run: { font: 'Calibri', size: 22 } } },
+      paragraphStyles: [
+        { id: 'Heading1', name: 'Heading 1', basedOn: 'Normal', next: 'Normal', quickFormat: true, run: { size: 32, bold: true, color: teal, font: 'Cormorant Garamond' }, paragraph: { spacing: { before: 360, after: 200 }, outlineLevel: 0 } },
+      ]
+    },
+    sections: [{
+      properties: { page: { size: { width: 12240, height: 15840 }, margin: { top: 1440, right: 1440, bottom: 1440, left: 1440 } } },
+      headers: { default: new Header({ children: [new Paragraph({ children: [new TextRun({ text: 'ZESTY PROPERTY MANAGEMENT', font: 'Calibri', size: 16, color: grey })], alignment: AlignmentType.RIGHT, border: { bottom: { style: BorderStyle.SINGLE, size: 1, color: 'DDEEEC', space: 1 } } })] }) },
+      footers: { default: new Footer({ children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: 'Page ', font: 'Calibri', size: 16, color: grey }), new TextRun({ children: [PageNumber.CURRENT], font: 'Calibri', size: 16, color: grey }), new TextRun({ text: ' of ', font: 'Calibri', size: 16, color: grey }), new TextRun({ children: [PageNumber.TOTAL_PAGES], font: 'Calibri', size: 16, color: grey })] }) }) },
+      children: sections
+    }]
+  });
+}
+
+/* ── UTILS ── */
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function formatDate(iso, full) {
+  if (!iso) return '';
+  try {
+    const d = new Date(iso);
+    if (full) return d.toLocaleString('en-GB', { day:'numeric', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
+    return d.toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' });
+  } catch { return iso; }
+}
+
+let _toastTimer;
+function showToast(msg, isErr) {
+  clearTimeout(_toastTimer);
+  let t = document.getElementById('_propToast');
+  if (!t) { t = document.createElement('div'); t.id = '_propToast'; t.className = 'toast'; document.body.appendChild(t); }
+  t.textContent = msg;
+  t.className = 'toast' + (isErr ? ' error' : '');
+  _toastTimer = setTimeout(() => t.remove(), 3000);
+}
+
+/* ── START ── */
+init();
+</script>
+<script src="erp-nav.js"></script>
+</body>
+</html>

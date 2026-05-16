@@ -17,16 +17,17 @@
     { url: 'guests-crm.html',      icon: '◉',  label: 'Guests' },
     { url: 'cleaning-system.html', icon: '◎',  label: 'Cleaning' },
     { url: 'checkin-system.html',  icon: '🗝',  label: 'Check-in' },
-    { url: 'contacts-crm.html',    icon: '◈',  label: 'Contacts' },
-    { url: 'employees.html',       icon: '⬡',  label: 'Staff' },
+    { url: 'contacts-crm.html',    icon: '◇',  label: 'Contacts' },
+    { url: 'employees.html',       icon: '▻',  label: 'Staff' },
     { url: 'leave.html',           icon: '◌',  label: 'Leave' },
     { url: 'tasks.html',           icon: '◻',  label: 'Tasks' },
-    { url: 'jobs.html',            icon: '◈',  label: 'Job Orders' },
-    { url: 'laundry.html',         icon: '◎',  label: 'Laundry' },
+    { url: 'jobs.html',            icon: '⬢',  label: 'Job Orders' },
+    { url: 'laundry.html',         icon: '◑',  label: 'Laundry' },
     { url: 'onboarding.html',      icon: '▷',  label: 'Onboarding' },
     { url: 'villa-planner.html',   icon: '📐', label: 'Villa Planner' },
     { url: 'settings.html',        icon: '⚙',  label: 'Settings' },
-    { url: 'tickets.html',         icon: '◈',  label: 'Tickets' },
+    { url: 'tickets.html',         icon: '⊡',  label: 'Tickets' },
+    { url: 'proposals.html',       icon: '◳',  label: 'Proposals' },
     { url: 'reports.html',         icon: '📊', label: 'Reports' },
     { url: 'reviews.html',         icon: '💬', label: 'Reviews & Comments' },
   ];
@@ -268,7 +269,7 @@
       '<button id="z-hamburger" aria-label="Menu">&#9776;</button>' +
 
       /* Ticket FAB */
-      '<button id="z-ticket-fab" title="Report a bug or idea" onclick="zNavOpenTicket()">🎫</button>' +
+      '<button id="z-ticket-fab" title="Report a bug or idea" onclick="zNavOpenTicket()">✎</button>' +
 
       /* Ticket modal */
       '<div id="z-ticket-overlay">' +
@@ -422,7 +423,7 @@
       if (fab) { fab.textContent = '!'; fab.style.background = '#e74c3c'; }
     }
     setTimeout(function () {
-      if (fab) { fab.textContent = '🎫'; fab.style.background = ''; }
+      if (fab) { fab.textContent = '✎'; fab.style.background = ''; }
     }, 2500);
   };
 

@@ -298,6 +298,10 @@ body {
       <div class="ql-icon">🗝️</div>
       <div><div class="ql-label">Check-in</div><div class="ql-count" id="ql-checkin">Schedule &amp; Jobs</div></div>
     </a>
+    <a href="proposals.html" class="ql">
+      <div class="ql-icon">◳</div>
+      <div><div class="ql-label">Proposals</div><div class="ql-count" id="ql-proposals">Owner Agreements</div></div>
+    </a>
     <a href="reports.html" class="ql">
       <div class="ql-icon">📊</div>
       <div><div class="ql-label">Reports</div><div class="ql-count">Owner Statements</div></div>
@@ -498,6 +502,15 @@ async function loadAll(){
   document.getElementById('ql-contacts').textContent='—';
   const openTickets=tickets.filter(t=>t.status!=='fixed').length;
   document.getElementById('ql-tickets').textContent=openTickets?openTickets+' open':'—';
+  // Proposals count from localStorage (lightweight — no extra fetch needed)
+  try {
+    const props2 = JSON.parse(localStorage.getItem('zesty_proposals')||'[]')||[];
+    const propEl = document.getElementById('ql-proposals');
+    if (propEl && props2.length) {
+      const active = props2.filter(p => p.status && p.status !== 'legal').length;
+      propEl.textContent = active ? active+' active' : props2.length+' total';
+    }
+  } catch(e) {}
 
   /* Activity strip */
   const acts=[];
