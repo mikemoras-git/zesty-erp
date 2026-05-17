@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -395,10 +395,16 @@ function closeModal() {
 
 /* ── TABS ── */
 function switchTab(tab) {
+  // Preserve unsaved form edits in memory before leaving the details tab
+  if (currentTab === 'details' && editingId && !viewMode) {
+    const draft = collectFormData();
+    const idx = proposals.findIndex(x => x.id === draft.id);
+    if (idx >= 0) proposals[idx] = draft;
+  }
   currentTab = tab;
   switchTabUI(tab);
   const p = editingId ? proposals.find(x => x.id === editingId) : null;
-  if (tab === 'details') renderDetailsTab(p || { status:'draft', language:'en', supplyItems:[] });
+  if (tab === 'details') renderDetailsTab(p || { status:'draft', language:'en' });
   if (tab === 'preview') renderPreviewTab(p || collectFormData());
   if (tab === 'history') renderHistoryTab(p);
 }
@@ -471,12 +477,6 @@ function renderDetailsTab(p) {
     <input type="hidden" id="fLang" value="${lang}">
     <input type="hidden" id="fStatus" value="${status}">
     ${fieldsHtml}
-    <div class="form-section">
-      <div class="form-section-title">Other Supply Arrangements</div>
-      <div style="font-size:12px;color:#6b8e86;margin-bottom:10px">Items purchased for the owner. Fee % applied on net invoice amount.</div>
-      ${supplyHtml}
-      ${!locked ? `<button class="btn btn-ghost btn-sm add-supply-btn" onclick="addSupplyRow()">＋ Add Item</button>` : ''}
-    </div>
     <div class="form-section">
       <div class="form-section-title">Annex B — Laundry Pricelist</div>
       <div style="font-size:12px;color:#6b8e86;margin-bottom:10px">Select a pricelist from the Laundry module to include in Annex B of the proposal.</div>
@@ -1061,9 +1061,16 @@ async function loadDocxLib() {
   showToast('⏳ Loading export library…');
   return new Promise(resolve => {
     const s = document.createElement('script');
-    s.src = 'https://unpkg.com/docx@8/build/index.js';
-    s.onload = () => { _docxLoading = false; resolve(true); };
-    s.onerror = () => { _docxLoading = false; showToast('Failed to load export library', true); resolve(false); };
+    s.src = 'https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.js';
+    s.onload = function() { _docxLoading = false; resolve(true); };
+    s.onerror = function() {
+      // fallback to unpkg
+      var s2 = document.createElement('script');
+      s2.src = 'https://unpkg.com/docx@8.5.0/build/index.js';
+      s2.onload = function() { _docxLoading = false; resolve(true); };
+      s2.onerror = function() { _docxLoading = false; showToast('Failed to load export library', true); resolve(false); };
+      document.head.appendChild(s2);
+    };
     document.head.appendChild(s);
   });
 }
@@ -1128,18 +1135,18 @@ function buildLaundryAnnexRows(p, isEl, para, teal, grey, allBorders, ShadingTyp
   if (!priceItems.length) return [];
   var plLabel = pl.nameEn ? (pl.id + ' — ' + pl.nameEn + ' (' + pl.name + ')') : (pl.id + ' — ' + pl.name);
   var headerRow = new TableRow({ tableHeader: true, children: [
-    new TableCell({ width:{size:7200,type:WidthType.DXA}, shading:{fill:teal,type:ShadingType.CLEAR}, borders:allBorders(teal), margins:{top:70,bottom:70,left:120,right:120}, children:[new Paragraph({children:[new TextRun({text:isEl?'Είδος':'Item',font:'Calibri',size:20,bold:true,color:'FFFFFF'})]})] }),
-    new TableCell({ width:{size:2160,type:WidthType.DXA}, shading:{fill:teal,type:ShadingType.CLEAR}, borders:allBorders(teal), margins:{top:70,bottom:70,left:120,right:120}, children:[new Paragraph({alignment:AlignmentType.RIGHT,children:[new TextRun({text:isEl?'Τιμή (€)':'Price (€)',font:'Calibri',size:20,bold:true,color:'FFFFFF'})]})] })
+    new TableCell({ width:{size:7200,type:WidthType.DXA}, shading:{fill:teal,type:ShadingType.CLEAR}, borders:allBorders(teal), margins:{top:70,bottom:70,left:120,right:120}, children:[new Paragraph({children:[new TextRun({text:isEl?'Είδος':'Item',font:'Arial',size:20,bold:true,color:'FFFFFF'})]})] }),
+    new TableCell({ width:{size:2160,type:WidthType.DXA}, shading:{fill:teal,type:ShadingType.CLEAR}, borders:allBorders(teal), margins:{top:70,bottom:70,left:120,right:120}, children:[new Paragraph({alignment:AlignmentType.RIGHT,children:[new TextRun({text:isEl?'Τιμή (€)':'Price (€)',font:'Arial',size:20,bold:true,color:'FFFFFF'})]})] })
   ]});
   var dataRows = priceItems.map(function(item, ri) {
-    var shade = ri % 2 === 1 ? {fill:'F8FAF9',type:ShadingType.CLEAR} : undefined;
+    var shade = ri % 2 === 1 ? {fill:'EAF4F2',type:ShadingType.CLEAR} : undefined;
     return new TableRow({ children: [
-      new TableCell({ width:{size:7200,type:WidthType.DXA}, shading:shade, borders:allBorders('DDEEEC'), margins:{top:55,bottom:55,left:120,right:120}, children:[new Paragraph({children:[new TextRun({text:item.en,font:'Calibri',size:20})]})] }),
-      new TableCell({ width:{size:2160,type:WidthType.DXA}, shading:shade, borders:allBorders('DDEEEC'), margins:{top:55,bottom:55,left:120,right:120}, children:[new Paragraph({alignment:AlignmentType.RIGHT,children:[new TextRun({text:'€'+parseFloat(pl.prices[item.code]).toFixed(2),font:'Calibri',size:20})]})] })
+      new TableCell({ width:{size:7200,type:WidthType.DXA}, shading:shade, borders:allBorders('D0E8E4'), margins:{top:55,bottom:55,left:120,right:120}, children:[new Paragraph({children:[new TextRun({text:item.en,font:'Arial',size:20})]})] }),
+      new TableCell({ width:{size:2160,type:WidthType.DXA}, shading:shade, borders:allBorders('D0E8E4'), margins:{top:55,bottom:55,left:120,right:120}, children:[new Paragraph({alignment:AlignmentType.RIGHT,children:[new TextRun({text:'€'+parseFloat(pl.prices[item.code]).toFixed(2),font:'Arial',size:20})]})] })
     ]});
   });
   return [
-    new Paragraph({ children: [new TextRun({ text: plLabel, font: 'Calibri', size: 22, bold: true, color: teal })], spacing: { before: 160, after: 160 } }),
+    new Paragraph({ children: [new TextRun({ text: plLabel, font: 'Arial', size: 22, bold: true, color: teal })], spacing: { before: 160, after: 160 } }),
     new Table({ width: { size: 9360, type: WidthType.DXA }, columnWidths: [7200, 2160], rows: [headerRow].concat(dataRows) })
   ];
 }
@@ -1149,281 +1156,422 @@ function buildDocxDocument(p) {
   var Table = docx.Table, TableRow = docx.TableRow, TableCell = docx.TableCell;
   var AlignmentType = docx.AlignmentType, HeadingLevel = docx.HeadingLevel, BorderStyle = docx.BorderStyle;
   var WidthType = docx.WidthType, ShadingType = docx.ShadingType, PageNumber = docx.PageNumber;
-  var Header = docx.Header, Footer = docx.Footer, VerticalAlign = docx.VerticalAlign, LevelFormat = docx.LevelFormat;
+  var Header = docx.Header, Footer = docx.Footer, PageBreak = docx.PageBreak;
 
   var isEl = (p.language || 'en') === 'el';
   var tbn = p.tbn || {};
-  var supply = p.supplyItems || [];
-  const today = new Date().toLocaleDateString('en-GB', { day:'numeric', month:'long', year:'numeric' });
+  var today = new Date().toLocaleDateString('en-GB', { day:'numeric', month:'long', year:'numeric' });
+
+  var TEAL = '1A7A7A';
+  var GOLD = 'C9A84C';
+  var GREY = '888888';
+  var LTEAL = 'EAF4F2';
+  var DARK = '1A2E2B';
 
   var fv = function(key, suffix) {
     if (tbn[key]) return 'TBN';
     var v = p[key];
-    return (v !== undefined && v !== '') ? String(v) + (suffix ? ' ' + suffix : '') : '—';
+    return (v !== undefined && v !== '') ? (String(v) + (suffix ? ' ' + suffix : '')) : '—';
   };
 
-  const teal = '0F4A42';
-  const gold = 'C9A84C';
-  const grey = '6B8E86';
+  var tbnRun = function(key, display) {
+    var isTbn = !!tbn[key];
+    var txt = isTbn ? 'TBN' : (display !== undefined ? display : fv(key));
+    return new TextRun({ text: txt, font: 'Arial', size: 22, color: isTbn ? GOLD : DARK, italics: isTbn, bold: isTbn });
+  };
 
-  var border = function(color) { return { style: BorderStyle.SINGLE, size: 1, color: color || 'DDEEEC' }; };
+  var border = function(color) { return { style: BorderStyle.SINGLE, size: 1, color: color || 'D0E8E4' }; };
   var noBorder = { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' };
   var allBorders = function(c) { return { top: border(c), bottom: border(c), left: border(c), right: border(c) }; };
 
-  var h = function(text, level) {
+  var para = function(text, opts) {
+    var ro = Object.assign({ text: text, font: 'Arial', size: 22, color: '2A2A2A' }, opts || {});
+    return new Paragraph({ children: [new TextRun(ro)], spacing: { after: 120 } });
+  };
+
+  var h1 = function(text) {
     return new Paragraph({
-      heading: level,
-      children: [new TextRun({ text: text, bold: true, color: teal, font: 'Cormorant Garamond', size: level === HeadingLevel.HEADING_1 ? 32 : 26 })]
+      children: [new TextRun({ text: text, font: 'Arial', size: 28, bold: true, color: TEAL })],
+      spacing: { before: 400, after: 160 },
+      border: { bottom: { style: BorderStyle.SINGLE, size: 3, color: TEAL, space: 2 } }
     });
   };
 
-  const para = function(text, opts) {
-    var runOpts = Object.assign({ text: text, font: 'Calibri', size: 22, color: '2A2A2A' }, opts || {});
-    return new Paragraph({ children: [new TextRun(runOpts)], spacing: { after: 120 } });
-  };
-
-  var tbnRun = function(isTbn, val) {
-    return new TextRun({
-      text: isTbn ? 'TBN' : val,
-      font: 'Calibri', size: 22,
-      color: isTbn ? gold : '1A2E2B',
-      italics: !!isTbn, bold: !!isTbn
+  var h2 = function(text) {
+    return new Paragraph({
+      children: [new TextRun({ text: text, font: 'Arial', size: 24, bold: true, color: TEAL })],
+      spacing: { before: 280, after: 120 }
     });
   };
 
-  var tableRow = function(label, key, suffix) {
-    return new TableRow({
-      children: [
-        new TableCell({
-          width: { size: 5000, type: WidthType.DXA },
-          borders: allBorders('DDEEEC'),
-          shading: { fill: 'F8FAF9', type: ShadingType.CLEAR },
-          margins: { top: 80, bottom: 80, left: 120, right: 120 },
-          children: [new Paragraph({ children: [new TextRun({ text: label, font: 'Calibri', size: 20, bold: true, color: teal })] })]
-        }),
-        new TableCell({
-          width: { size: 4360, type: WidthType.DXA },
-          borders: allBorders('DDEEEC'),
-          margins: { top: 80, bottom: 80, left: 120, right: 120 },
-          children: [new Paragraph({ children: [tbnRun(tbn[key], fv(key, suffix))] })]
-        })
-      ]
-    });
+  var sp = function() { return new Paragraph({ children: [], spacing: { after: 120 } }); };
+  var pgBrk = function() { return new Paragraph({ children: [new PageBreak()] }); };
+
+  var cell2 = function(w, content, shade) {
+    var cfg = { width: { size: w, type: WidthType.DXA }, borders: allBorders('D0E8E4'), margins: { top: 80, bottom: 80, left: 160, right: 80 }, children: content };
+    if (shade) cfg.shading = shade;
+    return new TableCell(cfg);
   };
 
-  var sectionBreak = function() { return new Paragraph({ children: [] }); };
+  var dataRow2 = function(label, valueRun, shade) {
+    return new TableRow({ children: [
+      cell2(4860, [new Paragraph({ children: [new TextRun({ text: label, font: 'Arial', size: 20, bold: true, color: TEAL })] })], { fill: 'F0F7F6', type: ShadingType.CLEAR }),
+      cell2(4500, [new Paragraph({ children: [valueRun] })], shade)
+    ]});
+  };
 
-  const sections = [
-    // Cover
-    new Paragraph({
-      alignment: AlignmentType.CENTER,
-      children: [new TextRun({ text: 'ZESTY PROPERTY MANAGEMENT', font: 'Cormorant Garamond', size: 52, bold: true, color: teal })],
-      spacing: { before: 1440, after: 120 }
-    }),
-    new Paragraph({
-      alignment: AlignmentType.CENTER,
-      children: [new TextRun({ text: isEl ? 'ΠΡΟΤΑΣΗ ΣΥΝΕΡΓΑΣΙΑΣ' : 'MANAGEMENT PROPOSAL', font: 'Cormorant Garamond', size: 40, color: gold })],
-      spacing: { after: 720 }
-    }),
-    new Paragraph({
-      alignment: AlignmentType.CENTER,
-      children: [new TextRun({ text: (isEl ? 'Υποβάλλεται σε: ' : 'Prepared for: ') + fv('ownerName'), font: 'Calibri', size: 24, color: '2A2A2A' })],
-      spacing: { after: 120 }
-    }),
-    new Paragraph({
-      alignment: AlignmentType.CENTER,
-      children: [new TextRun({ text: fv('propertyName'), font: 'Cormorant Garamond', size: 32, bold: true, color: teal })],
-      spacing: { after: 360 }
-    }),
-    new Paragraph({
-      alignment: AlignmentType.CENTER,
-      children: [new TextRun({ text: (isEl ? 'Ημερομηνία: ' : 'Date: ') + today, font: 'Calibri', size: 20, color: grey })],
-      spacing: { after: 1440 },
-      pageBreakBefore: false
-    }),
-    new Paragraph({ children: [new docx.PageBreak()] }),
+  var feeRow = function(label, key, suffix, ri) {
+    var shade = (ri % 2 === 0) ? undefined : { fill: LTEAL, type: ShadingType.CLEAR };
+    return dataRow2(label, tbnRun(key, fv(key, suffix)), shade);
+  };
 
-    // Glance table
-    h(isEl ? '1. ΕΙΣΑΓΩΓΗ' : '1. INTRODUCTION', HeadingLevel.HEADING_1),
-    para(isEl ? `Η Zesty Property Management χαίρεται να παρουσιάσει αυτή την πρόταση συνεργασίας για τη διαχείριση του ακινήτου ${fv('propertyName')}.` : `Zesty Property Management is pleased to present this management proposal for ${fv('propertyName')}.`),
-    para(isEl ? 'Αναλαμβάνουμε την πλήρη διαχείριση του ακινήτου σας — από τη διαφήμιση και τις κρατήσεις έως τον καθαρισμό, τη συντήρηση και την εξυπηρέτηση επισκεπτών.' : 'We provide full-service property management — from listing and bookings through guest services, cleaning coordination, maintenance and financial reporting.'),
-    sectionBreak(),
+  var hdrRow3 = function(c1, c2, c3) {
+    return new TableRow({ tableHeader: true, children: [
+      new TableCell({ width:{size:4000,type:WidthType.DXA}, shading:{fill:TEAL,type:ShadingType.CLEAR}, borders:allBorders(TEAL), margins:{top:80,bottom:80,left:120,right:120}, children:[new Paragraph({children:[new TextRun({text:c1,font:'Arial',size:20,bold:true,color:'FFFFFF'})]})] }),
+      new TableCell({ width:{size:2800,type:WidthType.DXA}, shading:{fill:TEAL,type:ShadingType.CLEAR}, borders:allBorders(TEAL), margins:{top:80,bottom:80,left:120,right:120}, children:[new Paragraph({children:[new TextRun({text:c2,font:'Arial',size:20,bold:true,color:'FFFFFF'})]})] }),
+      new TableCell({ width:{size:2560,type:WidthType.DXA}, shading:{fill:TEAL,type:ShadingType.CLEAR}, borders:allBorders(TEAL), margins:{top:80,bottom:80,left:120,right:120}, children:[new Paragraph({children:[new TextRun({text:c3,font:'Arial',size:20,bold:true,color:'FFFFFF'})]})] })
+    ]});
+  };
 
-    h(isEl ? '2. ΥΠΗΡΕΣΙΕΣ' : '2. SERVICES', HeadingLevel.HEADING_1),
-    para(isEl ? 'Οι υπηρεσίες μας περιλαμβάνουν:' : 'Our comprehensive management services include:'),
-    ...[
-      [isEl?'Διαχείριση Αγγελιών':'Listing Management', isEl?'Airbnb, Booking.com, VRBO κ.ά.':'Airbnb, Booking.com, VRBO and more'],
-      [isEl?'Επικοινωνία Επισκεπτών':'Guest Communication', isEl?'24/7 απόκριση':'24/7 response'],
-      [isEl?'Check-in / Check-out':'Check-in / Check-out', isEl?'Συντονισμός & παράδοση κλειδιών':'Coordination & key handover'],
-      [isEl?'Καθαριότητα':'Cleaning', isEl?'Επαγγελματικός καθαρισμός':'Professional cleaning between stays'],
-      [isEl?'Συντήρηση':'Maintenance', isEl?'Προληπτική & διορθωτική':'Preventive and corrective'],
-      [isEl?'Οικονομική Αναφορά':'Financial Reporting', isEl?'Μηνιαίες καταστάσεις':'Monthly statements'],
-    ].map(function(pair) {
-      var svc = pair[0], desc = pair[1];
-      return new Table({
-        width: { size: 9360, type: WidthType.DXA },
-        columnWidths: [3000, 6360],
-        rows: [new TableRow({ children: [
-          new TableCell({ width: { size: 3000, type: WidthType.DXA }, borders: allBorders('DDEEEC'), shading: { fill: 'F8FAF9', type: ShadingType.CLEAR }, margins: { top: 60, bottom: 60, left: 120, right: 120 }, children: [new Paragraph({ children: [new TextRun({ text: svc, font: 'Calibri', size: 20, bold: true, color: teal })] })] }),
-          new TableCell({ width: { size: 6360, type: WidthType.DXA }, borders: allBorders('DDEEEC'), margins: { top: 60, bottom: 60, left: 120, right: 120 }, children: [new Paragraph({ children: [new TextRun({ text: desc, font: 'Calibri', size: 20, color: '2A2A2A' })] })] }),
-        ]})],
-      });
-    }),
-    sectionBreak(),
+  var schedRow = function(label, key, suffix, basis, ri) {
+    var shade = (ri % 2 === 1) ? { fill: LTEAL, type: ShadingType.CLEAR } : undefined;
+    var valRun = key ? tbnRun(key, fv(key, suffix)) : new TextRun({ text: suffix, font: 'Arial', size: 20, color: DARK });
+    return new TableRow({ children: [
+      new TableCell({ width:{size:4000,type:WidthType.DXA}, shading:shade, borders:allBorders('D0E8E4'), margins:{top:70,bottom:70,left:120,right:120}, children:[new Paragraph({children:[new TextRun({text:label,font:'Arial',size:20})]})] }),
+      new TableCell({ width:{size:2800,type:WidthType.DXA}, shading:shade, borders:allBorders('D0E8E4'), margins:{top:70,bottom:70,left:120,right:120}, children:[new Paragraph({children:[valRun]})] }),
+      new TableCell({ width:{size:2560,type:WidthType.DXA}, shading:shade, borders:allBorders('D0E8E4'), margins:{top:70,bottom:70,left:120,right:120}, children:[new Paragraph({children:[new TextRun({text:basis,font:'Arial',size:20,color:GREY})]})] })
+    ]});
+  };
 
-    h(isEl ? '3. ΑΜΟΙΒΗ ΔΙΑΧΕΙΡΙΣΗΣ' : '3. MANAGEMENT FEE', HeadingLevel.HEADING_1),
-    new Paragraph({ children: [new TextRun({ text: isEl ? 'Αμοιβή διαχείρισης (πλατφόρμες): ' : 'Management fee (platforms): ', font: 'Calibri', size: 22 }), tbnRun(tbn.managementFee, fv('managementFee', '%'))], spacing: { after: 120 } }),
-    new Paragraph({ children: [new TextRun({ text: isEl ? 'Άμεσες κρατήσεις: ' : 'Direct bookings: ', font: 'Calibri', size: 22 }), tbnRun(tbn.directBookingFee, fv('directBookingFee', '%'))], spacing: { after: 240 } }),
+  var sections = [];
 
-    h(isEl ? '4. ΠΡΟΣΘΕΤΕΣ ΥΠΗΡΕΣΙΕΣ & ΧΡΕΩΣΕΙΣ' : '4. ADDITIONAL SERVICES & FEES', HeadingLevel.HEADING_1),
+  // ── COVER ──
+  sections.push(
+    new Paragraph({ alignment: AlignmentType.CENTER, spacing: { before: 1000, after: 120 }, children: [new TextRun({ text: isEl ? 'ΠΛΗΡΗΣ ΔΙΑΧΕΙΡΙΣΗ ΑΚΙΝΗΤΟΥ' : 'FULL PROPERTY MANAGEMENT', font: 'Arial', size: 52, bold: true, color: TEAL })] }),
+    new Paragraph({ alignment: AlignmentType.CENTER, spacing: { after: 120 }, children: [new TextRun({ text: isEl ? 'ΠΡΟΤΑΣΗ' : 'PROPOSAL', font: 'Arial', size: 40, color: GOLD })] }),
+    new Paragraph({ alignment: AlignmentType.CENTER, spacing: { after: 640 }, children: [new TextRun({ text: isEl ? 'Υπηρεσίες Τουριστικής Μίσθωσης' : 'Vacation Rental Business Services', font: 'Arial', size: 24, color: GREY })] }),
     new Table({
-      width: { size: 9360, type: WidthType.DXA },
-      columnWidths: [5000, 4360],
+      width: { size: 9360, type: WidthType.DXA }, columnWidths: [2880, 6480],
       rows: [
-        new TableRow({ tableHeader: true, children: [
-          new TableCell({ width: { size: 5000, type: WidthType.DXA }, shading: { fill: teal, type: ShadingType.CLEAR }, borders: allBorders(teal), margins: { top: 80, bottom: 80, left: 120, right: 120 }, children: [new Paragraph({ children: [new TextRun({ text: isEl?'Υπηρεσία':'Service', font: 'Calibri', size: 20, bold: true, color: 'FFFFFF' })] })] }),
-          new TableCell({ width: { size: 4360, type: WidthType.DXA }, shading: { fill: teal, type: ShadingType.CLEAR }, borders: allBorders(teal), margins: { top: 80, bottom: 80, left: 120, right: 120 }, children: [new Paragraph({ children: [new TextRun({ text: isEl?'Χρέωση':'Fee', font: 'Calibri', size: 20, bold: true, color: 'FFFFFF' })] })] }),
+        new TableRow({ children: [
+          new TableCell({ width:{size:2880,type:WidthType.DXA}, borders:allBorders('D0E8E4'), shading:{fill:'F0F7F6',type:ShadingType.CLEAR}, margins:{top:80,bottom:80,left:160,right:80}, children:[new Paragraph({children:[new TextRun({text:isEl?'Από:':'From:', font:'Arial',size:20,bold:true,color:TEAL})]})] }),
+          new TableCell({ width:{size:6480,type:WidthType.DXA}, borders:allBorders('D0E8E4'), margins:{top:80,bottom:80,left:160,right:80}, children:[new Paragraph({children:[new TextRun({text:'Zesty Rentals and Investments IKE',font:'Arial',size:20,bold:true,color:DARK})]})] })
         ]}),
-        tableRow(isEl?'Check-in / Check-out':'Check-in / Check-out', 'checkinFee', '€'),
-        tableRow(isEl?'Καθαρισμός (ανά ώρα)':'Cleaning (per hour)', 'cleaningRate', '€/hr'),
-        tableRow(isEl?'Μεταφορά':'Transport', 'transport', '€'),
-        tableRow(isEl?'Μίσθωση Λευκών':'Linen Leasing', 'linenLeasing', '%'),
-      ]
-    }),
-    sectionBreak(),
-
-    h(isEl ? '5. ΣΥΝΤΗΡΗΣΗ' : '5. MAINTENANCE', HeadingLevel.HEADING_1),
-    new Table({
-      width: { size: 9360, type: WidthType.DXA },
-      columnWidths: [5000, 4360],
-      rows: [
-        new TableRow({ tableHeader: true, children: [
-          new TableCell({ width: { size: 5000, type: WidthType.DXA }, shading: { fill: teal, type: ShadingType.CLEAR }, borders: allBorders(teal), margins: { top: 80, bottom: 80, left: 120, right: 120 }, children: [new Paragraph({ children: [new TextRun({ text: isEl?'Υπηρεσία':'Service', font: 'Calibri', size: 20, bold: true, color: 'FFFFFF' })] })] }),
-          new TableCell({ width: { size: 4360, type: WidthType.DXA }, shading: { fill: teal, type: ShadingType.CLEAR }, borders: allBorders(teal), margins: { top: 80, bottom: 80, left: 120, right: 120 }, children: [new Paragraph({ children: [new TextRun({ text: isEl?'Χρέωση':'Fee', font: 'Calibri', size: 20, bold: true, color: 'FFFFFF' })] })] }),
+        new TableRow({ children: [
+          new TableCell({ width:{size:2880,type:WidthType.DXA}, borders:allBorders('D0E8E4'), shading:{fill:'F0F7F6',type:ShadingType.CLEAR}, margins:{top:80,bottom:80,left:160,right:80}, children:[new Paragraph({children:[new TextRun({text:isEl?'Προς:':'To:', font:'Arial',size:20,bold:true,color:TEAL})]})] }),
+          new TableCell({ width:{size:6480,type:WidthType.DXA}, borders:allBorders('D0E8E4'), margins:{top:80,bottom:80,left:160,right:80}, children:[new Paragraph({children:[tbnRun('ownerName', fv('ownerName'))]})] })
         ]}),
-        tableRow(isEl?'Επίσκεψη Συντήρησης':'Maintenance Visit', 'maintenanceVisit', '€'),
-        tableRow(isEl?'Επιπλέον Ώρα':'Additional Hour', 'maintenanceExtraHr', '€/hr'),
-        tableRow(isEl?'Πισίνα (μηνιαία)':'Pool (monthly)', 'poolMonthly', ''),
-        tableRow(isEl?'Σεζόν Πισίνας':'Pool Season', 'poolSeason', ''),
-      ]
-    }),
-    sectionBreak(),
-
-    h(isEl ? '6. ΑΛΛΕΣ ΠΑΡΟΧΕΣ ΠΡΟΜΗΘΕΙΩΝ' : '6. OTHER SUPPLY ARRANGEMENTS', HeadingLevel.HEADING_1),
-    new Paragraph({ children: [new TextRun({ text: isEl ? 'Αμοιβή επί καθαρού τιμολογίου: ' : 'Fee on net invoice: ', font: 'Calibri', size: 22 }), tbnRun(tbn.supplyFee, fv('supplyFee', '%'))], spacing: { after: 120 } }),
-    para(isEl ? 'Παράδειγμα: Ξαπλώστρα €200 + αμοιβή 10% = €20 (χρέωση ιδιοκτήτη €220).' : 'Example: Sunbed €200 + 10% fee = €20 (owner invoiced €220).'),
-    ...(supply.length ? [new Table({
-      width: { size: 9360, type: WidthType.DXA },
-      columnWidths: [3500, 1500, 1000, 1500, 1860],
-      rows: [
-        new TableRow({ tableHeader: true, children: ['Item/Αντικείμενο', 'Net Cost/Κόστος', 'Fee %', 'Fee Amt/Αμοιβή', 'Total/Σύνολο'].map(function(txt, ci) { return new TableCell({
-          width: { size: [3500,1500,1000,1500,1860][ci], type: WidthType.DXA },
-          shading: { fill: teal, type: ShadingType.CLEAR }, borders: allBorders(teal),
-          margins: { top: 60, bottom: 60, left: 100, right: 100 },
-          children: [new Paragraph({ children: [new TextRun({ text: txt, font: 'Calibri', size: 18, bold: true, color: 'FFFFFF' })] })]
-        }); }) }),
-        ...supply.map(function(item) {
-          var fee = parseFloat(item.fee || p.supplyFee || 0);
-          var cost = parseFloat(item.cost || 0);
-          var feeAmt = (cost * fee / 100).toFixed(2);
-          var total = (cost + parseFloat(feeAmt)).toFixed(2);
-          return new TableRow({ children: [item.description, '€'+cost.toFixed(2), fee+'%', '€'+feeAmt, '€'+total].map(function(txt, ci) { return new TableCell({
-            width: { size: [3500,1500,1000,1500,1860][ci], type: WidthType.DXA },
-            borders: allBorders('DDEEEC'),
-            margins: { top: 60, bottom: 60, left: 100, right: 100 },
-            children: [new Paragraph({ children: [new TextRun({ text: txt, font: 'Calibri', size: 20, bold: ci === 4 })] })]
-          }); }) });
-        })
-      ]
-    })] : [para(isEl ? 'Δεν έχουν καταχωρηθεί προμήθειες.' : 'No supply arrangements specified.', { italics: true, color: grey })]),
-    sectionBreak(),
-
-    h(isEl ? '7. ΟΡΟΙ & ΠΡΟΫΠΟΘΕΣΕΙΣ' : '7. TERMS & CONDITIONS', HeadingLevel.HEADING_1),
-    para(isEl ? 'Αυτή η πρόταση ισχύει για 30 ημέρες από την ημερομηνία έκδοσης. Κατόπιν αποδοχής, θα καταρτιστεί επίσημη Σύμβαση Διαχείρισης.' : 'This proposal is valid for 30 days from the date of issue. Upon acceptance, a formal Management Agreement will be prepared.'),
-    para(isEl ? 'Όλες οι χρεώσεις προστίθεται ΦΠΑ όπου εφαρμόζεται.' : 'All fees are subject to applicable VAT.'),
-    ...(p.notes ? [sectionBreak(), para(isEl ? 'Σημειώσεις: ' + p.notes : 'Notes: ' + p.notes, { italics: true })] : []),
-
-    // Annex A — Fee Schedule
-    new Paragraph({ children: [new docx.PageBreak()] }),
-    h(isEl ? 'Annex A — Πίνακας Αμοιβών' : 'Annex A — Fee Schedule', HeadingLevel.HEADING_1),
-    new Table({
-      width: { size: 9360, type: WidthType.DXA },
-      columnWidths: [4500, 2800, 2060],
-      rows: [
-        new TableRow({ tableHeader: true, children: [
-          new TableCell({ width:{size:4500,type:WidthType.DXA}, shading:{fill:teal,type:ShadingType.CLEAR}, borders:allBorders(teal), margins:{top:80,bottom:80,left:120,right:120}, children:[new Paragraph({children:[new TextRun({text:isEl?'Υπηρεσία':'Service',font:'Calibri',size:20,bold:true,color:'FFFFFF'})]})] }),
-          new TableCell({ width:{size:2800,type:WidthType.DXA}, shading:{fill:teal,type:ShadingType.CLEAR}, borders:allBorders(teal), margins:{top:80,bottom:80,left:120,right:120}, children:[new Paragraph({children:[new TextRun({text:isEl?'Χρέωση':'Fee',font:'Calibri',size:20,bold:true,color:'FFFFFF'})]})] }),
-          new TableCell({ width:{size:2060,type:WidthType.DXA}, shading:{fill:teal,type:ShadingType.CLEAR}, borders:allBorders(teal), margins:{top:80,bottom:80,left:120,right:120}, children:[new Paragraph({children:[new TextRun({text:isEl?'Βάση':'Basis',font:'Calibri',size:20,bold:true,color:'FFFFFF'})]})] }),
+        new TableRow({ children: [
+          new TableCell({ width:{size:2880,type:WidthType.DXA}, borders:allBorders('D0E8E4'), shading:{fill:'F0F7F6',type:ShadingType.CLEAR}, margins:{top:80,bottom:80,left:160,right:80}, children:[new Paragraph({children:[new TextRun({text:isEl?'Ακίνητο:':'Property:', font:'Arial',size:20,bold:true,color:TEAL})]})] }),
+          new TableCell({ width:{size:6480,type:WidthType.DXA}, borders:allBorders('D0E8E4'), margins:{top:80,bottom:80,left:160,right:80}, children:[new Paragraph({children:[tbnRun('propertyName', fv('propertyName'))]})] })
         ]}),
-        ...[
-          ['managementFee',  '%', isEl?'Διαχείριση (πλατφόρμες)':'Management (platforms)',  isEl?'% καθαρών εσόδων':'% of net income'],
-          ['directBookingFee','%', isEl?'Άμεσες κρατήσεις':'Direct bookings',               isEl?'% καθαρών εσόδων':'% of net income'],
-          ['checkinFee',      '€', 'Check-in/out',                                           isEl?'ανά ανάθεση':'per assignment'],
-          ['cleaningRate',  '€/hr', isEl?'Καθαρισμός':'Cleaning',                           isEl?'ανά ώρα':'per hour'],
-          ['transport',       '€', isEl?'Μεταφορά':'Transport',                              isEl?'ανά επίσκεψη':'per trip'],
-          ['maintenanceVisit','€', isEl?'Συντήρηση':'Maintenance',                           isEl?'ανά επίσκεψη':'per visit'],
-          ['maintenanceExtraHr','€/hr',isEl?'Επιπλέον ώρα συντήρησης':'Maintenance extra hr',isEl?'ανά ώρα':'per hour'],
-          ['poolMonthly',     '',  isEl?'Πισίνα':'Pool maintenance',                         isEl?'ανά μήνα':'per month'],
-          ['linenLeasing',    '%', isEl?'Μίσθωση λευκών':'Linen leasing',                   isEl?'% κόστους':'% of cost'],
-          ['supplyFee',       '%', isEl?'Αμοιβή προμήθειας':'Supply arrangement fee',       isEl?'% καθαρού τιμολογίου':'% of net invoice'],
-        ].map(function(row, ri) {
-          var key = row[0], sfx = row[1], label = row[2], basis = row[3];
-          var shade = ri%2===1 ? {fill:'F8FAF9',type:ShadingType.CLEAR} : undefined;
-          return new TableRow({ children: [
-            new TableCell({ width:{size:4500,type:WidthType.DXA}, shading:shade, borders:allBorders('DDEEEC'), margins:{top:70,bottom:70,left:120,right:120}, children:[new Paragraph({children:[new TextRun({text:label,font:'Calibri',size:20})]})] }),
-            new TableCell({ width:{size:2800,type:WidthType.DXA}, shading:shade, borders:allBorders('DDEEEC'), margins:{top:70,bottom:70,left:120,right:120}, children:[new Paragraph({children:[tbnRun(tbn[key], fv(key,sfx))]})] }),
-            new TableCell({ width:{size:2060,type:WidthType.DXA}, shading:shade, borders:allBorders('DDEEEC'), margins:{top:70,bottom:70,left:120,right:120}, children:[new Paragraph({children:[new TextRun({text:basis,font:'Calibri',size:20,color:grey})]})] }),
-          ]});
-        })
-      ]
-    }),
-    sectionBreak(),
-
-    // Annex B — Laundry Services
-    new Paragraph({ children: [new docx.PageBreak()] }),
-    h(isEl ? 'Annex B — Υπηρεσίες Πλυντηρίου' : 'Annex B — Laundry Services', HeadingLevel.HEADING_1),
-    para(isEl ? 'Η Zesty παρέχει πλήρεις υπηρεσίες πλυντηρίου για τα λευκά του ακινήτου. Τα είδη συλλέγονται μετά από κάθε check-out και επιστρέφονται έτοιμα για την επόμενη άφιξη.' : 'Zesty provides full laundry services for property linens. Items are collected after each check-out and returned ready for the next arrival.'),
-    ...buildLaundryAnnexRows(p, isEl, para, teal, grey, allBorders, ShadingType, WidthType, AlignmentType, Paragraph, TextRun, Table, TableRow, TableCell),
-    sectionBreak(),
-
-    // Annex C — Consumables
-    new Paragraph({ children: [new docx.PageBreak()] }),
-    h(isEl ? 'Annex C — Αναλώσιμα' : 'Annex C — Consumables', HeadingLevel.HEADING_1),
-    para(isEl ? 'Η Zesty προμηθεύεται και διαχειρίζεται τα αναλώσιμα του ακινήτου (καθαριστικά, χαρτί υγείας, σαπούνια, καλωσόρισμα επισκεπτών) για λογαριασμό του ιδιοκτήτη.' : 'Zesty sources and manages property consumables (cleaning supplies, toiletries, guest welcome items, etc.) on behalf of the owner.'),
-    para(isEl ? 'Τα αναλώσιμα χρεώνονται στο ακριβές κόστος αγοράς, με προσθήκη της αμοιβής προμήθειας εφοδίων βάσει του Παραρτήματος Α.' : 'Consumables are charged at exact procurement cost, plus the supply arrangement fee as per Annex A.'),
-    sectionBreak(),
-
-    // Signature block
-    sectionBreak(), sectionBreak(),
-    new Table({
-      width: { size: 9360, type: WidthType.DXA },
-      columnWidths: [4500, 4860],
-      rows: [new TableRow({ children: [
-        new TableCell({ width: { size: 4500, type: WidthType.DXA }, borders: { top: noBorder, bottom: noBorder, left: noBorder, right: noBorder }, children: [
-          new Paragraph({ children: [new TextRun({ text: isEl?'Για λογαριασμό της Zesty:':'On behalf of Zesty:', font: 'Calibri', size: 20, color: grey })], spacing: { after: 720 } }),
-          new Paragraph({ border: { bottom: { style: BorderStyle.SINGLE, size: 4, color: teal } }, children: [new TextRun({ text: ' ' })], spacing: { after: 80 } }),
-          new Paragraph({ children: [new TextRun({ text: 'Zesty Property Management', font: 'Calibri', size: 18, color: teal })] })
-        ]}),
-        new TableCell({ width: { size: 4860, type: WidthType.DXA }, borders: { top: noBorder, bottom: noBorder, left: noBorder, right: noBorder }, children: [
-          new Paragraph({ children: [new TextRun({ text: isEl?('Ιδιοκτήτης: ' + fv('ownerName')):('Owner: ' + fv('ownerName')), font: 'Calibri', size: 20, color: grey })], spacing: { after: 720 } }),
-          new Paragraph({ border: { bottom: { style: BorderStyle.SINGLE, size: 4, color: teal } }, children: [new TextRun({ text: ' ' })], spacing: { after: 80 } }),
-          new Paragraph({ children: [new TextRun({ text: fv('ownerName'), font: 'Calibri', size: 18, color: teal })] })
+        new TableRow({ children: [
+          new TableCell({ width:{size:2880,type:WidthType.DXA}, borders:allBorders('D0E8E4'), shading:{fill:'F0F7F6',type:ShadingType.CLEAR}, margins:{top:80,bottom:80,left:160,right:80}, children:[new Paragraph({children:[new TextRun({text:isEl?'Ημερομηνία:':'Date:', font:'Arial',size:20,bold:true,color:TEAL})]})] }),
+          new TableCell({ width:{size:6480,type:WidthType.DXA}, borders:allBorders('D0E8E4'), margins:{top:80,bottom:80,left:160,right:80}, children:[new Paragraph({children:[new TextRun({text:today,font:'Arial',size:20,color:DARK})]})] })
         ]})
-      ]})]
-    })
+      ]
+    }),
+    sp(),
+    new Paragraph({ spacing: { before: 480, after: 160 }, border: { bottom: { style: BorderStyle.SINGLE, size: 3, color: TEAL, space: 2 } }, children: [new TextRun({ text: isEl ? 'ΜΕ ΜΙΑ ΜΑΤΙΑ' : 'AT A GLANCE', font: 'Arial', size: 24, bold: true, color: TEAL })] }),
+    new Table({
+      width: { size: 9360, type: WidthType.DXA }, columnWidths: [4860, 4500],
+      rows: [
+        new TableRow({ tableHeader: true, children: [
+          new TableCell({ width:{size:4860,type:WidthType.DXA}, shading:{fill:TEAL,type:ShadingType.CLEAR}, borders:allBorders(TEAL), margins:{top:90,bottom:90,left:160,right:80}, children:[new Paragraph({children:[new TextRun({text:isEl?'Υπηρεσία / Χρέωση':'Service / Charge',font:'Arial',size:20,bold:true,color:'FFFFFF'})]})] }),
+          new TableCell({ width:{size:4500,type:WidthType.DXA}, shading:{fill:TEAL,type:ShadingType.CLEAR}, borders:allBorders(TEAL), margins:{top:90,bottom:90,left:160,right:80}, children:[new Paragraph({children:[new TextRun({text:isEl?'Συμφωνηθείσα Αξία':'Agreed Value',font:'Arial',size:20,bold:true,color:'FFFFFF'})]})] })
+        ]}),
+        feeRow(isEl?'Αμοιβή Διαχείρισης':'Management Fee', 'managementFee', '%', 0),
+        feeRow(isEl?'Άμεσες Κρατήσεις':'Direct Bookings', 'directBookingFee', '%', 1),
+        dataRow2(isEl?'Διαμονή Ιδιοκτήτη':'Owner Stays', new TextRun({text:'0%',font:'Arial',size:22,color:DARK}), undefined),
+        feeRow('Check-In / Check-Out', 'checkinFee', '€', 1),
+        feeRow(isEl?'Καθαρισμός':'Cleaning', 'cleaningRate', '€/hr', 0),
+        feeRow(isEl?'Συντήρηση':'Maintenance', 'maintenanceVisit', '€/visit', 1),
+        dataRow2(isEl?'Αναλώσιμα Επισκεπτών':'Guest Consumables', new TextRun({text:isEl?'Κόστος αγοράς (χωρίς επιβάρυνση)':'At cost (no handling fee)',font:'Arial',size:22,color:DARK}), undefined),
+        dataRow2(isEl?'Διαχείριση Αξιώσεων':'Claims Management', new TextRun({text:isEl?'Συμπεριλαμβάνεται':'Included',font:'Arial',size:22,color:DARK}), {fill:LTEAL,type:ShadingType.CLEAR}),
+        dataRow2(isEl?'Πλατφόρμες':'Platforms', new TextRun({text:'Airbnb, Booking.com, VRBO, Direct',font:'Arial',size:22,color:DARK}), undefined),
+        dataRow2(isEl?'Καταγγελία':'Termination', new TextRun({text:isEl?'30 ημέρες προειδοποίηση':'30 days notice',font:'Arial',size:22,color:DARK}), {fill:LTEAL,type:ShadingType.CLEAR}),
+        dataRow2(isEl?'ΦΠΑ':'VAT', new TextRun({text:isEl?'Σύμφωνα με την ελληνική νομοθεσία':'As per Greek law',font:'Arial',size:22,color:DARK}), undefined)
+      ]
+    }),
+    pgBrk()
+  );
+
+  // ── SECTION 1 ──
+  sections.push(
+    h1(isEl ? '1. ΕΙΣΑΓΩΓΗ' : '1. INTRODUCTION'),
+    para(isEl
+      ? 'H Zesty Rentals and Investments IKE είναι εξειδικευμένη εταιρεία διαχείρισης τουριστικών ακινήτων με έδρα στην Κρήτη. Παρέχουμε ολοκληρωμένες υπηρεσίες διαχείρισης που επιτρέπουν στους ιδιοκτήτες να απολαμβάνουν παθητικό εισόδημα χωρίς την καθημερινή επιχειρησιακή επιβάρυνση.'
+      : 'Zesty Rentals and Investments IKE is a specialist vacation rental management company based in Crete. We provide comprehensive property management services that allow owners to enjoy passive income without the day-to-day operational burden.'),
+    para(isEl
+      ? 'Η παρούσα πρόταση αφορά το ακίνητο: ' + fv('propertyName') + '.'
+      : 'This proposal concerns the property: ' + fv('propertyName') + '.'),
+    sp()
+  );
+
+  // ── SECTION 2 ──
+  sections.push(h1(isEl ? '2. ΥΠΗΡΕΣΙΕΣ' : '2. OUR SERVICES'));
+  var svcs = [
+    [isEl?'Διαχείριση Αγγελιών':'Listing Management', isEl?'Airbnb, Booking.com, VRBO κ.α.':'Airbnb, Booking.com, VRBO and more.'],
+    [isEl?'Δυναμική Τιμολόγηση':'Dynamic Pricing', isEl?'Βελτιστοποίηση τιμών σε πραγματικό χρόνο.':'Real-time rate optimisation based on market demand.'],
+    [isEl?'Επικοινωνία Επισκεπτών':'Guest Communication', isEl?'24/7 ανταπόκριση.':'24/7 response before, during and after each stay.'],
+    ['Check-In / Check-Out', isEl?'Συντονισμός παράδοσης & παραλαβής κλειδιών.':'Professional key handover and property check coordination.'],
+    [isEl?'Καθαριότητα & Λευκά':'Cleaning & Linen', isEl?'Επαγγελματικός καθαρισμός μεταξύ παραμονών.':'Professional cleaning between stays, linen management.'],
+    [isEl?'Συντήρηση':'Maintenance', isEl?'Προληπτική και διορθωτική συντήρηση ακινήτου.':'Preventive and corrective property maintenance.'],
+    [isEl?'Οικονομική Αναφορά':'Financial Reporting', isEl?'Μηνιαίες αναφορές με πλήρη ανάλυση.':'Monthly owner statements with full breakdown.']
   ];
+  svcs.forEach(function(svc, ri) {
+    var shade = (ri % 2 === 1) ? { fill: LTEAL, type: ShadingType.CLEAR } : undefined;
+    sections.push(new Table({ width:{size:9360,type:WidthType.DXA}, columnWidths:[3000,6360], rows:[new TableRow({ children:[
+      new TableCell({ width:{size:3000,type:WidthType.DXA}, shading:{fill:'F0F7F6',type:ShadingType.CLEAR}, borders:allBorders('D0E8E4'), margins:{top:70,bottom:70,left:120,right:120}, children:[new Paragraph({children:[new TextRun({text:svc[0],font:'Arial',size:20,bold:true,color:TEAL})]})] }),
+      new TableCell({ width:{size:6360,type:WidthType.DXA}, shading:shade, borders:allBorders('D0E8E4'), margins:{top:70,bottom:70,left:120,right:120}, children:[new Paragraph({children:[new TextRun({text:svc[1],font:'Arial',size:20})]})] })
+    ]})] }));
+  });
+  sections.push(sp());
+
+  // ── SECTION 3 ──
+  sections.push(
+    h1(isEl ? '3. ΑΜΟΙΒΗ ΔΙΑΧΕΙΡΙΣΗΣ' : '3. MANAGEMENT FEE'),
+    para(isEl
+      ? 'Η αμοιβή διαχείρισης υπολογίζεται ως ποσοστό επί των καθαρών εσόδων κράτησης, μετά την αφαίρεση των προμηθειών της πλατφόρμας.'
+      : 'The management fee is a percentage of net booking revenue after platform commission deductions.'),
+    new Table({
+      width:{size:9360,type:WidthType.DXA}, columnWidths:[4860,4500],
+      rows:[
+        new TableRow({ tableHeader:true, children:[
+          new TableCell({ width:{size:4860,type:WidthType.DXA}, shading:{fill:TEAL,type:ShadingType.CLEAR}, borders:allBorders(TEAL), margins:{top:80,bottom:80,left:160,right:80}, children:[new Paragraph({children:[new TextRun({text:isEl?'Τύπος Κράτησης':'Booking Type',font:'Arial',size:20,bold:true,color:'FFFFFF'})]})] }),
+          new TableCell({ width:{size:4500,type:WidthType.DXA}, shading:{fill:TEAL,type:ShadingType.CLEAR}, borders:allBorders(TEAL), margins:{top:80,bottom:80,left:160,right:80}, children:[new Paragraph({children:[new TextRun({text:isEl?'Αμοιβή':'Fee',font:'Arial',size:20,bold:true,color:'FFFFFF'})]})] })
+        ]}),
+        feeRow(isEl?'Κρατήσεις Πλατφόρμας':'Platform Bookings', 'managementFee', '%', 0),
+        feeRow(isEl?'Άμεσες Κρατήσεις':'Direct Bookings', 'directBookingFee', '%', 1),
+        dataRow2(isEl?'Διαμονή Ιδιοκτήτη':'Owner Stays', new TextRun({text:'0%',font:'Arial',size:22,color:DARK}), {fill:LTEAL,type:ShadingType.CLEAR})
+      ]
+    }),
+    sp()
+  );
+
+  // ── SECTION 4 ──
+  sections.push(
+    h1(isEl ? '4. ΥΠΗΡΕΣΙΑ CHECK-IN / CHECK-OUT' : '4. CHECK-IN / CHECK-OUT SERVICE'),
+    para(isEl
+      ? 'Αναλαμβάνουμε τον πλήρη συντονισμό εισόδου και εξόδου επισκεπτών, συμπεριλαμβανομένου παράδοση κλειδιών και έλεγχο ακινήτου.'
+      : 'We handle full guest check-in and check-out coordination, including key handover and property inspection.'),
+    new Table({
+      width:{size:9360,type:WidthType.DXA}, columnWidths:[4860,4500],
+      rows:[
+        new TableRow({ tableHeader:true, children:[
+          new TableCell({ width:{size:4860,type:WidthType.DXA}, shading:{fill:TEAL,type:ShadingType.CLEAR}, borders:allBorders(TEAL), margins:{top:80,bottom:80,left:160,right:80}, children:[new Paragraph({children:[new TextRun({text:isEl?'Υπηρεσία':'Service',font:'Arial',size:20,bold:true,color:'FFFFFF'})]})] }),
+          new TableCell({ width:{size:4500,type:WidthType.DXA}, shading:{fill:TEAL,type:ShadingType.CLEAR}, borders:allBorders(TEAL), margins:{top:80,bottom:80,left:160,right:80}, children:[new Paragraph({children:[new TextRun({text:isEl?'Χρέωση':'Fee',font:'Arial',size:20,bold:true,color:'FFFFFF'})]})] })
+        ]}),
+        feeRow('Check-In / Check-Out', 'checkinFee', '€', 0),
+        feeRow(isEl?'Μεταφορά':'Transport', 'transport', '€', 1)
+      ]
+    }),
+    sp()
+  );
+
+  // ── SECTION 5 ──
+  sections.push(
+    h1(isEl ? '5. ΚΑΘΑΡΙΟΤΗΤΑ & ΛΕΥΚΑ' : '5. CLEANING & LINEN'),
+    para(isEl
+      ? 'Παρέχουμε επαγγελματικό καθαρισμό μεταξύ κάθε παραμονής. Η χρέωση βασίζεται στις ώρες που απαιτούνται.'
+      : 'We provide professional cleaning between every stay. Charges are based on hours required.'),
+    new Table({
+      width:{size:9360,type:WidthType.DXA}, columnWidths:[4860,4500],
+      rows:[
+        new TableRow({ tableHeader:true, children:[
+          new TableCell({ width:{size:4860,type:WidthType.DXA}, shading:{fill:TEAL,type:ShadingType.CLEAR}, borders:allBorders(TEAL), margins:{top:80,bottom:80,left:160,right:80}, children:[new Paragraph({children:[new TextRun({text:isEl?'Υπηρεσία':'Service',font:'Arial',size:20,bold:true,color:'FFFFFF'})]})] }),
+          new TableCell({ width:{size:4500,type:WidthType.DXA}, shading:{fill:TEAL,type:ShadingType.CLEAR}, borders:allBorders(TEAL), margins:{top:80,bottom:80,left:160,right:80}, children:[new Paragraph({children:[new TextRun({text:isEl?'Χρέωση':'Fee',font:'Arial',size:20,bold:true,color:'FFFFFF'})]})] })
+        ]}),
+        feeRow(isEl?'Καθαρισμός (ανά ώρα)':'Cleaning (per hour)', 'cleaningRate', '€/hr', 0),
+        feeRow(isEl?'Μίσθωση Λευκών':'Linen Leasing', 'linenLeasing', '%', 1)
+      ]
+    }),
+    sp()
+  );
+
+  // ── SECTION 6 ──
+  sections.push(
+    h1(isEl ? '6. ΣΥΝΤΗΡΗΣΗ' : '6. MAINTENANCE'),
+    para(isEl
+      ? 'Αναλαμβάνουμε προληπτική και διορθωτική συντήρηση. Κάθε επίσκεψη χρεώνεται ξεχωριστά.'
+      : 'We handle preventive and corrective maintenance. Each visit is charged separately.'),
+    new Table({
+      width:{size:9360,type:WidthType.DXA}, columnWidths:[4860,4500],
+      rows:[
+        new TableRow({ tableHeader:true, children:[
+          new TableCell({ width:{size:4860,type:WidthType.DXA}, shading:{fill:TEAL,type:ShadingType.CLEAR}, borders:allBorders(TEAL), margins:{top:80,bottom:80,left:160,right:80}, children:[new Paragraph({children:[new TextRun({text:isEl?'Υπηρεσία':'Service',font:'Arial',size:20,bold:true,color:'FFFFFF'})]})] }),
+          new TableCell({ width:{size:4500,type:WidthType.DXA}, shading:{fill:TEAL,type:ShadingType.CLEAR}, borders:allBorders(TEAL), margins:{top:80,bottom:80,left:160,right:80}, children:[new Paragraph({children:[new TextRun({text:isEl?'Χρέωση':'Fee',font:'Arial',size:20,bold:true,color:'FFFFFF'})]})] })
+        ]}),
+        feeRow(isEl?'Επίσκεψη Συντήρησης':'Maintenance Visit', 'maintenanceVisit', '€', 0),
+        feeRow(isEl?'Επιπλέον Ώρα':'Additional Hour', 'maintenanceExtraHr', '€/hr', 1),
+        feeRow(isEl?'Πισίνα (μηνιαία)':'Pool (monthly)', 'poolMonthly', '', 0),
+        feeRow(isEl?'Σεζόν Πισίνας':'Pool Season', 'poolSeason', '', 1)
+      ]
+    }),
+    sp()
+  );
+
+  // ── SECTION 7 ──
+  sections.push(
+    h1(isEl ? '7. ΟΡΟΙ & ΠΡΟΥΠΟΘΕΣΕΙΣ' : '7. TERMS & CONDITIONS'),
+    para(isEl ? 'Ισχύς Πρότασης:' : 'Proposal Validity:', { bold: true }),
+    para(isEl ? 'Η παρούσα πρόταση ισχύει για 30 ημέρες από την ημερομηνία έκδοσης.' : 'This proposal is valid for 30 days from the date of issue.'),
+    para(isEl ? 'Σύμβαση:' : 'Agreement:', { bold: true }),
+    para(isEl ? 'Κατόπιν αποδοχής, θα καταρτιστεί επίσημη Σύμβαση Διαχείρισης Τουριστικού Καταλύματος.' : 'Upon acceptance, a formal Property Management Agreement will be prepared.'),
+    para(isEl ? 'Καταγγελία:' : 'Termination:', { bold: true }),
+    para(isEl ? 'Οποιοδήποτε μέρος μπορεί να καταγγείλει με 30 ημέρες γραπτή προειδοποίηση.' : 'Either party may terminate the agreement with 30 days written notice.'),
+    para(isEl ? 'ΦΠΑ:' : 'VAT:', { bold: true }),
+    para(isEl ? 'Όλες οι αμοιβές υπόκεινται σε ΦΠΑ σύμφωνα με την ελληνική νομοθεσία.' : 'All fees are subject to VAT as per applicable Greek tax legislation.')
+  );
+
+  if (p.notes) {
+    sections.push(sp(), para((isEl ? 'Σημειώσεις: ' : 'Notes: ') + p.notes, { italics: true, color: GREY }));
+  }
+
+  // Signature
+  sections.push(sp(), sp(),
+    new Table({ width:{size:9360,type:WidthType.DXA}, columnWidths:[4500,4860], rows:[new TableRow({ children:[
+      new TableCell({ width:{size:4500,type:WidthType.DXA}, borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder}, children:[
+        new Paragraph({spacing:{after:720},children:[new TextRun({text:isEl?'Για λογαριασμό της Zesty:':'On behalf of Zesty:',font:'Arial',size:20,color:GREY})]}),
+        new Paragraph({border:{bottom:{style:BorderStyle.SINGLE,size:4,color:TEAL}},children:[new TextRun({text:' '})],spacing:{after:80}}),
+        new Paragraph({children:[new TextRun({text:'Zesty Rentals and Investments IKE',font:'Arial',size:18,color:TEAL})]})
+      ]}),
+      new TableCell({ width:{size:4860,type:WidthType.DXA}, borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder}, children:[
+        new Paragraph({spacing:{after:720},children:[new TextRun({text:(isEl?'Ιδιοκτήτης: ':'Owner: ')+fv('ownerName'),font:'Arial',size:20,color:GREY})]}),
+        new Paragraph({border:{bottom:{style:BorderStyle.SINGLE,size:4,color:TEAL}},children:[new TextRun({text:' '})],spacing:{after:80}}),
+        new Paragraph({children:[tbnRun('ownerName', fv('ownerName'))]})
+      ]})
+    ]})] })
+  );
+
+  // ── ANNEX A ──
+  sections.push(pgBrk(),
+    h1(isEl ? 'Παράρτημα Α — Κατάλογος Αμοιβών' : 'Annex A — Fee Schedule'),
+    para(isEl ? 'Αναλυτικός πίνακας όλων των αμοιβών.' : 'Full breakdown of all fees applicable to this property.')
+  );
+
+  sections.push(
+    h2(isEl ? 'A1. Διαχείριση & Κρατήσεις' : 'A1. Management & Booking Fees'),
+    new Table({ width:{size:9360,type:WidthType.DXA}, columnWidths:[4000,2800,2560], rows:[
+      hdrRow3(isEl?'Υπηρεσία':'Service', isEl?'Αμοιβή':'Fee', isEl?'Βάση':'Basis'),
+      schedRow(isEl?'Διαχείριση (πλατφόρμες)':'Management (platforms)', 'managementFee', '%', isEl?'% καθαρών εσόδων':'% of net income', 0),
+      schedRow(isEl?'Άμεσες κρατήσεις':'Direct bookings', 'directBookingFee', '%', isEl?'% καθαρών εσόδων':'% of net income', 1),
+      schedRow(isEl?'Διαμονή ιδιοκτήτη':'Owner stays', '', '0%', '', 0)
+    ]}), sp()
+  );
+
+  sections.push(
+    h2(isEl ? 'A2. Check-In / Check-Out' : 'A2. Check-In / Check-Out'),
+    new Table({ width:{size:9360,type:WidthType.DXA}, columnWidths:[4000,2800,2560], rows:[
+      hdrRow3(isEl?'Υπηρεσία':'Service', isEl?'Αμοιβή':'Fee', isEl?'Βάση':'Basis'),
+      schedRow('Check-In / Check-Out', 'checkinFee', '€', isEl?'ανά ανάθεση':'per assignment', 0),
+      schedRow(isEl?'Μεταφορά':'Transport', 'transport', '€', isEl?'ανά δρομολόγιο':'per trip', 1)
+    ]}), sp()
+  );
+
+  sections.push(
+    h2(isEl ? 'A3. Καθαριότητα & Λευκά' : 'A3. Cleaning & Linen'),
+    new Table({ width:{size:9360,type:WidthType.DXA}, columnWidths:[4000,2800,2560], rows:[
+      hdrRow3(isEl?'Υπηρεσία':'Service', isEl?'Αμοιβή':'Fee', isEl?'Βάση':'Basis'),
+      schedRow(isEl?'Καθαρισμός':'Cleaning', 'cleaningRate', '€/hr', isEl?'ανά ώρα':'per hour', 0),
+      schedRow(isEl?'Μίσθωση λευκών':'Linen leasing', 'linenLeasing', '%', isEl?'% κόστους':'% of cost', 1)
+    ]}), sp()
+  );
+
+  sections.push(
+    h2(isEl ? 'A4. Διακανονισμός Εφοδίων (μη αναλώσιμα)' : 'A4. Supply Arrangements (non-consumable items)'),
+    para(isEl
+      ? 'Για αγορές αντικειμένων εκ μέρους του ιδιοκτήτη (ξαπλώστρες, έπιπλα, εξοπλισμός) εφαρμόζεται αμοιβή επί καθαρού τιμολογίου. Τα αναλώσιμα χρεώνονται στο ακριβές κόστος — χωρίς επιπλέον αμοιβή.'
+      : 'For owner-behalf purchases of physical items (e.g. sunbeds, furniture, equipment), a handling fee applies on the net invoice. Consumables are charged at exact procurement cost — no fee.'),
+    new Table({ width:{size:9360,type:WidthType.DXA}, columnWidths:[4000,2800,2560], rows:[
+      hdrRow3(isEl?'Κατηγορία':'Category', isEl?'Αμοιβή':'Fee', isEl?'Βάση':'Basis'),
+      schedRow(isEl?'Μη αναλώσιμα (ξαπλώστρες, έπιπλα κ.α.)':'Non-consumables (sunbeds, furniture, etc.)', 'supplyFee', '%', isEl?'επί καθαρού τιμολογίου':'on net invoice', 0),
+      new TableRow({ children:[
+        new TableCell({ width:{size:4000,type:WidthType.DXA}, shading:{fill:LTEAL,type:ShadingType.CLEAR}, borders:allBorders('D0E8E4'), margins:{top:70,bottom:70,left:120,right:120}, children:[new Paragraph({children:[new TextRun({text:isEl?'Αναλώσιμα (καθαριστικά, είδη υγιεινής κ.α.)':'Consumables (cleaning supplies, toiletries, etc.)',font:'Arial',size:20})]})] }),
+        new TableCell({ width:{size:2800,type:WidthType.DXA}, shading:{fill:LTEAL,type:ShadingType.CLEAR}, borders:allBorders('D0E8E4'), margins:{top:70,bottom:70,left:120,right:120}, children:[new Paragraph({children:[new TextRun({text:isEl?'Χωρίς επιβάρυνση':'No fee',font:'Arial',size:20,bold:true,color:TEAL})]})] }),
+        new TableCell({ width:{size:2560,type:WidthType.DXA}, shading:{fill:LTEAL,type:ShadingType.CLEAR}, borders:allBorders('D0E8E4'), margins:{top:70,bottom:70,left:120,right:120}, children:[new Paragraph({children:[new TextRun({text:isEl?'ακριβές κόστος':'at cost',font:'Arial',size:20,color:GREY})]})] })
+      ]})
+    ]}), sp()
+  );
+
+  sections.push(
+    h2(isEl ? 'A5. Συντήρηση & Πισίνα' : 'A5. Maintenance & Pool'),
+    new Table({ width:{size:9360,type:WidthType.DXA}, columnWidths:[4000,2800,2560], rows:[
+      hdrRow3(isEl?'Υπηρεσία':'Service', isEl?'Αμοιβή':'Fee', isEl?'Βάση':'Basis'),
+      schedRow(isEl?'Επίσκεψη συντήρησης':'Maintenance visit', 'maintenanceVisit', '€', isEl?'ανά επίσκεψη':'per visit', 0),
+      schedRow(isEl?'Επιπλέον ώρα':'Additional hour', 'maintenanceExtraHr', '€/hr', isEl?'ανά ώρα':'per hour', 1),
+      schedRow(isEl?'Πισίνα (μηνιαία)':'Pool maintenance (monthly)', 'poolMonthly', '', isEl?'ανά μήνα':'per month', 0),
+      schedRow(isEl?'Σεζόν πισίνας':'Pool season', 'poolSeason', '', '', 1)
+    ]}), sp()
+  );
+
+  // ── ANNEX B ──
+  sections.push(pgBrk(),
+    h1(isEl ? 'Παράρτημα Β — Υπηρεσίες Πλυντηρίου' : 'Annex B — Laundry Services'),
+    para(isEl
+      ? 'Η Zesty παρέχει ολοκληρωμένες υπηρεσίες πλυντηρίου. Τα λευκά είδη παραλαμβάνονται μετά από κάθε check-out και επιστρέφονται έτοιμα για την επόμενη άφιξη.'
+      : 'Zesty provides a full laundry service for property linens. Items are collected after each check-out and returned ready for the next arrival.'),
+    ...buildLaundryAnnexRows(p, isEl, para, TEAL, GREY, allBorders, ShadingType, WidthType, AlignmentType, Paragraph, TextRun, Table, TableRow, TableCell)
+  );
+
+  // ── ANNEX C ──
+  sections.push(pgBrk(),
+    h1(isEl ? 'Παράρτημα Γ — Αναλώσιμα' : 'Annex C — Consumables'),
+    para(isEl
+      ? 'Η Zesty προμηθεύεται και διαχείρίζεται τα αναλώσιμα του ακινήτου για λογαριασμό του ιδιοκτήτη.'
+      : 'Zesty sources and manages all property consumables on behalf of the owner.'),
+    para(isEl
+      ? 'Τα αναλώσιμα χρεώνονται στο ακριβές κόστος αγοράς — χωρίς καμία επιπλέον αμοιβή διακανονισμού.'
+      : 'Consumables are charged at the exact procurement cost — no additional handling fee is applied.'),
+    new Table({ width:{size:9360,type:WidthType.DXA}, columnWidths:[7200,2160], rows:[
+      new TableRow({ tableHeader:true, children:[
+        new TableCell({ width:{size:7200,type:WidthType.DXA}, shading:{fill:TEAL,type:ShadingType.CLEAR}, borders:allBorders(TEAL), margins:{top:80,bottom:80,left:120,right:120}, children:[new Paragraph({children:[new TextRun({text:isEl?'Κατηγορία':'Category',font:'Arial',size:20,bold:true,color:'FFFFFF'})]})] }),
+        new TableCell({ width:{size:2160,type:WidthType.DXA}, shading:{fill:TEAL,type:ShadingType.CLEAR}, borders:allBorders(TEAL), margins:{top:80,bottom:80,left:120,right:120}, children:[new Paragraph({alignment:AlignmentType.CENTER,children:[new TextRun({text:isEl?'Χρέωση':'Charge',font:'Arial',size:20,bold:true,color:'FFFFFF'})]})] })
+      ]}),
+      ...[
+        isEl?'Καθαριστικά & Υλικά Καθαρισμού':'Cleaning Supplies & Materials',
+        isEl?'Είδη Υγιεινής (σαμπουάν, σαπούνι, χαρτί)':'Toiletries (shampoo, soap, toilet paper)',
+        isEl?'Καλωσορίσμα Επισκεπτών (ελαιόλαδο, ποτά κ.α.)':'Guest Welcome Items (olive oil, drinks, etc.)',
+        isEl?'Βασικά Κουζίνας (καφές, ζάχαρη, αλάτι)':'Kitchen Basics (coffee, sugar, salt)'
+      ].map(function(cat, ri) {
+        var shade = (ri % 2 === 1) ? {fill:LTEAL,type:ShadingType.CLEAR} : undefined;
+        return new TableRow({ children:[
+          new TableCell({ width:{size:7200,type:WidthType.DXA}, shading:shade, borders:allBorders('D0E8E4'), margins:{top:70,bottom:70,left:120,right:120}, children:[new Paragraph({children:[new TextRun({text:cat,font:'Arial',size:20})]})] }),
+          new TableCell({ width:{size:2160,type:WidthType.DXA}, shading:shade, borders:allBorders('D0E8E4'), margins:{top:70,bottom:70,left:120,right:120}, children:[new Paragraph({alignment:AlignmentType.CENTER,children:[new TextRun({text:isEl?'Κόστος':'At cost',font:'Arial',size:20,bold:true,color:TEAL})]})] })
+        ]});
+      })
+    ]}),
+    sp()
+  );
 
   return new Document({
     styles: {
-      default: { document: { run: { font: 'Calibri', size: 22 } } },
+      default: { document: { run: { font: 'Arial', size: 22 } } },
       paragraphStyles: [
-        { id: 'Heading1', name: 'Heading 1', basedOn: 'Normal', next: 'Normal', quickFormat: true, run: { size: 32, bold: true, color: teal, font: 'Cormorant Garamond' }, paragraph: { spacing: { before: 360, after: 200 }, outlineLevel: 0 } },
+        { id: 'Heading1', name: 'Heading 1', basedOn: 'Normal', next: 'Normal', quickFormat: true, run: { size: 28, bold: true, color: TEAL, font: 'Arial' }, paragraph: { spacing: { before: 400, after: 160 }, outlineLevel: 0 } },
+        { id: 'Heading2', name: 'Heading 2', basedOn: 'Normal', next: 'Normal', quickFormat: true, run: { size: 24, bold: true, color: TEAL, font: 'Arial' }, paragraph: { spacing: { before: 280, after: 120 }, outlineLevel: 1 } }
       ]
     },
     sections: [{
       properties: { page: { size: { width: 12240, height: 15840 }, margin: { top: 1440, right: 1440, bottom: 1440, left: 1440 } } },
-      headers: { default: new Header({ children: [new Paragraph({ children: [new TextRun({ text: 'ZESTY PROPERTY MANAGEMENT', font: 'Calibri', size: 16, color: grey })], alignment: AlignmentType.RIGHT, border: { bottom: { style: BorderStyle.SINGLE, size: 1, color: 'DDEEEC', space: 1 } } })] }) },
-      footers: { default: new Footer({ children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: 'Page ', font: 'Calibri', size: 16, color: grey }), new TextRun({ children: [PageNumber.CURRENT], font: 'Calibri', size: 16, color: grey }), new TextRun({ text: ' of ', font: 'Calibri', size: 16, color: grey }), new TextRun({ children: [PageNumber.TOTAL_PAGES], font: 'Calibri', size: 16, color: grey })] }) }) },
+      headers: {
+        default: new Header({ children: [new Paragraph({
+          alignment: AlignmentType.RIGHT,
+          border: { bottom: { style: BorderStyle.SINGLE, size: 1, color: 'D0E8E4', space: 1 } },
+          children: [new TextRun({ text: isEl ? 'Πρόταση Πλήρους Διαχείρισης · Zesty Rentals and Investments IKE' : 'Full Property Management Proposal · Zesty Rentals and Investments IKE', font: 'Arial', size: 16, color: GREY })]
+        })] })
+      },
+      footers: {
+        default: new Footer({ children: [new Paragraph({
+          alignment: AlignmentType.CENTER,
+          children: [
+            new TextRun({ text: 'Page ', font: 'Arial', size: 16, color: GREY }),
+            new TextRun({ children: [PageNumber.CURRENT], font: 'Arial', size: 16, color: GREY }),
+            new TextRun({ text: ' of ', font: 'Arial', size: 16, color: GREY }),
+            new TextRun({ children: [PageNumber.TOTAL_PAGES], font: 'Arial', size: 16, color: GREY })
+          ]
+        })] })
+      },
       children: sections
     }]
   });
