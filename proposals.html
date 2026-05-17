@@ -1117,18 +1117,20 @@ function buildLaundryAnnexRows(p, isEl, para, teal, grey, allBorders, ShadingTyp
 }
 
 function buildDocxDocument(p) {
-  const { Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell,
-          AlignmentType, HeadingLevel, BorderStyle, WidthType, ShadingType,
-          PageNumber, Header, Footer, VerticalAlign, LevelFormat } = docx;
+  var Document = docx.Document, Packer = docx.Packer, Paragraph = docx.Paragraph, TextRun = docx.TextRun;
+  var Table = docx.Table, TableRow = docx.TableRow, TableCell = docx.TableCell;
+  var AlignmentType = docx.AlignmentType, HeadingLevel = docx.HeadingLevel, BorderStyle = docx.BorderStyle;
+  var WidthType = docx.WidthType, ShadingType = docx.ShadingType, PageNumber = docx.PageNumber;
+  var Header = docx.Header, Footer = docx.Footer, VerticalAlign = docx.VerticalAlign, LevelFormat = docx.LevelFormat;
 
-  const isEl = (p.language || 'en') === 'el';
-  const tbn = p.tbn || {};
-  const supply = p.supplyItems || [];
+  var isEl = (p.language || 'en') === 'el';
+  var tbn = p.tbn || {};
+  var supply = p.supplyItems || [];
   const today = new Date().toLocaleDateString('en-GB', { day:'numeric', month:'long', year:'numeric' });
 
-  const fv = (key, suffix) => {
+  var fv = function(key, suffix) {
     if (tbn[key]) return 'TBN';
-    const v = p[key];
+    var v = p[key];
     return (v !== undefined && v !== '') ? String(v) + (suffix ? ' ' + suffix : '') : '—';
   };
 
@@ -1136,46 +1138,52 @@ function buildDocxDocument(p) {
   const gold = 'C9A84C';
   const grey = '6B8E86';
 
-  const border = (color) => ({ style: BorderStyle.SINGLE, size: 1, color: color || 'DDEEEC' });
-  const noBorder = { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' };
-  const allBorders = (c) => ({ top: border(c), bottom: border(c), left: border(c), right: border(c) });
+  var border = function(color) { return { style: BorderStyle.SINGLE, size: 1, color: color || 'DDEEEC' }; };
+  var noBorder = { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' };
+  var allBorders = function(c) { return { top: border(c), bottom: border(c), left: border(c), right: border(c) }; };
 
-  const h = (text, level) => new Paragraph({
-    heading: level,
-    children: [new TextRun({ text, bold: true, color: teal, font: 'Cormorant Garamond', size: level === HeadingLevel.HEADING_1 ? 32 : 26 })]
-  });
+  var h = function(text, level) {
+    return new Paragraph({
+      heading: level,
+      children: [new TextRun({ text: text, bold: true, color: teal, font: 'Cormorant Garamond', size: level === HeadingLevel.HEADING_1 ? 32 : 26 })]
+    });
+  };
 
   const para = function(text, opts) {
     var runOpts = Object.assign({ text: text, font: 'Calibri', size: 22, color: '2A2A2A' }, opts || {});
     return new Paragraph({ children: [new TextRun(runOpts)], spacing: { after: 120 } });
   };
 
-  const tbnRun = (isTbn, val) => new TextRun({
-    text: isTbn ? 'TBN' : val,
-    font: 'Calibri', size: 22,
-    color: isTbn ? gold : '1A2E2B',
-    italics: !!isTbn, bold: !!isTbn
-  });
+  var tbnRun = function(isTbn, val) {
+    return new TextRun({
+      text: isTbn ? 'TBN' : val,
+      font: 'Calibri', size: 22,
+      color: isTbn ? gold : '1A2E2B',
+      italics: !!isTbn, bold: !!isTbn
+    });
+  };
 
-  const tableRow = (label, key, suffix) => new TableRow({
-    children: [
-      new TableCell({
-        width: { size: 5000, type: WidthType.DXA },
-        borders: allBorders('DDEEEC'),
-        shading: { fill: 'F8FAF9', type: ShadingType.CLEAR },
-        margins: { top: 80, bottom: 80, left: 120, right: 120 },
-        children: [new Paragraph({ children: [new TextRun({ text: label, font: 'Calibri', size: 20, bold: true, color: teal })] })]
-      }),
-      new TableCell({
-        width: { size: 4360, type: WidthType.DXA },
-        borders: allBorders('DDEEEC'),
-        margins: { top: 80, bottom: 80, left: 120, right: 120 },
-        children: [new Paragraph({ children: [tbnRun(tbn[key], fv(key, suffix))] })]
-      })
-    ]
-  });
+  var tableRow = function(label, key, suffix) {
+    return new TableRow({
+      children: [
+        new TableCell({
+          width: { size: 5000, type: WidthType.DXA },
+          borders: allBorders('DDEEEC'),
+          shading: { fill: 'F8FAF9', type: ShadingType.CLEAR },
+          margins: { top: 80, bottom: 80, left: 120, right: 120 },
+          children: [new Paragraph({ children: [new TextRun({ text: label, font: 'Calibri', size: 20, bold: true, color: teal })] })]
+        }),
+        new TableCell({
+          width: { size: 4360, type: WidthType.DXA },
+          borders: allBorders('DDEEEC'),
+          margins: { top: 80, bottom: 80, left: 120, right: 120 },
+          children: [new Paragraph({ children: [tbnRun(tbn[key], fv(key, suffix))] })]
+        })
+      ]
+    });
+  };
 
-  const sectionBreak = () => new Paragraph({ children: [] });
+  var sectionBreak = function() { return new Paragraph({ children: [] }); };
 
   const sections = [
     // Cover
@@ -1280,23 +1288,23 @@ function buildDocxDocument(p) {
       width: { size: 9360, type: WidthType.DXA },
       columnWidths: [3500, 1500, 1000, 1500, 1860],
       rows: [
-        new TableRow({ tableHeader: true, children: ['Item/Αντικείμενο', 'Net Cost/Κόστος', 'Fee %', 'Fee Amt/Αμοιβή', 'Total/Σύνολο'].map((txt, ci) => new TableCell({
+        new TableRow({ tableHeader: true, children: ['Item/Αντικείμενο', 'Net Cost/Κόστος', 'Fee %', 'Fee Amt/Αμοιβή', 'Total/Σύνολο'].map(function(txt, ci) { return new TableCell({
           width: { size: [3500,1500,1000,1500,1860][ci], type: WidthType.DXA },
           shading: { fill: teal, type: ShadingType.CLEAR }, borders: allBorders(teal),
           margins: { top: 60, bottom: 60, left: 100, right: 100 },
           children: [new Paragraph({ children: [new TextRun({ text: txt, font: 'Calibri', size: 18, bold: true, color: 'FFFFFF' })] })]
-        })) }),
-        ...supply.map(item => {
-          const fee = parseFloat(item.fee || p.supplyFee || 0);
-          const cost = parseFloat(item.cost || 0);
-          const feeAmt = (cost * fee / 100).toFixed(2);
-          const total = (cost + parseFloat(feeAmt)).toFixed(2);
-          return new TableRow({ children: [item.description, '€'+cost.toFixed(2), fee+'%', '€'+feeAmt, '€'+total].map((txt, ci) => new TableCell({
+        }); }) }),
+        ...supply.map(function(item) {
+          var fee = parseFloat(item.fee || p.supplyFee || 0);
+          var cost = parseFloat(item.cost || 0);
+          var feeAmt = (cost * fee / 100).toFixed(2);
+          var total = (cost + parseFloat(feeAmt)).toFixed(2);
+          return new TableRow({ children: [item.description, '€'+cost.toFixed(2), fee+'%', '€'+feeAmt, '€'+total].map(function(txt, ci) { return new TableCell({
             width: { size: [3500,1500,1000,1500,1860][ci], type: WidthType.DXA },
             borders: allBorders('DDEEEC'),
             margins: { top: 60, bottom: 60, left: 100, right: 100 },
             children: [new Paragraph({ children: [new TextRun({ text: txt, font: 'Calibri', size: 20, bold: ci === 4 })] })]
-          })) });
+          }); }) });
         })
       ]
     })] : [para(isEl ? 'Δεν έχουν καταχωρηθεί προμήθειες.' : 'No supply arrangements specified.', { italics: true, color: grey })]),
