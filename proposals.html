@@ -1090,6 +1090,34 @@ async function exportDocx() {
   }
 }
 
+/* ── UTILS ── */
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function formatDate(iso, full) {
+  if (!iso) return '';
+  try {
+    const d = new Date(iso);
+    if (full) return d.toLocaleString('en-GB', { day:'numeric', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
+    return d.toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' });
+  } catch { return iso; }
+}
+
+let _toastTimer;
+function showToast(msg, isErr) {
+  clearTimeout(_toastTimer);
+  let t = document.getElementById('_propToast');
+  if (!t) { t = document.createElement('div'); t.id = '_propToast'; t.className = 'toast'; document.body.appendChild(t); }
+  t.textContent = msg;
+  t.className = 'toast' + (isErr ? ' error' : '');
+  _toastTimer = setTimeout(() => t.remove(), 3000);
+}
+
+/* ── START ── */
+init();
+</script>
+<script>
 function buildLaundryAnnexRows(p, isEl, para, teal, grey, allBorders, ShadingType, WidthType, AlignmentType, Paragraph, TextRun, Table, TableRow, TableCell) {
   var plId = p.laundryPricelistId;
   if (!plId) return [para(isEl ? 'Δεν έχει επιλεγεί τιμοκατάλογος.' : 'No pricelist selected for this proposal.', { italics: true, color: grey })];
@@ -1400,33 +1428,6 @@ function buildDocxDocument(p) {
     }]
   });
 }
-
-/* ── UTILS ── */
-function esc(s) {
-  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-
-function formatDate(iso, full) {
-  if (!iso) return '';
-  try {
-    const d = new Date(iso);
-    if (full) return d.toLocaleString('en-GB', { day:'numeric', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
-    return d.toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' });
-  } catch { return iso; }
-}
-
-let _toastTimer;
-function showToast(msg, isErr) {
-  clearTimeout(_toastTimer);
-  let t = document.getElementById('_propToast');
-  if (!t) { t = document.createElement('div'); t.id = '_propToast'; t.className = 'toast'; document.body.appendChild(t); }
-  t.textContent = msg;
-  t.className = 'toast' + (isErr ? ' error' : '');
-  _toastTimer = setTimeout(() => t.remove(), 3000);
-}
-
-/* ── START ── */
-init();
 </script>
 <script src="erp-nav.js"></script>
 </body>
