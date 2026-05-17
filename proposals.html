@@ -865,7 +865,7 @@ function buildDocPreview(p) {
             [isEl?'Καθαριότητα':'Cleaning', isEl?'Επαγγελματικός καθαρισμός μεταξύ διαμονών':'Professional cleaning between stays'],
             [isEl?'Συντήρηση':'Maintenance', isEl?'Προληπτική και διορθωτική συντήρηση':'Preventive and corrective maintenance'],
             [isEl?'Οικονομική Αναφορά':'Financial Reporting', isEl?'Μηνιαίες καταστάσεις εσόδων και δαπανών':'Monthly income and expense statements'],
-          ].map(([a,b]) => `<tr><td style="font-weight:600;white-space:nowrap;width:38%">${a}</td><td>${b}</td></tr>`).join('')}
+          ].map(function(pair){ return '<tr><td style="font-weight:600;white-space:nowrap;width:38%">'+pair[0]+'</td><td>'+pair[1]+'</td></tr>'; }).join('')}
         </tbody>
       </table>
     </div>
@@ -1145,10 +1145,10 @@ function buildDocxDocument(p) {
     children: [new TextRun({ text, bold: true, color: teal, font: 'Cormorant Garamond', size: level === HeadingLevel.HEADING_1 ? 32 : 26 })]
   });
 
-  const para = (text, opts) => new Paragraph({
-    children: [new TextRun({ text, font: 'Calibri', size: 22, color: '2A2A2A', ...opts })],
-    spacing: { after: 120 }
-  });
+  const para = function(text, opts) {
+    var runOpts = Object.assign({ text: text, font: 'Calibri', size: 22, color: '2A2A2A' }, opts || {});
+    return new Paragraph({ children: [new TextRun(runOpts)], spacing: { after: 120 } });
+  };
 
   const tbnRun = (isTbn, val) => new TextRun({
     text: isTbn ? 'TBN' : val,
@@ -1222,14 +1222,17 @@ function buildDocxDocument(p) {
       [isEl?'Καθαριότητα':'Cleaning', isEl?'Επαγγελματικός καθαρισμός':'Professional cleaning between stays'],
       [isEl?'Συντήρηση':'Maintenance', isEl?'Προληπτική & διορθωτική':'Preventive and corrective'],
       [isEl?'Οικονομική Αναφορά':'Financial Reporting', isEl?'Μηνιαίες καταστάσεις':'Monthly statements'],
-    ].map(([svc, desc]) => new Table({
-      width: { size: 9360, type: WidthType.DXA },
-      columnWidths: [3000, 6360],
-      rows: [new TableRow({ children: [
-        new TableCell({ width: { size: 3000, type: WidthType.DXA }, borders: allBorders('DDEEEC'), shading: { fill: 'F8FAF9', type: ShadingType.CLEAR }, margins: { top: 60, bottom: 60, left: 120, right: 120 }, children: [new Paragraph({ children: [new TextRun({ text: svc, font: 'Calibri', size: 20, bold: true, color: teal })] })] }),
-        new TableCell({ width: { size: 6360, type: WidthType.DXA }, borders: allBorders('DDEEEC'), margins: { top: 60, bottom: 60, left: 120, right: 120 }, children: [new Paragraph({ children: [new TextRun({ text: desc, font: 'Calibri', size: 20, color: '2A2A2A' })] })] }),
-      ]})],
-    })),
+    ].map(function(pair) {
+      var svc = pair[0], desc = pair[1];
+      return new Table({
+        width: { size: 9360, type: WidthType.DXA },
+        columnWidths: [3000, 6360],
+        rows: [new TableRow({ children: [
+          new TableCell({ width: { size: 3000, type: WidthType.DXA }, borders: allBorders('DDEEEC'), shading: { fill: 'F8FAF9', type: ShadingType.CLEAR }, margins: { top: 60, bottom: 60, left: 120, right: 120 }, children: [new Paragraph({ children: [new TextRun({ text: svc, font: 'Calibri', size: 20, bold: true, color: teal })] })] }),
+          new TableCell({ width: { size: 6360, type: WidthType.DXA }, borders: allBorders('DDEEEC'), margins: { top: 60, bottom: 60, left: 120, right: 120 }, children: [new Paragraph({ children: [new TextRun({ text: desc, font: 'Calibri', size: 20, color: '2A2A2A' })] })] }),
+        ]})],
+      });
+    }),
     sectionBreak(),
 
     h(isEl ? '3. ΑΜΟΙΒΗ ΔΙΑΧΕΙΡΙΣΗΣ' : '3. MANAGEMENT FEE', HeadingLevel.HEADING_1),
@@ -1327,11 +1330,15 @@ function buildDocxDocument(p) {
           ['poolMonthly',     '',  isEl?'Πισίνα':'Pool maintenance',                         isEl?'ανά μήνα':'per month'],
           ['linenLeasing',    '%', isEl?'Μίσθωση λευκών':'Linen leasing',                   isEl?'% κόστους':'% of cost'],
           ['supplyFee',       '%', isEl?'Αμοιβή προμήθειας':'Supply arrangement fee',       isEl?'% καθαρού τιμολογίου':'% of net invoice'],
-        ].map(([key, sfx, label, basis], ri) => new TableRow({ children: [
-          new TableCell({ width:{size:4500,type:WidthType.DXA}, shading:ri%2===1?{fill:'F8FAF9',type:ShadingType.CLEAR}:undefined, borders:allBorders('DDEEEC'), margins:{top:70,bottom:70,left:120,right:120}, children:[new Paragraph({children:[new TextRun({text:label,font:'Calibri',size:20})]})] }),
-          new TableCell({ width:{size:2800,type:WidthType.DXA}, shading:ri%2===1?{fill:'F8FAF9',type:ShadingType.CLEAR}:undefined, borders:allBorders('DDEEEC'), margins:{top:70,bottom:70,left:120,right:120}, children:[new Paragraph({children:[tbnRun(tbn[key], fv(key,sfx))]})] }),
-          new TableCell({ width:{size:2060,type:WidthType.DXA}, shading:ri%2===1?{fill:'F8FAF9',type:ShadingType.CLEAR}:undefined, borders:allBorders('DDEEEC'), margins:{top:70,bottom:70,left:120,right:120}, children:[new Paragraph({children:[new TextRun({text:basis,font:'Calibri',size:20,color:grey})]})] }),
-        ]}))
+        ].map(function(row, ri) {
+          var key = row[0], sfx = row[1], label = row[2], basis = row[3];
+          var shade = ri%2===1 ? {fill:'F8FAF9',type:ShadingType.CLEAR} : undefined;
+          return new TableRow({ children: [
+            new TableCell({ width:{size:4500,type:WidthType.DXA}, shading:shade, borders:allBorders('DDEEEC'), margins:{top:70,bottom:70,left:120,right:120}, children:[new Paragraph({children:[new TextRun({text:label,font:'Calibri',size:20})]})] }),
+            new TableCell({ width:{size:2800,type:WidthType.DXA}, shading:shade, borders:allBorders('DDEEEC'), margins:{top:70,bottom:70,left:120,right:120}, children:[new Paragraph({children:[tbnRun(tbn[key], fv(key,sfx))]})] }),
+            new TableCell({ width:{size:2060,type:WidthType.DXA}, shading:shade, borders:allBorders('DDEEEC'), margins:{top:70,bottom:70,left:120,right:120}, children:[new Paragraph({children:[new TextRun({text:basis,font:'Calibri',size:20,color:grey})]})] }),
+          ]});
+        })
       ]
     }),
     sectionBreak(),
