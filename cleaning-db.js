@@ -56,12 +56,21 @@ const DB={
 };
 const SyncStore={
   _pendingDeletes:{},
+  _pendingInserts:{}, // IDs currently being saved — poll must not drop them
   async load(lsKey,table){
     const cached=this._getLocal(lsKey);
     const result=await DB.loadAll(table);
     if(result.ok&&result.rows!==null){
-      const pending=this._pendingDeletes[table]||new Set();
-      const rows=result.rows.filter(r=>!pending.has(r.id));
+      const pendDel=this._pendingDeletes[table]||new Set();
+      const pendIns=this._pendingInserts[table]||new Set();
+      // Exclude deleted and in-flight records from DB version
+      const dbRows=result.rows.filter(r=>!pendDel.has(r.id)&&!pendIns.has(r.id));
+      const dbIds=new Set(dbRows.map(r=>r.id));
+      // Records only in local (new records not yet in DB, not deleted, not in-flight)
+      const localOnly=cached.filter(r=>!dbIds.has(r.id)&&!pendDel.has(r.id)&&!pendIns.has(r.id));
+      // In-flight records: always prefer local version (edit may not have reached DB yet)
+      const localPending=cached.filter(r=>pendIns.has(r.id));
+      const rows=[...dbRows,...localOnly,...localPending];
       localStorage.setItem(lsKey,JSON.stringify(rows));
       return{data:rows,fromCache:false,online:true};
     }
@@ -69,8 +78,15 @@ const SyncStore={
   },
   async saveOne(lsKey,table,record,all){
     localStorage.setItem(lsKey,JSON.stringify(all));
+    if(!this._pendingInserts[table])this._pendingInserts[table]=new Set();
+    this._pendingInserts[table].add(record.id);
     const r=await DB.upsertOne(table,record);
-    if(!r.ok)showSyncErr(r.err);
+    this._pendingInserts[table].delete(record.id);
+    if(!r.ok){
+      showSyncErr(r.err);
+      // Fall back to full upsert so the record is not silently lost
+      await DB.upsertMany(table,all);
+    }
     return r;
   },
   async saveAll(lsKey,table,records){
@@ -99,30 +115,23 @@ function startPoll(table,lsKey,ms,onData){
   const poll=async()=>{
     const result=await DB.loadAll(table);
     if(!result.ok||!result.rows)return;
-    const pending=SyncStore._pendingDeletes[table]||new Set();
-    const rows=result.rows.filter(r=>!pending.has(r.id));
+    const pendDel=SyncStore._pendingDeletes[table]||new Set();
+    const pendIns=SyncStore._pendingInserts[table]||new Set();
+    // Exclude deleted and in-flight records from DB version
+    const dbRows=result.rows.filter(r=>!pendDel.has(r.id)&&!pendIns.has(r.id));
+    const local=SyncStore._getLocal(lsKey);
+    const dbIds=new Set(dbRows.map(r=>r.id));
+    // Records only in local (new records not yet in DB, not deleted, not in-flight)
+    const localOnly=local.filter(r=>!dbIds.has(r.id)&&!pendDel.has(r.id)&&!pendIns.has(r.id));
+    // In-flight records: always prefer local version (edit may not have reached DB yet)
+    const localPending=local.filter(r=>pendIns.has(r.id));
+    const rows=[...dbRows,...localOnly,...localPending];
     const hash=rows.length+'|'+rows.map(r=>r.id).join(',');
     if(hash!==lastHash){lastHash=hash;localStorage.setItem(lsKey,JSON.stringify(rows));onData(rows)}
   };
   setInterval(poll,ms);
   return poll;
 }
-function showDbStatus(online){
-  const old=document.getElementById('db-status-bar');if(old)old.remove();
-  if(online)return;
-  const b=document.createElement('div');b.id='db-status-bar';
-  b.style.cssText='position:fixed;bottom:0;left:0;right:0;background:#c0392b;color:#fff;text-align:center;padding:8px;font-size:12px;z-index:9998;cursor:pointer;';
-  b.textContent='\u26A0 Database offline \u2014 working in local mode. Click to retry.';
-  b.onclick=()=>{location.reload()};
-  document.body.appendChild(b);
-}
-function showSyncErr(err){
-  let b=document.getElementById('sync-err-bar');
-  if(!b){b=document.createElement('div');b.id='sync-err-bar';b.style.cssText='position:fixed;bottom:40px;right:16px;background:#c0392b;color:#fff;border-radius:8px;padding:8px 14px;font-size:12px;z-index:9999;max-width:320px;';document.body.appendChild(b)}
-  b.textContent='Save error: '+err;b.style.display='block';
-  clearTimeout(b._t);b._t=setTimeout(()=>b.style.display='none',6000);
-}
-
 function showDbStatus(online){
   const old=document.getElementById('db-status-bar');if(old)old.remove();
   if(online)return;

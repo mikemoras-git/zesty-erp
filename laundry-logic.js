@@ -142,11 +142,16 @@ function fixDuplicateOrderIds() {
     console.log('Fixed duplicate order IDs');
   }
 }
+function getOrderSurcharge(order) {
+  const cust = customers.find(c => c.id === order.customerId);
+  return cust?.customerType === 'leasing' ? (parseFloat(cust.leasingSurcharge) || 0) / 100 : 0;
+}
 function calcOrderTotal(order) {
   const pl = pricelists.find(p => p.id === order.pricelistId);
   if (!pl || !order.items) return 0;
+  const surcharge = getOrderSurcharge(order);
   return Object.entries(order.items).reduce((s, [code, qty]) => {
-    return s + (parseFloat(qty) || 0) * (pl.prices[code] || 0);
+    return s + (parseFloat(qty) || 0) * (pl.prices[code] || 0) * (1 + surcharge);
   }, 0);
 }
 
@@ -171,8 +176,7 @@ function populateSelects() {
   });
   const propPl = document.getElementById('prop-pl');
   if (propPl) propPl.innerHTML = '<option value="">— Select —</option>' + plOpts;
-  const omPl = document.getElementById('om-pl');
-  if (omPl) { omPl.innerHTML = '<option value="">— Select —</option>' + plOpts; }
+  // om-pl is now a hidden input driven by the customer selection — no dropdown to populate
 }
 
 /* ── RENDER ALL ── */
@@ -243,11 +247,18 @@ function renderCustomers() {
   tbody.innerHTML = list.map(c => {
     const pl = pricelists.find(p => p.id === c.pricelistId);
     const oCount = orders.filter(o => o.customerId === c.id).length;
+    const isLeasing = c.customerType === 'leasing';
+    const typeBadge = isLeasing
+      ? `<span style="background:#fef3cd;color:#856404;border-radius:4px;padding:1px 6px;font-size:11px;font-weight:600">🏷 Leasing +${c.leasingSurcharge||0}%</span>`
+      : `<span style="background:#d1f2eb;color:#0b5345;border-radius:4px;padding:1px 6px;font-size:11px;font-weight:600">🧺 Cleaning</span>`;
+    const plCell = pl
+      ? `<span class="badge b-individual">${pl.id} ${pl.name}</span>${isLeasing&&c.leasingSurcharge?` <span style="font-size:10px;color:#856404">+${c.leasingSurcharge}%</span>`:''}`
+      : '—';
     return `<tr>
-      <td><strong>${c.name}</strong></td>
+      <td><strong>${c.name}</strong><br>${typeBadge}</td>
       <td style="font-size:12px">${c.phone || '—'}</td>
       <td style="font-size:12px">${c.email || '—'}</td>
-      <td>${pl ? `<span class="badge b-individual">${pl.id} ${pl.name}</span>` : '—'}</td>
+      <td>${plCell}</td>
       <td style="font-size:12px">${c.payMethod || '—'}</td>
       <td style="text-align:center">${oCount}</td>
       <td><div class="table-actions">
@@ -402,6 +413,11 @@ function renderPLCompare() {
 }
 
 /* ══ CUSTOMER MODAL ══ */
+function toggleLeasingFields() {
+  const isLeasing = document.getElementById('cm-type')?.value === 'leasing';
+  const sg = document.getElementById('cm-surcharge-group');
+  if (sg) sg.style.display = isLeasing ? '' : 'none';
+}
 function openCustomerModal() {
   document.getElementById('cust-modal-title').textContent = 'Add Customer';
   document.getElementById('cm-del-btn').style.display = 'none';
@@ -409,6 +425,9 @@ function openCustomerModal() {
     const el = document.getElementById(id); if (el) el.value = '';
   });
   document.getElementById('cm-pricelist').value = '';
+  const typeEl = document.getElementById('cm-type'); if (typeEl) typeEl.value = 'cleaning';
+  const srcEl = document.getElementById('cm-surcharge'); if (srcEl) srcEl.value = '';
+  toggleLeasingFields();
   openModal('custModal');
 }
 function editCustomer(id) {
@@ -421,6 +440,9 @@ function editCustomer(id) {
     const el = document.getElementById('cm-' + f); if (el) el.value = c[f] || '';
   });
   document.getElementById('cm-pricelist').value = c.pricelistId || '';
+  const typeEl = document.getElementById('cm-type'); if (typeEl) typeEl.value = c.customerType || 'cleaning';
+  const srcEl = document.getElementById('cm-surcharge'); if (srcEl) srcEl.value = c.leasingSurcharge != null ? c.leasingSurcharge : '';
+  toggleLeasingFields();
   const pmEl = document.getElementById('cm-payMethod'); if(pmEl) pmEl.value = c.payMethod || '';
   const fbEl = document.getElementById('cm-forwardBalance'); if(fbEl) fbEl.value = c.forwardBalance || '';
   openModal('custModal');
@@ -434,6 +456,9 @@ async function saveCustomer() {
     record[f] = document.getElementById('cm-' + f)?.value || '';
   });
   record.pricelistId = document.getElementById('cm-pricelist').value;
+  record.customerType = document.getElementById('cm-type')?.value || 'cleaning';
+  record.leasingSurcharge = record.customerType === 'leasing'
+    ? (parseFloat(document.getElementById('cm-surcharge')?.value) || 0) : 0;
   record.payMethod = document.getElementById('cm-payMethod')?.value || '';
   record.forwardBalance = parseFloat(document.getElementById('cm-forwardBalance')?.value) || 0;
   const existing = customers.find(c => c.id === id);
@@ -471,6 +496,7 @@ function openOrderModal() {
   document.getElementById('om-cust').value = '';
   document.getElementById('om-date').value = today();
   document.getElementById('om-pl').value = '';
+  updateOrderPlDisplay();
   document.getElementById('om-status').value = 'Pending';
   document.getElementById('om-notes').value = '';
   renderOrderItems();
@@ -487,18 +513,39 @@ function editOrder(id) {
   document.getElementById('om-cust').value = o.customerId || '';
   document.getElementById('om-date').value = o.date || today();
   document.getElementById('om-pl').value = o.pricelistId || '';
+  updateOrderPlDisplay();
   document.getElementById('om-status').value = o.status || 'Pending';
   document.getElementById('om-notes').value = o.notes || '';
   renderOrderItems(o.items);
   openModal('orderModal');
 }
+function updateOrderPlDisplay() {
+  const plId = document.getElementById('om-pl')?.value || '';
+  const custId = document.getElementById('om-cust')?.value || '';
+  const display = document.getElementById('om-pl-display');
+  if (!display) return;
+  if (!plId) {
+    display.innerHTML = '<span style="color:var(--text-muted,#999)">— select a customer first —</span>';
+    return;
+  }
+  const pl = pricelists.find(p => p.id === plId);
+  const cust = customers.find(c => c.id === custId);
+  const surcharge = cust?.customerType === 'leasing' ? (parseFloat(cust.leasingSurcharge) || 0) : 0;
+  const surchargeTag = surcharge > 0
+    ? `<span style="background:#fef3cd;color:#856404;border-radius:4px;padding:2px 8px;font-size:11px;font-weight:600;margin-left:8px">🏷 +${surcharge}% leasing</span>`
+    : '';
+  if (pl) {
+    display.innerHTML = `<span style="font-weight:600;color:var(--teal)">${pl.id}</span><span style="color:var(--text-muted);margin:0 6px">—</span><span>${pl.name}</span>${surchargeTag}`;
+  } else {
+    display.innerHTML = `<span style="color:var(--text-muted)">${plId}</span>${surchargeTag}`;
+  }
+}
 function onOrderCustChange() {
   const custId = document.getElementById('om-cust').value;
   const cust = customers.find(c => c.id === custId);
-  if (cust?.pricelistId && !document.getElementById('om-pl').value) {
-    document.getElementById('om-pl').value = cust.pricelistId;
-    renderOrderItems();
-  }
+  document.getElementById('om-pl').value = cust?.pricelistId || '';
+  updateOrderPlDisplay();
+  renderOrderItems();
 }
 function onOrderDateChange() { /* year auto-changes handled elsewhere */ }
 function renderOrderItems(savedItems = {}) {
@@ -506,22 +553,29 @@ function renderOrderItems(savedItems = {}) {
   const pl = pricelists.find(p => p.id === plId);
   const tbody = document.getElementById('om-items-tbody');
   if (!pl) {
-    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;padding:20px;color:var(--text-muted)">Select a pricelist to enter items</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;padding:20px;color:var(--text-muted)">Select a customer to load items</td></tr>`;
     document.getElementById('om-grand-total').textContent = '€0.00';
     return;
   }
+  const custId = document.getElementById('om-cust')?.value || '';
+  const cust = customers.find(c => c.id === custId);
+  const surcharge = cust?.customerType === 'leasing' ? (parseFloat(cust.leasingSurcharge) || 0) / 100 : 0;
   tbody.innerHTML = ITEMS.map(item => {
-    const price = pl.prices[item.code] || 0;
+    const basePrice = pl.prices[item.code] || 0;
+    const price = parseFloat((basePrice * (1 + surcharge)).toFixed(4));
     const savedQty = savedItems[item.code] || '';
-    const rowStyle = price > 0 ? '' : 'opacity:.35';
+    const rowStyle = basePrice > 0 ? '' : 'opacity:.35';
+    const priceLabel = basePrice > 0
+      ? (surcharge > 0 ? `<span style="text-decoration:line-through;color:#bbb;font-size:11px">${eur(basePrice)}</span> ${eur(price)}` : eur(price))
+      : '—';
     return `<tr style="${rowStyle}">
       <td>${iname(item)}</td>
       <td style="text-align:center">
         <input type="number" min="0" step="1" value="${savedQty}" data-code="${item.code}" data-price="${price}"
           oninput="updateOrderTotal()" style="width:70px;text-align:center"
-          ${price === 0 ? 'disabled' : ''}>
+          ${basePrice === 0 ? 'disabled' : ''}>
       </td>
-      <td style="text-align:right;color:var(--text-muted)">${price > 0 ? eur(price) : '—'}</td>
+      <td style="text-align:right;color:var(--text-muted)">${priceLabel}</td>
       <td style="text-align:right;font-weight:600;color:var(--teal)" id="sub-${item.code}">—</td>
     </tr>`;
   }).join('');
@@ -702,6 +756,7 @@ function confirmDeleteReceipt(id) {
     async () => {
       receipts = receipts.filter(x => x.id !== id);
       await SyncStore.deleteOne('zesty_laundry_receipts', 'laundry_receipts', id, receipts);
+      closeModal('receiptModal');
       renderReceipts();
       renderDashboard();
       showToast('Receipt deleted', 'error');
@@ -840,22 +895,6 @@ function editReceipt(id) {
   openReceiptModal(id);
 }
 
-function confirmDeleteReceipt(id) {
-  const r = receipts.find(x => x.id === id);
-  const label = r ? (r.receiptId || id) + ' — €' + (r.grossAmount || 0) : id;
-  showConfirm('\uD83D\uDDD1', 'Delete Receipt?',
-    'Delete ' + label + '? This cannot be undone.',
-    'btn-danger', 'Delete',
-    async () => {
-      receipts = receipts.filter(x => x.id !== id);
-      await SyncStore.saveAll('zesty_laundry_receipts', 'laundry_receipts', receipts);
-      closeModal('receiptModal');
-      renderReceipts();
-      renderDashboard();
-      showToast('Receipt deleted', 'error');
-    }
-  );
-}
 
 function openReceiptModal(id) {
   const isEdit = !!id;
@@ -1003,15 +1042,128 @@ async function savePricelist() {
   showToast('\u2713 Pricelist saved', 'success');
 }
 
-// ══ REPORT / PROPOSAL STUBS ════════════════════════════════════════════
+// ══ REPORT / PROPOSAL ════════════════════════════════════════════════
 function openProposalModal() {
-  showToast('Proposal module coming soon', 'info');
+  populateSelects();
+  const today = new Date().toISOString().slice(0, 10);
+  const validEl = document.getElementById('prop-valid');
+  const dateEl  = document.getElementById('prop-date');
+  if (dateEl)  dateEl.value  = today;
+  if (validEl) {
+    const d = new Date(); d.setDate(d.getDate() + 30);
+    validEl.value = d.toISOString().slice(0, 10);
+  }
+  openModal('proposalModal');
 }
+
 function generateProposal() {
-  showToast('Proposal module coming soon', 'info');
+  const plId     = document.getElementById('prop-pl')?.value;
+  const clientId = document.getElementById('prop-client')?.value;
+  const date     = document.getElementById('prop-date')?.value || new Date().toISOString().slice(0,10);
+  const validUntil = document.getElementById('prop-valid')?.value || '';
+  const note     = document.getElementById('prop-note')?.value || '';
+
+  if (!plId)     { showToast('Please select a pricelist', 'error'); return; }
+  if (!clientId) { showToast('Please select a client', 'error'); return; }
+
+  const pl     = pricelists.find(p => p.id === plId);
+  const client = customers.find(c => c.id === clientId);
+  if (!pl || !client) { showToast('Invalid pricelist or client', 'error'); return; }
+
+  // Build printable table rows for all items that have a price
+  const rows = ITEMS.filter(it => pl.prices[it.code] != null).map(it => {
+    const price = parseFloat(pl.prices[it.code] || 0).toFixed(2);
+    return `<tr>
+      <td style="padding:6px 10px;border:1px solid #ddd;">${it.en}</td>
+      <td style="padding:6px 10px;border:1px solid #ddd;">${it.gr}</td>
+      <td style="padding:6px 10px;border:1px solid #ddd;text-align:right;">€${price}</td>
+    </tr>`;
+  }).join('');
+
+  const validLine = validUntil ? `<p style="margin:4px 0;"><strong>Valid until:</strong> ${validUntil}</p>` : '';
+  const noteLine  = note ? `<p style="margin:12px 0;font-style:italic;">${note}</p>` : '';
+
+  const printHtml = `<!DOCTYPE html><html><head><meta charset="utf-8">
+    <title>Laundry Pricelist Proposal</title>
+    <style>body{font-family:Arial,sans-serif;margin:30px;color:#222;}
+    h1{font-size:20px;margin-bottom:4px;}
+    h2{font-size:15px;font-weight:normal;margin-bottom:2px;}
+    table{border-collapse:collapse;width:100%;margin-top:16px;}
+    th{background:#2d6a4f;color:#fff;padding:8px 10px;text-align:left;border:1px solid #2d6a4f;}
+    @media print{button{display:none!important}}</style>
+  </head><body>
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;">
+      <div>
+        <h1>Pricelist Proposal</h1>
+        <h2>Pricelist: ${pl.id} — ${pl.name}</h2>
+        <p style="margin:4px 0;"><strong>Client:</strong> ${client.name}</p>
+        <p style="margin:4px 0;"><strong>Date:</strong> ${date}</p>
+        ${validLine}
+      </div>
+    </div>
+    ${noteLine}
+    <table>
+      <thead><tr>
+        <th>Item (EN)</th>
+        <th>Item (GR)</th>
+        <th style="text-align:right;">Unit Price</th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+    <p style="margin-top:20px;font-size:12px;color:#888;">All prices are per piece unless stated otherwise. VAT not included.</p>
+    <div style="margin-top:24px;text-align:center;">
+      <button onclick="window.print()" style="padding:10px 24px;background:#2d6a4f;color:#fff;border:none;border-radius:6px;font-size:15px;cursor:pointer;">🖨 Print / Save as PDF</button>
+    </div>
+  </body></html>`;
+
+  // Save to proposal history
+  const proposals = JSON.parse(localStorage.getItem('zesty_laundry_proposals') || '[]');
+  proposals.unshift({
+    id: 'PROP-' + Date.now(),
+    date,
+    validUntil,
+    clientId,
+    clientName: client.name,
+    plId,
+    plName: pl.name,
+    note,
+    createdAt: new Date().toISOString()
+  });
+  localStorage.setItem('zesty_laundry_proposals', JSON.stringify(proposals));
+
+  closeModal('proposalModal');
+  document.getElementById('prop-note').value = '';
+
+  // Open print window
+  const w = window.open('', '_blank', 'width=800,height=700');
+  if (w) { w.document.write(printHtml); w.document.close(); }
+  else   { showToast('Pop-up blocked — please allow pop-ups', 'error'); return; }
+
+  showToast('✓ Proposal printed and saved', 'success');
 }
+
 function openExportHistory() {
-  showToast('Export history coming soon', 'info');
+  const proposals = JSON.parse(localStorage.getItem('zesty_laundry_proposals') || '[]');
+  const section = document.getElementById('proposal-history-section');
+  const tbody   = document.getElementById('proposal-history-tbody');
+  if (!section || !tbody) return;
+
+  if (!proposals.length) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:16px;color:#888;">No proposals yet.</td></tr>';
+  } else {
+    tbody.innerHTML = proposals.map(p => `
+      <tr>
+        <td>${p.id}</td>
+        <td>${p.clientName}</td>
+        <td>${p.plId} — ${p.plName}</td>
+        <td>${p.date}</td>
+        <td>${p.validUntil || '—'}</td>
+        <td>${p.createdAt ? p.createdAt.slice(0,16).replace('T',' ') : '—'}</td>
+      </tr>`).join('');
+  }
+
+  section.style.display = 'block';
+  section.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 function generateReport() {
   const fCustId = document.getElementById('rpt-cust')?.value || '';

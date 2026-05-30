@@ -126,6 +126,22 @@ function generateOwner(){
     if(!matchProp(r,prop))return false;
     return new Date(r.DateArrival)<=mEnd&&new Date(r.DateDeparture)>=mStart;
   });
+  // Preserve manual overrides (_override) and manual rows (_manual) from a previous generate
+  if(currentStatementData?.bookings){
+    const prev=currentStatementData.bookings;
+    // Restore per-row overrides (edits made via pencil)
+    bookings.forEach(b=>{
+      const p=prev.find(pb=>pb.Id===b.Id&&pb._override);
+      if(!p)return;
+      b._override=true;
+      Object.assign(b,{Name:p.Name,DateArrival:p.DateArrival,DateDeparture:p.DateDeparture,
+        Nights:p.Nights,Source:p.Source,_rent:p._rent,_taxFees:p._taxFees,
+        _ota:p._ota,_zesty:p._zesty,_note:p._note});
+    });
+    // Re-attach manually-added rows (not in CSV)
+    const manuals=prev.filter(b=>b._manual);
+    bookings.push(...manuals);
+  }
 
   let tRent=0,tOTA=0,tTaxFees=0,tRec=0,tZesty=0,tNet=0;
   const bySource={};
@@ -143,8 +159,8 @@ function generateOwner(){
       netInc=parseFloat((rec-zesty).toFixed(2));
     } else {
       const roomRates=parseFloat(r.RoomRatesTotal||r.TotalAmount||0);
-      const promotions=parseFloat(r.PromotionsTotal||0);
-      rent=parseFloat((roomRates-promotions).toFixed(2));
+      const promotions=parseFloat(r.PromotionsTotal||0); // Lodgify exports discounts as negative values
+      rent=parseFloat((roomRates+promotions).toFixed(2)); // add (not subtract) since promotions are already negative
       taxesFees=parseFloat(((parseFloat(r.FeesTotal||0))+(parseFloat(r.TaxesTotal||0))).toFixed(2));
       const otaBase=Math.max(0,rent-taxesFees);const otaRate=getCommRate(prop,r.Source);
       ota=parseFloat((otaBase*otaRate/100).toFixed(2));
@@ -179,12 +195,13 @@ function generateOwner(){
   }).join('');
 
   // Jobs
+  const _propShort=(prop.shortName||prop.propertyName||'').toLowerCase();
   const propJobs=jobs.filter(j=>{
     // Only completed jobs
     if(j.status!=='Completed'&&j.status!=='Paid') return false;
-    // Match by property: try propertyId first, then name
+    // Match by propertyId first (most reliable), then exact name match
     const matchesProp = (prop.propertyId && String(j.propertyId)===String(prop.propertyId)) ||
-      (j.propertyName||'').toLowerCase().includes((prop.shortName||'').toLowerCase().split(' ')[0]);
+      (_propShort && (j.propertyName||'').toLowerCase()===_propShort);
     if(!matchesProp) return false;
     // Match by month: check completed date or started date
     const d=j.dateCompleted||j.dateStarted||j.dateInvoiced||'';
@@ -199,31 +216,60 @@ function generateOwner(){
     <td style="font-size:12px;color:var(--text-muted)">${j.notes||''}</td>
   </tr>`).join('');
 
-  // Cleaning
+  // Cleaning — exact property name match to prevent "Villa X" from matching "Villa Y"
   const cleans=cleanJobs.filter(j=>{
-    const cp=(j.propertyName||'').toLowerCase(), ps=(prop.shortName||prop.propertyName||'').toLowerCase().split(' ')[0];
-    return cp.includes(ps)&&(j.date||'').startsWith(month);
+    const cp=(j.propertyName||'').toLowerCase();
+    return cp===_propShort&&(j.date||'').startsWith(month);
   });
   const staffC=JSON.parse(localStorage.getItem('zesty_staff')||'[]');
   const cleaningFeeRate=parseFloat(prop.cleaningFee||0); // fee per hour charged to owner
-  // Total actual hours: sum j.cleanerHours (actual from Hours module); fall back to j.hours if not yet recorded
+  // prop.transportCharge is the per-trip transport fee defined in the property settings
+  const propTransportRate=parseFloat(prop.transportCharge||0);
+
+  // Helper: resolve transport fee for a job (stored on job; fall back to property)
+  const jobTransportRate = j => parseFloat(j.propertyTransport||0) || propTransportRate;
+
+  // Helper: count cleaners with transport ticked for a job
+  // If j.cleanerTransport exists use it; otherwise count assigned cleaners who have a car
+  const tickedTransportCount = j => {
+    const fee = jobTransportRate(j);
+    if(!fee) return 0;
+    if(j.cleanerTransport){
+      const n=Object.values(j.cleanerTransport).filter(v=>v===true).length;
+      return n>0?n:0;
+    }
+    // No explicit ticking data — count assigned cleaners with hasCar='Yes' (same default as cleaning module)
+    const ids=(j.cleanerIds||[]);
+    if(!ids.length) return 1; // at least 1 if property has transport and job has no cleaner data
+    const n=ids.filter(id=>{const st=staffC.find(s=>s.id===id);return st&&st.hasCar==='Yes';}).length;
+    return n>0?n:1;
+  };
+
+  // Total actual hours: sum j.cleanerHours (actual from Hours module); fall back to j.hours
   const tCleanH=cleans.reduce((s,j)=>{
     const actualH=j.cleanerHours?Object.values(j.cleanerHours).reduce((s2,h)=>s2+(parseFloat(h)||0),0):(j.hours||0);
     return s+actualH;
   },0);
-  // Total charge = (fee rate × actual hours) + (property transport fee × ticked cleaners) across all cleans
+  // Separate hour-cost and transport totals for footer display
+  let tCleanHoursCost=0, tCleanTransportCharge=0;
   const tCleanCharge=cleans.reduce((s,j)=>{
     const actualH=j.cleanerHours?Object.values(j.cleanerHours).reduce((s2,h)=>s2+(parseFloat(h)||0),0):(j.hours||0);
-    const jTransportFee=parseFloat(j.propertyTransport||prop.propertyTransport||0);
-    return s+cleaningFeeRate*actualH+jTransportFee;
+    const tFee=jobTransportRate(j);
+    const tCount=tickedTransportCount(j);
+    const hourCost=cleaningFeeRate*actualH;
+    const transCost=tFee*tCount;
+    tCleanHoursCost+=hourCost;
+    tCleanTransportCharge+=transCost;
+    return s+hourCost+transCost;
   },0);
   const cRows=cleans.map(j=>{
     const cls=(j.cleanerIds||[]).map(id=>staffC.find(s=>s.id===id)).filter(Boolean);
-    // Use actual per-cleaner hours from j.cleanerHours (Hours module); fall back to j.hours if not recorded
+    // Use actual per-cleaner hours from j.cleanerHours (Hours module); fall back to j.hours
     const actualJobHours=j.cleanerHours?Object.values(j.cleanerHours).reduce((s2,h)=>s2+(parseFloat(h)||0),0):(j.hours||0);
-    // Transport charge TO OWNER: flat fee per cleaning session (when property has transport fee set)
-    const jobTransportFee=parseFloat(j.propertyTransport||prop.propertyTransport||0);
-    const transportOwnerCharge=jobTransportFee;
+    // Transport charge TO OWNER: fee × number of ticked cleaners
+    const tFee=jobTransportRate(j);
+    const tCount=tickedTransportCount(j);
+    const transportOwnerCharge=tFee*tCount;
     const cleaningCost=cleaningFeeRate*actualJobHours;
     const rowTotal=cleaningCost+transportOwnerCharge;
     const typeColors={checkout:['#fdebd0','#a04000'],deep:['#e8d5f5','#6c3483']};
@@ -239,11 +285,10 @@ function generateOwner(){
     </tr>`;
   }).join('');
 
-  // Check-in jobs for this property+month (show all, charge only confirmed=done)
-  const propNameKey=(prop.shortName||prop.propertyName||'').toLowerCase().split(' ')[0];
+  // Check-in jobs for this property+month — exact name match
   const ciJobsMonth=checkinJobs.filter(j=>{
     const cp=(j.propertyName||'').toLowerCase();
-    return cp.includes(propNameKey)&&(j.date||'').startsWith(month);
+    return cp===_propShort&&(j.date||'').startsWith(month);
   });
   const ciCharge=parseFloat(prop.checkinCharge||0);
   const tCICharge=ciJobsMonth.filter(j=>j.confirmed==='done').length*ciCharge;
@@ -294,7 +339,9 @@ function generateOwner(){
   if (_fb) { _fb.style.display=''; _fb.textContent='\u2713 Finalise & Record'; _fb.style.background=''; _fb.disabled=false; }
     currentStatementData={
     id:currentStatementData?.id||null,
-    propId,month,bookings,tRent,tTaxFees,tOTA,tRec,tZesty,tNet,tJobs,tCleanH,tCleanCharge,mgmt
+    propId,month,bookings,tRent,tTaxFees,tOTA,tRec,tZesty,tNet,tJobs,tCleanH,tCleanCharge,tCICharge,mgmt,
+    ownerName,
+    propName: prop.shortName||prop.propertyName||''
   };
   document.getElementById('owner-out').innerHTML=`
   <div class="rpt-wrap">
@@ -346,11 +393,17 @@ function generateOwner(){
     </div>`:''}
 
     ${cleans.length>0?`<div class="rpt-section">
-      <div class="rpt-section-title">Cleaning — ${cleans.length} sessions · ${tCleanH}h total${tCleanCharge>0?' · '+eur(tCleanCharge)+' charged':''}</div>
+      <div class="rpt-section-title">Cleaning — ${cleans.length} session${cleans.length!==1?'s':''} · ${tCleanH}h total · ${eur(tCleanCharge)} charged</div>
       <table class="rpt-table">
         <thead><tr><th>Date</th><th>Type</th><th style="text-align:center">Hours</th><th style="text-align:right">Cleaning Cost</th><th style="text-align:right">Transport</th><th style="text-align:right">Total</th></tr></thead>
         <tbody>${cRows}</tbody>
-        ${tCleanCharge>0?`<tfoot><tr><td colspan="3" style="text-align:right">TOTAL CLEANING CHARGE</td><td style="text-align:right;font-weight:700"></td><td style="text-align:right;font-weight:700"></td><td style="text-align:right;font-weight:700">${eur(tCleanCharge)}</td></tr></tfoot>`:''}
+        <tfoot><tr>
+          <td colspan="2" style="text-align:right;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em">TOTAL</td>
+          <td style="text-align:center;font-weight:700">${tCleanH}h</td>
+          <td style="text-align:right;font-weight:700">${tCleanHoursCost>0?eur(tCleanHoursCost):'—'}</td>
+          <td style="text-align:right;font-weight:700">${tCleanTransportCharge>0?eur(tCleanTransportCharge):'—'}</td>
+          <td style="text-align:right;font-weight:700;color:var(--teal-dark)">${eur(tCleanCharge)}</td>
+        </tr></tfoot>
       </table>
     </div>`:''}
 
@@ -520,22 +573,50 @@ async function saveStatement(status) {
   if (!currentStatementData) {showToast('Generate a report first','error');return;}
   const prop  = properties.find(p=>p.id===currentStatementData.propId);
   const owner = owners.find(o=>o.id===prop?.owner);
-  const record = {
-    id:            currentStatementData.id || ('stmt_'+Date.now()),
-    property_id:   currentStatementData.propId||'',
-    property_name: prop?.shortName||prop?.propertyName||'',
-    owner_id:      prop?.owner||'',
-    owner_name:    owner?(owner.firstName||'')+' '+(owner.lastName||owner.companyName||''):'',
-    month:         currentStatementData.month||'',
-    status,
-    data:          currentStatementData,
-    notes:         (document.getElementById('rpt-section-notes')?.value || document.getElementById('stmt-notes')?.value || currentReportNotes || ''),
-    updated_at:    new Date().toISOString(),
-    sent_at:       status==='sent'?new Date().toISOString():null,
-  };
+  const isNew = !currentStatementData.id;
+  const id    = currentStatementData.id || ('stmt_'+Date.now());
+  const notes = document.getElementById('rpt-section-notes')?.value
+             || document.getElementById('stmt-notes')?.value
+             || currentReportNotes || '';
+  // Always use the current month input as source of truth
+  const currentMonth = document.getElementById('s-month')?.value || currentStatementData.month || '';
+  currentStatementData.month = currentMonth;
   try {
-    await supaStmt('zesty_statements', 'POST', record);
-    currentStatementData.id = record.id;
+    if (isNew) {
+      // INSERT new statement
+      const record = {
+        id,
+        property_id:   currentStatementData.propId||'',
+        property_name: prop?.shortName||prop?.propertyName||'',
+        owner_id:      prop?.owner||'',
+        // owner_name is embedded inside data.ownerName (column may not exist in older DB installs)
+        month:         currentStatementData.month||'',
+        status,
+        data:          currentStatementData,
+        notes,
+        created_at:    new Date().toISOString(),
+        updated_at:    new Date().toISOString(),
+        sent_at:       status==='sent'?new Date().toISOString():null,
+      };
+      await supaStmt('zesty_statements', 'POST', record);
+    } else {
+      // PATCH existing statement
+      const patch = {
+        status,
+        month:      currentMonth,
+        data:       currentStatementData,
+        notes,
+        updated_at: new Date().toISOString(),
+        sent_at:    status==='sent'?new Date().toISOString():null,
+      };
+      const r = await fetch(SUPA_S+'/rest/v1/zesty_statements?id=eq.'+id, {
+        method: 'PATCH',
+        headers: {'apikey':KEY_S,'Authorization':'Bearer '+KEY_S,'Content-Type':'application/json','Prefer':'return=minimal'},
+        body: JSON.stringify(patch),
+      });
+      if (!r.ok) { const t=await r.text(); throw new Error(t||'HTTP '+r.status); }
+    }
+    currentStatementData.id = id;
     updateStatementStatusBadge(status);
     showToast('\u2713 Saved as '+status.toUpperCase(),'success');
   } catch(e) { showToast('Save error: '+e.message,'error'); }
@@ -545,13 +626,11 @@ async function loadHistory() {
   const ownerF = document.getElementById('h-owner')?.value||'';
   const yearF  = document.getElementById('h-year')?.value||'';
   const listEl = document.getElementById('h-list');
-  if (listEl) listEl.innerHTML = '<div style="padding:20px;color:var(--text-muted)">Loading...</div>';
+  if (listEl) listEl.innerHTML = '<div style="padding:20px;color:var(--text-muted)">Loading\u2026</div>';
   try {
     let stmts = await supaStmt('zesty_statements?order=updated_at.desc&limit=300');
-    if (ownerF) stmts = stmts.filter(s=>s.owner_id===ownerF);
-    if (yearF)  stmts = stmts.filter(s=>(s.month||'').startsWith(yearF));
 
-    // Populate owner dropdown once
+    // Populate owner dropdown once (before filtering)
     const ownerSel = document.getElementById('h-owner');
     if (ownerSel && ownerSel.options.length<=1) {
       owners.sort((a,b)=>(a.lastName||'').localeCompare(b.lastName||'')).forEach(o=>{
@@ -561,45 +640,89 @@ async function loadHistory() {
         ownerSel.appendChild(opt);
       });
     }
-    // Populate year dropdown once
+    // Populate year dropdown once (from actual data, before filtering)
     const yearSel = document.getElementById('h-year');
     if (yearSel && yearSel.options.length<=1) {
-      const allStmts = await supaStmt('zesty_statements?select=month');
-      const years=[...new Set(allStmts.map(s=>(s.month||'').substring(0,4)).filter(Boolean))].sort().reverse();
+      const years=[...new Set(stmts.map(s=>(s.month||'').substring(0,4)).filter(Boolean))].sort().reverse();
       years.forEach(y=>{const opt=document.createElement('option');opt.value=y;opt.textContent=y;yearSel.appendChild(opt);});
     }
-    // Stats
-    const totalNet=stmts.reduce((s,x)=>s+(parseFloat(x.data?.tNet)||0),0);
-    const el=document.getElementById('h-summary-line');
-    if (el) el.textContent=stmts.length+' statements \u00B7 Net total: \u20AC'+totalNet.toFixed(2);
+
+    // Apply filters
+    if (ownerF) stmts = stmts.filter(s=>s.owner_id===ownerF);
+    if (yearF)  stmts = stmts.filter(s=>(s.month||'').startsWith(yearF));
+
+    // "Due to Zesty" = mgmt commission + job orders + cleaning + check-in charges
+    const dueToZesty = d => (parseFloat(d?.tZesty)||0)+(parseFloat(d?.tJobs)||0)+(parseFloat(d?.tCleanCharge)||0)+(parseFloat(d?.tCICharge)||0);
+
+    // Aggregate totals across filtered statements
+    const totRent  = stmts.reduce((s,x)=>s+(parseFloat(x.data?.tRent)||0),0);
+    const totNet   = stmts.reduce((s,x)=>s+(parseFloat(x.data?.tNet)||0),0);
+    const totZesty = stmts.reduce((s,x)=>s+dueToZesty(x.data),0);
+
+    // Summary line
+    const sumEl=document.getElementById('h-summary-line');
+    if (sumEl) sumEl.textContent=stmts.length+' statement'+(stmts.length!==1?'s':'')+' \u00B7 Total rent: '+eur(totRent);
+
+    // Status pill counts
     const counts={draft:0,review:0,sent:0};
     stmts.forEach(s=>{if(counts[s.status]!==undefined)counts[s.status]++;});
     ['draft','review','sent'].forEach(st=>{const e=document.getElementById('h-count-'+st);if(e)e.textContent=counts[st];});
+
+    // Stats cards
+    const statsEl=document.getElementById('h-stats-cards');
+    if (statsEl) statsEl.innerHTML=`
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-bottom:18px">
+        <div style="background:#fff;border:1px solid var(--border);border-radius:10px;padding:14px 18px;border-left:4px solid var(--teal)">
+          <div style="font-size:22px;font-weight:700;color:var(--teal)">${stmts.length}</div>
+          <div style="font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted);margin-top:3px">Statements</div>
+        </div>
+        <div style="background:#fff;border:1px solid var(--border);border-radius:10px;padding:14px 18px;border-left:4px solid var(--teal)">
+          <div style="font-size:22px;font-weight:700;color:var(--teal)">${eur(totRent)}</div>
+          <div style="font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted);margin-top:3px">Total Rent</div>
+        </div>
+        <div style="background:#fff;border:1px solid var(--border);border-radius:10px;padding:14px 18px;border-left:4px solid var(--gold)">
+          <div style="font-size:22px;font-weight:700;color:var(--teal-dark)">${eur(totZesty)}</div>
+          <div style="font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted);margin-top:3px">Due to Zesty</div>
+        </div>
+        <div style="background:#fff;border:1px solid var(--border);border-radius:10px;padding:14px 18px;border-left:4px solid var(--success)">
+          <div style="font-size:22px;font-weight:700;color:var(--success)">${eur(totNet)}</div>
+          <div style="font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted);margin-top:3px">Net to Owners</div>
+        </div>
+      </div>`;
 
     if (!listEl) return;
     if (!stmts.length){listEl.innerHTML='<div style="padding:30px;text-align:center;color:var(--text-muted)">No saved statements yet. Generate a report and click Draft / Under Review / Sent to Client.</div>';return;}
     const sColors={draft:'#888',review:'#e67e22',sent:'#27ae60'};
     const sLabels={draft:'\uD83D\uDCDD Draft',review:'\uD83D\uDD0D Review',sent:'\u2705 Sent'};
-    listEl.innerHTML=stmts.map(s=>`
+    listEl.innerHTML=stmts.map(s=>{
+      const d=s.data||{};
+      const dtz=dueToZesty(d);
+      const netInc=parseFloat(d.tNet)||0;
+      return `
       <div style="display:flex;align-items:center;gap:12px;padding:13px 16px;border-bottom:1px solid var(--border);flex-wrap:wrap">
         <div style="flex:1;min-width:180px">
           <div style="font-weight:600;font-size:14px">${s.property_name||'Unknown'}</div>
-          <div style="font-size:12px;color:var(--text-muted)">${s.owner_name||''} &middot; ${s.month||''}</div>
-          ${s.notes?'<div style="font-size:11px;color:#999;margin-top:2px">'+s.notes+'</div>':''}
+          <div style="font-size:12px;color:var(--text-muted)">${d.ownerName||s.owner_name||''} &middot; ${s.month||''}</div>
+          ${s.notes?'<div style="font-size:11px;color:#999;margin-top:2px">'+String(s.notes||'').replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</div>':''}
         </div>
-        <div style="font-size:14px;font-weight:700;color:var(--teal-dark)">&euro;${(parseFloat(s.data?.tNet)||0).toFixed(2)}</div>
+        <div style="text-align:right;min-width:140px">
+          <div style="font-size:15px;font-weight:700;color:var(--teal-dark)">${eur(dtz)}</div>
+          <div style="font-size:11px;color:var(--text-muted)">Due to Zesty</div>
+          ${netInc>0?`<div style="font-size:11px;color:var(--success);margin-top:1px">${eur(netInc)} net to owner</div>`:''}
+        </div>
         <span style="background:${sColors[s.status]||'#888'};color:#fff;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:700">${sLabels[s.status]||s.status}</span>
         <div style="display:flex;gap:6px;align-items:center">
           <button onclick="openStatement('${s.id}')" class="btn btn-sm btn-outline" style="font-size:12px">&#128196; Open</button>
           <select onchange="changeStatementStatus('${s.id}',this.value)" style="font-size:11px;padding:4px 6px;border:1px solid var(--border);border-radius:6px;background:#fff">
-            <option value="">Change&hellip;</option>
+            <option value="">Change\u2026</option>
             <option value="draft">&#128221; Draft</option>
             <option value="review">&#128269; Under Review</option>
             <option value="sent">&#9989; Sent</option>
           </select>
           <button onclick="deleteStatement('${s.id}')" class="btn btn-sm" style="background:#fdf0ef;color:var(--danger);border:1px solid var(--danger);font-size:12px">&#128465;</button>
         </div>
-      </div>`).join('');
+      </div>`;
+    }).join('');
   } catch(e) {
     if(listEl) listEl.innerHTML='<div style="padding:20px;color:var(--danger)">Error: '+e.message+'</div>';
   }
@@ -646,6 +769,15 @@ async function deleteStatement(id) {
   });
   showToast('Statement deleted','error');
   loadHistory();
+}
+
+// ── Auto-calculate nights from check-in / check-out ──────────────────
+function calcEbNights(){
+  const ci=document.getElementById('eb-checkin')?.value;
+  const co=document.getElementById('eb-checkout')?.value;
+  if(!ci||!co)return;
+  const n=Math.round((new Date(co)-new Date(ci))/(1000*60*60*24));
+  if(n>0)document.getElementById('eb-nights').value=n;
 }
 
 // ── Edit booking row ─────────────────────────────────────────────────

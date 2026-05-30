@@ -223,7 +223,21 @@
         <div class="form-group"><label>Phone</label><input id="cm-phone" type="tel" placeholder="+30 69..."></div>
         <div class="form-group"><label>Email</label><input id="cm-email" type="email" placeholder="email@example.com"></div>
         <div class="form-group"><label>Contact Person</label><input id="cm-contact" placeholder="Contact name"></div>
-        <div class="form-group"><label>Default Pricelist</label><select id="cm-pricelist"><option value="">— Select —</option></select></div>
+        <div class="form-group">
+          <label>Customer Type</label>
+          <select id="cm-type" onchange="toggleLeasingFields()">
+            <option value="cleaning">🧺 Cleaning (service)</option>
+            <option value="leasing">🏷 Leasing (linen rental)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Default Pricelist</label>
+          <select id="cm-pricelist"><option value="">— Select —</option></select>
+        </div>
+        <div class="form-group" id="cm-surcharge-group" style="display:none">
+          <label>Leasing Surcharge (%)</label>
+          <input type="number" id="cm-surcharge" min="0" max="100" step="1" placeholder="e.g. 25" title="Applied on top of the pricelist prices">
+        </div>
         <div class="form-group form-span-2"><label>Address</label><input id="cm-address" placeholder="Address"></div>
         <div class="form-group"><label>Tax Number</label><input id="cm-tax" placeholder="AFM"></div>
         <div class="form-group"><label>Forward Balance (€)</label>
@@ -262,7 +276,11 @@
         <div class="form-group"><label>Order ID</label><input id="om-order-id" placeholder="Auto-generated" readonly style="background:#f8f8f8"></div>
         <div class="form-group"><label>Customer *</label><select id="om-cust" onchange="onOrderCustChange()"><option value="">— Select —</option></select></div>
         <div class="form-group"><label>Date *</label><input type="date" id="om-date" onchange="onOrderDateChange()"></div>
-        <div class="form-group"><label>Pricelist</label><select id="om-pl" onchange="renderOrderItems()"><option value="">— Select —</option></select></div>
+        <div class="form-group">
+          <label>Pricelist</label>
+          <input type="hidden" id="om-pl">
+          <div id="om-pl-display" style="padding:8px 12px;background:var(--cream,#faf8f5);border:1px solid var(--border,#e0d9d0);border-radius:6px;font-size:14px;min-height:38px;display:flex;align-items:center;color:var(--text-muted,#999)">— select a customer first —</div>
+        </div>
         <div class="form-group"><label>Status</label><select id="om-status">
           <option value="Pending">Pending</option>
           <option value="Ready">Ready</option>
@@ -363,15 +381,15 @@
 
 <!-- ═══ PROPOSAL MODAL ═══ -->
 <div class="modal-overlay" id="proposalModal">
-  <div class="modal" style="max-width:520px">
+  <div class="modal" style="max-width:680px;width:90%">
     <div class="modal-header"><h2>Pricelist Proposal</h2><button class="modal-close" onclick="closeModal('proposalModal')">✕</button></div>
-    <div class="modal-body">
-      <div class="form-grid">
-        <div class="form-group"><label>Pricelist *</label><select id="prop-pl"><option value="">— Select —</option></select></div>
-        <div class="form-group"><label>Client *</label><select id="prop-client"><option value="">— Select —</option></select></div>
-        <div class="form-group"><label>Date</label><input type="date" id="prop-date"></div>
-        <div class="form-group"><label>Valid Until</label><input type="date" id="prop-valid"></div>
-        <div class="form-group form-span-2"><label>Custom Note</label><textarea id="prop-note" rows="2" placeholder="Optional note…"></textarea></div>
+    <div class="modal-body" style="padding:28px 32px">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px 28px">
+        <div class="form-group" style="margin:0"><label>Pricelist *</label><select id="prop-pl"><option value="">— Select —</option></select></div>
+        <div class="form-group" style="margin:0"><label>Client *</label><select id="prop-client"><option value="">— Select —</option></select></div>
+        <div class="form-group" style="margin:0"><label>Date</label><input type="date" id="prop-date"></div>
+        <div class="form-group" style="margin:0"><label>Valid Until</label><input type="date" id="prop-valid"></div>
+        <div class="form-group" style="margin:0;grid-column:1/-1"><label>Custom Note</label><textarea id="prop-note" rows="3" placeholder="Optional note…" style="width:100%;box-sizing:border-box;resize:vertical"></textarea></div>
       </div>
     </div>
     <div class="modal-footer">

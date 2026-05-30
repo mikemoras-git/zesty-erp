@@ -8,6 +8,8 @@ let currentCalMonth;
 let jobPage = 1;
 const JOB_PAGE_SIZE = 20;
 let jobSortDir = -1;
+// Finalized (locked) months — persisted in localStorage + Supabase meta record
+window._finalizedMonths = new Set(JSON.parse(localStorage.getItem('zesty_finalized_months') || '[]'));
 let confirmCb = null;
 
 // Cleaner colors
@@ -126,7 +128,11 @@ async function init() {
   const _j = SyncStore._getLocal('zesty_cleaning_jobs');
   const _h = JSON.parse(localStorage.getItem('zesty_import_history') || '[]');
   if (_s.length) staff = _s;
-  if (_j.length) cleaningJobs = _j;
+  if (_j.length) {
+    const _metaFin = _j.find(r => r.id === '_meta_finalized');
+    if (_metaFin?.months) window._finalizedMonths = new Set(_metaFin.months);
+    cleaningJobs = _j.filter(r => !r.id?.startsWith('_meta_'));
+  }
   if (_h.length) importHistory = _h;
 
   const now = new Date();
@@ -169,7 +175,9 @@ async function init() {
 
   // 30-second poll for all cleaning data
   startPoll('cleaning_jobs', 'zesty_cleaning_jobs', 30000, (rows) => {
-    cleaningJobs = rows;
+    const _metaFin = rows.find(r => r.id === '_meta_finalized');
+    if (_metaFin?.months) window._finalizedMonths = new Set(_metaFin.months);
+    cleaningJobs = rows.filter(r => !r.id?.startsWith('_meta_'));
     renderCalendar(); renderJobs(); updateJobStats();
   });
   startPoll('cleaning_staff', 'zesty_staff', 30000, (rows) => {
@@ -186,6 +194,10 @@ async function init() {
     }
   } catch(e) { /* keep localStorage cache */ }
   checkAutoImport();
+  // If redirected from dashboard CSV upload, go straight to import tab
+  if (new URLSearchParams(window.location.search).get('tab') === 'import') {
+    runAutoImport();
+  }
 }
 
 async function syncCleaningData() {
@@ -212,7 +224,12 @@ async function syncCleaningData() {
     // Only update if Supabase returned actual data (not just empty from failed request)
     if (!rs.fromCache && rs.data && rs.data.length > 0) { staff = rs.data; changed = true; }
     else if (!rs.fromCache && rs.data && rs.data.length === 0 && staff.length === 0) { staff = []; }
-    if (!rj.fromCache && rj.data) { cleaningJobs = rj.data; changed = true; }
+    if (!rj.fromCache && rj.data) {
+      const _metaFin = rj.data.find(r => r.id === '_meta_finalized');
+      if (_metaFin?.months) window._finalizedMonths = new Set(_metaFin.months);
+      cleaningJobs = rj.data.filter(r => !r.id?.startsWith('_meta_'));
+      changed = true;
+    }
     if (changed) {
       renderStaff(); renderCalendar(); renderJobs(); renderImportHistory();
       updateStaffDropdowns(); updateStaffStats(); updateJobStats();
@@ -559,6 +576,10 @@ function processCSV(file) {
   const reader = new FileReader();
   reader.onload = async e => {
     const text = e.target.result;
+    // Save to shared localStorage so all modules (check-in, reports) can use it
+    localStorage.setItem('zesty_raw_lodgify_csv', JSON.stringify({
+      text, filename: file.name, savedAt: new Date().toISOString()
+    }));
     const lines = text.split('\n').filter(l => l.trim());
     const headers = parseCSVLine(lines[0]);
     const rows = lines.slice(1).map(l => {
@@ -690,6 +711,34 @@ function renderHoursSheet() {
   }
   const [yr, mo] = monthVal.split('-');
   const monthName = new Date(yr, parseInt(mo)-1, 1).toLocaleDateString('en-GB',{month:'long',year:'numeric'});
+  const isLocked = window._finalizedMonths?.has(monthVal);
+
+  // Update lock banner
+  const banner = document.getElementById('hoursLockBanner');
+  if (banner) {
+    if (isLocked) {
+      banner.innerHTML = `<span style="font-size:18px">🔒</span> <strong>${monthName}</strong> is finalized and locked.
+        <button onclick="unfinalizeMonth()" style="margin-left:14px;padding:4px 14px;border-radius:8px;border:1px solid rgba(255,255,255,.5);background:rgba(255,255,255,.15);color:#fff;cursor:pointer;font-size:12px;font-weight:600">🔓 Unlock</button>`;
+      banner.style.display = 'flex';
+    } else {
+      banner.style.display = 'none';
+    }
+  }
+
+  // Update toolbar button states
+  const btnSave = document.getElementById('hoursBtnSave');
+  const btnAdd = document.getElementById('hoursBtnAdd');
+  const btnFinalize = document.getElementById('hoursBtnFinalize');
+  if (btnSave) btnSave.style.display = isLocked ? 'none' : '';
+  if (btnAdd) btnAdd.style.display = isLocked ? 'none' : '';
+  if (btnFinalize) {
+    btnFinalize.textContent = isLocked ? '🔓 Unlock Month' : '🔒 Finalize Month';
+    btnFinalize.onclick = isLocked ? unfinalizeMonth : finalizeMonth;
+    btnFinalize.style.background = isLocked ? '#fdf6e3' : '#eafaf1';
+    btnFinalize.style.color = isLocked ? '#8e6b23' : '#1a7a4a';
+    btnFinalize.style.borderColor = isLocked ? '#f0c040' : '#27ae60';
+  }
+
   const titleEl = document.getElementById('hoursTableTitle');
   if (titleEl) titleEl.textContent = 'Hours Sheet — ' + monthName;
 
@@ -773,16 +822,16 @@ function renderHoursSheet() {
         staffTotals[s.id].transport += transportPay;
       }
       // Checkbox shows staff's own transport cost; tooltip shows what gets charged to owner
-      const transportCheckbox = hasTransport
+      const transportCheckbox = (!isLocked && hasTransport)
         ? `<div style="font-size:10px;color:var(--teal);margin-top:2px;white-space:nowrap;text-align:center" title="Staff cost: €${staffTransportCost} | Owner charge: €${jobTransportFee}">
             <input type="checkbox" ${transportTicked?'checked':''} data-jobid="${j.id}" data-staffid="${s.id}" onchange="onTransportChange(this)" style="margin-right:2px;cursor:pointer">🚗${staffTransportCost>0?'€'+staffTransportCost:''}
            </div>`
-        : '';
+        : (isLocked && hasTransport && transportTicked ? `<div style="font-size:10px;color:var(--teal);margin-top:2px;text-align:center">🚗${staffTransportCost>0?'€'+staffTransportCost:''}</div>` : '');
       return `<td style="text-align:center;padding:4px">
         <input type="number" min="0" max="24" step="0.5" value="${hrs}"
           data-jobid="${j.id}" data-staffid="${s.id}"
-          onchange="onHoursChange(this)"
-          style="width:58px;padding:5px;border:1px solid var(--border);border-radius:6px;text-align:center;font-size:13px;background:${hrsNum>0?'#e0f5f1':'#fff'}">
+          ${isLocked ? 'disabled' : 'onchange="onHoursChange(this)"'}
+          style="width:58px;padding:5px;border:1px solid var(--border);border-radius:6px;text-align:center;font-size:13px;background:${hrsNum>0?'#e0f5f1':'#fff'};${isLocked?'opacity:.75;cursor:not-allowed':''}">
         ${transportCheckbox}
       </td>`;
     }).join('');
@@ -808,7 +857,8 @@ function renderHoursSheet() {
       <td style="text-align:right;font-size:12px;font-weight:600;color:${rowCharge>0&&rowCharge>=rowPay?'var(--teal-dark)':'var(--danger)'}">${rowCharge>0?fmtAmt(rowCharge):'—'}</td>
       <td style="font-size:11px;color:var(--text-muted)">${j.notes||''}</td>
       <td style="text-align:center;padding:4px">
-        <button onclick="editManualHoursJob('${j.id}')" title="Edit" style="background:none;border:none;cursor:pointer;font-size:14px;padding:2px 5px;border-radius:6px" onmouseenter="this.style.background='#f0f0f0'" onmouseleave="this.style.background='none'">✏️</button>
+        ${isLocked ? '<span style="font-size:14px;opacity:.4">🔒</span>' :
+          `<button onclick="editManualHoursJob('${j.id}')" title="Edit" style="background:none;border:none;cursor:pointer;font-size:14px;padding:2px 5px;border-radius:6px" onmouseenter="this.style.background='#f0f0f0'" onmouseleave="this.style.background='none'">✏️</button>`}
       </td>
     </tr>`;
   }).join('');
@@ -870,17 +920,86 @@ function onTransportChange(checkbox) {
 }
 
 async function saveHoursSheet() {
-  const msg = document.getElementById('hoursSavedMsg');
-  if (msg) msg.textContent = 'Saving…';
-  await SyncStore.saveAll('zesty_cleaning_jobs', 'cleaning_jobs', cleaningJobs);
-  if (msg) {
-    msg.textContent = '✓ Saved ' + new Date().toLocaleTimeString('en-GB');
-    setTimeout(()=>{ if(msg) msg.textContent=''; }, 3000);
+  const monthVal = document.getElementById('hoursMonth')?.value || '';
+  if (window._finalizedMonths?.has(monthVal)) {
+    showToast('🔒 Month is locked — unlock to edit', 'error'); return;
   }
-  showToast('✓ Hours saved', 'success');
+  const msg = document.getElementById('hoursSavedMsg');
+  if (msg) { msg.textContent = 'Saving…'; msg.style.color = 'var(--text-muted)'; }
+  // Save only jobs for the current month (fast individual upserts, each protected by _pendingInserts)
+  const jobsToSave = monthVal
+    ? cleaningJobs.filter(j => j.date && j.date.startsWith(monthVal))
+    : cleaningJobs;
+  if (!jobsToSave.length) { if (msg) msg.textContent = ''; return; }
+  // Write full array to localStorage once up-front
+  localStorage.setItem('zesty_cleaning_jobs', JSON.stringify(cleaningJobs));
+  // Fire all saves concurrently — each job is added to _pendingInserts so poll won't overwrite it
+  const results = await Promise.all(
+    jobsToSave.map(job => SyncStore.saveOne('zesty_cleaning_jobs', 'cleaning_jobs', job, cleaningJobs))
+  );
+  const allOk = results.every(r => r.ok);
+  if (msg) {
+    msg.textContent = allOk ? '✓ Saved ' + new Date().toLocaleTimeString('en-GB') : '⚠ Some saves failed';
+    msg.style.color = allOk ? '#27ae60' : '#e74c3c';
+    setTimeout(() => { if (msg) msg.textContent = ''; }, 4000);
+  }
+  if (allOk) showToast('✓ Hours saved', 'success');
+}
+
+// ── Finalize Month (lock/unlock) ──────────────────────────────────────────────
+async function saveFinalizedMonths() {
+  const months = [...window._finalizedMonths];
+  localStorage.setItem('zesty_finalized_months', JSON.stringify(months));
+  // Persist to Supabase as a meta record in cleaning_jobs table
+  await DB.upsertOne('cleaning_jobs', { id: '_meta_finalized', _isMeta: true, months });
+}
+
+async function finalizeMonth() {
+  const monthVal = document.getElementById('hoursMonth')?.value;
+  if (!monthVal) { showToast('Select a month first', 'error'); return; }
+  if (window._finalizedMonths?.has(monthVal)) { showToast('Month already locked', 'info'); return; }
+  const [yr, mo] = monthVal.split('-');
+  const monthName = new Date(yr, parseInt(mo)-1, 1).toLocaleDateString('en-GB', {month:'long', year:'numeric'});
+  showConfirm('🔒', 'Finalize ' + monthName + '?',
+    'All jobs for this month will be saved and locked from further editing. You can unlock later if needed.',
+    'btn-primary', 'Finalize & Lock', async () => {
+      const msg = document.getElementById('hoursSavedMsg');
+      if (msg) { msg.textContent = 'Saving & locking…'; msg.style.color = 'var(--text-muted)'; }
+      const jobsToSave = cleaningJobs.filter(j => j.date && j.date.startsWith(monthVal));
+      if (jobsToSave.length) {
+        localStorage.setItem('zesty_cleaning_jobs', JSON.stringify(cleaningJobs));
+        await Promise.all(jobsToSave.map(job =>
+          SyncStore.saveOne('zesty_cleaning_jobs', 'cleaning_jobs', job, cleaningJobs)
+        ));
+      }
+      window._finalizedMonths.add(monthVal);
+      await saveFinalizedMonths();
+      renderHoursSheet();
+      showToast('🔒 ' + monthName + ' is now locked', 'success');
+      if (msg) msg.textContent = '';
+    }
+  );
+}
+
+async function unfinalizeMonth() {
+  const monthVal = document.getElementById('hoursMonth')?.value;
+  if (!monthVal || !window._finalizedMonths?.has(monthVal)) return;
+  const [yr, mo] = monthVal.split('-');
+  const monthName = new Date(yr, parseInt(mo)-1, 1).toLocaleDateString('en-GB', {month:'long', year:'numeric'});
+  showConfirm('🔓', 'Unlock ' + monthName + '?',
+    'This will allow editing of hours for this month again.',
+    'btn-outline', 'Unlock', async () => {
+      window._finalizedMonths.delete(monthVal);
+      await saveFinalizedMonths();
+      renderHoursSheet();
+      showToast('🔓 ' + monthName + ' unlocked', 'success');
+    }
+  );
 }
 
 function addManualHoursJob() {
+  const _mv = document.getElementById('hoursMonth')?.value || '';
+  if (window._finalizedMonths?.has(_mv)) { showToast('🔒 Month is locked — unlock to add jobs', 'error'); return; }
   // Populate property dropdown
   const propSel = document.getElementById('mj-property');
   if (propSel) {
@@ -989,25 +1108,25 @@ async function confirmImport() {
   } catch(e) { /* use existing cache */ }
   
   const activeRows = importPreviewData.filter(r => r.Status === 'Booked');
-  // Cancelled bookings that have existing jobs \u2014 remove them
-  // All non-Booked statuses: Declined, Cancelled, Open enquiries - remove their jobs
-  const cancelledIds = new Set(
-    importPreviewData.filter(r => r.Status !== 'Booked')
-      .map(r => r.Id)
-  );
-  const jobsToDelete = cleaningJobs.filter(j => j.bookingId && cancelledIds.has(j.bookingId));
-  const existingBookingIds = new Set(cleaningJobs.map(j => j.bookingId));
+  // IDs of ALL currently-Booked bookings in this CSV
+  const bookedIds = new Set(activeRows.map(r => r.Id));
+  // Remove jobs for ANY booking not currently Booked:
+  //   - declined/cancelled (in CSV with non-Booked status)
+  //   - deleted from Lodgify entirely (not in CSV at all)
+  // Manual jobs (no bookingId) are never touched.
+  const jobsToDelete = cleaningJobs.filter(j => j.bookingId && !bookedIds.has(j.bookingId));
+  const existingBookingIds = new Set(cleaningJobs.filter(j => j.bookingId).map(j => j.bookingId));
   const newRows = activeRows.filter(r => !existingBookingIds.has(r.Id));
   const updateRows = activeRows.filter(r => existingBookingIds.has(r.Id));
-  const cancelMsg = jobsToDelete.length > 0 ? ` ${jobsToDelete.length} cancelled jobs will be removed.` : '';
+  const cleanMsg = jobsToDelete.length > 0 ? ` ${jobsToDelete.length} stale/cancelled jobs will be removed.` : '';
   showConfirm('\u{1F4E5}', 'Import Bookings?',
-    `${newRows.length} new bookings will get cleaning jobs. ${updateRows.length} existing will be updated.${cancelMsg}`,
+    `${newRows.length} new bookings \u00b7 ${updateRows.length} updates.${cleanMsg}`,
     'btn-primary', 'Import',
     async () => {
       let created = 0;
       let updated = 0;
       let deleted = 0;
-      // Delete jobs for cancelled bookings (memory + Supabase)
+      // Delete all stale jobs (cancelled, declined, or deleted from Lodgify)
       if (jobsToDelete.length > 0) {
         const delIds = new Set(jobsToDelete.map(j => j.id));
         cleaningJobs = cleaningJobs.filter(j => !delIds.has(j.id));
@@ -1019,48 +1138,50 @@ async function confirmImport() {
       // Process all active rows: create for new, update for existing
       const allRows = [...newRows, ...updateRows];
       allRows.forEach(r => {
-        const propName = r.HouseInternalName || r.HouseName;
+        // Use HouseInternalName if it has a real value, otherwise fall back to HouseName
+        const propName = (r.HouseInternalName && r.HouseInternalName.trim() && r.HouseInternalName !== 'N/A')
+          ? r.HouseInternalName : r.HouseName;
         const propId = r.House_Id;
-        // Item 3: ONLY import properties with cleaningFee > 0
+        // Only import properties that have a cleaning fee set
         if (!getPropertyHasCleaning(propId || propName)) return;
         const nights = parseInt(r.Nights) || 0;
         const checkoutDate = r.DateDeparture;
         const bookingId = r.Id;
         const cleanType = getPropertyCleanType(propId || propName);
         const zone = getPropertyZone(propId || propName);
-
-        // Checkout clean
-        const checkoutJobId = `job_${bookingId}_checkout`;
-        const existingCheckout = cleaningJobs.findIndex(j => j.id === checkoutJobId);
         const propTransport = getPropertyTransport(propId || propName);
-        const propHasCleaning = getPropertyHasCleaning(propId || propName);
-        if (!propHasCleaning) return; // Skip properties not managed for cleaning
+
+        // \u2500\u2500 Checkout clean \u2500\u2500
+        const checkoutJobId = `job_${bookingId}_checkout`;
+        const existingCheckoutIdx = cleaningJobs.findIndex(j => j.id === checkoutJobId);
         const checkoutJob = { id: checkoutJobId, bookingId, propertyName: propName, propertyId: propId, date: checkoutDate, type: 'checkout', nights, zone, cleanerIds: [], hours: null, propertyTransport: propTransport, notes: '', source: r.Source, guestName: r.Name, guests: parseInt(r.People||r.Guests||0)||null, adults: parseInt(r.Adults||0)||null, children: parseInt(r.Children||0)||null, infants: parseInt(r.Infants||0)||null };
-        if (existingCheckout >= 0) {
-          // Preserve manually assigned cleaners, hours, and notes \u2014 only update scheduling data
-          const existing = cleaningJobs[existingCheckout];
-          cleaningJobs[existingCheckout] = {
+        if (existingCheckoutIdx >= 0) {
+          // Manual edits are the master \u2014 preserve cleaners/hours/notes set by user
+          const existing = cleaningJobs[existingCheckoutIdx];
+          cleaningJobs[existingCheckoutIdx] = {
             ...existing,
-            ...checkoutJob,
+            ...checkoutJob, // update scheduling fields (date, nights, guest, etc.)
             cleanerIds: existing.cleanerIds?.length ? existing.cleanerIds : checkoutJob.cleanerIds,
             hours: existing.hours !== null ? existing.hours : checkoutJob.hours,
             notes: existing.notes || checkoutJob.notes,
           };
           updated++;
+        } else {
+          cleaningJobs.push(checkoutJob); created++;
         }
-        else { cleaningJobs.push(checkoutJob); created++; }
 
-        // Mid-stay cleans
+        // \u2500\u2500 Mid-stay cleans \u2500\u2500
         const midDays = getCleanDays(cleanType, nights);
         midDays.forEach((day, idx) => {
           const cleanDate = new Date(r.DateArrival);
           cleanDate.setDate(cleanDate.getDate() + day);
           const midJobId = `job_${bookingId}_mid_${idx}`;
-          const existing = cleaningJobs.findIndex(j => j.id === midJobId);
+          const existingIdx = cleaningJobs.findIndex(j => j.id === midJobId);
           const midJob = { id: midJobId, bookingId, propertyName: propName, propertyId: propId, date: cleanDate.toISOString().slice(0,10), type: 'midstay', nights, zone, cleanerIds: [], hours: null, propertyTransport: propTransport, notes: '', source: r.Source, guestName: r.Name, midStayDay: day, guests: parseInt(r.People||r.Guests||0)||null, adults: parseInt(r.Adults||0)||null, children: parseInt(r.Children||0)||null, infants: parseInt(r.Infants||0)||null };
-          if (existing >= 0) {
-            const existingMid = cleaningJobs[existing];
-            cleaningJobs[existing] = {
+          if (existingIdx >= 0) {
+            // Manual edits are the master
+            const existingMid = cleaningJobs[existingIdx];
+            cleaningJobs[existingIdx] = {
               ...existingMid,
               ...midJob,
               cleanerIds: existingMid.cleanerIds?.length ? existingMid.cleanerIds : midJob.cleanerIds,
@@ -1068,9 +1189,17 @@ async function confirmImport() {
               notes: existingMid.notes || midJob.notes,
             };
             updated++;
+          } else {
+            cleaningJobs.push(midJob); created++;
           }
-          else { cleaningJobs.push(midJob); created++; }
         });
+        // Remove stale mid-stay jobs for this booking if stay was shortened
+        // (e.g., was 14 nights \u2192 7 nights: old mid_1, mid_2 become orphans)
+        const validMidIds = new Set(midDays.map((_, i) => `job_${bookingId}_mid_${i}`));
+        const staleMids = cleaningJobs.filter(j =>
+          j.bookingId === bookingId && j.type === 'midstay' && !validMidIds.has(j.id)
+        );
+        staleMids.forEach(j => { cleaningJobs = cleaningJobs.filter(x => x.id !== j.id); deleted++; });
       });
 
       // Add to history
@@ -1450,7 +1579,8 @@ async function saveJob() {
   cleaningJobs[idx].hours = parseFloat(document.getElementById('j_hours').value) || null;
   cleaningJobs[idx].propertyTransport = parseFloat(document.getElementById('j_transport').value) || null;
   cleaningJobs[idx].notes = document.getElementById('j_notes').value.trim();
-  await save();
+  // Use saveOne (just this record) \u2014 avoids a slow bulk upsert that races with the 30s poll
+  await SyncStore.saveOne('zesty_cleaning_jobs', 'cleaning_jobs', cleaningJobs[idx], cleaningJobs);
   closeModal('jobModal');
   renderJobs();
   renderCalendar();
@@ -1878,7 +2008,8 @@ async function saveManualJobFromModal() {
     zone:              prop?.zone || '',
   };
   cleaningJobs.push(job);
-  await SyncStore.saveAll('zesty_cleaning_jobs', 'cleaning_jobs', cleaningJobs);
+  // Use saveOne (just this record) \u2014 avoids a slow bulk upsert that races with the 30s poll
+  await SyncStore.saveOne('zesty_cleaning_jobs', 'cleaning_jobs', job, cleaningJobs);
   closeModal('addManualJobModal');
   renderJobs();
   renderCalendar();
@@ -2010,33 +2141,6 @@ function showConfirm(icon, title, msg, btnClass, btnLabel, onConfirm) {
   openModal('confirmOverlay');
 }
 
-// ── Remove no-fee jobs ────────────────────────────────────────────────────
-async function removeNoFeeJobs() {
-  try {
-    const freshProps = await SyncStore.load('zesty_properties', 'properties');
-    if (freshProps.data && freshProps.data.length > 0) window._propCache = freshProps.data;
-  } catch(e) {}
-  const toRemove = cleaningJobs.filter(j => {
-    if (!j.propertyName && !j.propertyId) return false;
-    return !getPropertyHasCleaning(j.propertyId || j.propertyName);
-  });
-  if (!toRemove.length) { showToast('No jobs found for no-fee properties', 'success'); return; }
-  const propNames = [...new Set(toRemove.map(j => j.propertyName))].sort().join(', ');
-  showConfirm('🗑️', 'Remove No-Fee Property Jobs?',
-    'Remove ' + toRemove.length + ' jobs for: ' + propNames + '?',
-    'btn-danger', 'Remove All',
-    async () => {
-      const removeIds = new Set(toRemove.map(j => j.id));
-      cleaningJobs = cleaningJobs.filter(j => !removeIds.has(j.id));
-      for (const j of toRemove) {
-        await SyncStore.deleteOne('zesty_cleaning_jobs', 'cleaning_jobs', j.id, cleaningJobs);
-      }
-      localStorage.setItem('zesty_cleaning_jobs', JSON.stringify(cleaningJobs));
-      renderCalendar(); renderJobs(); updateJobStats();
-      showToast('✓ Removed ' + toRemove.length + ' jobs', 'success');
-    }
-  );
-}
 
 // ── Hours print & export ──────────────────────────────────────────────────
 function printHoursSheet() {

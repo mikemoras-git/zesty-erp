@@ -298,6 +298,10 @@ body {
       <div class="ql-icon">🗝️</div>
       <div><div class="ql-label">Check-in</div><div class="ql-count" id="ql-checkin">Schedule &amp; Jobs</div></div>
     </a>
+    <a href="proposals.html" class="ql">
+      <div class="ql-icon">◳</div>
+      <div><div class="ql-label">Proposals</div><div class="ql-count" id="ql-proposals">Owner Agreements</div></div>
+    </a>
     <a href="reports.html" class="ql">
       <div class="ql-icon">📊</div>
       <div><div class="ql-label">Reports</div><div class="ql-count">Owner Statements</div></div>
@@ -498,6 +502,15 @@ async function loadAll(){
   document.getElementById('ql-contacts').textContent='—';
   const openTickets=tickets.filter(t=>t.status!=='fixed').length;
   document.getElementById('ql-tickets').textContent=openTickets?openTickets+' open':'—';
+  // Proposals count from localStorage (lightweight — no extra fetch needed)
+  try {
+    const props2 = JSON.parse(localStorage.getItem('zesty_proposals')||'[]')||[];
+    const propEl = document.getElementById('ql-proposals');
+    if (propEl && props2.length) {
+      const active = props2.filter(p => p.status && p.status !== 'legal').length;
+      propEl.textContent = active ? active+' active' : props2.length+' total';
+    }
+  } catch(e) {}
 
   /* Activity strip */
   const acts=[];
@@ -612,9 +625,9 @@ function csvFileSelected(file) {
     localStorage.setItem('zesty_raw_lodgify_csv', JSON.stringify({
       text: e.target.result, filename: file.name, savedAt: new Date().toISOString()
     }));
-    const el = document.getElementById('csv-status');
-    if (el) el.innerHTML = `✓ <strong>${file.name}</strong> saved — go to <a href="cleaning-system.html" style="color:var(--gold-light)">Cleaning</a> and click ⚡ Import Now`;
     document.getElementById('csv-file-input').value = '';
+    // Redirect straight to Cleaning import tab — checkAutoImport() will pre-load the data
+    window.location.href = 'cleaning-system.html?tab=import';
   };
   reader.readAsText(file, 'utf-8');
 }

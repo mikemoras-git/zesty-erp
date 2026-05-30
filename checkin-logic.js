@@ -7,6 +7,62 @@ let ciAgents  = [];   // independent list — stored in checkin_agents table
 let ciImportPreviewData = [];
 let ciCurrentWeekStart  = null;
 
+// ─── CSV BOOKING VALIDATION ─────────────────────────────────────
+let _ciCsvCache = null;
+let _ciCsvCacheAt = 0;
+
+function ciGetCsvStatuses() {
+  try {
+    const raw = JSON.parse(localStorage.getItem('zesty_raw_lodgify_csv') || 'null');
+    if (!raw || !raw.text) return {};
+    const savedAt = new Date(raw.savedAt||0).getTime();
+    if (_ciCsvCache && _ciCsvCacheAt === savedAt) return _ciCsvCache;
+    const splitLine = s => {
+      const r=[]; let f='',q=false;
+      for(const c of s){if(c==='"'){q=!q;}else if(c===','&&!q){r.push(f.trim());f='';}else{f+=c;}}
+      r.push(f.trim()); return r;
+    };
+    const lines = raw.text.split('\n').filter(l => l.trim());
+    if (lines.length < 2) return {};
+    const headers = splitLine(lines[0]).map(h => h.replace(/^"|"$/g,'').trim());
+    const idIdx = headers.indexOf('Id');
+    const statusIdx = headers.indexOf('Status');
+    if (idIdx < 0 || statusIdx < 0) return {};
+    const cache = {};
+    lines.slice(1).forEach(line => {
+      const cols = splitLine(line);
+      const id = (cols[idIdx]||'').replace(/^"|"$/g,'').trim();
+      const status = (cols[statusIdx]||'').replace(/^"|"$/g,'').trim();
+      if (id) cache[id] = status;
+    });
+    _ciCsvCache = cache;
+    _ciCsvCacheAt = savedAt;
+    return cache;
+  } catch(e) { return {}; }
+}
+
+function ciIsValidBooking(job) {
+  // Jobs with no bookingId are manual entries — always show
+  if (!job.bookingId) return true;
+  const csv = ciGetCsvStatuses();
+  // If no CSV loaded, show everything (can't validate)
+  if (!Object.keys(csv).length) return true;
+  const status = csv[job.bookingId];
+  // Hide if not found in CSV or not Booked
+  if (status === undefined) return false;
+  return status === 'Booked';
+}
+
+function ciHasSameDayOtherType(job) {
+  return ciJobs.some(other =>
+    other.id !== job.id &&
+    other.date === job.date &&
+    (other.propertyId ? other.propertyId === job.propertyId : other.propertyName === job.propertyName) &&
+    ((job.type === 'checkin' && other.type === 'checkout') ||
+     (job.type === 'checkout' && other.type === 'checkin'))
+  );
+}
+
 // ─── HELPERS ────────────────────────────────────────────────────
 function ciOpenModal(id)  { const el=document.getElementById(id); if(el){el.style.opacity='1';el.style.pointerEvents='auto';} }
 function ciCloseModal(id) { const el=document.getElementById(id); if(el){el.style.opacity='0';el.style.pointerEvents='none';} }
@@ -206,7 +262,7 @@ function renderCICalendar() {
   grid.innerHTML = days.map(d => {
     const ds = ciDateStr(d);
     const isToday = ds === today;
-    const dayJobs = ciJobs.filter(j => j.date===ds)
+    const dayJobs = ciJobs.filter(j => j.date===ds && ciIsValidBooking(j))
       .sort((a,b) => (a.scheduledTime||'99:99') < (b.scheduledTime||'99:99') ? -1 : 1);
 
     return `<div class="ci-day-col ${isToday?'ci-today':''}">
@@ -228,7 +284,11 @@ function ciJobCard(j) {
   const infantFlag= (parseInt(j.infants)||0)>0;
   const statusDot = j.confirmed==='done'?'🟢':j.confirmed==='skipped'?'🔴':'🟡';
 
-  return `<div class="ci-card" onclick="editCIJob('${j.id}')">
+  // Same-day check-in + check-out border
+  const sameDayWarn = ciHasSameDayOtherType(j);
+  const cardBorder  = sameDayWarn ? 'border:2px solid #f39c12;' : '';
+
+  return `<div class="ci-card" onclick="editCIJob('${j.id}')" style="${cardBorder}">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
       <span style="font-size:10px;font-weight:700;padding:2px 6px;border-radius:6px;background:${typeBg};color:${typeColor}">${typeLabel}</span>
       <span style="font-size:11px">${statusDot} ${j.scheduledTime||'—'}</span>
@@ -239,10 +299,21 @@ function ciJobCard(j) {
     ${j.returningGuest?'<div style="font-size:11px;color:#c9a84c;margin-top:2px">⭐ Returning guest</div>':''}
     <div style="font-size:11px;color:#888;margin-top:3px">👷 ${getAgentName(j.agentId)}</div>
     ${j.moneyToReceive>0?`<div style="font-size:11px;color:#1a7a6e;font-weight:600;margin-top:3px">💶 Collect: ${eur(j.moneyToReceive)}</div>`:''}
-    ${!j.confirmed?`<div style="margin-top:6px;display:flex;gap:4px" onclick="event.stopPropagation()">
-      <button onclick="markCIDone('${j.id}',null)" style="flex:1;background:#d5f5e3;border:none;color:#1e8449;padding:3px 0;border-radius:4px;font-size:10px;cursor:pointer;font-weight:600">✅ Done</button>
-      <button onclick="markCISkipped('${j.id}')" style="background:#fdebd0;border:none;color:#a04000;padding:3px 8px;border-radius:4px;font-size:10px;cursor:pointer">⏭</button>
-    </div>`:j.confirmed==='done'?'<div style="margin-top:5px;font-size:10px;color:#1e8449;font-weight:600">✅ Done</div>':'<div style="margin-top:5px;font-size:10px;color:#a04000">⏭ Skipped</div>'}
+    ${!j.confirmed
+      ?`<div style="margin-top:6px;display:flex;gap:4px" onclick="event.stopPropagation()">
+          <button onclick="markCIDone('${j.id}',null)" style="flex:1;background:#d5f5e3;border:none;color:#1e8449;padding:3px 0;border-radius:4px;font-size:10px;cursor:pointer;font-weight:600">✅ Done</button>
+          <button onclick="markCISkipped('${j.id}')" style="background:#fdebd0;border:none;color:#a04000;padding:3px 8px;border-radius:4px;font-size:10px;cursor:pointer">⏭</button>
+        </div>`
+      :j.confirmed==='done'
+      ?`<div style="margin-top:5px;display:flex;align-items:center;gap:5px" onclick="event.stopPropagation()">
+          <span style="font-size:10px;color:#1e8449;font-weight:600">✅ Done</span>
+          <button onclick="unconfirmCIJob('${j.id}')" style="background:none;border:1px solid #ccc;cursor:pointer;font-size:10px;color:#888;padding:1px 5px;border-radius:3px;line-height:1.4" title="Undo">↩</button>
+        </div>`
+      :`<div style="margin-top:5px;display:flex;align-items:center;gap:5px" onclick="event.stopPropagation()">
+          <span style="font-size:10px;color:#a04000">⏭ Skipped</span>
+          <button onclick="unconfirmCIJob('${j.id}')" style="background:none;border:1px solid #ccc;cursor:pointer;font-size:10px;color:#888;padding:1px 5px;border-radius:3px;line-height:1.4" title="Undo">↩</button>
+        </div>`
+    }
   </div>`;
 }
 
@@ -512,6 +583,25 @@ async function deleteCIAgent(id) {
   );
 }
 
+function populateCIPropertyDropdown() {
+  const sel = document.getElementById('ciEditProp');
+  if (!sel) return;
+  const current = sel.value;
+  const props = _ciGetProps().filter(p => !p.archived);
+  // Prefer properties with check-in service enabled; fall back to all if none
+  const checkinProps = props.filter(p =>
+    p.checkin === 'Ναι' || p.checkin === 'Yes' || (parseFloat(p.checkinCharge)||0) > 0
+  );
+  const list = (checkinProps.length > 0 ? checkinProps : props)
+    .sort((a,b) => (a.shortName||a.propertyName||'').localeCompare(b.shortName||b.propertyName||''));
+  sel.innerHTML = '<option value="">— Select Property —</option>' +
+    list.map(p => {
+      const name = p.shortName || p.propertyName || '';
+      return `<option value="${name.replace(/"/g,'&quot;')}">${name}</option>`;
+    }).join('');
+  if (current) sel.value = current;
+}
+
 function populateCIAgentDropdowns() {
   const active = ciAgents.filter(a=>a.status!=='Inactive');
   const filterOpts = '<option value="">All Agents</option>' +
@@ -531,7 +621,6 @@ function editCIJob(id) {
   document.getElementById('ciEditDate').value         = j.date||'';
   document.getElementById('ciEditTime').value         = j.scheduledTime||'';
   document.getElementById('ciEditType').value         = j.type||'checkin';
-  document.getElementById('ciEditProp').value         = j.propertyName||'';
   document.getElementById('ciEditGuest').value        = j.guestName||'';
   document.getElementById('ciEditGuests').value       = j.guests||'';
   document.getElementById('ciEditAdults').value       = j.adults||'';
@@ -542,6 +631,8 @@ function editCIJob(id) {
   document.getElementById('ciEditMoney').value        = j.moneyToReceive||'';
   document.getElementById('ciEditRequests').value     = j.specialRequests||'';
   document.getElementById('ciEditNotes').value        = j.notes||'';
+  populateCIPropertyDropdown();
+  document.getElementById('ciEditProp').value         = j.propertyName||'';
   populateCIAgentDropdowns();
   const agentSel=document.getElementById('ciEditAgent'); if(agentSel) agentSel.value=j.agentId||'';
   ciOpenModal('ciEditModal');
@@ -563,6 +654,7 @@ function openAddCIJobManual() {
   document.getElementById('ciEditMoney').value= '';
   document.getElementById('ciEditRequests').value= '';
   document.getElementById('ciEditNotes').value= '';
+  populateCIPropertyDropdown();
   populateCIAgentDropdowns();
   const agentSel=document.getElementById('ciEditAgent'); if(agentSel) agentSel.value='';
   // Update modal title to "Add Job"
