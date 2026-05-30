@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>KRE — Properties</title>
+<link rel="stylesheet" href="kre-style.css">
+</head>
+<body>
+<div class="kre-page">
+
+  <div class="page-header">
+    <div class="page-title">
+      <h1>Properties</h1>
+      <p id="prop-count-sub">Loading…</p>
+    </div>
+    <div class="page-actions">
+      <button class="btn btn-ghost btn-sm" id="seedBtn" onclick="seedProperties()" title="Import all 255 properties from your original Excel file">⬇ Import Excel Data</button>
+      <button class="btn btn-primary" onclick="openAdd()" id="addPropBtn">+ Add Property</button>
+    </div>
+  </div>
+
+  <!-- FILTER BAR -->
+  <div class="filter-bar">
+    <input class="search-input" id="f-search" type="text" placeholder="Search by area, type, notes…" oninput="applyFilters()">
+    <select id="f-type" onchange="applyFilters()"><option value="">All Types</option></select>
+    <select id="f-area" onchange="applyFilters()"><option value="">All Areas</option></select>
+    <select id="f-avail" onchange="applyFilters()">
+      <option value="">All Availability</option>
+      <option value="true">For Sale</option>
+      <option value="false">Off Market</option>
+    </select>
+    <select id="f-seaview" onchange="applyFilters()">
+      <option value="">Any Sea View</option>
+      <option value="true">Sea View ✓</option>
+      <option value="false">No Sea View</option>
+    </select>
+    <select id="f-price" onchange="applyFilters()">
+      <option value="">Any Price</option>
+      <option value="0-100000">Under €100k</option>
+      <option value="100000-250000">€100k–250k</option>
+      <option value="250000-500000">€250k–500k</option>
+      <option value="500000-1000000">€500k–1M</option>
+      <option value="1000000-99999999">Over €1M</option>
+    </select>
+    <div class="view-toggle">
+      <button class="view-btn active" id="vGrid" onclick="setView('grid')" title="Grid view">⊞</button>
+      <button class="view-btn" id="vList" onclick="setView('list')" title="List view">≡</button>
+    </div>
+    <span class="filter-count" id="filter-count"></span>
+  </div>
+
+  <!-- GRID VIEW -->
+  <div id="gridView" class="prop-grid"></div>
+
+  <!-- LIST VIEW -->
+  <div id="listView" style="display:none" class="card" style="overflow:hidden">
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th><th>Type</th><th>Area</th>
+            <th>Office Price</th><th>Owner Price</th>
+            <th>Plot m²</th><th>House m²</th>
+            <th>Sea View</th><th>Status</th><th>Checklist</th><th></th>
+          </tr>
+        </thead>
+        <tbody id="listBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div id="emptyState" class="empty-state" style="display:none">
+    <div class="empty-icon">▣</div>
+    <div class="empty-title">No properties found</div>
+    <div class="empty-sub">Try changing your filters, or click "+ Add Property" to add your first listing. You can also use "Import Excel Data" to load all 255 properties.</div>
+  </div>
+
+</div><!-- end kre-page -->
+
+<!-- ── ADD / EDIT PROPERTY MODAL ───────────────────────────── -->
+<div class="modal-overlay" id="propModal">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <h2 id="propModalTitle">Add Property</h2>
+      <button class="modal-close" onclick="closeModal('propModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="p_id">
+
+      <div class="section-lbl">Basic Information</div>
+      <div class="form-row-3">
+        <div class="form-group">
+          <label>Property Type *</label>
+          <select id="p_type"></select>
+        </div>
+        <div class="form-group">
+          <label>Area / Location *</label>
+          <select id="p_area"></select>
+        </div>
+        <div class="form-group">
+          <label>Owner Name</label>
+          <input id="p_owner" type="text" placeholder="Owner's full name">
+        </div>
+      </div>
+
+      <div class="section-lbl">Dimensions</div>
+      <div class="form-row-4">
+        <div class="form-group">
+          <label>Plot Size (m²)</label>
+          <input id="p_plot" type="number" min="0">
+        </div>
+        <div class="form-group">
+          <label>House Size (m²)</label>
+          <input id="p_house" type="number" min="0">
+        </div>
+        <div class="form-group">
+          <label>Building Capacity (m²)</label>
+          <input id="p_bldcap" type="number" min="0">
+        </div>
+        <div class="form-group">
+          <label>Distance from Sea (m)</label>
+          <input id="p_seadist" type="number" min="0">
+        </div>
+      </div>
+
+      <div class="section-lbl">Pricing</div>
+      <div class="form-row-3">
+        <div class="form-group">
+          <label>Office Price (€) — Listed</label>
+          <div class="input-group"><span class="input-pfx">€</span><input id="p_officeprice" type="number" min="0"></div>
+        </div>
+        <div class="form-group">
+          <label>Owner Asking Price (€) — Private</label>
+          <div class="input-group"><span class="input-pfx">€</span><input id="p_ownerprice" type="number" min="0"></div>
+        </div>
+        <div class="form-group">
+          <label>Availability</label>
+          <select id="p_avail">
+            <option value="true">For Sale</option>
+            <option value="false">Off Market / Sold</option>
+            <option value="">Unknown</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="section-lbl">Features & Media</div>
+      <div class="form-row">
+        <div>
+          <div class="check-row"><input type="checkbox" id="p_seaview"><label for="p_seaview">Sea View</label></div>
+          <div class="check-row"><input type="checkbox" id="p_has_photos"><label for="p_has_photos">Has Photos</label></div>
+          <div class="check-row"><input type="checkbox" id="p_topo"><label for="p_topo">Has Topographic Plan</label></div>
+          <div class="check-row"><input type="checkbox" id="p_on_web"><label for="p_on_web">Listed on Website</label></div>
+        </div>
+        <div>
+          <div class="form-group">
+            <label>Google Maps / Coordinates URL</label>
+            <input id="p_coords" type="url" placeholder="https://maps.google.com/…">
+          </div>
+          <div class="form-group">
+            <label>OneDrive Photo Folder URL</label>
+            <input id="p_photos_url" type="url" placeholder="https://onedrive.live.com/…">
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Description (for emails / listing)</label>
+        <textarea id="p_desc" rows="3" placeholder="Property description for listings and client emails…"></textarea>
+      </div>
+      <div class="form-group">
+        <label>Internal Notes</label>
+        <textarea id="p_notes" rows="2" placeholder="Internal notes (not shown to clients)…"></textarea>
+      </div>
+
+      <div class="section-lbl">Document Checklist</div>
+      <div id="p_checklist_form" class="checklist"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('propModal')">Cancel</button>
+      <button class="btn btn-danger btn-sm" id="deletePropBtn" onclick="deleteCurrentProp()" style="margin-right:auto;display:none">Delete</button>
+      <button class="btn btn-primary" onclick="saveProp()">Save Property</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MATCH POPUP MODAL ────────────────────────────────────── -->
+<div class="modal-overlay" id="matchModal">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <h2>🎯 Buyer Matches Found</h2>
+      <button class="modal-close" onclick="closeModal('matchModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px">
+        These buyers match the new property you just added. Consider reaching out to them.
+      </p>
+      <div id="matchList"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('matchModal')">Close</button>
+      <a href="kre-matches.html" class="btn btn-primary">View All Matches →</a>
+    </div>
+  </div>
+</div>
+
+<script src="kre-base.js"></script>
+<script src="kre-nav.js"></script>
+<script src="seed-properties.js"></script>
+<script>
+let allProps   = [];
+let allBuyers  = [];
+let settings   = {};
+let viewMode   = 'grid';
+let editingId  = null;
+let checkItems = [];
+
+async function init() {
+  settings  = await SETTINGS.load();
+  checkItems = settings.checklist_items || [];
+  populateFilters();
+  await loadData();
+  if (!AUTH.canEdit()) {
+    document.getElementById('addPropBtn').style.display = 'none';
+    document.getElementById('seedBtn').style.display    = 'none';
+  }
+}
+
+async function loadData() {
+  const [pr, cr] = await Promise.all([DB.loadAll('kre_properties'), DB.loadAll('kre_contacts')]);
+  allProps  = (pr.rows  || []).sort((a,b) => (a.property_num||9999) - (b.property_num||9999));
+  allBuyers = (cr.rows  || []).filter(c => c.role === 'buyer' || c.role === 'both');
+  applyFilters();
+  document.getElementById('prop-count-sub').textContent =
+    `${allProps.length} properties total`;
+}
+
+function populateFilters() {
+  const types = settings.property_types || KRE_DEFAULTS.property_types;
+  const areas = settings.locations || KRE_DEFAULTS.locations;
+
+  const tSel = document.getElementById('f-type');
+  types.forEach(t => { const o=document.createElement('option'); o.value=t; o.textContent=t; tSel.appendChild(o); });
+
+  const aSel = document.getElementById('f-area');
+  areas.forEach(a => { const o=document.createElement('option'); o.value=a; o.textContent=a; aSel.appendChild(o); });
+
+  // Also populate modal selects
+  const pType = document.getElementById('p_type');
+  types.forEach(t => { const o=document.createElement('option'); o.value=t; o.textContent=t; pType.appendChild(o); });
+
+  const pArea = document.getElementById('p_area');
+  pArea.innerHTML = '<option value="">Select area…</option>';
+  areas.forEach(a => { const o=document.createElement('option'); o.value=a; o.textContent=a; pArea.appendChild(o); });
+}
+
+function applyFilters() {
+  const search = document.getElementById('f-search').value.toLowerCase();
+  const type   = document.getElementById('f-type').value;
+  const area   = document.getElementById('f-area').value;
+  const avail  = document.getElementById('f-avail').value;
+  const sv     = document.getElementById('f-seaview').value;
+  const price  = document.getElementById('f-price').value;
+
+  let filtered = allProps.filter(p => {
+    if (type && p.type !== type) return false;
+    if (area && p.area !== area) return false;
+    if (avail !== '') {
+      const pAvail = p.available === true ? 'true' : p.available === false ? 'false' : '';
+      if (pAvail !== avail) return false;
+    }
+    if (sv !== '') {
+      const pSv = p.sea_view ? 'true' : 'false';
+      if (pSv !== sv) return false;
+    }
+    if (price) {
+      const [mn, mx] = price.split('-').map(Number);
+      const op = parseFloat(p.office_price) || 0;
+      if (op < mn || op > mx) return false;
+    }
+    if (search) {
+      const hay = [p.type, p.area, p.notes, p.description, p.owner_name].join(' ').toLowerCase();
+      if (!hay.includes(search)) return false;
+    }
+    return true;
+  });
+
+  document.getElementById('filter-count').textContent = `${filtered.length} of ${allProps.length} shown`;
+  renderGrid(filtered);
+  renderList(filtered);
+
+  const isEmpty = filtered.length === 0;
+  document.getElementById('emptyState').style.display  = isEmpty ? '' : 'none';
+  document.getElementById('gridView').style.display    = (isEmpty || viewMode !== 'grid') ? 'none' : '';
+  document.getElementById('listView').style.display    = (isEmpty || viewMode !== 'list') ? 'none' : '';
+}
+
+function setView(v) {
+  viewMode = v;
+  document.getElementById('vGrid').classList.toggle('active', v === 'grid');
+  document.getElementById('vList').classList.toggle('active', v === 'list');
+  applyFilters();
+}
+
+function checklistPct(prop) {
+  if (!checkItems.length) return 0;
+  const done = checkItems.filter(item => (prop.checklist || {})[slugify(item)]).length;
+  return Math.round((done / checkItems.length) * 100);
+}
+function slugify(s) { return s.toLowerCase().replace(/\s+/g,'_').replace(/[^a-z0-9_]/g,''); }
+
+function renderGrid(props) {
+  const grid = document.getElementById('gridView');
+  if (!props.length) { grid.innerHTML = ''; return; }
+
+  const canEdit = AUTH.canEdit();
+  const isCollab = AUTH.isCollaborator();
+
+  grid.innerHTML = props.map(p => {
+    const pct   = checklistPct(p);
+    const price = p.office_price ? fmtEur(p.office_price) : '—';
+    const ownerP= (p.owner_price && !isCollab) ? `<span class="prop-card-price-owner">${fmtEur(p.owner_price)}</span>` : '';
+    const title = `${p.type || 'Property'} #${p.property_num || ''}`;
+
+    const img = p.photos_url
+      ? `<a href="${esc(p.photos_url)}" target="_blank" style="display:block;height:100%;width:100%">
+           <div class="prop-card-img-placeholder" title="Click to open photos">📷</div>
+         </a>`
+      : `<div class="prop-card-img-placeholder">▣</div>`;
+
+    return `<div class="prop-card" onclick="openView('${p.id}')">
+      <div class="prop-card-img">
+        ${img}
+        <div class="prop-card-badges">
+          <span class="${typeBadge(p.type).replace(/<[^>]+>/g,'').trim()}">${esc(p.type||'')}</span>
+        </div>
+        <div class="prop-card-avail">${availBadge(p.available)}</div>
+      </div>
+      <div class="prop-card-body">
+        <div class="prop-card-area">${esc(p.area || '—')}</div>
+        <div class="prop-card-title">${esc(title)}</div>
+        <div class="prop-card-prices">
+          <span class="prop-card-price-office">${price}</span>${ownerP}
+        </div>
+        <div class="prop-card-stats">
+          ${p.plot    ? `<div class="prop-stat"><span class="prop-stat-label">Plot</span><span class="prop-stat-value">${fmtNum(p.plot,'m²')}</span></div>` : ''}
+          ${p.house   ? `<div class="prop-stat"><span class="prop-stat-label">House</span><span class="prop-stat-value">${fmtNum(p.house,'m²')}</span></div>` : ''}
+          ${p.bld_cap ? `<div class="prop-stat"><span class="prop-stat-label">Bld Cap</span><span class="prop-stat-value">${fmtNum(p.bld_cap,'m²')}</span></div>` : ''}
+          ${p.sea_distance_m ? `<div class="prop-stat"><span class="prop-stat-label">Sea</span><span class="prop-stat-value">${fmtNum(p.sea_distance_m,'m')}</span></div>` : ''}
+          ${p.sea_view ? `<div class="prop-stat"><span class="prop-stat-label">Sea View</span><span class="prop-stat-value" style="color:var(--kre-teal)">✓</span></div>` : ''}
+        </div>
+      </div>
+      <div class="prop-card-footer">
+        <div class="prop-checklist-bar"><div class="prop-checklist-fill" style="width:${pct}%"></div></div>
+        <span class="prop-checklist-pct">${pct}%</span>
+        ${canEdit ? `<button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openEdit('${p.id}')">Edit</button>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderList(props) {
+  const body = document.getElementById('listBody');
+  if (!props.length) { body.innerHTML = ''; return; }
+  const isCollab = AUTH.isCollaborator();
+  const canEdit  = AUTH.canEdit();
+  body.innerHTML = props.map(p => {
+    const pct = checklistPct(p);
+    return `<tr onclick="openView('${p.id}')" style="cursor:pointer">
+      <td><span class="badge badge-gray">#${p.property_num||'—'}</span></td>
+      <td>${typeBadge(p.type)}</td>
+      <td><strong>${esc(p.area||'—')}</strong></td>
+      <td><strong>${p.office_price ? fmtEur(p.office_price) : '—'}</strong></td>
+      <td>${(!isCollab && p.owner_price) ? fmtEur(p.owner_price) : isCollab ? '—' : '—'}</td>
+      <td>${p.plot  ? fmtNum(p.plot,'m²') : '—'}</td>
+      <td>${p.house ? fmtNum(p.house,'m²') : '—'}</td>
+      <td>${p.sea_view ? '<span class="badge badge-teal">✓ View</span>' : '<span style="color:var(--text-light)">—</span>'}</td>
+      <td>${availBadge(p.available)}</td>
+      <td>
+        <div style="display:flex;align-items:center;gap:6px">
+          <div class="prop-checklist-bar" style="width:60px"><div class="prop-checklist-fill" style="width:${pct}%"></div></div>
+          <span style="font-size:11px;color:var(--text-muted)">${pct}%</span>
+        </div>
+      </td>
+      <td class="td-actions" onclick="event.stopPropagation()">
+        ${p.coords ? `<a class="btn btn-ghost btn-sm" href="${esc(p.coords)}" target="_blank">📍</a>` : ''}
+        <a class="btn btn-ghost btn-sm" href="kre-property-public.html?id=${p.id}" target="_blank" title="Public link">🔗</a>
+        ${canEdit ? `<button class="btn btn-ghost btn-sm" onclick="openEdit('${p.id}')">Edit</button>` : ''}
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function openView(id) {
+  window.location.href = `kre-property-view.html?id=${id}`;
+}
+
+/* ── ADD / EDIT ─────────────────────────────────────────────── */
+function openAdd() {
+  editingId = null;
+  document.getElementById('propModalTitle').textContent = 'Add Property';
+  document.getElementById('deletePropBtn').style.display = 'none';
+  clearForm();
+  buildChecklistForm(null);
+  openModal('propModal');
+}
+
+function openEdit(id) {
+  const p = allProps.find(x => x.id === id);
+  if (!p) return;
+  editingId = id;
+  document.getElementById('propModalTitle').textContent = 'Edit Property';
+  document.getElementById('deletePropBtn').style.display = '';
+  fillForm(p);
+  buildChecklistForm(p);
+  openModal('propModal');
+}
+
+function clearForm() {
+  ['p_id','p_owner','p_plot','p_house','p_bldcap','p_seadist',
+   'p_officeprice','p_ownerprice','p_coords','p_photos_url','p_desc','p_notes'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  ['p_seaview','p_has_photos','p_topo','p_on_web'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.checked = false;
+  });
+  document.getElementById('p_avail').value = 'true';
+}
+
+function fillForm(p) {
+  document.getElementById('p_id').value         = p.id;
+  document.getElementById('p_type').value        = p.type || '';
+  document.getElementById('p_area').value        = p.area || '';
+  document.getElementById('p_owner').value       = p.owner_name || '';
+  document.getElementById('p_plot').value        = p.plot || '';
+  document.getElementById('p_house').value       = p.house || '';
+  document.getElementById('p_bldcap').value      = p.bld_cap || '';
+  document.getElementById('p_seadist').value     = p.sea_distance_m || '';
+  document.getElementById('p_officeprice').value = p.office_price || '';
+  document.getElementById('p_ownerprice').value  = p.owner_price || '';
+  document.getElementById('p_avail').value       = p.available === true ? 'true' : p.available === false ? 'false' : '';
+  document.getElementById('p_seaview').checked   = !!p.sea_view;
+  document.getElementById('p_has_photos').checked= !!p.has_photos;
+  document.getElementById('p_topo').checked      = !!p.has_topographic;
+  document.getElementById('p_on_web').checked    = !!p.on_website;
+  document.getElementById('p_coords').value      = p.coords || '';
+  document.getElementById('p_photos_url').value  = p.photos_url || '';
+  document.getElementById('p_desc').value        = p.description || '';
+  document.getElementById('p_notes').value       = p.notes || '';
+}
+
+function buildChecklistForm(prop) {
+  const container = document.getElementById('p_checklist_form');
+  const checklist = (prop && prop.checklist) || {};
+  container.innerHTML = checkItems.map(item => {
+    const key = slugify(item);
+    const done = !!checklist[key];
+    return `<div class="checklist-item${done?' done':''}">
+      <input type="checkbox" id="chk_${key}" ${done?'checked':''}
+        onchange="this.closest('.checklist-item').classList.toggle('done',this.checked)">
+      <span>${esc(item)}</span>
+    </div>`;
+  }).join('');
+}
+
+function getChecklistValues() {
+  const result = {};
+  checkItems.forEach(item => {
+    const key = slugify(item);
+    const el  = document.getElementById('chk_' + key);
+    if (el) result[key] = el.checked;
+  });
+  return result;
+}
+
+async function saveProp() {
+  const type = document.getElementById('p_type').value;
+  const area = document.getElementById('p_area').value;
+  if (!type) { toast('Property type is required','error'); return; }
+  if (!area) { toast('Area is required','error'); return; }
+
+  const availVal = document.getElementById('p_avail').value;
+
+  const prop = {
+    id:          editingId || undefined,
+    property_num: editingId ? (allProps.find(p=>p.id===editingId)?.property_num) : (Math.max(0,...allProps.map(p=>p.property_num||0))+1),
+    type,
+    area,
+    owner_name:      document.getElementById('p_owner').value.trim() || null,
+    plot:            parseFloat(document.getElementById('p_plot').value)        || null,
+    house:           parseFloat(document.getElementById('p_house').value)       || null,
+    bld_cap:         parseFloat(document.getElementById('p_bldcap').value)      || null,
+    sea_distance_m:  parseFloat(document.getElementById('p_seadist').value)     || null,
+    office_price:    parseFloat(document.getElementById('p_officeprice').value) || null,
+    owner_price:     parseFloat(document.getElementById('p_ownerprice').value)  || null,
+    available:       availVal === 'true' ? true : availVal === 'false' ? false : null,
+    sea_view:        document.getElementById('p_seaview').checked,
+    has_photos:      document.getElementById('p_has_photos').checked,
+    has_topographic: document.getElementById('p_topo').checked,
+    on_website:      document.getElementById('p_on_web').checked,
+    coords:          document.getElementById('p_coords').value.trim()      || null,
+    photos_url:      document.getElementById('p_photos_url').value.trim()  || null,
+    description:     document.getElementById('p_desc').value.trim()        || null,
+    notes:           document.getElementById('p_notes').value.trim()        || null,
+    checklist:       getChecklistValues()
+  };
+
+  syncStart();
+  const r = await DB.upsertOne('kre_properties', prop);
+  syncDone(r.ok);
+
+  if (!r.ok) { toast('Error saving: ' + r.err,'error'); return; }
+
+  toast(editingId ? 'Property updated' : 'Property added','success');
+  closeModal('propModal');
+  await loadData();
+
+  // Run matching for new properties
+  if (!editingId && allBuyers.length) {
+    const savedProp = allProps.find(p => p.id === r.id) || { ...prop, id: r.id };
+    const matches   = MATCHER.findMatches(savedProp, allBuyers);
+    if (matches.length) {
+      await logMatches(r.id, matches);
+      showMatchPopup(savedProp, matches);
+    }
+  }
+}
+
+async function logMatches(propId, matches) {
+  for (const m of matches) {
+    await DB.upsertOne('kre_matches', {
+      property_id: propId,
+      buyer_id:    m.buyer.id,
+      buyer_name:  m.buyer.name,
+      score:       m.score,
+      status:      'pending',
+      matched_at:  new Date().toISOString()
+    });
+  }
+}
+
+function showMatchPopup(prop, matches) {
+  document.getElementById('matchList').innerHTML = matches.map(m => {
+    const b = m.buyer;
+    const prefs = [b.pref1,b.pref2,b.pref3,b.pref4].filter(Boolean).join(', ');
+    const budg  = (b.budget_min || b.budget_max)
+      ? `${b.budget_min ? fmtEur(b.budget_min) : '—'} – ${b.budget_max ? fmtEur(b.budget_max) : '—'}`
+      : '—';
+    return `<div class="card" style="margin-bottom:12px;padding:14px 18px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+        <div>
+          <strong style="font-size:14px">${esc(b.name)}</strong>
+          <span style="font-size:11px;color:var(--text-muted);margin-left:10px">${esc(b.email||b.phone||'')}</span>
+        </div>
+        <span class="badge badge-${m.score>=80?'green':m.score>=60?'teal':'orange'}" style="font-size:13px">${m.score}% match</span>
+      </div>
+      <div style="font-size:12px;color:var(--text-muted);display:flex;gap:16px;flex-wrap:wrap">
+        <span>Preferences: <strong>${esc(prefs)||'—'}</strong></span>
+        <span>Budget: <strong>${budg}</strong></span>
+        ${b.area_pref ? `<span>Area: <strong>${esc(b.area_pref)}</strong></span>` : ''}
+        ${b.needs_sea_view ? '<span style="color:var(--kre-teal)">🌊 Needs sea view</span>' : ''}
+      </div>
+    </div>`;
+  }).join('');
+  openModal('matchModal');
+}
+
+async function deleteCurrentProp() {
+  if (!editingId) return;
+  const p = allProps.find(x => x.id === editingId);
+  if (!confirm(`Delete property "${p?.type||''} in ${p?.area||''}"? This cannot be undone.`)) return;
+  const r = await DB.deleteOne('kre_properties', editingId);
+  if (r.ok) { toast('Property deleted'); closeModal('propModal'); await loadData(); }
+  else toast('Error: ' + r.err, 'error');
+}
+
+/* ── SEED FROM EXCEL ─────────────────────────────────────────── */
+async function seedProperties() {
+  if (typeof SEED_PROPERTIES === 'undefined') { toast('Seed data not loaded','error'); return; }
+  if (!confirm(`Import ${SEED_PROPERTIES.length} properties from your Excel file? Existing properties with matching numbers will be updated.`)) return;
+
+  document.getElementById('seedBtn').disabled = true;
+  document.getElementById('seedBtn').textContent = '⏳ Importing…';
+
+  const existing = allProps.map(p => p.property_num);
+  const toImport = SEED_PROPERTIES.map(s => ({
+    id:           `prop_${String(s.pn).padStart(4,'0')}`,
+    property_num: s.pn,
+    type:         s.type,
+    area:         s.area,
+    owner_name:   s.owner,
+    plot:         s.plot,
+    house:        s.house,
+    sea_distance_m: s.sea_m,
+    sea_view:     s.sea_view,
+    bld_cap:      s.bld_cap,
+    owner_price:  s.owner_price,
+    office_price: s.office_price,
+    has_photos:   s.photos,
+    coords:       s.coords,
+    notes:        s.notes,
+    has_topographic: s.topo,
+    on_website:   s.on_web,
+    available:    s.available,
+    description:  s.desc,
+    checklist:    {}
+  }));
+
+  const r = await DB.batchUpsert('kre_properties', toImport);
+  document.getElementById('seedBtn').disabled = false;
+  document.getElementById('seedBtn').textContent = '⬇ Import Excel Data';
+
+  if (r.ok) { toast(`Imported ${toImport.length} properties`,'success'); await loadData(); }
+  else toast('Import error: ' + r.err,'error');
+}
+
+init();
+</script>
+</body>
+</html>

@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Property — Kissamos Real Estate</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=DM+Sans:wght@400;500;600&family=DM+Mono&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+:root {
+  --kre-deep:  #0b1f30;
+  --kre-teal:  #1c8a8c;
+  --kre-gold:  #c9a84c;
+  --text:      #1a2633;
+  --text-muted:#6b7f8e;
+  --border:    #e2e8ed;
+  --surface:   #f7f9fb;
+}
+body { font-family:'DM Sans',sans-serif; background:var(--surface); color:var(--text); min-height:100vh; }
+
+/* HEADER */
+.pub-header { background:var(--kre-deep); color:#fff; padding:18px 32px; display:flex; align-items:center; justify-content:space-between; }
+.pub-header .brand { font-family:'Cormorant Garamond',serif; font-size:22px; font-weight:500; letter-spacing:.02em; }
+.pub-header .brand span { color:var(--kre-gold); }
+.pub-header .contact-pill { font-size:13px; color:rgba(255,255,255,.7); }
+.pub-header .contact-pill a { color:var(--kre-gold); text-decoration:none; }
+
+/* HERO */
+.pub-hero { background:var(--kre-deep); color:#fff; padding:48px 32px 40px; text-align:center; position:relative; }
+.pub-hero::after { content:''; position:absolute; bottom:0; left:0; right:0; height:60px; background:var(--surface); border-radius:60px 60px 0 0; }
+.pub-hero h1 { font-family:'Cormorant Garamond',serif; font-size:36px; font-weight:500; margin-bottom:8px; }
+.pub-hero .sub { font-size:15px; color:rgba(255,255,255,.6); margin-bottom:28px; }
+.pub-price { display:inline-block; background:var(--kre-teal); color:#fff; border-radius:10px; padding:14px 32px; font-family:'DM Mono',monospace; font-size:28px; font-weight:700; letter-spacing:.02em; }
+.pub-price .lbl { font-family:'DM Sans',sans-serif; font-size:11px; font-weight:500; text-transform:uppercase; letter-spacing:.1em; opacity:.8; display:block; margin-bottom:4px; }
+
+/* CONTENT */
+.pub-content { max-width:860px; margin:0 auto; padding:32px 24px 60px; }
+
+/* SPEC GRID */
+.spec-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); gap:1px; background:var(--border); border:1px solid var(--border); border-radius:12px; overflow:hidden; margin-bottom:32px; }
+.spec-cell { background:#fff; padding:18px 20px; }
+.spec-cell .lbl { font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--text-muted); font-weight:500; margin-bottom:6px; }
+.spec-cell .val { font-size:18px; font-weight:700; color:var(--kre-deep); font-family:'DM Mono',monospace; }
+
+/* SECTION */
+.pub-section { margin-bottom:32px; }
+.pub-section h2 { font-family:'Cormorant Garamond',serif; font-size:22px; font-weight:500; color:var(--kre-deep); margin-bottom:14px; padding-bottom:10px; border-bottom:2px solid var(--kre-gold); display:inline-block; }
+
+/* HIGHLIGHTS */
+.highlights { display:flex; flex-wrap:wrap; gap:10px; }
+.highlight-tag { background:#fff; border:1px solid var(--border); border-radius:8px; padding:8px 14px; font-size:13px; color:var(--text); display:flex; align-items:center; gap:6px; }
+.highlight-tag .icon { font-size:16px; }
+
+/* DESCRIPTION */
+.pub-desc { font-size:15px; line-height:1.8; color:var(--text); white-space:pre-wrap; background:#fff; border-radius:12px; padding:22px 24px; border:1px solid var(--border); }
+
+/* MAP BUTTON */
+.map-btn { display:flex; align-items:center; gap:12px; background:#fff; border:1px solid var(--border); border-radius:12px; padding:18px 22px; text-decoration:none; color:var(--text); transition:border-color .15s; }
+.map-btn:hover { border-color:var(--kre-teal); }
+.map-btn .icon { font-size:28px; }
+.map-btn .info .title { font-weight:600; font-size:15px; }
+.map-btn .info .sub   { font-size:13px; color:var(--text-muted); margin-top:2px; }
+.map-btn .arrow { margin-left:auto; font-size:20px; color:var(--text-muted); }
+
+/* CTA */
+.pub-cta { background:var(--kre-deep); color:#fff; border-radius:16px; padding:36px 32px; text-align:center; }
+.pub-cta h2 { font-family:'Cormorant Garamond',serif; font-size:28px; font-weight:500; margin-bottom:8px; }
+.pub-cta p { font-size:14px; color:rgba(255,255,255,.65); margin-bottom:24px; }
+.pub-cta .cta-actions { display:flex; justify-content:center; gap:14px; flex-wrap:wrap; }
+.btn-cta { display:inline-block; padding:13px 28px; border-radius:8px; font-size:14px; font-weight:600; text-decoration:none; transition:opacity .15s; }
+.btn-cta:hover { opacity:.88; }
+.btn-cta-primary { background:var(--kre-teal); color:#fff; }
+.btn-cta-gold    { background:var(--kre-gold);  color:var(--kre-deep); }
+
+/* FOOTER */
+.pub-footer { text-align:center; padding:24px; font-size:12px; color:var(--text-muted); background:var(--kre-deep); color:rgba(255,255,255,.4); }
+
+/* LOADING / ERROR */
+.pub-loading { display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:60vh; gap:16px; color:var(--text-muted); font-size:15px; }
+.spinner { width:32px; height:32px; border:3px solid var(--border); border-top-color:var(--kre-teal); border-radius:50%; animation:spin .8s linear infinite; }
+@keyframes spin { to { transform:rotate(360deg); } }
+
+@media(max-width:600px) {
+  .pub-hero h1 { font-size:26px; }
+  .pub-price    { font-size:22px; }
+  .pub-header   { padding:14px 18px; }
+  .pub-content  { padding:24px 16px 48px; }
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="pub-header">
+  <div class="brand">Kissamos <span>Real Estate</span></div>
+  <div class="contact-pill" id="pub-contact-pill"></div>
+</div>
+
+<!-- HERO -->
+<div class="pub-hero" id="pub-hero">
+  <div class="pub-loading" id="pub-loading">
+    <div class="spinner"></div>
+    <div>Loading property…</div>
+  </div>
+  <div id="hero-content" style="display:none;position:relative;z-index:1">
+    <h1 id="h-title"></h1>
+    <p class="sub" id="h-sub"></p>
+    <div class="pub-price">
+      <span class="lbl">Asking Price</span>
+      <span id="h-price"></span>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="pub-content" id="pub-main" style="display:none">
+
+  <!-- SPECS -->
+  <div class="pub-section">
+    <div class="spec-grid" id="spec-grid"></div>
+  </div>
+
+  <!-- HIGHLIGHTS -->
+  <div class="pub-section" id="highlights-section">
+    <h2>Highlights</h2>
+    <div class="highlights" id="highlights"></div>
+  </div>
+
+  <!-- DESCRIPTION -->
+  <div class="pub-section" id="desc-section" style="display:none">
+    <h2>About This Property</h2>
+    <div class="pub-desc" id="pub-desc"></div>
+  </div>
+
+  <!-- LOCATION -->
+  <div class="pub-section" id="location-section" style="display:none">
+    <h2>Location</h2>
+    <a class="map-btn" id="map-link" href="#" target="_blank">
+      <span class="icon">📍</span>
+      <span class="info">
+        <span class="title" id="map-area"></span>
+        <span class="sub">Click to open in Google Maps</span>
+      </span>
+      <span class="arrow">→</span>
+    </a>
+  </div>
+
+  <!-- PHOTOS LINK -->
+  <div class="pub-section" id="photos-section" style="display:none">
+    <h2>Photos</h2>
+    <a class="map-btn" id="photos-link" href="#" target="_blank">
+      <span class="icon">📸</span>
+      <span class="info">
+        <span class="title">View Photo Gallery</span>
+        <span class="sub">Opens in OneDrive / external folder</span>
+      </span>
+      <span class="arrow">→</span>
+    </a>
+  </div>
+
+  <!-- CTA -->
+  <div class="pub-cta" id="pub-cta">
+    <h2>Interested in This Property?</h2>
+    <p>Contact us to arrange a viewing or get more information.</p>
+    <div class="cta-actions" id="cta-actions">
+      <a class="btn-cta btn-cta-primary" id="cta-phone" href="#">📞 Call Us</a>
+      <a class="btn-cta btn-cta-gold"    id="cta-email" href="#">✉ Send Email</a>
+    </div>
+  </div>
+
+</div>
+
+<!-- ERROR STATE -->
+<div class="pub-content" id="pub-error" style="display:none">
+  <div class="pub-loading">
+    <div style="font-size:48px">🏠</div>
+    <div style="font-size:18px;color:var(--text)">Property not found</div>
+    <div>This link may have expired or the property may have been removed.</div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<div class="pub-footer">
+  © Kissamos Real Estate — Crete, Greece · This page is for informational purposes only. All prices are indicative and subject to change.
+</div>
+
+<script>
+const SUPABASE_URL = 'https://whuytfjwdjjepayeiohj.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndodXl0Zmp3ZGpqZXBheWVpb2hqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDgyOTAzODgsImV4cCI6MjA2Mzg2NjM4OH0.IHjWL80PCJcPgFJb7iGkpQlJFHN_GFoVj4J4UCnHiJ8';
+
+async function apiFetch(table, filter) {
+  let url = `${SUPABASE_URL}/rest/v1/${table}?select=*`;
+  if (filter) url += '&' + filter;
+  const r = await fetch(url, {
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': 'Bearer ' + SUPABASE_KEY
+    }
+  });
+  if (!r.ok) return [];
+  const rows = await r.json();
+  return rows.map(row => ({ id: row.id, ...(row.data||{}), created_at: row.created_at }));
+}
+
+function fmtEur(n) {
+  return '€' + Number(n).toLocaleString('de-DE', { minimumFractionDigits:0, maximumFractionDigits:0 });
+}
+function esc(s) {
+  const d = document.createElement('div');
+  d.textContent = String(s||'');
+  return d.innerHTML;
+}
+
+async function init() {
+  const params = new URLSearchParams(window.location.search);
+  const id     = params.get('id');
+  if (!id) { showError(); return; }
+
+  // Load property + settings in parallel
+  const [rows, settRows] = await Promise.all([
+    apiFetch('kre_properties', `id=eq.${encodeURIComponent(id)}`),
+    apiFetch('kre_settings', 'order=created_at.desc&limit=1')
+  ]);
+
+  const prop = rows[0];
+  if (!prop || prop.available === false) { showError(); return; }
+
+  const settings = settRows[0] || {};
+  const company  = settings.company || {};
+
+  // Header contact
+  const phone = company.phone || '';
+  const email = company.email || '';
+  if (phone || email) {
+    let parts = [];
+    if (phone) parts.push(`<a href="tel:${esc(phone)}">${esc(phone)}</a>`);
+    if (email) parts.push(`<a href="mailto:${esc(email)}">${esc(email)}</a>`);
+    document.getElementById('pub-contact-pill').innerHTML = parts.join(' · ');
+  }
+
+  // Hero
+  document.getElementById('pub-loading').style.display  = 'none';
+  document.getElementById('hero-content').style.display = '';
+  document.getElementById('h-title').textContent = `#${prop.property_num||'?'} — ${prop.type||'Property'} in ${prop.area||'Crete'}`;
+  const sub = [];
+  if (prop.plot)  sub.push(prop.plot + 'm² plot');
+  if (prop.house) sub.push(prop.house + 'm² house');
+  document.getElementById('h-sub').textContent   = sub.join(' · ') || 'Kissamos, Crete';
+  document.getElementById('h-price').textContent = prop.office_price ? fmtEur(prop.office_price) : 'Contact for price';
+
+  // Specs
+  const specs = [];
+  if (prop.plot)        specs.push({ lbl:'Plot Size',         val: prop.plot+'m²' });
+  if (prop.house)       specs.push({ lbl:'House Size',        val: prop.house+'m²' });
+  if (prop.bld_cap)     specs.push({ lbl:'Build Capacity',    val: prop.bld_cap+'m²' });
+  if (prop.sea_view)    specs.push({ lbl:'Sea View',          val: prop.sea_m ? prop.sea_m+'m' : 'Yes' });
+  if (prop.area)        specs.push({ lbl:'Area',              val: prop.area });
+  if (prop.type)        specs.push({ lbl:'Property Type',     val: prop.type });
+  document.getElementById('spec-grid').innerHTML = specs.map(s =>
+    `<div class="spec-cell"><div class="lbl">${esc(s.lbl)}</div><div class="val">${esc(s.val)}</div></div>`
+  ).join('');
+
+  // Highlights
+  const tags = [];
+  if (prop.sea_view)   tags.push({ icon:'🌊', text:'Sea View' });
+  if (prop.plot > 500) tags.push({ icon:'🌿', text:'Large Plot' });
+  if (prop.bld_cap)    tags.push({ icon:'🏗', text:`Build up to ${prop.bld_cap}m²` });
+  if (prop.topo)       tags.push({ icon:'📋', text:'Topographic Plan Available' });
+  if (prop.type === 'Plot' || prop.type === 'plot') tags.push({ icon:'🏞', text:'Building Plot' });
+  if (prop.type && prop.type.toLowerCase().includes('villa')) tags.push({ icon:'🏡', text:'Villa' });
+
+  const hlEl = document.getElementById('highlights');
+  if (tags.length) {
+    hlEl.innerHTML = tags.map(t =>
+      `<div class="highlight-tag"><span class="icon">${t.icon}</span>${esc(t.text)}</div>`
+    ).join('');
+  } else {
+    document.getElementById('highlights-section').style.display = 'none';
+  }
+
+  // Description
+  const desc = prop.desc || prop.notes || '';
+  if (desc) {
+    document.getElementById('desc-section').style.display = '';
+    document.getElementById('pub-desc').textContent = desc;
+  }
+
+  // Location / Map
+  if (prop.coords) {
+    const [lat,lng] = prop.coords.split(',').map(s=>s.trim());
+    if (lat && lng) {
+      document.getElementById('location-section').style.display = '';
+      document.getElementById('map-area').textContent = prop.area || 'View on map';
+      document.getElementById('map-link').href = `https://www.google.com/maps?q=${encodeURIComponent(prop.coords)}`;
+    }
+  }
+
+  // Photos
+  if (prop.photos) {
+    document.getElementById('photos-section').style.display = '';
+    document.getElementById('photos-link').href = prop.photos;
+  }
+
+  // CTA
+  document.getElementById('cta-phone').href = phone ? `tel:${phone}` : '#';
+  document.getElementById('cta-email').href = email ? `mailto:${email}?subject=Enquiry about Property %23${prop.property_num||'?'} in ${encodeURIComponent(prop.area||'Crete')}` : '#';
+  if (!phone) document.getElementById('cta-phone').style.display = 'none';
+  if (!email) document.getElementById('cta-email').style.display = 'none';
+
+  // Show main
+  document.getElementById('pub-main').style.display = '';
+
+  // Update <title> and meta
+  document.title = `${prop.type||'Property'} in ${prop.area||'Crete'} — Kissamos Real Estate`;
+}
+
+function showError() {
+  document.getElementById('pub-loading').style.display = 'none';
+  document.getElementById('pub-error').style.display   = '';
+}
+
+init().catch(() => showError());
+</script>
+</body>
+</html>

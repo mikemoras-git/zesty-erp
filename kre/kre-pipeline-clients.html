@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>KRE — Client Pipeline</title>
+<link rel="stylesheet" href="kre-style.css">
+<style>
+.event-type-call    { background:#eaf4fb; color:#1a5276; }
+.event-type-email   { background:#eafaf1; color:#1a7a40; }
+.event-type-viewing { background:#f5eef8; color:#6c3483; }
+.event-type-meeting { background:#fef9ef; color:#a04000; }
+.event-type-note    { background:#f0f3f4; color:#566573; }
+.viewed-prop {
+  display:inline-flex;align-items:center;gap:6px;padding:4px 10px;
+  background:var(--surface-alt);border:1px solid var(--border);
+  border-radius:99px;font-size:12px;margin:3px;
+}
+</style>
+</head>
+<body>
+<div class="kre-page">
+
+  <div class="page-header">
+    <div class="page-title">
+      <h1>Client Pipeline</h1>
+      <p>Track communication stages with active buyers</p>
+    </div>
+    <div class="page-actions">
+      <button class="btn btn-primary" onclick="openAddEvent()">+ Log Event</button>
+    </div>
+  </div>
+
+  <!-- KANBAN BOARD -->
+  <div class="pipeline-wrap" id="pipeline-board">
+    <div class="loading-row" style="width:100%"><div class="spinner"></div> Loading pipeline…</div>
+  </div>
+
+</div>
+
+<!-- CLIENT DETAIL SLIDE-PANEL -->
+<div class="modal-overlay" id="clientPanel">
+  <div class="modal modal-xl">
+    <div class="modal-header">
+      <h2 id="panel-name">Client Detail</h2>
+      <button class="modal-close" onclick="closeModal('clientPanel')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px">
+
+        <!-- LEFT: Contact info + Properties seen -->
+        <div>
+          <div class="section-lbl">Contact Info</div>
+          <div id="panel-info" style="font-size:13px;line-height:2"></div>
+
+          <div class="section-lbl" style="margin-top:20px">Properties Seen</div>
+          <div id="panel-props" style="margin-bottom:12px"></div>
+          <div style="display:flex;gap:8px">
+            <select id="panel-prop-select" style="flex:1">
+              <option value="">Select a property to mark as shown…</option>
+            </select>
+            <button class="btn btn-primary btn-sm" onclick="markPropViewed()">Mark Viewed</button>
+          </div>
+
+          <div class="section-lbl" style="margin-top:20px">Move Stage</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap" id="panel-stage-btns"></div>
+        </div>
+
+        <!-- RIGHT: Event log -->
+        <div>
+          <div class="section-lbl">Communication Log</div>
+          <div id="panel-events" class="timeline"></div>
+          <div style="margin-top:16px">
+            <button class="btn btn-outline btn-sm" onclick="openAddEvent(currentClientId)">+ Log Event</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <a id="panel-budget-link" href="kre-budget.html" class="btn btn-ghost btn-sm">📊 Budget Calc</a>
+      <a id="panel-edit-link" href="kre-contacts.html" class="btn btn-ghost btn-sm">✏️ Edit Contact</a>
+      <button class="btn btn-ghost" onclick="closeModal('clientPanel')">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD EVENT MODAL -->
+<div class="modal-overlay" id="eventModal">
+  <div class="modal modal-sm">
+    <div class="modal-header">
+      <h2>Log Communication Event</h2>
+      <button class="modal-close" onclick="closeModal('eventModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Contact *</label>
+        <select id="ev_contact"></select>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Event Type</label>
+          <select id="ev_type">
+            <option value="call">📞 Phone Call</option>
+            <option value="email">✉️ Email</option>
+            <option value="viewing">🏠 Property Viewing</option>
+            <option value="meeting">🤝 In-Person Meeting</option>
+            <option value="note">📝 Note</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Date</label>
+          <input id="ev_date" type="date">
+        </div>
+      </div>
+      <div class="form-group" id="ev_prop_group">
+        <label>Property Viewed (if viewing)</label>
+        <select id="ev_property"><option value="">— Select property —</option></select>
+      </div>
+      <div class="form-group">
+        <label>Notes / Summary</label>
+        <textarea id="ev_notes" rows="3" placeholder="What was discussed, outcome, next steps…"></textarea>
+      </div>
+      <div class="form-group">
+        <label>Update Client Stage to</label>
+        <select id="ev_new_stage"><option value="">— Keep current stage —</option></select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('eventModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveEvent()">Save Event</button>
+    </div>
+  </div>
+</div>
+
+<script src="kre-base.js"></script>
+<script src="kre-nav.js"></script>
+<script>
+let allContacts = [];
+let allEvents   = [];
+let allProps    = [];
+let settings    = {};
+let currentClientId = null;
+
+async function init() {
+  settings = await SETTINGS.load();
+  const [cr, er, pr] = await Promise.all([
+    DB.loadAll('kre_contacts'),
+    DB.loadAll('kre_client_events'),
+    DB.loadAll('kre_properties')
+  ]);
+  allContacts = (cr.rows || []).filter(c => c.role === 'buyer' || c.role === 'both');
+  allEvents   = er.rows || [];
+  allProps    = pr.rows || [];
+
+  populateEventDropdowns();
+  renderBoard();
+}
+
+function populateEventDropdowns() {
+  const stages = settings.client_stages || KRE_DEFAULTS.client_stages;
+
+  const cSel = document.getElementById('ev_contact');
+  allContacts.forEach(c => {
+    const o = document.createElement('option');
+    o.value = c.id;
+    o.textContent = (c.first_name||'') + ' ' + (c.last_name||'');
+    cSel.appendChild(o);
+  });
+
+  const pSel = document.getElementById('ev_property');
+  allProps.filter(p=>p.available!==false).forEach(p => {
+    const o = document.createElement('option');
+    o.value = p.id;
+    o.textContent = `#${p.property_num||'?'} ${p.type||''} – ${p.area||''}`;
+    pSel.appendChild(o);
+  });
+
+  const sSel = document.getElementById('ev_new_stage');
+  stages.forEach(s => {
+    const o = document.createElement('option');
+    o.value = s.id;
+    o.textContent = s.label;
+    sSel.appendChild(o);
+  });
+
+  const pPropSel = document.getElementById('panel-prop-select');
+  allProps.filter(p=>p.available!==false).forEach(p => {
+    const o = document.createElement('option');
+    o.value = p.id;
+    o.textContent = `#${p.property_num||'?'} ${p.type||''} – ${p.area||''}`;
+    pPropSel.appendChild(o);
+  });
+
+  // Toggle property select based on event type
+  document.getElementById('ev_type').addEventListener('change', function() {
+    document.getElementById('ev_prop_group').style.display = this.value === 'viewing' ? '' : 'none';
+  });
+  document.getElementById('ev_prop_group').style.display = 'none';
+  document.getElementById('ev_date').value = new Date().toISOString().slice(0,10);
+}
+
+function renderBoard() {
+  const stages = settings.client_stages || KRE_DEFAULTS.client_stages;
+  const board  = document.getElementById('pipeline-board');
+
+  board.innerHTML = stages.map(stage => {
+    const stageContacts = allContacts.filter(c => (c.stage || 'new_lead') === stage.id);
+    const cards = stageContacts.map(c => {
+      const lastEvent = allEvents.filter(e => e.contact_id === c.id).sort((a,b) => new Date(b.date||b._created) - new Date(a.date||a._created))[0];
+      const daysSince = lastEvent ? Math.floor((Date.now()-new Date(lastEvent.date||lastEvent._created).getTime())/86400000) : null;
+      const urgent = daysSince !== null && daysSince > 14;
+      const propsViewed = (c.props_viewed || []).length;
+      return `<div class="pipeline-card" onclick="openPanel('${c.id}')" style="${urgent?'border-left:3px solid var(--danger)':''}">
+        <div class="pipeline-card-name">${esc((c.first_name||'')+' '+(c.last_name||''))}</div>
+        <div class="pipeline-card-sub">${esc(c.nationality||'')}${c.budget_max?` · ${fmtEur(c.budget_max)} max`:''}</div>
+        <div class="pipeline-card-meta">
+          <span class="pipeline-card-date">${lastEvent ? fmtRelative(lastEvent.date||lastEvent._created) : 'No contact'}</span>
+          ${propsViewed ? `<span class="badge badge-teal">${propsViewed} props seen</span>` : ''}
+          ${urgent ? '<span class="badge badge-red">Overdue</span>' : ''}
+        </div>
+      </div>`;
+    }).join('') || `<div style="font-size:12px;color:var(--text-light);text-align:center;padding:16px">No clients</div>`;
+
+    return `<div class="pipeline-col">
+      <div class="pipeline-col-hdr" style="background:${stage.color}">
+        <span class="pipeline-col-hdr-name">${esc(stage.label)}</span>
+        <span class="pipeline-col-count">${stageContacts.length}</span>
+      </div>
+      <div class="pipeline-col-body">${cards}</div>
+    </div>`;
+  }).join('');
+}
+
+function openPanel(contactId) {
+  currentClientId = contactId;
+  const c = allContacts.find(x => x.id === contactId);
+  if (!c) return;
+
+  document.getElementById('panel-name').textContent = (c.first_name||'') + ' ' + (c.last_name||'');
+  document.getElementById('panel-budget-link').href = `kre-budget.html?contact=${contactId}`;
+
+  // Info
+  const prefs = [c.pref1,c.pref2,c.pref3,c.pref4].filter(Boolean).join(', ');
+  document.getElementById('panel-info').innerHTML = `
+    <div>📞 ${esc(c.phone1||'—')}</div>
+    <div>✉️ ${c.email?`<a href="mailto:${esc(c.email)}" style="color:var(--kre-teal)">${esc(c.email)}</a>`:'—'}</div>
+    <div>🌍 ${esc(c.nationality||'—')}</div>
+    <div>💶 Budget: ${(c.budget_min||c.budget_max)?`${fmtEur(c.budget_min||0)} – ${fmtEur(c.budget_max||0)}`:'—'}</div>
+    <div>🏠 Prefers: ${esc(prefs||'—')}</div>
+    <div>📍 Area: ${esc(c.area_pref||'Any')}</div>
+    ${c.needs_sea_view?'<div style="color:var(--kre-teal)">🌊 Requires sea view</div>':''}
+  `;
+
+  // Properties viewed
+  const viewed = c.props_viewed || [];
+  document.getElementById('panel-props').innerHTML = viewed.length
+    ? viewed.map(pid => {
+        const p = allProps.find(x => x.id === pid);
+        return p ? `<span class="viewed-prop">${typeBadge(p.type)} #${p.property_num} ${esc(p.area||'')}
+          <button onclick="removeViewed('${contactId}','${pid}')" style="background:none;border:none;cursor:pointer;color:var(--text-muted);font-size:13px">×</button>
+        </span>` : '';
+      }).join('')
+    : '<span style="font-size:12px;color:var(--text-light)">No properties shown yet.</span>';
+
+  // Stage buttons
+  const stages = settings.client_stages || KRE_DEFAULTS.client_stages;
+  document.getElementById('panel-stage-btns').innerHTML = stages.map(s =>
+    `<button class="btn btn-sm ${c.stage===s.id?'btn-primary':'btn-ghost'}"
+      style="${c.stage===s.id?`background:${s.color};border-color:${s.color}`:`color:${s.color};border-color:${s.color}`}"
+      onclick="moveStage('${contactId}','${s.id}')">${esc(s.label)}</button>`
+  ).join('');
+
+  // Events
+  const events = allEvents
+    .filter(e => e.contact_id === contactId)
+    .sort((a,b) => new Date(b.date||b._created) - new Date(a.date||a._created));
+  const evTypeIcons = { call:'📞', email:'✉️', viewing:'🏠', meeting:'🤝', note:'📝' };
+  document.getElementById('panel-events').innerHTML = events.length
+    ? events.map(e => {
+        const p = e.property_id ? allProps.find(x=>x.id===e.property_id) : null;
+        return `<div class="timeline-item">
+          <div class="timeline-dot" style="background:${e.type==='viewing'?'var(--kre-gold)':e.type==='call'?'var(--info)':'var(--kre-teal)'}">
+            ${evTypeIcons[e.type]||'📝'}
+          </div>
+          <div class="timeline-content">
+            <div class="timeline-title">
+              <span class="badge event-type-${e.type||'note'}">${e.type||'note'}</span>
+              ${p?` · #${p.property_num} ${esc(p.area||'')}`:''}</div>
+            <div class="timeline-sub">${esc(e.notes||'')}</div>
+            <div class="timeline-date">${fmtDate(e.date||e._created)}</div>
+          </div>
+        </div>`;
+      }).join('')
+    : '<div style="font-size:12px;color:var(--text-light)">No events logged yet.</div>';
+
+  openModal('clientPanel');
+}
+
+async function moveStage(contactId, stageId) {
+  const c = allContacts.find(x => x.id === contactId);
+  if (!c) return;
+  const r = await DB.upsertOne('kre_contacts', { ...c, stage: stageId });
+  if (r.ok) {
+    c.stage = stageId;
+    toast('Stage updated','success');
+    renderBoard();
+    openPanel(contactId);
+  } else toast('Error: ' + r.err,'error');
+}
+
+async function markPropViewed() {
+  const propId = document.getElementById('panel-prop-select').value;
+  if (!propId || !currentClientId) return;
+  const c = allContacts.find(x => x.id === currentClientId);
+  if (!c) return;
+  const viewed = [...(c.props_viewed||[])];
+  if (!viewed.includes(propId)) viewed.push(propId);
+  const r = await DB.upsertOne('kre_contacts', { ...c, props_viewed: viewed });
+  if (r.ok) { c.props_viewed = viewed; toast('Property marked as shown','success'); openPanel(currentClientId); }
+  else toast('Error: ' + r.err,'error');
+}
+
+async function removeViewed(contactId, propId) {
+  const c = allContacts.find(x => x.id === contactId);
+  if (!c) return;
+  const viewed = (c.props_viewed||[]).filter(p => p !== propId);
+  const r = await DB.upsertOne('kre_contacts', { ...c, props_viewed: viewed });
+  if (r.ok) { c.props_viewed = viewed; openPanel(contactId); }
+}
+
+function openAddEvent(contactId) {
+  if (contactId) document.getElementById('ev_contact').value = contactId;
+  document.getElementById('ev_notes').value = '';
+  document.getElementById('ev_date').value  = new Date().toISOString().slice(0,10);
+  document.getElementById('ev_new_stage').value = '';
+  openModal('eventModal');
+}
+
+async function saveEvent() {
+  const contactId = document.getElementById('ev_contact').value;
+  const type      = document.getElementById('ev_type').value;
+  const date      = document.getElementById('ev_date').value;
+  const notes     = document.getElementById('ev_notes').value.trim();
+  const newStage  = document.getElementById('ev_new_stage').value;
+  const propId    = type === 'viewing' ? document.getElementById('ev_property').value : null;
+
+  if (!contactId) { toast('Select a contact','error'); return; }
+
+  const event = { contact_id:contactId, type, date:date||new Date().toISOString(), notes:notes||null, property_id:propId||null };
+  syncStart();
+  const r = await DB.upsertOne('kre_client_events', event);
+
+  // Update contact: last contact date + mark prop as viewed
+  const c = allContacts.find(x => x.id === contactId);
+  if (c) {
+    const updates = { ...c, last_contact: date||new Date().toISOString().slice(0,10) };
+    if (newStage)             updates.stage = newStage;
+    if (propId) {
+      const viewed = [...(c.props_viewed||[])];
+      if (!viewed.includes(propId)) viewed.push(propId);
+      updates.props_viewed = viewed;
+    }
+    await DB.upsertOne('kre_contacts', updates);
+    Object.assign(c, updates);
+  }
+
+  syncDone(r.ok);
+  if (r.ok) {
+    allEvents.push({ ...event, id: r.id, _created: new Date().toISOString() });
+    toast('Event logged','success');
+    closeModal('eventModal');
+    renderBoard();
+    if (currentClientId === contactId) openPanel(contactId);
+  } else toast('Error: ' + r.err,'error');
+}
+
+init();
+</script>
+</body>
+</html>

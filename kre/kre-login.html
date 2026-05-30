@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>KRE — Sign In</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=DM+Sans:wght@300;400;500;600&family=DM+Mono&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font-family:'DM Sans',sans-serif;
+  background:linear-gradient(135deg,#0b1f30 0%,#0f2a3f 50%,#0d2035 100%);
+  display:flex;align-items:center;justify-content:center;
+  min-height:100vh;padding:20px;
+  position:relative;overflow:hidden;
+}
+.orb{position:absolute;border-radius:50%;filter:blur(90px);opacity:.1;pointer-events:none}
+.orb1{width:500px;height:500px;background:#1c8a8c;top:-100px;left:-100px;animation:drift 18s ease-in-out infinite}
+.orb2{width:400px;height:400px;background:#c9a84c;bottom:-80px;right:-60px;animation:drift 22s ease-in-out infinite reverse}
+.orb3{width:280px;height:280px;background:#1c8a8c;bottom:100px;left:20%;animation:drift 15s ease-in-out infinite 5s}
+@keyframes drift{0%,100%{transform:translate(0,0)}40%{transform:translate(20px,-15px)}70%{transform:translate(-12px,18px)}}
+
+.login-card{
+  background:rgba(255,255,255,.03);
+  backdrop-filter:blur(20px);
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:22px;
+  padding:48px 44px;
+  width:100%;max-width:420px;
+  position:relative;z-index:1;
+  box-shadow:0 24px 80px rgba(0,0,0,.4);
+}
+.login-brand{text-align:center;margin-bottom:36px}
+.login-brand-name{
+  font-family:'Cormorant Garamond',serif;
+  font-size:42px;font-weight:300;color:#fff;letter-spacing:3px;line-height:1;
+}
+.login-brand-name span{color:#e8c97a}
+.login-brand-sub{
+  font-size:10px;color:rgba(255,255,255,.3);
+  text-transform:uppercase;letter-spacing:3px;
+  margin-top:8px;font-family:'DM Mono',monospace;
+}
+.mode-divider{
+  display:flex;align-items:center;gap:10px;margin-bottom:24px;
+}
+.mode-divider::before,.mode-divider::after{content:'';flex:1;height:1px;background:rgba(255,255,255,.1)}
+.mode-label{font-size:12px;color:rgba(255,255,255,.4);white-space:nowrap}
+.f-group{margin-bottom:18px}
+.f-label{
+  display:block;font-size:11px;font-weight:600;
+  text-transform:uppercase;letter-spacing:.1em;
+  color:rgba(255,255,255,.4);margin-bottom:7px;
+}
+.f-input{
+  width:100%;padding:12px 15px;
+  background:rgba(255,255,255,.06);
+  border:1.5px solid rgba(255,255,255,.1);
+  border-radius:10px;
+  font-family:'DM Sans',sans-serif;font-size:14px;color:#fff;
+  outline:none;transition:border-color .15s,box-shadow .15s;
+}
+.f-input::placeholder{color:rgba(255,255,255,.2)}
+.f-input:focus{border-color:#1c8a8c;box-shadow:0 0 0 3px rgba(28,138,140,.2)}
+.f-btn{
+  width:100%;padding:13px;border:none;border-radius:10px;
+  font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;
+  cursor:pointer;transition:all .17s;margin-top:4px;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+}
+.f-btn-primary{background:linear-gradient(135deg,#1c8a8c,#14676a);color:#fff}
+.f-btn-primary:hover{background:linear-gradient(135deg,#22a8aa,#1c8a8c);transform:translateY(-1px);box-shadow:0 6px 20px rgba(28,138,140,.3)}
+.f-btn-primary:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.f-btn-ghost{background:transparent;border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.5)}
+.f-btn-ghost:hover{border-color:rgba(255,255,255,.3);color:rgba(255,255,255,.8)}
+.f-error{
+  background:rgba(231,76,60,.15);border:1px solid rgba(231,76,60,.3);
+  color:#ff8b7e;border-radius:8px;padding:10px 14px;
+  font-size:13px;margin-bottom:18px;display:none;
+}
+.f-success{
+  background:rgba(28,138,140,.15);border:1px solid rgba(28,138,140,.3);
+  color:#7ee8ea;border-radius:8px;padding:10px 14px;
+  font-size:13px;margin-bottom:18px;display:none;
+}
+.f-links{text-align:center;margin-top:16px;display:flex;flex-direction:column;gap:8px}
+.f-link{background:none;border:none;color:rgba(255,255,255,.35);font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif;text-decoration:underline;transition:color .15s}
+.f-link:hover{color:rgba(255,255,255,.65)}
+.login-footer{text-align:center;margin-top:22px;font-size:12px;color:rgba(255,255,255,.2)}
+.form-panel{display:none}
+.form-panel.active{display:block}
+@keyframes spin{to{transform:rotate(360deg)}}
+.spinner-sm{width:16px;height:16px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;display:inline-block}
+</style>
+</head>
+<body>
+<div class="orb orb1"></div>
+<div class="orb orb2"></div>
+<div class="orb orb3"></div>
+
+<div class="login-card">
+  <div class="login-brand">
+    <div class="login-brand-name">KRE<span>·</span>ERP</div>
+    <div class="login-brand-sub">Kissamos Real Estate</div>
+  </div>
+
+  <!-- SIGN IN -->
+  <div class="form-panel active" id="panel-signin">
+    <div class="mode-divider"><span class="mode-label">Sign in to your account</span></div>
+    <div class="f-error" id="err-signin"></div>
+    <div class="f-group">
+      <label class="f-label">Email</label>
+      <input id="si-email" class="f-input" type="email" placeholder="you@example.com" autocomplete="username">
+    </div>
+    <div class="f-group">
+      <label class="f-label">Password</label>
+      <input id="si-pw" class="f-input" type="password" placeholder="••••••••" autocomplete="current-password">
+    </div>
+    <button class="f-btn f-btn-primary" id="btn-signin" onclick="doSignIn()">Sign In</button>
+    <div class="f-links">
+      <button class="f-link" onclick="showPanel('panel-forgot')">Forgot password?</button>
+      <button class="f-link" onclick="showPanel('panel-signup')">First time? Create an account</button>
+    </div>
+  </div>
+
+  <!-- SIGN UP -->
+  <div class="form-panel" id="panel-signup">
+    <div class="mode-divider"><span class="mode-label">Create your account</span></div>
+    <div class="f-error" id="err-signup"></div>
+    <div class="f-success" id="ok-signup"></div>
+    <div class="f-group">
+      <label class="f-label">Full Name</label>
+      <input id="su-name" class="f-input" type="text" placeholder="e.g. Mike Moraitakis">
+    </div>
+    <div class="f-group">
+      <label class="f-label">Email</label>
+      <input id="su-email" class="f-input" type="email" placeholder="you@example.com" autocomplete="username">
+    </div>
+    <div class="f-group">
+      <label class="f-label">Password (min 6 chars)</label>
+      <input id="su-pw" class="f-input" type="password" placeholder="Choose a strong password" autocomplete="new-password">
+    </div>
+    <button class="f-btn f-btn-primary" id="btn-signup" onclick="doSignUp()">Create Account</button>
+    <div class="f-links">
+      <button class="f-link" onclick="showPanel('panel-signin')">← Back to sign in</button>
+    </div>
+  </div>
+
+  <!-- FORGOT PASSWORD -->
+  <div class="form-panel" id="panel-forgot">
+    <div class="mode-divider"><span class="mode-label">Reset your password</span></div>
+    <div class="f-error" id="err-forgot"></div>
+    <div class="f-success" id="ok-forgot"></div>
+    <div class="f-group">
+      <label class="f-label">Email</label>
+      <input id="fp-email" class="f-input" type="email" placeholder="you@example.com">
+    </div>
+    <button class="f-btn f-btn-primary" id="btn-forgot" onclick="doForgot()">Send Reset Link</button>
+    <div class="f-links">
+      <button class="f-link" onclick="showPanel('panel-signin')">← Back to sign in</button>
+    </div>
+  </div>
+
+  <div class="login-footer">Kissamos Real Estate ERP &copy; 2025</div>
+</div>
+
+<script src="kre-base.js"></script>
+<script>
+// If already signed in redirect
+(async function checkExisting() {
+  const sess = AUTH.getSession();
+  if (sess) redirect(sess.role);
+
+  // Handle Supabase password reset callback
+  const hash = window.location.hash;
+  if (hash.includes('type=recovery')) {
+    showPanel('panel-signin');
+    showErr('err-signin', 'Set your new password via Supabase — use the link in your email.');
+  }
+})();
+
+function showPanel(id) {
+  document.querySelectorAll('.form-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  clearMessages();
+}
+
+function showErr(id, msg) {
+  const el = document.getElementById(id);
+  if (el) { el.textContent = msg; el.style.display = 'block'; }
+}
+function showOk(id, msg) {
+  const el = document.getElementById(id);
+  if (el) { el.textContent = msg; el.style.display = 'block'; }
+}
+function clearMessages() {
+  document.querySelectorAll('.f-error,.f-success').forEach(el => { el.style.display = 'none'; el.textContent = ''; });
+}
+
+function setLoading(btnId, loading, label) {
+  const btn = document.getElementById(btnId);
+  if (!btn) return;
+  btn.disabled = loading;
+  btn.innerHTML = loading ? '<span class="spinner-sm"></span> Please wait…' : label;
+}
+
+function redirect(role) {
+  if (role === 'collaborator') window.location.href = 'kre-properties.html';
+  else window.location.href = 'kre-index.html';
+}
+
+async function doSignIn() {
+  clearMessages();
+  const email = document.getElementById('si-email').value.trim();
+  const pw    = document.getElementById('si-pw').value;
+  if (!email || !pw) { showErr('err-signin','Please enter your email and password.'); return; }
+  setLoading('btn-signin', true, 'Sign In');
+  const r = await AUTH.login(email, pw);
+  setLoading('btn-signin', false, 'Sign In');
+  if (!r.ok) { showErr('err-signin', r.err); return; }
+  redirect(r.session.role);
+}
+
+async function doSignUp() {
+  clearMessages();
+  const name  = document.getElementById('su-name').value.trim();
+  const email = document.getElementById('su-email').value.trim();
+  const pw    = document.getElementById('su-pw').value;
+  if (!name || !email || !pw) { showErr('err-signup','Please fill all fields.'); return; }
+  if (pw.length < 6) { showErr('err-signup','Password must be at least 6 characters.'); return; }
+  setLoading('btn-signup', true, 'Create Account');
+  const r = await AUTH.signUp(email, pw, name);
+  setLoading('btn-signup', false, 'Create Account');
+  if (!r.ok) { showErr('err-signup', r.err); return; }
+  if (r.needsConfirmation) {
+    showOk('ok-signup', 'Account created! Check your email to confirm, then sign in.');
+    setTimeout(() => showPanel('panel-signin'), 3000);
+  } else {
+    // Auto-login
+    const lr = await AUTH.login(email, pw);
+    if (lr.ok) redirect(lr.session.role);
+    else { showOk('ok-signup','Account created! Please sign in.'); showPanel('panel-signin'); }
+  }
+}
+
+async function doForgot() {
+  clearMessages();
+  const email = document.getElementById('fp-email').value.trim();
+  if (!email) { showErr('err-forgot','Please enter your email.'); return; }
+  setLoading('btn-forgot', true, 'Send Reset Link');
+  const r = await AUTH.forgotPassword(email);
+  setLoading('btn-forgot', false, 'Send Reset Link');
+  if (!r.ok) { showErr('err-forgot', r.err); return; }
+  showOk('ok-forgot', 'Reset link sent! Check your inbox.');
+}
+
+// Enter key support
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Enter') return;
+  const active = document.querySelector('.form-panel.active');
+  if (!active) return;
+  if (active.id === 'panel-signin')  doSignIn();
+  if (active.id === 'panel-signup')  doSignUp();
+  if (active.id === 'panel-forgot')  doForgot();
+});
+</script>
+</body>
+</html>

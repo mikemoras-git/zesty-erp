@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>KRE — Revenue</title>
+<link rel="stylesheet" href="kre-style.css">
+<style>
+.rev-type-bar { display:flex; gap:2px; height:8px; border-radius:4px; overflow:hidden; margin-top:6px; }
+.rev-type-seg { height:100%; }
+</style>
+</head>
+<body>
+<div class="kre-page">
+
+  <div class="page-header">
+    <div class="page-title">
+      <h1>Revenue</h1>
+      <p>Commission and fee income from completed deals</p>
+    </div>
+    <div class="page-actions">
+      <button class="btn btn-primary" onclick="openAdd()">+ Log Revenue</button>
+    </div>
+  </div>
+
+  <!-- YEAR / FILTER -->
+  <div class="filter-bar">
+    <select id="f-year" onchange="applyFilters()"></select>
+    <select id="f-type" onchange="applyFilters()">
+      <option value="">All Types</option>
+      <option value="commission_buyer">Commission – Buyer</option>
+      <option value="commission_seller">Commission – Seller</option>
+      <option value="markup">Markup</option>
+      <option value="fixed_fee">Fixed Fee</option>
+      <option value="other">Other</option>
+    </select>
+    <input class="search-input" id="f-search" type="text" placeholder="Search deal or property…" oninput="applyFilters()" style="max-width:220px">
+    <span class="filter-count" id="filter-count"></span>
+  </div>
+
+  <!-- KPIs -->
+  <div class="kpi-grid" style="margin-bottom:20px">
+    <div class="kpi-card green">
+      <div class="kpi-label">Total Revenue (filtered)</div>
+      <div class="kpi-value" id="kpi-total">—</div>
+    </div>
+    <div class="kpi-card gold">
+      <div class="kpi-label">Commission Buyer</div>
+      <div class="kpi-value" id="kpi-comm-buyer">—</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Commission Seller</div>
+      <div class="kpi-value" id="kpi-comm-seller">—</div>
+    </div>
+    <div class="kpi-card orange">
+      <div class="kpi-label">Markup + Fixed Fees</div>
+      <div class="kpi-value" id="kpi-other">—</div>
+    </div>
+  </div>
+
+  <!-- MONTHLY SUMMARY -->
+  <div class="card" style="margin-bottom:20px">
+    <div class="card-header"><h2>Monthly Breakdown</h2></div>
+    <div class="card-body" style="padding:0">
+      <table>
+        <thead>
+          <tr>
+            <th>Month</th>
+            <th style="text-align:right">Deals Closed</th>
+            <th style="text-align:right">Comm. Buyer</th>
+            <th style="text-align:right">Comm. Seller</th>
+            <th style="text-align:right">Markup</th>
+            <th style="text-align:right">Fixed Fees</th>
+            <th style="text-align:right">Total</th>
+          </tr>
+        </thead>
+        <tbody id="monthly-tbody">
+          <tr><td colspan="7" class="loading-row"><div class="spinner"></div> Loading…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- TRANSACTIONS -->
+  <div class="card" style="overflow:hidden">
+    <div class="card-header"><h2>All Transactions</h2></div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Deal / Property</th>
+            <th>Type</th>
+            <th style="text-align:right">Amount</th>
+            <th>Notes</th>
+            <th style="text-align:right">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="rev-table">
+          <tr><td colspan="6" class="loading-row"><div class="spinner"></div> Loading…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<!-- ADD / EDIT MODAL -->
+<div class="modal-overlay" id="revModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="revModalTitle">Log Revenue</h2>
+      <button class="modal-close" onclick="closeModal('revModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="r_id">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Date *</label>
+          <input id="r_date" type="date">
+        </div>
+        <div class="form-group">
+          <label>Revenue Type *</label>
+          <select id="r_type">
+            <option value="commission_buyer">Commission – Buyer</option>
+            <option value="commission_seller">Commission – Seller</option>
+            <option value="markup">Markup</option>
+            <option value="fixed_fee">Fixed Fee</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Amount (€) *</label>
+        <div class="input-group"><span class="input-pfx">€</span><input id="r_amount" type="number" min="0" step="0.01"></div>
+      </div>
+      <div class="form-group">
+        <label>Linked Deal / Property (optional)</label>
+        <input id="r_deal_ref" type="text" placeholder="Deal name or property reference">
+      </div>
+      <div class="form-group">
+        <label>Notes</label>
+        <textarea id="r_notes" rows="3" placeholder="e.g. Commission from sale of Plot #42 Kissamos"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('revModal')">Cancel</button>
+      <button class="btn btn-danger btn-sm" id="deleteRevBtn" onclick="deleteRev()" style="margin-right:auto;display:none">Delete</button>
+      <button class="btn btn-primary" onclick="saveRev()">Save</button>
+    </div>
+  </div>
+</div>
+
+<script src="kre-base.js"></script>
+<script src="kre-nav.js"></script>
+<script>
+let allRevs = [];
+let editingId = null;
+
+async function init() {
+  AUTH.requireAuth(['admin','employee']);
+  const r = await DB.loadAll('kre_revenues');
+  allRevs = r.rows || [];
+  buildYearFilter();
+  applyFilters();
+}
+
+function buildYearFilter() {
+  const years = [...new Set(allRevs.map(r => (r.date||'').slice(0,4)).filter(Boolean))].sort().reverse();
+  const curYear = new Date().getFullYear().toString();
+  if (!years.includes(curYear)) years.unshift(curYear);
+  const sel = document.getElementById('f-year');
+  sel.innerHTML = '<option value="">All Years</option>';
+  years.forEach(y => {
+    const o = document.createElement('option');
+    o.value = y;
+    o.textContent = y;
+    if (y === curYear) o.selected = true;
+    sel.appendChild(o);
+  });
+}
+
+function applyFilters() {
+  const year   = document.getElementById('f-year').value;
+  const type   = document.getElementById('f-type').value;
+  const search = document.getElementById('f-search').value.toLowerCase();
+
+  const filtered = allRevs.filter(r => {
+    if (year && !(r.date||'').startsWith(year)) return false;
+    if (type && r.rev_type !== type) return false;
+    if (search) {
+      const hay = [r.deal_ref, r.notes].join(' ').toLowerCase();
+      if (!hay.includes(search)) return false;
+    }
+    return true;
+  });
+
+  filtered.sort((a,b)=> (b.date||'') < (a.date||'') ? -1 : 1);
+  document.getElementById('filter-count').textContent = `${filtered.length} transactions`;
+
+  updateKPIs(filtered);
+  renderMonthly(filtered);
+  renderTable(filtered);
+}
+
+function sum(arr, type) {
+  return arr.filter(r=>!type||r.rev_type===type).reduce((s,r)=>s+(parseFloat(r.amount)||0),0);
+}
+
+function updateKPIs(filtered) {
+  document.getElementById('kpi-total').textContent       = fmtEur(sum(filtered));
+  document.getElementById('kpi-comm-buyer').textContent  = fmtEur(sum(filtered,'commission_buyer'));
+  document.getElementById('kpi-comm-seller').textContent = fmtEur(sum(filtered,'commission_seller'));
+  const other = sum(filtered,'markup') + sum(filtered,'fixed_fee') + sum(filtered,'other');
+  document.getElementById('kpi-other').textContent = fmtEur(other);
+}
+
+function renderMonthly(filtered) {
+  const months = {};
+  filtered.forEach(r => {
+    const m = (r.date||'').slice(0,7);
+    if (!m) return;
+    if (!months[m]) months[m] = {deals:0,cb:0,cs:0,mk:0,ff:0};
+    months[m].deals++;
+    if (r.rev_type==='commission_buyer')  months[m].cb += parseFloat(r.amount)||0;
+    if (r.rev_type==='commission_seller') months[m].cs += parseFloat(r.amount)||0;
+    if (r.rev_type==='markup')            months[m].mk += parseFloat(r.amount)||0;
+    if (r.rev_type==='fixed_fee')         months[m].ff += parseFloat(r.amount)||0;
+  });
+
+  const keys = Object.keys(months).sort().reverse();
+  const tbody = document.getElementById('monthly-tbody');
+  if (!keys.length) {
+    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:20px">No data for selected period</td></tr>`;
+    return;
+  }
+
+  let grandCb=0, grandCs=0, grandMk=0, grandFf=0, grandDeals=0;
+  tbody.innerHTML = keys.map(m => {
+    const d = months[m];
+    const total = d.cb+d.cs+d.mk+d.ff;
+    grandCb+=d.cb; grandCs+=d.cs; grandMk+=d.mk; grandFf+=d.ff; grandDeals+=d.deals;
+    const label = new Date(m+'-01').toLocaleDateString('en-GB',{month:'long',year:'numeric'});
+    return `<tr>
+      <td><strong>${label}</strong></td>
+      <td style="text-align:right">${d.deals}</td>
+      <td style="text-align:right;font-family:'DM Mono',monospace">${d.cb ? fmtEur(d.cb) : '—'}</td>
+      <td style="text-align:right;font-family:'DM Mono',monospace">${d.cs ? fmtEur(d.cs) : '—'}</td>
+      <td style="text-align:right;font-family:'DM Mono',monospace">${d.mk ? fmtEur(d.mk) : '—'}</td>
+      <td style="text-align:right;font-family:'DM Mono',monospace">${d.ff ? fmtEur(d.ff) : '—'}</td>
+      <td style="text-align:right;font-family:'DM Mono',monospace;font-weight:700">${fmtEur(total)}</td>
+    </tr>`;
+  }).join('') +
+  `<tr style="background:var(--surface-2);font-weight:700;border-top:2px solid var(--border)">
+    <td>TOTAL</td>
+    <td style="text-align:right">${grandDeals}</td>
+    <td style="text-align:right;font-family:'DM Mono',monospace">${fmtEur(grandCb)}</td>
+    <td style="text-align:right;font-family:'DM Mono',monospace">${fmtEur(grandCs)}</td>
+    <td style="text-align:right;font-family:'DM Mono',monospace">${fmtEur(grandMk)}</td>
+    <td style="text-align:right;font-family:'DM Mono',monospace">${fmtEur(grandFf)}</td>
+    <td style="text-align:right;font-family:'DM Mono',monospace;font-size:16px">${fmtEur(grandCb+grandCs+grandMk+grandFf)}</td>
+  </tr>`;
+}
+
+const TYPE_LABELS = {
+  commission_buyer:  'Comm. Buyer',
+  commission_seller: 'Comm. Seller',
+  markup:            'Markup',
+  fixed_fee:         'Fixed Fee',
+  other:             'Other'
+};
+const TYPE_COLORS = {
+  commission_buyer:  'var(--kre-teal)',
+  commission_seller: 'var(--kre-gold)',
+  markup:            'var(--success)',
+  fixed_fee:         'var(--warning)',
+  other:             'var(--text-light)'
+};
+
+function renderTable(revs) {
+  const tbody = document.getElementById('rev-table');
+  if (!revs.length) {
+    tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state">
+      <div class="empty-icon">€</div>
+      <div class="empty-title">No revenue records</div>
+      <div class="empty-sub">Revenue is logged automatically when you complete a deal, or you can log it manually.</div>
+    </div></td></tr>`;
+    return;
+  }
+  tbody.innerHTML = revs.map(r => {
+    const typeLabel = TYPE_LABELS[r.rev_type] || r.rev_type || '—';
+    const typeColor = TYPE_COLORS[r.rev_type] || 'var(--text)';
+    return `<tr>
+      <td style="font-size:13px">${fmtDate(r.date)}</td>
+      <td><strong>${esc(r.deal_ref||'Manual entry')}</strong></td>
+      <td><span style="color:${typeColor};font-weight:600;font-size:13px">${typeLabel}</span></td>
+      <td style="text-align:right;font-family:'DM Mono',monospace;font-weight:700;font-size:15px;color:var(--success)">${fmtEur(r.amount||0)}</td>
+      <td style="font-size:12px;color:var(--text-muted);max-width:200px">${esc(r.notes||'—')}</td>
+      <td class="td-actions">
+        <button class="btn btn-ghost btn-sm" onclick="openEdit('${r.id}')">Edit</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function openAdd() {
+  editingId = null;
+  document.getElementById('revModalTitle').textContent = 'Log Revenue';
+  document.getElementById('deleteRevBtn').style.display = 'none';
+  clearForm();
+  openModal('revModal');
+}
+
+function openEdit(id) {
+  const r = allRevs.find(x=>x.id===id);
+  if (!r) return;
+  editingId = id;
+  document.getElementById('revModalTitle').textContent = 'Edit Revenue';
+  document.getElementById('deleteRevBtn').style.display = '';
+  fillForm(r);
+  openModal('revModal');
+}
+
+function clearForm() {
+  document.getElementById('r_id').value       = '';
+  document.getElementById('r_date').value     = new Date().toISOString().slice(0,10);
+  document.getElementById('r_type').value     = 'commission_buyer';
+  document.getElementById('r_amount').value   = '';
+  document.getElementById('r_deal_ref').value = '';
+  document.getElementById('r_notes').value    = '';
+}
+
+function fillForm(r) {
+  document.getElementById('r_id').value       = r.id;
+  document.getElementById('r_date').value     = r.date||'';
+  document.getElementById('r_type').value     = r.rev_type||'commission_buyer';
+  document.getElementById('r_amount').value   = r.amount||'';
+  document.getElementById('r_deal_ref').value = r.deal_ref||'';
+  document.getElementById('r_notes').value    = r.notes||'';
+}
+
+async function saveRev() {
+  const date   = document.getElementById('r_date').value;
+  const amount = parseFloat(document.getElementById('r_amount').value);
+  if (!date)     { toast('Date is required','error'); return; }
+  if (!amount)   { toast('Amount is required','error'); return; }
+
+  const rev = {
+    id:       editingId||undefined,
+    date,
+    rev_type: document.getElementById('r_type').value,
+    amount,
+    deal_ref: document.getElementById('r_deal_ref').value.trim()||null,
+    notes:    document.getElementById('r_notes').value.trim()||null
+  };
+  syncStart();
+  const r = await DB.upsertOne('kre_revenues', rev);
+  syncDone(r.ok);
+  if (r.ok) {
+    toast(editingId?'Updated':'Revenue logged','success');
+    closeModal('revModal');
+    const res = await DB.loadAll('kre_revenues');
+    allRevs = res.rows||[];
+    buildYearFilter();
+    applyFilters();
+  } else {
+    toast('Error: '+r.err,'error');
+  }
+}
+
+async function deleteRev() {
+  if (!editingId) return;
+  if (!confirm('Delete this revenue record?')) return;
+  const r = await DB.deleteOne('kre_revenues', editingId);
+  if (r.ok) {
+    toast('Deleted');
+    closeModal('revModal');
+    allRevs = allRevs.filter(x=>x.id!==editingId);
+    applyFilters();
+  } else {
+    toast('Error: '+r.err,'error');
+  }
+}
+
+init();
+</script>
+</body>
+</html>
