@@ -1616,8 +1616,8 @@ function buildDocxDocument(p) {
       hdrRow2(isEl?'Υπηρεσία':'Service', isEl?'Αμοιβή':'Fee', 5760, 3600),
       dataRow2(isEl?'Βασικά εφόδια (πισίνα / καθαρισμός / επισκέπτες / κήπος) — διακανονισμός':'Baseline supplies (pool / cleaning / guest / garden) — arrangement', [pr(isEl?'Δωρεάν':'Free')], 0, 5760, 3600),
       dataRow2(isEl?'Βασικά εφόδια — τιμολόγηση στον ιδιοκτήτη':'Baseline supplies — invoiced to Owner', [pr(isEl?'Κόστος αγοράς, χύμα ανά σεζόν':'At cost, in bulk per season')], 1, 5760, 3600),
-      dataRow2(isEl?'Καλάθι σούπερ μάρκετ κατ’ αίτηση επισκέπτη — διακανονισμός':'Guest-requested supermarket basket — arrangement', [pr(isEl?'Δωρεάν':'Free')], 0, 5760, 3600),
-      dataRow2(isEl?'Καλάθι σούπερ μάρκετ κατ’ αίτηση επισκέπτη — τιμολόγηση στον επισκέπτη':'Guest-requested supermarket basket — invoiced to guest', [pr(isEl?'Κόστος αγοράς':'At cost')], 1, 5760, 3600),
+      dataRow2(isEl?’Καλάθι σ/μ κατ\’ αίτηση επισκέπτη — διακανονισμός’:’Guest-requested supermarket basket — arrangement’, [pr(isEl?’Δωρεάν’:’Free’)], 0, 5760, 3600),
+      dataRow2(isEl?’Καλάθι σ/μ κατ\’ αίτηση επισκέπτη — τιμολόγηση στον επισκέπτη’:’Guest-requested supermarket basket — invoiced to guest’, [pr(isEl?’Κόστος αγοράς’:’At cost’)], 1, 5760, 3600),
       dataRow2(isEl?'Λοιποί διακανονισμοί εφοδίων (ξαπλώστρες, έπιπλα κ.λπ.)':'Other supply arrangements (sunbeds, furniture, etc.)',
         [pr('+'), tvr('supplyFee', fv('supplyFee','%')), pr(isEl?' επί καθαρής αξίας τιμολογίου (εκτός ΦΠΑ και μεταφοράς)':' on net invoice value (excl. VAT and delivery)')], 0, 5760, 3600)
     ]}), sp()

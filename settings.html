@@ -362,6 +362,16 @@ create policy "anon_all" on zesty_statements for all using (true) with check (tr
 
   <!-- ABOUT -->
   <div class="settings-section">
+    <h2>💾 Data Backup</h2>
+    <p>Download a full backup of all ERP data stored in this browser. The file contains every module: owners, properties, proposals, cleaning jobs, laundry orders, reports, settings and more. Keep it safe — you can use it to restore if anything goes wrong.</p>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+      <button class="btn btn-primary" onclick="downloadBackup()">⬇ Download Full Backup</button>
+      <label class="btn btn-outline" style="cursor:pointer">⬆ Restore from Backup<input type="file" accept=".json" style="display:none" onchange="restoreBackup(event)"></label>
+      <span id="backup-status" style="font-size:12px;color:var(--text-muted)"></span>
+    </div>
+  </div>
+
+  <div class="settings-section">
     <h2>About</h2>
     <p style="margin-bottom:8px">Zesty ERP v4.0 — Rebuilt from scratch with clean architecture.</p>
     <div style="font-size:12px;color:var(--text-muted);line-height:1.7">
@@ -391,6 +401,44 @@ function loadSettings() {
   } catch {}
 }
 loadSettings();
+
+function downloadBackup() {
+  const backup = { _version: 1, _date: new Date().toISOString(), data: {} };
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    try { backup.data[key] = JSON.parse(localStorage.getItem(key)); }
+    catch { backup.data[key] = localStorage.getItem(key); }
+  }
+  const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'ZestyERP_Backup_' + new Date().toISOString().slice(0,10) + '.json';
+  a.click();
+  URL.revokeObjectURL(url);
+  const st = document.getElementById('backup-status');
+  if (st) st.textContent = '✓ Backup downloaded — ' + Object.keys(backup.data).length + ' keys';
+}
+
+function restoreBackup(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const backup = JSON.parse(e.target.result);
+      if (!backup.data) { alert('Invalid backup file.'); return; }
+      if (!confirm('This will overwrite all current data with the backup from ' + (backup._date||'unknown date') + '. Continue?')) return;
+      Object.entries(backup.data).forEach(([k, v]) => {
+        localStorage.setItem(k, typeof v === 'string' ? v : JSON.stringify(v));
+      });
+      const st = document.getElementById('backup-status');
+      if (st) st.textContent = '✓ Restored ' + Object.keys(backup.data).length + ' keys — reload to apply';
+      setTimeout(() => location.reload(), 1500);
+    } catch(err) { alert('Failed to read backup: ' + err.message); }
+  };
+  reader.readAsText(file);
+}
 
 function saveSettings() {
   const s = {

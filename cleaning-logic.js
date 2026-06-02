@@ -1502,6 +1502,9 @@ function openJobModal(id) {
   document.getElementById('j_hours').value = j.hours || '';
   document.getElementById('j_transport').value = j.propertyTransport || '';
   document.getElementById('j_notes').value = j.notes || '';
+  // Show delete button
+  const delBtn = document.getElementById('j_del_btn');
+  if (delBtn) delBtn.style.display = '';
   // Render cleaner checkboxes
   renderCleanerCheckboxes(j.cleanerIds || [], j.propertyTransport || 0);
   updateCostPreview(j);

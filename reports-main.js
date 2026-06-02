@@ -175,6 +175,7 @@ function generateOwner(){
     return`<tr>
       <td style="color:var(--text-muted);font-size:11px">${i+1}</td>
       <td><strong>${r.Name||'—'}</strong>${r.CountryName||r.Origin?`<br><small style="color:var(--text-muted)">${r.CountryName||r.Origin}</small>`:''}</td>
+      <td style="font-size:11px;color:var(--text-muted)">${r._passport||'—'}</td>
       <td style="font-size:11px;color:var(--text-muted)">${r.DateCreated||r.BookingDate||'—'}</td>
       <td style="font-size:12px">${fmtDate(r.DateArrival)}</td>
       <td style="font-size:12px">${fmtDate(r.DateDeparture)}</td>
@@ -366,7 +367,7 @@ function generateOwner(){
         ⚠ No bookings found. Upload your Lodgify CSV on the <a href="index.html">Dashboard</a> first, or check the property name matches the CSV.
       </div>`:`
       <div style="overflow-x:auto" class="rpt-scroll-wrap"><table class="rpt-table">
-        <thead><tr><th>#</th><th>Guest</th><th>Booked</th><th>Check-in</th><th>Check-out</th>
+        <thead><tr><th>#</th><th>Guest</th><th>ID/Passport</th><th>Booked</th><th>Check-in</th><th>Check-out</th>
           <th>Nts</th><th>Gst</th><th>Source</th><th>Daily Avg</th><th>Total Rent</th>
           <th>Taxes&amp;Fees</th><th>OTA Comm</th><th>Received</th>
           <th>Zesty Comm</th><th>Net Income</th><th style="width:44px"></th>
@@ -799,6 +800,7 @@ function editBookingRow(idx) {
   document.getElementById('eb-ota').value      = b._ota||'0';
   document.getElementById('eb-zesty').value    = b._zesty||'';
   document.getElementById('eb-note').value     = b._note||'';
+  const ppEl = document.getElementById('eb-passport'); if(ppEl) ppEl.value = b._passport||'';
   document.getElementById('eb-del-btn').style.display = b._manual ? '' : 'none';
   openModal('editBookingModal');
 }
@@ -818,6 +820,7 @@ function saveBookingEdit() {
   b._ota           = parseFloat(document.getElementById('eb-ota').value)||0;
   b._zesty         = parseFloat(document.getElementById('eb-zesty').value)||0;
   b._note          = document.getElementById('eb-note').value;
+  const ppSave = document.getElementById('eb-passport'); if(ppSave) b._passport = ppSave.value;
   closeModal('editBookingModal');
   generateOwner();
   showToast('\u2713 Row updated','success');
@@ -858,6 +861,7 @@ function saveManualBooking() {
     _ota:parseFloat(document.getElementById('eb-ota').value)||0,
     _zesty:parseFloat(document.getElementById('eb-zesty').value)||0,
     _note:document.getElementById('eb-note').value,
+    _passport:document.getElementById('eb-passport')?.value||'',
   };
   if(!currentStatementData.bookings) currentStatementData.bookings=[];
   currentStatementData.bookings.push(manual);
