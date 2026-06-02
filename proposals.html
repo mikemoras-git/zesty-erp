@@ -1080,6 +1080,10 @@ async function exportDocx() {
   if (!p) return;
   const ready = await loadDocxLib();
   if (!ready) return;
+  if (!window._docxBlockLoaded || typeof buildDocxDocument === 'undefined') {
+    showToast('DOCX script block failed to load — please hard-refresh (Ctrl+Shift+R)', true);
+    return;
+  }
   showToast('⏳ Generating DOCX…');
   try {
     const doc = buildDocxDocument(p);
@@ -1289,7 +1293,7 @@ function buildDocxDocument(p) {
     ]}),
     new TableRow({ children: [
       new TableCell({ width:{size:2880,type:WidthType.DXA}, shading:{fill:'F0F7F6',type:ShadingType.CLEAR}, borders:allBorders('D0E8E4'), margins:{top:80,bottom:80,left:160,right:80}, children:[new Paragraph({children:[pr(isEl?'Διάρκεια:':'Term:', {bold:true,color:TEAL})]})] }),
-      new TableCell({ width:{size:6480,type:WidthType.DXA}, borders:allBorders('D0E8E4'), margins:{top:80,bottom:80,left:160,right:80}, children:[new Paragraph({children:[pr(isEl?’Ισχύει έως 31 Δεκεμβρίου του έτους υπογραφής · ανανεώνεται αυτόματα εκτός αν κάποιο μέρος δώσει γραπτή ειδοποίηση 30 ημερών.’:’Valid until 31 December of the signing year; auto-renews annually unless either party gives 30 days\’ written notice.’, {size:20})]})] })
+      new TableCell({ width:{size:6480,type:WidthType.DXA}, borders:allBorders('D0E8E4'), margins:{top:80,bottom:80,left:160,right:80}, children:[new Paragraph({children:[pr(isEl?’Ισχύει έως 31 Δεκεμβρίου του έτους υπογραφής · ανανεώνεται αυτόματα εκτός αν κάποιο μέρος δώσει γραπτή ειδοποίηση 30 ημερών.’:"Valid until 31 December of the signing year; auto-renews annually unless either party gives 30 days’ written notice.", {size:20})]})] })
     ]})
   ];
 
@@ -1616,8 +1620,8 @@ function buildDocxDocument(p) {
       hdrRow2(isEl?'Υπηρεσία':'Service', isEl?'Αμοιβή':'Fee', 5760, 3600),
       dataRow2(isEl?'Βασικά εφόδια (πισίνα / καθαρισμός / επισκέπτες / κήπος) — διακανονισμός':'Baseline supplies (pool / cleaning / guest / garden) — arrangement', [pr(isEl?'Δωρεάν':'Free')], 0, 5760, 3600),
       dataRow2(isEl?'Βασικά εφόδια — τιμολόγηση στον ιδιοκτήτη':'Baseline supplies — invoiced to Owner', [pr(isEl?'Κόστος αγοράς, χύμα ανά σεζόν':'At cost, in bulk per season')], 1, 5760, 3600),
-      dataRow2(isEl?’Καλάθι σ/μ κατ\’ αίτηση επισκέπτη — διακανονισμός’:’Guest-requested supermarket basket — arrangement’, [pr(isEl?’Δωρεάν’:’Free’)], 0, 5760, 3600),
-      dataRow2(isEl?’Καλάθι σ/μ κατ\’ αίτηση επισκέπτη — τιμολόγηση στον επισκέπτη’:’Guest-requested supermarket basket — invoiced to guest’, [pr(isEl?’Κόστος αγοράς’:’At cost’)], 1, 5760, 3600),
+      dataRow2(isEl?’Καλαθι σ/μ (κατ αιτηση) — διακανονισμος’:’Guest-requested supermarket basket — arrangement’, [pr(isEl?’Δωρεαν’:’Free’)], 0, 5760, 3600),
+      dataRow2(isEl?’Καλαθι σ/μ (κατ αιτηση) — τιμολογηση στον επισκεπτη’:’Guest-requested supermarket basket — invoiced to guest’, [pr(isEl?’Κοστος αγορας’:’At cost’)], 1, 5760, 3600),
       dataRow2(isEl?'Λοιποί διακανονισμοί εφοδίων (ξαπλώστρες, έπιπλα κ.λπ.)':'Other supply arrangements (sunbeds, furniture, etc.)',
         [pr('+'), tvr('supplyFee', fv('supplyFee','%')), pr(isEl?' επί καθαρής αξίας τιμολογίου (εκτός ΦΠΑ και μεταφοράς)':' on net invoice value (excl. VAT and delivery)')], 0, 5760, 3600)
     ]}), sp()
@@ -1701,6 +1705,7 @@ function buildDocxDocument(p) {
     }]
   });
 }
+window._docxBlockLoaded = true;
 </script>
 <script src="erp-nav.js"></script>
 </body>
