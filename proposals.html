@@ -1061,12 +1061,12 @@ async function loadDocxLib() {
   showToast('⏳ Loading export library…');
   return new Promise(resolve => {
     const s = document.createElement('script');
-    s.src = 'https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.js';
+    s.src = 'https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.iife.js';
     s.onload = function() { _docxLoading = false; resolve(true); };
     s.onerror = function() {
       // fallback to unpkg
       var s2 = document.createElement('script');
-      s2.src = 'https://unpkg.com/docx@8.5.0/build/index.js';
+      s2.src = 'https://unpkg.com/docx@8.5.0/build/index.iife.js';
       s2.onload = function() { _docxLoading = false; resolve(true); };
       s2.onerror = function() { _docxLoading = false; showToast('Failed to load export library', true); resolve(false); };
       document.head.appendChild(s2);

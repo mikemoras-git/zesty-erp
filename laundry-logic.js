@@ -769,11 +769,12 @@ function viewCustomerLedger(custId) {
   if (!cust) return;
   const pl = pricelists.find(p => p.id === cust.pricelistId);
 
-  // Helper: calculate order total from items × pricelist
+  // Helper: calculate order total from items × pricelist (including leasing surcharge)
+  const surchargeRate = cust.customerType === 'leasing' ? (parseFloat(cust.leasingSurcharge) || 0) / 100 : 0;
   function calcOrderTotal(o) {
     let total = 0;
     Object.entries(o.items || {}).forEach(([code, qty]) => {
-      total += qty * (pl?.prices?.[code] || 0);
+      total += qty * (pl?.prices?.[code] || 0) * (1 + surchargeRate);
     });
     return parseFloat(total.toFixed(2));
   }
