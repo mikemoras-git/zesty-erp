@@ -302,12 +302,9 @@ const FIELDS = [
 async function init() {
   const cached = getLocal();
   if (cached.length) { proposals = cached; renderList(); }
-  const r = await DB.loadAll(TABLE);
-  if (r.ok && r.rows) {
-    proposals = r.rows;
-    localStorage.setItem(LS_KEY, JSON.stringify(proposals));
-    renderList();
-  }
+  const result = await SyncStore.load(LS_KEY, TABLE);
+  proposals = result.data;
+  renderList();
 }
 
 function getLocal() {
