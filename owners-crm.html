@@ -1139,29 +1139,25 @@ const rawData = [
 
 // ============ INIT ============
 async function init() {
-  // Group by owner (tax number or name) and assign IDs
+  // Build default owners from rawData (used only if nothing in Supabase/localStorage)
   const ownerMap = {};
   rawData.forEach(row => {
     const key = row.taxNumber || `${row.repFirst}_${row.repLast}`;
     if (!ownerMap[key]) {
-      ownerMap[key] = {
-        id: key,
-        ...row,
-        properties: [],
-        archived: false
-      };
+      ownerMap[key] = { id: key, ...row, properties: [], archived: false };
     }
     ownerMap[key].properties.push({ id: row.propertyId, name: row.propertyName });
   });
+  const rawOwners = Object.values(ownerMap);
 
-  owners = Object.values(ownerMap);
-
-  // Load from localStorage if exists
-  const saved = localStorage.getItem('zesty_owners');
-  if (saved) {
-    try { owners = JSON.parse(saved); } catch(e) {}
+  // Try Supabase first, then localStorage, then rawData
+  const stored = await SyncStore.load('zesty_owners', 'owners');
+  if (stored && stored.length > 0) {
+    owners = stored;
   } else {
-    saveToStorage();
+    // Nothing in Supabase or localStorage — seed from rawData
+    owners = rawOwners;
+    await SyncStore.saveAll('zesty_owners', 'owners', owners);
   }
 
   renderTable();
