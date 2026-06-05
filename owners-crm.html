@@ -1138,8 +1138,8 @@ const rawData = [
 ];
 
 // ============ INIT ============
-async function init() {
-  // Build default owners from rawData (used only if nothing in Supabase/localStorage)
+function init() {
+  // Build owners from rawData
   const ownerMap = {};
   rawData.forEach(row => {
     const key = row.taxNumber || `${row.repFirst}_${row.repLast}`;
@@ -1148,24 +1148,30 @@ async function init() {
     }
     ownerMap[key].properties.push({ id: row.propertyId, name: row.propertyName });
   });
-  const rawOwners = Object.values(ownerMap);
 
-  // Try Supabase first, then localStorage, then rawData
-  const stored = await SyncStore.load('zesty_owners', 'owners');
-  if (stored && stored.length > 0) {
-    owners = stored;
-  } else {
-    // Nothing in Supabase or localStorage — seed from rawData
-    owners = rawOwners;
-    await SyncStore.saveAll('zesty_owners', 'owners', owners);
+  // Always prefer localStorage (persists across reloads, includes any new owners)
+  const saved = localStorage.getItem('zesty_owners');
+  if (saved) {
+    try {
+      const parsed = JSON.parse(saved);
+      if (parsed && parsed.length > 0) {
+        owners = parsed;
+        renderTable();
+        updateStats();
+        return;
+      }
+    } catch(e) {}
   }
 
+  // First-time load: seed from rawData and save to localStorage
+  owners = Object.values(ownerMap);
+  localStorage.setItem('zesty_owners', JSON.stringify(owners));
   renderTable();
   updateStats();
 }
 
 function saveToStorage() {
-  SyncStore.saveAll('zesty_owners', 'owners', owners);
+  localStorage.setItem('zesty_owners', JSON.stringify(owners));
 }
 
 // ============ RENDER ============
