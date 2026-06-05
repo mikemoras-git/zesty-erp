@@ -1293,7 +1293,7 @@ function buildDocxDocument(p) {
     ]}),
     new TableRow({ children: [
       new TableCell({ width:{size:2880,type:WidthType.DXA}, shading:{fill:'F0F7F6',type:ShadingType.CLEAR}, borders:allBorders('D0E8E4'), margins:{top:80,bottom:80,left:160,right:80}, children:[new Paragraph({children:[pr(isEl?'Διάρκεια:':'Term:', {bold:true,color:TEAL})]})] }),
-      new TableCell({ width:{size:6480,type:WidthType.DXA}, borders:allBorders('D0E8E4'), margins:{top:80,bottom:80,left:160,right:80}, children:[new Paragraph({children:[pr(isEl?’Ισχύει έως 31 Δεκεμβρίου του έτους υπογραφής · ανανεώνεται αυτόματα εκτός αν κάποιο μέρος δώσει γραπτή ειδοποίηση 30 ημερών.’:"Valid until 31 December of the signing year; auto-renews annually unless either party gives 30 days’ written notice.", {size:20})]})] })
+      new TableCell({ width:{size:6480,type:WidthType.DXA}, borders:allBorders('D0E8E4'), margins:{top:80,bottom:80,left:160,right:80}, children:[new Paragraph({children:[pr(isEl?'Ισχύει έως 31 Δεκεμβρίου του έτους υπογραφής · ανανεώνεται αυτόματα εκτός αν κάποιο μέρος δώσει γραπτή ειδοποίηση 30 ημερών.':"Valid until 31 December of the signing year; auto-renews annually unless either party gives 30 days' written notice.", {size:20})]})] })
     ]})
   ];
 
@@ -1329,7 +1329,7 @@ function buildDocxDocument(p) {
     dataRow2(isEl?'Αναλώσιμα Επισκεπτών':'Guest Consumables', [pr(isEl?'Προμήθεια και ανεφοδιασμός στο κόστος — χωρίς αμοιβή διακανονισμού':'Arranged and restocked at cost — no handling fee')], 0, 3600, 5760),
     dataRow2(isEl?'Διαχείριση Αξιώσεων':'Claims Management', [pr(isEl?'Συμπεριλαμβάνεται στην αμοιβή διαχείρισης':'Included in management fee')], 1, 3600, 5760),
     dataRow2(isEl?'Πλατφόρμες':'Platforms', [pr('Airbnb, Booking.com, Vrbo, Zesty.com')], 0, 3600, 5760),
-    dataRow2(isEl?’Καταγγελία’:’Termination Notice’, [pr(isEl?’Γραπτή ειδοποίηση 30 ημερών’:’30 days\’ written notice by either party’)], 1, 3600, 5760),
+    dataRow2(isEl?'Καταγγελία':'Termination Notice', [pr(isEl?'Γραπτή ειδοποίηση 30 ημερών':'30 days\' written notice by either party')], 1, 3600, 5760),
     dataRow2(isEl?'ΦΠΑ':'VAT', [pr(isEl?'Όλες οι αμοιβές εκτός 24% ΦΠΑ':'All fees exclude 24% VAT unless otherwise stated')], 0, 3600, 5760)
   ];
 
@@ -1518,7 +1518,7 @@ function buildDocxDocument(p) {
     h2(isEl?'6.2 Καταγγελία & Παράδοση':'6.2 Termination & Handover'),
     para(isEl
       ? 'Οποιοδήποτε μέρος μπορεί να καταγγείλει τη σύμβαση με γραπτή ειδοποίηση 30 ημερών.'
-      : ‘Either party may terminate this agreement with 30 days\’ written notice.’),
+      : 'Either party may terminate this agreement with 30 days\' written notice.'),
     para(isEl
       ? 'Εντός 15 ημερών από την καταγγελία, ο Διαχειριστής θα μεταβιβάσει πρόσβαση σε όλες τις αγγελίες, μελλοντικές κρατήσεις, επικοινωνίες και λειτουργικά αρχεία.'
       : 'Within 15 days of termination, the Manager will transfer access to all listings, future reservations, guest communications, and operational files.'),
@@ -1620,8 +1620,8 @@ function buildDocxDocument(p) {
       hdrRow2(isEl?'Υπηρεσία':'Service', isEl?'Αμοιβή':'Fee', 5760, 3600),
       dataRow2(isEl?'Βασικά εφόδια (πισίνα / καθαρισμός / επισκέπτες / κήπος) — διακανονισμός':'Baseline supplies (pool / cleaning / guest / garden) — arrangement', [pr(isEl?'Δωρεάν':'Free')], 0, 5760, 3600),
       dataRow2(isEl?'Βασικά εφόδια — τιμολόγηση στον ιδιοκτήτη':'Baseline supplies — invoiced to Owner', [pr(isEl?'Κόστος αγοράς, χύμα ανά σεζόν':'At cost, in bulk per season')], 1, 5760, 3600),
-      dataRow2(isEl?’Καλαθι σ/μ (κατ αιτηση) — διακανονισμος’:’Guest-requested supermarket basket — arrangement’, [pr(isEl?’Δωρεαν’:’Free’)], 0, 5760, 3600),
-      dataRow2(isEl?’Καλαθι σ/μ (κατ αιτηση) — τιμολογηση στον επισκεπτη’:’Guest-requested supermarket basket — invoiced to guest’, [pr(isEl?’Κοστος αγορας’:’At cost’)], 1, 5760, 3600),
+      dataRow2(isEl?'Καλαθι σ/μ (κατ αιτηση) — διακανονισμος':'Guest-requested supermarket basket — arrangement', [pr(isEl?'Δωρεαν':'Free')], 0, 5760, 3600),
+      dataRow2(isEl?'Καλαθι σ/μ (κατ αιτηση) — τιμολογηση στον επισκεπτη':'Guest-requested supermarket basket — invoiced to guest', [pr(isEl?'Κοστος αγορας':'At cost')], 1, 5760, 3600),
       dataRow2(isEl?'Λοιποί διακανονισμοί εφοδίων (ξαπλώστρες, έπιπλα κ.λπ.)':'Other supply arrangements (sunbeds, furniture, etc.)',
         [pr('+'), tvr('supplyFee', fv('supplyFee','%')), pr(isEl?' επί καθαρής αξίας τιμολογίου (εκτός ΦΠΑ και μεταφοράς)':' on net invoice value (excl. VAT and delivery)')], 0, 5760, 3600)
     ]}), sp()
