@@ -318,7 +318,10 @@ function setView(v) {
 
 function checklistPct(prop) {
   if (!checkItems.length) return 0;
-  const done = checkItems.filter(item => (prop.checklist || {})[slugify(item)]).length;
+  const cl = prop.checklist || {};
+  // Support both raw-string keys (saved by property-view toggleChecklist)
+  // and slugified keys (legacy from old edit modal saves).
+  const done = checkItems.filter(item => cl[item] || cl[slugify(item)]).length;
   return Math.round((done / checkItems.length) * 100);
 }
 function slugify(s) { return s.toLowerCase().replace(/\s+/g,'_').replace(/[^a-z0-9_]/g,''); }
@@ -472,11 +475,11 @@ function fillForm(p) {
 function buildChecklistForm(prop) {
   const container = document.getElementById('p_checklist_form');
   const checklist = (prop && prop.checklist) || {};
-  container.innerHTML = checkItems.map(item => {
-    const key = slugify(item);
-    const done = !!checklist[key];
+  container.innerHTML = checkItems.map((item, idx) => {
+    // Read both raw and slugified keys (backward compat with old saves)
+    const done = !!(checklist[item] || checklist[slugify(item)]);
     return `<div class="checklist-item${done?' done':''}">
-      <input type="checkbox" id="chk_${key}" ${done?'checked':''}
+      <input type="checkbox" id="chk_${idx}" ${done?'checked':''}
         onchange="this.closest('.checklist-item').classList.toggle('done',this.checked)">
       <span>${esc(item)}</span>
     </div>`;
@@ -485,10 +488,10 @@ function buildChecklistForm(prop) {
 
 function getChecklistValues() {
   const result = {};
-  checkItems.forEach(item => {
-    const key = slugify(item);
-    const el  = document.getElementById('chk_' + key);
-    if (el) result[key] = el.checked;
+  checkItems.forEach((item, idx) => {
+    // Save with raw string keys — same as toggleChecklist in property-view
+    const el = document.getElementById('chk_' + idx);
+    if (el) result[item] = el.checked;
   });
   return result;
 }

@@ -322,14 +322,20 @@ function renderSpecs() {
   }
 }
 
+function clPct(checklist, items) {
+  // Tolerate both raw-string keys and old slugified keys
+  return items.filter(i => checklist[i] || checklist[i.toLowerCase().replace(/\s+/g,'_').replace(/[^a-z0-9_]/g,'')]).length;
+}
+
 function renderChecklist() {
-  const items    = settings.checklist_items || KRE_DEFAULTS.checklist_items;
-  const checked  = prop.checklist || {};
-  const done     = items.filter(i => checked[i]).length;
-  document.getElementById('checklist-progress-text').textContent = `${done} / ${items.length} complete`;
+  const items   = settings.checklist_items || KRE_DEFAULTS.checklist_items;
+  const checked = prop.checklist || {};
+  const done    = clPct(checked, items);
+  const pct     = items.length ? Math.round(done / items.length * 100) : 0;
+  document.getElementById('checklist-progress-text').textContent = `${done} / ${items.length} complete (${pct}%)`;
 
   document.getElementById('checklist-body').innerHTML = items.map(item => {
-    const isDone = !!checked[item];
+    const isDone = !!(checked[item] || checked[item.toLowerCase().replace(/\s+/g,'_').replace(/[^a-z0-9_]/g,'')]);
     return `<div class="checklist-item">
       <input type="checkbox" ${isDone?'checked':''} onchange="toggleChecklist('${esc(item)}',this.checked)">
       <span class="${isDone?'checklist-done':''}">${esc(item)}</span>
@@ -338,18 +344,20 @@ function renderChecklist() {
 }
 
 async function toggleChecklist(item, val) {
-  const checklist = { ...(prop.checklist||{}), [item]: val };
+  // Always save with raw-string key; also delete any legacy slugified key for same item
+  const slug = item.toLowerCase().replace(/\s+/g,'_').replace(/[^a-z0-9_]/g,'');
+  const prev = { ...(prop.checklist||{}) };
+  delete prev[slug]; // remove stale slug key if present
+  const checklist = { ...prev, [item]: val };
   const r = await DB.upsertOne('kre_properties', {...prop, checklist});
   if (r.ok) {
     prop.checklist = checklist;
     const items = settings.checklist_items || KRE_DEFAULTS.checklist_items;
-    const done  = items.filter(i => checklist[i]).length;
-    document.getElementById('checklist-progress-text').textContent = `${done} / ${items.length} complete`;
-    // update strikethrough
-    document.querySelectorAll('.checklist-item span').forEach((el,idx) => {
-      if (items[idx]) {
-        el.className = checklist[items[idx]] ? 'checklist-done' : '';
-      }
+    const done  = clPct(checklist, items);
+    const pct   = items.length ? Math.round(done / items.length * 100) : 0;
+    document.getElementById('checklist-progress-text').textContent = `${done} / ${items.length} complete (${pct}%)`;
+    document.querySelectorAll('.checklist-item span').forEach((el, idx) => {
+      if (items[idx]) el.className = checklist[items[idx]] ? 'checklist-done' : '';
     });
     toast(val ? 'Document marked complete' : 'Unchecked', 'success');
   } else {
