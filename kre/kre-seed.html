@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>KRE — Seed Properties</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&family=DM+Sans:wght@300;400;500;600&family=DM+Mono&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font-family:'DM Sans',sans-serif;
+  background:linear-gradient(135deg,#0b1f30 0%,#0f2a3f 50%,#0d2035 100%);
+  display:flex;align-items:center;justify-content:center;
+  min-height:100vh;padding:20px;position:relative;overflow:hidden;
+}
+.orb{position:absolute;border-radius:50%;filter:blur(90px);opacity:.08;pointer-events:none}
+.orb1{width:500px;height:500px;background:#1c8a8c;top:-100px;left:-100px}
+.orb2{width:400px;height:400px;background:#c9a84c;bottom:-80px;right:-60px}
+
+.seed-card{
+  background:rgba(255,255,255,.03);
+  backdrop-filter:blur(20px);
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:22px;
+  padding:48px 44px;
+  width:100%;max-width:520px;
+  position:relative;z-index:1;
+  box-shadow:0 24px 80px rgba(0,0,0,.4);
+  text-align:center;
+}
+.seed-brand{margin-bottom:32px}
+.seed-brand-name{
+  font-family:'Cormorant Garamond',serif;
+  font-size:42px;font-weight:300;color:#fff;letter-spacing:3px;line-height:1;
+}
+.seed-brand-name span{color:#e8c97a}
+.seed-brand-sub{font-size:10px;color:rgba(255,255,255,.3);text-transform:uppercase;letter-spacing:3px;margin-top:8px;font-family:'DM Mono',monospace}
+
+.seed-icon{font-size:48px;margin-bottom:16px}
+.seed-title{font-size:20px;font-weight:600;color:#fff;margin-bottom:8px}
+.seed-desc{font-size:13px;color:rgba(255,255,255,.45);line-height:1.6;margin-bottom:28px}
+
+.progress-wrap{background:rgba(255,255,255,.08);border-radius:12px;height:10px;overflow:hidden;margin-bottom:12px}
+.progress-bar{height:100%;background:linear-gradient(90deg,#1c8a8c,#c9a84c);border-radius:12px;transition:width .3s ease;width:0%}
+
+.progress-text{font-family:'DM Mono',monospace;font-size:12px;color:rgba(255,255,255,.5);margin-bottom:20px}
+
+.log-box{
+  background:rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.07);border-radius:10px;
+  padding:14px;max-height:200px;overflow-y:auto;text-align:left;
+  font-family:'DM Mono',monospace;font-size:11px;line-height:1.7;
+  scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.1) transparent;
+}
+.log-box::-webkit-scrollbar{width:3px}
+.log-box::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:2px}
+.log-line{color:rgba(255,255,255,.4)}
+.log-ok{color:#27ae60}
+.log-skip{color:#c9a84c}
+.log-err{color:#e74c3c}
+
+.seed-status{
+  margin-top:20px;padding:14px;border-radius:10px;font-size:14px;font-weight:500;
+  display:none;
+}
+.seed-status.success{background:rgba(28,138,140,.15);border:1px solid rgba(28,138,140,.3);color:#7ee8ea}
+.seed-status.error  {background:rgba(231,76,60,.15);border:1px solid rgba(231,76,60,.3);color:#ff8b7e}
+
+.btn-primary{
+  display:inline-block;margin-top:20px;padding:12px 32px;
+  background:linear-gradient(135deg,#1c8a8c,#14676a);color:#fff;
+  border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;
+  cursor:pointer;transition:all .17s;text-decoration:none;
+}
+.btn-primary:hover{background:linear-gradient(135deg,#22a8aa,#1c8a8c);transform:translateY(-1px);box-shadow:0 6px 20px rgba(28,138,140,.3)}
+.btn-primary:disabled{opacity:.5;cursor:not-allowed;transform:none}
+</style>
+</head>
+<body>
+<div class="orb orb1"></div>
+<div class="orb orb2"></div>
+
+<div class="seed-card">
+  <div class="seed-brand">
+    <div class="seed-brand-name">KRE<span>·</span>ERP</div>
+    <div class="seed-brand-sub">Kissamos Real Estate</div>
+  </div>
+
+  <div class="seed-icon">🏡</div>
+  <div class="seed-title" id="mainTitle">Property Database Seeder</div>
+  <div class="seed-desc" id="mainDesc">This will import all 255 properties from the seed file into Supabase. Already-existing records will be skipped. This is safe to run multiple times.</div>
+
+  <div class="progress-wrap" id="progressWrap" style="display:none">
+    <div class="progress-bar" id="progressBar"></div>
+  </div>
+  <div class="progress-text" id="progressText"></div>
+
+  <div class="log-box" id="logBox" style="display:none"></div>
+
+  <div class="seed-status" id="seedStatus"></div>
+
+  <button class="btn-primary" id="startBtn" onclick="startSeed()">▶ Start Import</button>
+  <a class="btn-primary" id="goBtn" href="kre-properties.html" style="display:none">→ Go to Properties</a>
+</div>
+
+<script src="kre-base.js"></script>
+<script src="seed-properties.js"></script>
+<script>
+let imported = 0, skipped = 0, errors = 0;
+
+function log(msg, cls) {
+  const box = document.getElementById('logBox');
+  const line = document.createElement('div');
+  line.className = 'log-line ' + (cls || '');
+  line.textContent = msg;
+  box.appendChild(line);
+  box.scrollTop = box.scrollHeight;
+}
+
+function setProgress(done, total) {
+  const pct = total ? Math.round((done / total) * 100) : 0;
+  document.getElementById('progressBar').style.width = pct + '%';
+  document.getElementById('progressText').textContent = done + ' / ' + total + ' (' + pct + '%)';
+}
+
+async function startSeed() {
+  const btn = document.getElementById('startBtn');
+  btn.disabled = true;
+  btn.textContent = 'Importing…';
+
+  document.getElementById('progressWrap').style.display = 'block';
+  document.getElementById('logBox').style.display = 'block';
+  document.getElementById('mainDesc').textContent = 'Importing properties — please wait…';
+
+  const total = SEED_PROPERTIES.length;
+  setProgress(0, total);
+
+  // Load existing IDs to detect skips
+  log('Loading existing property IDs…');
+  const existing = new Set();
+  const all = await DB.loadAll('kre_properties');
+  if (all.ok && all.rows) {
+    all.rows.forEach(r => existing.add(r.id));
+    log('Found ' + existing.size + ' existing properties.', existing.size ? 'log-skip' : 'log-line');
+  }
+
+  for (let i = 0; i < SEED_PROPERTIES.length; i++) {
+    const src = SEED_PROPERTIES[i];
+    const id  = 'prop_' + String(src.pn).padStart(4, '0');
+
+    if (existing.has(id)) {
+      skipped++;
+      log('[SKIP] ' + id + ' — ' + (src.type || '') + ' ' + (src.area || ''), 'log-skip');
+      setProgress(i + 1, total);
+      continue;
+    }
+
+    const data = {
+      property_num:   src.pn,
+      type:           src.type    || null,
+      area:           src.area    || null,
+      owner:          src.owner   || null,
+      plot:           src.plot    || null,
+      house:          src.house   || null,
+      sea_m:          src.sea_m   || null,
+      sea_view:       src.sea_view ?? false,
+      bld_cap:        src.bld_cap || null,
+      owner_price:    src.owner_price  || null,
+      office_price:   src.office_price || null,
+      photos:         src.photos  ?? false,
+      coords:         src.coords  || null,
+      notes:          src.notes   || null,
+      new_web:        src.new_web  ?? false,
+      on_web:         src.on_web   ?? false,
+      topo:           src.topo     ?? false,
+      available:      src.available ?? true,
+      desc:           src.desc    || null,
+    };
+
+    const r = await DB.upsertOne('kre_properties', { id, ...data });
+    if (r.ok) {
+      imported++;
+      log('[OK]   ' + id + ' — ' + (src.type || '') + ' in ' + (src.area || 'Unknown'), 'log-ok');
+    } else {
+      errors++;
+      log('[ERR]  ' + id + ' — ' + r.err, 'log-err');
+    }
+    setProgress(i + 1, total);
+
+    // Small yield to keep UI responsive
+    if (i % 10 === 9) await new Promise(r => setTimeout(r, 0));
+  }
+
+  // Done
+  const statusEl = document.getElementById('seedStatus');
+  const summary  = imported + ' imported, ' + skipped + ' skipped, ' + errors + ' errors';
+  if (errors === 0) {
+    statusEl.className = 'seed-status success';
+    statusEl.textContent = '✓ Done! ' + summary;
+    document.getElementById('mainTitle').textContent = 'Import Complete';
+  } else {
+    statusEl.className = 'seed-status error';
+    statusEl.textContent = '⚠ Finished with errors. ' + summary;
+  }
+  statusEl.style.display = 'block';
+
+  btn.style.display = 'none';
+  document.getElementById('goBtn').style.display = 'inline-block';
+
+  // Auto-redirect after 3s if no errors
+  if (errors === 0) {
+    document.getElementById('mainDesc').textContent = 'Redirecting to Properties in 3 seconds…';
+    setTimeout(() => { window.location.href = 'kre-properties.html'; }, 3000);
+  }
+}
+</script>
+</body>
+</html>

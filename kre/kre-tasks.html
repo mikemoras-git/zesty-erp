@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>KRE — Tasks</title>
+<link rel="stylesheet" href="kre-style.css">
+<style>
+.task-row.done td { opacity:.5; text-decoration:line-through; }
+.task-row.done .badge { text-decoration:none; }
+.priority-dot { display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:6px; }
+.priority-high   { background:var(--danger); }
+.priority-medium { background:var(--warning); }
+.priority-low    { background:var(--success); }
+/* ── Subtasks ── */
+.kre-sub-list { list-style:none; padding:0; margin:0 0 6px; }
+.kre-sub-list li { display:flex; align-items:center; gap:8px; padding:5px 0; border-bottom:1px dashed var(--border); font-size:13px; }
+.kre-sub-list li:last-child { border-bottom:none; }
+.kre-sub-list li.done > span { text-decoration:line-through; color:var(--text-muted); }
+.kre-sub-list li input[type=checkbox] { flex-shrink:0; width:15px; height:15px; cursor:pointer; }
+.kre-sub-list li > span { flex:1; }
+.kre-sub-del { background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:14px; padding:0 2px; line-height:1; }
+.kre-sub-del:hover { color:var(--danger); }
+/* ── Comments ── */
+.kre-comment-list { max-height:220px; overflow-y:auto; margin-bottom:8px; }
+.kre-comment-entry { padding:8px 10px; border-left:3px solid var(--border); margin-bottom:8px; border-radius:0 4px 4px 0; background:var(--bg); }
+.kre-comment-meta { font-size:11px; color:var(--text-muted); display:flex; justify-content:space-between; align-items:center; margin-bottom:4px; }
+.kre-comment-body { font-size:13px; line-height:1.6; }
+.kre-comment-body strong { font-weight:700; }
+.kre-comment-body em { font-style:italic; }
+.kre-comment-body ul, .kre-comment-body ol { margin:4px 0 4px 18px; padding:0; }
+.kre-comment-actions { display:flex; gap:6px; }
+.kre-comment-btn { background:none; border:none; font-size:11px; color:var(--text-muted); cursor:pointer; padding:0; }
+.kre-comment-btn:hover { color:var(--danger); }
+.kre-fmt-hint { font-size:11px; color:var(--text-muted); }
+.kre-sub-badge { display:inline-block; font-size:10px; padding:1px 5px; border-radius:10px; background:var(--bg); border:1px solid var(--border); margin-left:4px; color:var(--text-muted); }
+.kre-sub-badge.all-done { background:#d4edda; border-color:#c3e6cb; color:#155724; }
+</style>
+</head>
+<body>
+<div class="kre-page">
+
+  <div class="page-header">
+    <div class="page-title">
+      <h1>Tasks</h1>
+      <p>Action items linked to properties, contacts, or deals</p>
+    </div>
+    <div class="page-actions">
+      <button class="btn btn-primary" onclick="openAdd()">+ Add Task</button>
+    </div>
+  </div>
+
+  <!-- KPIs -->
+  <div class="kpi-grid" style="margin-bottom:20px">
+    <div class="kpi-card">
+      <div class="kpi-label">Open Tasks</div>
+      <div class="kpi-value" id="kpi-open">—</div>
+    </div>
+    <div class="kpi-card orange">
+      <div class="kpi-label">Overdue</div>
+      <div class="kpi-value" id="kpi-overdue">—</div>
+    </div>
+    <div class="kpi-card gold">
+      <div class="kpi-label">Due Today</div>
+      <div class="kpi-value" id="kpi-today">—</div>
+    </div>
+    <div class="kpi-card green">
+      <div class="kpi-label">Completed (30d)</div>
+      <div class="kpi-value" id="kpi-done">—</div>
+    </div>
+  </div>
+
+  <!-- FILTER BAR -->
+  <div class="filter-bar">
+    <input class="search-input" id="f-search" type="text" placeholder="Search tasks…" oninput="applyFilters()">
+    <select id="f-status" onchange="applyFilters()">
+      <option value="open">Open</option>
+      <option value="done">Completed</option>
+      <option value="">All</option>
+    </select>
+    <select id="f-priority" onchange="applyFilters()">
+      <option value="">All Priorities</option>
+      <option value="high">High</option>
+      <option value="medium">Medium</option>
+      <option value="low">Low</option>
+    </select>
+    <select id="f-link" onchange="applyFilters()">
+      <option value="">All Types</option>
+      <option value="property">Property tasks</option>
+      <option value="contact">Contact tasks</option>
+      <option value="deal">Deal tasks</option>
+      <option value="none">Standalone</option>
+    </select>
+    <span class="filter-count" id="filter-count"></span>
+  </div>
+
+  <!-- TABLE -->
+  <div class="card" style="overflow:hidden">
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:32px"></th>
+            <th>Task</th>
+            <th>Priority</th>
+            <th>Due Date</th>
+            <th>Linked To</th>
+            <th>Assigned To</th>
+            <th style="text-align:right">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="tasks-table">
+          <tr><td colspan="7" class="loading-row"><div class="spinner"></div> Loading…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<!-- ADD / EDIT MODAL -->
+<div class="modal-overlay" id="taskModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="taskModalTitle">Add Task</h2>
+      <button class="modal-close" onclick="closeModal('taskModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="t_id">
+
+      <div class="form-group">
+        <label>Task Description *</label>
+        <input id="t_title" type="text" placeholder="What needs to be done?">
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Priority</label>
+          <select id="t_priority">
+            <option value="medium">Medium</option>
+            <option value="high">High</option>
+            <option value="low">Low</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Due Date</label>
+          <input id="t_due" type="date">
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Link Type</label>
+          <select id="t_link_type" onchange="onLinkTypeChange()">
+            <option value="">None</option>
+            <option value="property">Property</option>
+            <option value="contact">Contact</option>
+          </select>
+        </div>
+        <div class="form-group" id="link-target-wrap" style="display:none">
+          <label id="link-target-lbl">Select</label>
+          <select id="t_link_id"></select>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Assigned To</label>
+          <select id="t_assigned"></select>
+        </div>
+        <div class="form-group">
+          <label>Status</label>
+          <select id="t_done">
+            <option value="false">Open</option>
+            <option value="true">Completed</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Notes</label>
+        <textarea id="t_notes" rows="2" placeholder="Additional details…"></textarea>
+      </div>
+
+      <!-- SUBTASKS -->
+      <div class="form-group" style="margin-top:4px">
+        <label>Subtasks</label>
+        <ul class="kre-sub-list" id="t-sub-list"></ul>
+        <div style="display:flex;gap:8px">
+          <input id="t-new-sub" type="text" placeholder="Add subtask… (Enter)" style="flex:1"
+            onkeydown="if(event.key==='Enter'){event.preventDefault();tkAddSub();}">
+          <button type="button" class="btn btn-ghost btn-sm" onclick="tkAddSub()">+ Add</button>
+        </div>
+      </div>
+
+      <!-- COMMENTS -->
+      <div class="form-group" style="margin-top:4px">
+        <label>Comments</label>
+        <div class="kre-comment-list" id="t-comment-list"></div>
+        <textarea id="t-new-comment" rows="2" placeholder="Add a comment… (Ctrl+Enter to post)"
+          onkeydown="if((event.ctrlKey||event.metaKey)&&event.key==='Enter'){event.preventDefault();tkPostComment();}"></textarea>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px">
+          <span class="kre-fmt-hint">**bold** · *italic* · `code` · - list</span>
+          <button type="button" class="btn btn-ghost btn-sm" onclick="tkPostComment()">Post</button>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('taskModal')">Cancel</button>
+      <button class="btn btn-danger btn-sm" id="deleteTaskBtn" onclick="deleteTask()" style="margin-right:auto;display:none">Delete</button>
+      <button class="btn btn-primary" onclick="saveTask()">Save</button>
+    </div>
+  </div>
+</div>
+
+<script src="kre-base.js"></script>
+<script src="kre-nav.js"></script>
+<script>
+let allTasks    = [];
+let allContacts = [];
+let allProps    = [];
+let allUsers    = [];
+let editingId   = null;
+const today     = new Date().toISOString().slice(0,10);
+
+// Per-modal subtask/comment state
+let _subs     = [];   // [{id,text,done}]
+let _comments = [];   // [{id,by,at,text,edited_at?}]
+
+/* ── Subtask helpers ─────────────────────────────────────── */
+function tkRenderSubs() {
+  const ul = document.getElementById('t-sub-list');
+  if (!ul) return;
+  if (!_subs.length) { ul.innerHTML = '<li style="color:var(--text-muted);font-size:12px;font-style:italic">No subtasks yet.</li>'; return; }
+  ul.innerHTML = _subs.map((s,i) =>
+    `<li class="${s.done?'done':''}">
+      <input type="checkbox" ${s.done?'checked':''} onchange="tkToggleSub(${i})">
+      <span>${esc(s.text)}</span>
+      <button class="kre-sub-del" onclick="tkRemoveSub(${i})" title="Remove">×</button>
+    </li>`
+  ).join('');
+}
+function tkAddSub() {
+  const inp = document.getElementById('t-new-sub');
+  const v = inp.value.trim();
+  if (!v) return;
+  _subs.push({ id: 'sub_' + Date.now() + '_' + Math.random().toString(36).slice(2,5), text: v, done: false });
+  inp.value = '';
+  tkRenderSubs();
+}
+function tkToggleSub(i) { _subs[i].done = !_subs[i].done; tkRenderSubs(); }
+function tkRemoveSub(i) { _subs.splice(i,1); tkRenderSubs(); }
+
+/* ── Comment helpers ─────────────────────────────────────── */
+function tkCommentAuthor() {
+  const s = AUTH.getSession();
+  return s ? (s.full_name || s.email || 'me') : 'me';
+}
+function tkRenderComments() {
+  const el = document.getElementById('t-comment-list');
+  if (!el) return;
+  if (!_comments.length) { el.innerHTML = '<div style="font-size:12px;font-style:italic;color:var(--text-muted);padding:4px 0">No comments yet.</div>'; return; }
+  el.innerHTML = [..._comments].reverse().map(c =>
+    `<div class="kre-comment-entry" id="kce-${c.id}">
+      <div class="kre-comment-meta">
+        <span>${esc(c.by || 'me')} · ${fmtDate(c.at)}${c.edited_at?' <em>(edited)</em>':''}</span>
+        <span class="kre-comment-actions">
+          <button class="kre-comment-btn" onclick="tkEditComment('${c.id}')">✎ Edit</button>
+          <button class="kre-comment-btn" onclick="tkDeleteComment('${c.id}')">× Del</button>
+        </span>
+      </div>
+      <div class="kre-comment-body" id="kcb-${c.id}">${kreFormatComment(c.text||'')}</div>
+    </div>`
+  ).join('');
+}
+function tkPostComment() {
+  const ta = document.getElementById('t-new-comment');
+  const text = ta.value.trim();
+  if (!text) return;
+  _comments.push({ id:'cmt_'+Date.now()+'_'+Math.random().toString(36).slice(2,5), by: tkCommentAuthor(), at: new Date().toISOString(), text });
+  ta.value = '';
+  tkRenderComments();
+}
+function tkEditComment(id) {
+  const c = _comments.find(x=>x.id===id);
+  if (!c) return;
+  const bodyEl = document.getElementById('kcb-'+id);
+  if (!bodyEl) return;
+  bodyEl.innerHTML = `<textarea id="kce-ta-${id}" style="width:100%;box-sizing:border-box" rows="3">${esc(c.text||'')}</textarea>
+    <div style="display:flex;gap:6px;margin-top:4px;justify-content:flex-end">
+      <button class="btn btn-ghost btn-sm" onclick="tkCancelEditComment('${id}')">Cancel</button>
+      <button class="btn btn-primary btn-sm" onclick="tkSaveEditComment('${id}')">Save</button>
+    </div>`;
+}
+function tkCancelEditComment(id) { tkRenderComments(); }
+function tkSaveEditComment(id) {
+  const c = _comments.find(x=>x.id===id);
+  if (!c) return;
+  const ta = document.getElementById('kce-ta-'+id);
+  if (!ta) return;
+  c.text = ta.value.trim();
+  c.edited_at = new Date().toISOString();
+  tkRenderComments();
+}
+function tkDeleteComment(id) {
+  if (!confirm('Delete this comment?')) return;
+  _comments = _comments.filter(x=>x.id!==id);
+  tkRenderComments();
+}
+
+async function init() {
+  const [tr, cr, pr, ur] = await Promise.all([
+    DB.loadAll('kre_tasks'),
+    DB.loadAll('kre_contacts'),
+    DB.loadAll('kre_properties'),
+    DB.loadAll('kre_users')
+  ]);
+  allTasks    = tr.rows || [];
+  allContacts = cr.rows || [];
+  allProps    = pr.rows || [];
+  allUsers    = ur.rows || [];
+  updateKPIs();
+  applyFilters();
+}
+
+function updateKPIs() {
+  const open     = allTasks.filter(t=>!t.done);
+  const overdue  = open.filter(t=>t.due_date && t.due_date < today);
+  const dueToday = open.filter(t=>t.due_date === today);
+  const cutoff   = new Date(Date.now()-30*86400000).toISOString().slice(0,10);
+  const done30   = allTasks.filter(t=>t.done && t.completed_at && t.completed_at >= cutoff);
+  document.getElementById('kpi-open').textContent    = open.length;
+  document.getElementById('kpi-overdue').textContent = overdue.length;
+  document.getElementById('kpi-today').textContent   = dueToday.length;
+  document.getElementById('kpi-done').textContent    = done30.length;
+}
+
+function applyFilters() {
+  const search   = document.getElementById('f-search').value.toLowerCase();
+  const status   = document.getElementById('f-status').value;
+  const priority = document.getElementById('f-priority').value;
+  const linkType = document.getElementById('f-link').value;
+
+  const filtered = allTasks.filter(t => {
+    if (status === 'open' && t.done) return false;
+    if (status === 'done' && !t.done) return false;
+    if (priority && t.priority !== priority) return false;
+    if (linkType === 'property' && t.link_type !== 'property') return false;
+    if (linkType === 'contact'  && t.link_type !== 'contact')  return false;
+    if (linkType === 'deal'     && t.link_type !== 'deal')     return false;
+    if (linkType === 'none'     && t.link_type) return false;
+    if (search && !t.title?.toLowerCase().includes(search) && !t.notes?.toLowerCase().includes(search)) return false;
+    return true;
+  });
+
+  filtered.sort((a,b) => {
+    if (a.done !== b.done) return a.done ? 1 : -1;
+    const pa = {high:0,medium:1,low:2}[a.priority||'medium'];
+    const pb = {high:0,medium:1,low:2}[b.priority||'medium'];
+    if (pa !== pb) return pa - pb;
+    return (a.due_date||'9999') < (b.due_date||'9999') ? -1 : 1;
+  });
+
+  document.getElementById('filter-count').textContent = `${filtered.length} of ${allTasks.length}`;
+  renderTable(filtered);
+}
+
+function linkLabel(t) {
+  if (!t.link_type || !t.link_id) return '—';
+  if (t.link_type === 'property') {
+    const p = allProps.find(x=>x.id===t.link_id);
+    return p ? `<span class="badge badge-teal">Prop #${p.property_num||'?'} ${p.area||''}</span>` : '—';
+  }
+  if (t.link_type === 'contact') {
+    const c = allContacts.find(x=>x.id===t.link_id);
+    return c ? `<span class="badge badge-gray">${esc((c.first_name||'')+' '+(c.last_name||''))}</span>` : '—';
+  }
+  return '—';
+}
+
+function renderTable(tasks) {
+  const tbody = document.getElementById('tasks-table');
+  if (!tasks.length) {
+    tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state">
+      <div class="empty-icon">✓</div>
+      <div class="empty-title">No tasks</div>
+      <div class="empty-sub">All caught up! Add a task to track action items.</div>
+    </div></td></tr>`;
+    return;
+  }
+  tbody.innerHTML = tasks.map(t => {
+    const isOverdue = !t.done && t.due_date && t.due_date < today;
+    const isToday   = !t.done && t.due_date === today;
+    const dueFmt    = t.due_date
+      ? `<span style="color:${isOverdue ? 'var(--danger)' : isToday ? 'var(--warning)' : 'var(--text)'}">${isOverdue ? '⚠ ' : ''}${fmtDate(t.due_date)}</span>`
+      : '<span style="color:var(--text-light)">—</span>';
+    const user = allUsers.find(u=>u.id===t.assigned_to);
+    const priDot = `<span class="priority-dot priority-${t.priority||'medium'}"></span>`;
+    const priLabel = t.priority||'medium';
+    // Subtask progress badge
+    const subs = t.subtasks || [];
+    const subsDone = subs.filter(s=>s.done).length;
+    const subsBadge = subs.length
+      ? `<span class="kre-sub-badge${subsDone===subs.length?' all-done':''}" title="${subsDone}/${subs.length} subtasks done">☑ ${subsDone}/${subs.length}</span>`
+      : '';
+    // Comment count
+    const cmts = t.comments || [];
+    const cmtBadge = cmts.length ? `<span class="kre-sub-badge" title="${cmts.length} comment(s)">💬 ${cmts.length}</span>` : '';
+
+    return `<tr class="task-row${t.done?' done':''}">
+      <td>
+        <input type="checkbox" ${t.done?'checked':''} onchange="toggleDone('${t.id}',this.checked)" style="cursor:pointer;width:16px;height:16px">
+      </td>
+      <td>
+        <strong>${esc(t.title||'')}</strong>${subsBadge}${cmtBadge}
+        ${t.notes ? `<div style="font-size:11px;color:var(--text-muted);margin-top:2px">${esc(t.notes.slice(0,80))}${t.notes.length>80?'…':''}</div>` : ''}
+      </td>
+      <td>${priDot}${priLabel.charAt(0).toUpperCase()+priLabel.slice(1)}</td>
+      <td>${dueFmt}</td>
+      <td>${linkLabel(t)}</td>
+      <td style="font-size:13px">${user ? esc(user.full_name||user.email) : '<span style="color:var(--text-light)">Unassigned</span>'}</td>
+      <td class="td-actions">
+        <button class="btn btn-ghost btn-sm" onclick="openEdit('${t.id}')">Edit</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+async function toggleDone(id, done) {
+  const t = allTasks.find(x=>x.id===id);
+  if (!t) return;
+  const updated = {...t, done, completed_at: done ? new Date().toISOString() : null};
+  const r = await DB.upsertOne('kre_tasks', updated);
+  if (r.ok) {
+    Object.assign(t, updated);
+    updateKPIs();
+    applyFilters();
+  } else {
+    toast('Error: ' + r.err, 'error');
+  }
+}
+
+function onLinkTypeChange() {
+  const type = document.getElementById('t_link_type').value;
+  const wrap  = document.getElementById('link-target-wrap');
+  const lbl   = document.getElementById('link-target-lbl');
+  const sel   = document.getElementById('t_link_id');
+  if (!type) { wrap.style.display = 'none'; return; }
+  wrap.style.display = '';
+  sel.innerHTML = '<option value="">— Select —</option>';
+  if (type === 'property') {
+    lbl.textContent = 'Property';
+    allProps.forEach(p => {
+      const o = document.createElement('option');
+      o.value = p.id;
+      o.textContent = `#${p.property_num||'?'} ${p.type||''} – ${p.area||''}`;
+      sel.appendChild(o);
+    });
+  } else if (type === 'contact') {
+    lbl.textContent = 'Contact';
+    allContacts.forEach(c => {
+      const o = document.createElement('option');
+      o.value = c.id;
+      o.textContent = (c.first_name||'')+' '+(c.last_name||'');
+      sel.appendChild(o);
+    });
+  }
+}
+
+function populateAssigned() {
+  const sel = document.getElementById('t_assigned');
+  sel.innerHTML = '<option value="">— Unassigned —</option>';
+  allUsers.forEach(u => {
+    const o = document.createElement('option');
+    o.value = u.id;
+    o.textContent = u.full_name || u.email;
+    sel.appendChild(o);
+  });
+}
+
+function openAdd() {
+  editingId = null;
+  document.getElementById('taskModalTitle').textContent = 'Add Task';
+  document.getElementById('deleteTaskBtn').style.display = 'none';
+  clearForm();
+  populateAssigned();
+  openModal('taskModal');
+}
+
+function openEdit(id) {
+  const t = allTasks.find(x=>x.id===id);
+  if (!t) return;
+  editingId = id;
+  document.getElementById('taskModalTitle').textContent = 'Edit Task';
+  document.getElementById('deleteTaskBtn').style.display = '';
+  populateAssigned();
+  fillForm(t);
+  openModal('taskModal');
+}
+
+function clearForm() {
+  ['t_id','t_title','t_notes'].forEach(i=>{ const el=document.getElementById(i); if(el) el.value=''; });
+  document.getElementById('t_priority').value  = 'medium';
+  document.getElementById('t_due').value       = '';
+  document.getElementById('t_link_type').value = '';
+  document.getElementById('t_done').value      = 'false';
+  document.getElementById('link-target-wrap').style.display = 'none';
+  document.getElementById('t-new-sub').value     = '';
+  document.getElementById('t-new-comment').value = '';
+  _subs = []; _comments = [];
+  tkRenderSubs(); tkRenderComments();
+}
+
+function fillForm(t) {
+  document.getElementById('t_id').value       = t.id;
+  document.getElementById('t_title').value    = t.title||'';
+  document.getElementById('t_priority').value = t.priority||'medium';
+  document.getElementById('t_due').value      = t.due_date||'';
+  document.getElementById('t_done').value     = t.done ? 'true' : 'false';
+  document.getElementById('t_notes').value    = t.notes||'';
+  document.getElementById('t_assigned').value = t.assigned_to||'';
+  document.getElementById('t_link_type').value = t.link_type||'';
+  onLinkTypeChange();
+  if (t.link_id) document.getElementById('t_link_id').value = t.link_id;
+  // Load subtasks + comments
+  _subs     = (t.subtasks  || []).map(s=>({...s}));
+  _comments = (t.comments  || []).map(c=>({...c}));
+  document.getElementById('t-new-sub').value     = '';
+  document.getElementById('t-new-comment').value = '';
+  tkRenderSubs(); tkRenderComments();
+}
+
+async function saveTask() {
+  const title = document.getElementById('t_title').value.trim();
+  if (!title) { toast('Task description is required','error'); return; }
+  const done = document.getElementById('t_done').value === 'true';
+  const existing = editingId ? allTasks.find(t=>t.id===editingId) : {};
+  const task = {
+    id:           editingId||undefined,
+    title,
+    priority:     document.getElementById('t_priority').value,
+    due_date:     document.getElementById('t_due').value||null,
+    link_type:    document.getElementById('t_link_type').value||null,
+    link_id:      document.getElementById('t_link_id').value||null,
+    assigned_to:  document.getElementById('t_assigned').value||null,
+    notes:        document.getElementById('t_notes').value.trim()||null,
+    done,
+    completed_at: done ? (existing.completed_at||new Date().toISOString()) : null,
+    subtasks:     _subs.length  ? _subs     : undefined,
+    comments:     _comments.length ? _comments : undefined
+  };
+  syncStart();
+  const r = await DB.upsertOne('kre_tasks', task);
+  syncDone(r.ok);
+  if (r.ok) {
+    toast(editingId?'Updated':'Task added','success');
+    closeModal('taskModal');
+    const [tr] = await Promise.all([DB.loadAll('kre_tasks')]);
+    allTasks = tr.rows||[];
+    updateKPIs();
+    applyFilters();
+  } else {
+    toast('Error: '+r.err,'error');
+  }
+}
+
+async function deleteTask() {
+  if (!editingId) return;
+  const t = allTasks.find(x=>x.id===editingId);
+  if (!confirm(`Delete task "${t?.title}"?`)) return;
+  const r = await DB.deleteOne('kre_tasks', editingId);
+  if (r.ok) {
+    toast('Deleted');
+    closeModal('taskModal');
+    allTasks = allTasks.filter(x=>x.id!==editingId);
+    updateKPIs();
+    applyFilters();
+  } else {
+    toast('Error: '+r.err,'error');
+  }
+}
+
+init();
+</script>
+</body>
+</html>

@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>KRE — Deal Pipeline</title>
+<link rel="stylesheet" href="kre-style.css">
+</head>
+<body>
+<div class="kre-page">
+
+  <div class="page-header">
+    <div class="page-title">
+      <h1>Deal Pipeline</h1>
+      <p>Active purchase transactions — from offer to final contract</p>
+    </div>
+    <div class="page-actions">
+      <button class="btn btn-primary" onclick="openAdd()">+ New Deal</button>
+    </div>
+  </div>
+
+  <!-- STATS -->
+  <div class="kpi-grid" style="margin-bottom:20px">
+    <div class="kpi-card"><div class="kpi-label">Active Deals</div><div class="kpi-value" id="kpi-active">—</div></div>
+    <div class="kpi-card gold"><div class="kpi-label">Total Deal Value</div><div class="kpi-value" id="kpi-value">—</div></div>
+    <div class="kpi-card green"><div class="kpi-label">Expected Commission</div><div class="kpi-value" id="kpi-comm">—</div></div>
+    <div class="kpi-card orange"><div class="kpi-label">Completed This Year</div><div class="kpi-value" id="kpi-done">—</div></div>
+  </div>
+
+  <!-- KANBAN -->
+  <div class="pipeline-wrap" id="deal-board">
+    <div class="loading-row" style="width:100%"><div class="spinner"></div> Loading…</div>
+  </div>
+
+</div>
+
+<!-- DEAL DETAIL MODAL -->
+<div class="modal-overlay" id="dealPanel">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <h2 id="dp-title">Deal Details</h2>
+      <button class="modal-close" onclick="closeModal('dealPanel')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+        <div>
+          <div class="section-lbl">Deal Overview</div>
+          <div id="dp-info" style="font-size:13px;line-height:2.2"></div>
+          <div class="section-lbl" style="margin-top:16px">Commission Breakdown</div>
+          <div id="dp-commission" style="font-size:13px"></div>
+          <div class="section-lbl" style="margin-top:16px">Move to Stage</div>
+          <div id="dp-stage-btns" style="display:flex;gap:6px;flex-wrap:wrap"></div>
+        </div>
+        <div>
+          <div class="section-lbl">Document Checklist</div>
+          <div id="dp-checklist"></div>
+          <div class="section-lbl" style="margin-top:16px">Notes</div>
+          <div id="dp-notes-display" style="font-size:13px;color:var(--text-muted);font-style:italic"></div>
+          <textarea id="dp-notes-edit" rows="3" placeholder="Add notes about this deal…" style="margin-top:8px;width:100%"></textarea>
+          <button class="btn btn-ghost btn-sm" style="margin-top:8px" onclick="saveNotes()">Save Notes</button>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-danger btn-sm" id="dp-delete-btn" onclick="deleteDeal()" style="margin-right:auto">Delete Deal</button>
+      <button class="btn btn-gold" onclick="markComplete()" id="dp-complete-btn">✓ Mark Complete &amp; Log Revenue</button>
+      <button class="btn btn-ghost" onclick="closeModal('dealPanel')">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD DEAL MODAL -->
+<div class="modal-overlay" id="addDealModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>New Deal</h2>
+      <button class="modal-close" onclick="closeModal('addDealModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Property *</label>
+        <select id="nd_property"><option value="">Select property…</option></select>
+      </div>
+      <div class="form-group">
+        <label>Buyer *</label>
+        <select id="nd_buyer"><option value="">Select buyer…</option></select>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Agreed Sale Price (€)</label>
+          <div class="input-group"><span class="input-pfx">€</span><input id="nd_price" type="number" min="0" oninput="updateCommPreview()"></div>
+        </div>
+        <div class="form-group">
+          <label>Target Close Date</label>
+          <input id="nd_close_date" type="date">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Buyer Commission % <span style="color:var(--text-muted)">(from settings default)</span></label>
+          <div class="input-group"><span class="input-pfx">%</span><input id="nd_comm_buyer_pct" type="number" step="0.1" oninput="updateCommPreview()"></div>
+        </div>
+        <div class="form-group">
+          <label>Seller Commission %</label>
+          <div class="input-group"><span class="input-pfx">%</span><input id="nd_comm_seller_pct" type="number" step="0.1" oninput="updateCommPreview()"></div>
+        </div>
+      </div>
+      <div id="comm-preview" style="background:var(--surface-alt);border:1px solid var(--border);border-radius:8px;padding:12px;font-size:13px;margin-top:4px"></div>
+      <div class="form-group" style="margin-top:16px">
+        <label>Collaborator (if referred)</label>
+        <select id="nd_collab"><option value="">— None —</option></select>
+      </div>
+      <div class="form-group">
+        <label>Notes</label>
+        <textarea id="nd_notes" rows="2"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('addDealModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveDeal()">Create Deal</button>
+    </div>
+  </div>
+</div>
+
+<script src="kre-base.js"></script>
+<script src="kre-nav.js"></script>
+<script>
+let allDeals     = [];
+let allContacts  = [];
+let allProps     = [];
+let allCollabs   = [];
+let settings     = {};
+let currentDealId = null;
+
+const DEAL_CHECKLIST = [
+  'Offer letter signed',
+  'Pre-agreement (Προσύμφωνο) signed',
+  'Deposit paid',
+  'Lawyer engaged',
+  'Title deed search complete',
+  'No-encumbrances certificate obtained',
+  'Building permit verified',
+  'Energy certificate (PEA) obtained',
+  'Topographic plan verified',
+  'Notary appointment scheduled',
+  'Final contract (Συμβόλαιο) signed',
+  'Keys handed over'
+];
+
+async function init() {
+  settings = await SETTINGS.load();
+  const [dr, cr, pr, colr] = await Promise.all([
+    DB.loadAll('kre_deals'), DB.loadAll('kre_contacts'),
+    DB.loadAll('kre_properties'), DB.loadAll('kre_collaborators')
+  ]);
+  allDeals    = dr.rows || [];
+  allContacts = cr.rows || [];
+  allProps    = pr.rows || [];
+  allCollabs  = colr.rows || [];
+  populateAddDropdowns();
+  updateKPIs();
+  renderBoard();
+}
+
+function populateAddDropdowns() {
+  const b = settings.budget || KRE_DEFAULTS.budget;
+  document.getElementById('nd_comm_buyer_pct').value  = b.commission_pct || 2.5;
+  document.getElementById('nd_comm_seller_pct').value = 0;
+
+  const pSel = document.getElementById('nd_property');
+  allProps.filter(p=>p.available!==false).forEach(p => {
+    const o = document.createElement('option');
+    o.value = p.id;
+    o.textContent = `#${p.property_num||'?'} ${p.type||''} – ${p.area||''} ${p.office_price?'('+fmtEur(p.office_price)+')':''}`;
+    pSel.appendChild(o);
+  });
+
+  const bSel = document.getElementById('nd_buyer');
+  allContacts.filter(c=>c.role==='buyer'||c.role==='both').forEach(c => {
+    const o = document.createElement('option');
+    o.value = c.id;
+    o.textContent = (c.first_name||'') + ' ' + (c.last_name||'');
+    bSel.appendChild(o);
+  });
+
+  const cSel = document.getElementById('nd_collab');
+  allCollabs.forEach(c => {
+    const o = document.createElement('option');
+    o.value = c.id;
+    o.textContent = c.name + (c.agency ? ' ('+c.agency+')' : '');
+    cSel.appendChild(o);
+  });
+
+  // Auto-fill price from property
+  document.getElementById('nd_property').addEventListener('change', function() {
+    const p = allProps.find(x=>x.id===this.value);
+    if (p?.office_price) { document.getElementById('nd_price').value = p.office_price; updateCommPreview(); }
+  });
+}
+
+function updateCommPreview() {
+  const price = parseFloat(document.getElementById('nd_price').value) || 0;
+  const bp    = parseFloat(document.getElementById('nd_comm_buyer_pct').value) || 0;
+  const sp    = parseFloat(document.getElementById('nd_comm_seller_pct').value) || 0;
+  const bc    = price * bp / 100;
+  const sc    = price * sp / 100;
+  document.getElementById('comm-preview').innerHTML =
+    `<strong>Estimated Commission:</strong> Buyer side ${fmtEur(bc)} + Seller side ${fmtEur(sc)} = <strong style="color:var(--kre-teal)">${fmtEur(bc+sc)}</strong>`;
+}
+
+function updateKPIs() {
+  const thisYear = new Date().getFullYear();
+  const active   = allDeals.filter(d => d.stage !== 'completed');
+  const done     = allDeals.filter(d => d.stage === 'completed' && new Date(d._created).getFullYear() === thisYear);
+  const totalVal = active.reduce((s,d) => s + (parseFloat(d.agreed_price)||0), 0);
+  const totalComm= active.reduce((s,d) => s + (parseFloat(d.commission_buyer)||0) + (parseFloat(d.commission_seller)||0), 0);
+
+  document.getElementById('kpi-active').textContent = active.length;
+  document.getElementById('kpi-value').textContent  = fmtEur(totalVal);
+  document.getElementById('kpi-comm').textContent   = fmtEur(totalComm);
+  document.getElementById('kpi-done').textContent   = done.length;
+}
+
+function renderBoard() {
+  const stages = settings.deal_stages || KRE_DEFAULTS.deal_stages;
+  const board  = document.getElementById('deal-board');
+
+  board.innerHTML = stages.map(stage => {
+    const stageDeals = allDeals.filter(d => (d.stage || 'offer_made') === stage.id);
+    const cards = stageDeals.map(d => {
+      const prop  = allProps.find(p => p.id === d.property_id);
+      const buyer = allContacts.find(c => c.id === d.buyer_id);
+      const comm  = (parseFloat(d.commission_buyer)||0) + (parseFloat(d.commission_seller)||0);
+      return `<div class="pipeline-card" onclick="openPanel('${d.id}')">
+        <div class="pipeline-card-name">${prop ? `#${prop.property_num} ${esc(prop.area||'')}` : 'Unknown Property'}</div>
+        <div class="pipeline-card-sub">${buyer ? esc((buyer.first_name||'')+' '+(buyer.last_name||'')) : '—'}</div>
+        <div class="pipeline-card-meta">
+          <span class="badge badge-teal" style="font-size:10px">${fmtEur(d.agreed_price)}</span>
+          ${comm ? `<span class="badge badge-gold" style="font-size:10px">${fmtEur(comm)}</span>` : ''}
+        </div>
+      </div>`;
+    }).join('') || `<div style="font-size:12px;color:var(--text-light);text-align:center;padding:16px">No deals</div>`;
+
+    return `<div class="pipeline-col">
+      <div class="pipeline-col-hdr" style="background:${stage.color}">
+        <span class="pipeline-col-hdr-name">${esc(stage.label)}</span>
+        <span class="pipeline-col-count">${stageDeals.length}</span>
+      </div>
+      <div class="pipeline-col-body">${cards}</div>
+    </div>`;
+  }).join('');
+}
+
+function openPanel(dealId) {
+  currentDealId = dealId;
+  const d     = allDeals.find(x => x.id === dealId);
+  if (!d) return;
+  const prop  = allProps.find(p => p.id === d.property_id);
+  const buyer = allContacts.find(c => c.id === d.buyer_id);
+  const collab= allCollabs.find(c => c.id === d.collaborator_id);
+
+  document.getElementById('dp-title').textContent =
+    prop ? `Deal: #${prop.property_num} ${prop.area||''}` : 'Deal Details';
+
+  const commB = parseFloat(d.commission_buyer)||0;
+  const commS = parseFloat(d.commission_seller)||0;
+
+  document.getElementById('dp-info').innerHTML = `
+    <div>🏠 <strong>Property:</strong> ${prop ? `#${prop.property_num} ${esc(prop.type||'')} in ${esc(prop.area||'')}` : '—'}</div>
+    <div>👤 <strong>Buyer:</strong> ${buyer ? esc((buyer.first_name||'')+' '+(buyer.last_name||'')) : '—'}</div>
+    <div>💶 <strong>Agreed Price:</strong> ${fmtEur(d.agreed_price)}</div>
+    <div>📅 <strong>Target Close:</strong> ${fmtDate(d.close_date)}</div>
+    <div>📅 <strong>Deal Created:</strong> ${fmtDate(d._created)}</div>
+    ${collab ? `<div>🤝 <strong>Collaborator:</strong> ${esc(collab.name)}</div>` : ''}
+  `;
+
+  document.getElementById('dp-commission').innerHTML = `
+    <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border)">
+      <span>Buyer Commission</span><strong>${fmtEur(commB)}</strong>
+    </div>
+    <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border)">
+      <span>Seller Commission</span><strong>${fmtEur(commS)}</strong>
+    </div>
+    <div style="display:flex;justify-content:space-between;padding:8px 0;font-size:14px">
+      <strong>Total Commission</strong><strong style="color:var(--kre-teal)">${fmtEur(commB+commS)}</strong>
+    </div>
+  `;
+
+  // Stage buttons
+  const stages = settings.deal_stages || KRE_DEFAULTS.deal_stages;
+  document.getElementById('dp-stage-btns').innerHTML = stages.map(s =>
+    `<button class="btn btn-sm ${d.stage===s.id?'btn-primary':'btn-ghost'}"
+      style="${d.stage===s.id?`background:${s.color};border-color:${s.color};color:#fff`:`color:${s.color};border-color:${s.color}`}"
+      onclick="moveDealStage('${dealId}','${s.id}')">${esc(s.label)}</button>`
+  ).join('');
+
+  // Checklist
+  const checklist = d.deal_checklist || {};
+  document.getElementById('dp-checklist').innerHTML = `<div class="checklist">` +
+    DEAL_CHECKLIST.map(item => {
+      const key  = item.toLowerCase().replace(/\s+/g,'_').replace(/[^a-z0-9_]/g,'');
+      const done = !!checklist[key];
+      return `<div class="checklist-item${done?' done':''}">
+        <input type="checkbox" id="dc_${key}" ${done?'checked':''}
+          onchange="toggleDealCheck('${dealId}','${key}',this.checked)">
+        <span>${esc(item)}</span>
+      </div>`;
+    }).join('') + `</div>`;
+
+  document.getElementById('dp-notes-edit').value = d.notes || '';
+  document.getElementById('dp-complete-btn').style.display = d.stage === 'completed' ? 'none' : '';
+
+  openModal('dealPanel');
+}
+
+async function moveDealStage(dealId, stageId) {
+  const d = allDeals.find(x => x.id === dealId);
+  if (!d) return;
+  const r = await DB.upsertOne('kre_deals', { ...d, stage: stageId });
+  if (r.ok) { d.stage = stageId; toast('Stage updated','success'); renderBoard(); updateKPIs(); openPanel(dealId); }
+  else toast('Error: ' + r.err,'error');
+}
+
+async function toggleDealCheck(dealId, key, checked) {
+  const d = allDeals.find(x => x.id === dealId);
+  if (!d) return;
+  const checklist = { ...(d.deal_checklist||{}), [key]: checked };
+  const r = await DB.upsertOne('kre_deals', { ...d, deal_checklist: checklist });
+  if (r.ok) d.deal_checklist = checklist;
+}
+
+async function saveNotes() {
+  const d = allDeals.find(x => x.id === currentDealId);
+  if (!d) return;
+  const notes = document.getElementById('dp-notes-edit').value.trim();
+  const r = await DB.upsertOne('kre_deals', { ...d, notes });
+  if (r.ok) { d.notes = notes; toast('Notes saved','success'); }
+  else toast('Error: ' + r.err,'error');
+}
+
+async function markComplete() {
+  const d = allDeals.find(x => x.id === currentDealId);
+  if (!d) return;
+  if (!confirm('Mark this deal as completed and log the commission as revenue?')) return;
+
+  const commB = parseFloat(d.commission_buyer) || 0;
+  const commS = parseFloat(d.commission_seller) || 0;
+  const total = commB + commS;
+
+  // Move to completed stage
+  await DB.upsertOne('kre_deals', { ...d, stage: 'completed', completed_at: new Date().toISOString() });
+  d.stage = 'completed';
+
+  // Log revenue
+  if (total > 0) {
+    await DB.upsertOne('kre_revenues', {
+      deal_id:     currentDealId,
+      property_id: d.property_id,
+      buyer_id:    d.buyer_id,
+      date:        new Date().toISOString().slice(0,10),
+      amount_buyer_commission:  commB,
+      amount_seller_commission: commS,
+      amount_total: total,
+      type:        'deal_commission',
+      notes:       `Deal completed: ${fmtEur(d.agreed_price)} sale`
+    });
+  }
+
+  toast('Deal marked complete — revenue logged!','success');
+  closeModal('dealPanel');
+  updateKPIs();
+  renderBoard();
+}
+
+async function deleteDeal() {
+  if (!currentDealId) return;
+  if (!confirm('Delete this deal? This cannot be undone.')) return;
+  const r = await DB.deleteOne('kre_deals', currentDealId);
+  if (r.ok) {
+    allDeals = allDeals.filter(d => d.id !== currentDealId);
+    toast('Deal deleted');
+    closeModal('dealPanel');
+    updateKPIs();
+    renderBoard();
+  } else toast('Error: ' + r.err,'error');
+}
+
+function openAdd() {
+  document.getElementById('nd_property').value = '';
+  document.getElementById('nd_buyer').value    = '';
+  document.getElementById('nd_price').value    = '';
+  document.getElementById('nd_close_date').value = '';
+  document.getElementById('nd_notes').value    = '';
+  document.getElementById('nd_collab').value   = '';
+  document.getElementById('comm-preview').innerHTML = '';
+  const b = settings.budget || KRE_DEFAULTS.budget;
+  document.getElementById('nd_comm_buyer_pct').value  = b.commission_pct || 2.5;
+  document.getElementById('nd_comm_seller_pct').value = 0;
+  openModal('addDealModal');
+}
+
+async function saveDeal() {
+  const propId  = document.getElementById('nd_property').value;
+  const buyerId = document.getElementById('nd_buyer').value;
+  const price   = parseFloat(document.getElementById('nd_price').value) || 0;
+  if (!propId || !buyerId) { toast('Property and buyer are required','error'); return; }
+
+  const bp = parseFloat(document.getElementById('nd_comm_buyer_pct').value) || 0;
+  const sp = parseFloat(document.getElementById('nd_comm_seller_pct').value) || 0;
+
+  const deal = {
+    property_id:       propId,
+    buyer_id:          buyerId,
+    agreed_price:      price,
+    commission_buyer:  price * bp / 100,
+    commission_seller: price * sp / 100,
+    commission_buyer_pct:  bp,
+    commission_seller_pct: sp,
+    close_date:        document.getElementById('nd_close_date').value || null,
+    collaborator_id:   document.getElementById('nd_collab').value    || null,
+    notes:             document.getElementById('nd_notes').value.trim() || null,
+    stage:             'offer_made',
+    deal_checklist:    {}
+  };
+
+  syncStart();
+  const r = await DB.upsertOne('kre_deals', deal);
+  syncDone(r.ok);
+  if (r.ok) {
+    deal.id = r.id; deal._created = new Date().toISOString();
+    allDeals.push(deal);
+    toast('Deal created','success');
+    closeModal('addDealModal');
+    updateKPIs();
+    renderBoard();
+  } else toast('Error: ' + r.err,'error');
+}
+
+init();
+</script>
+</body>
+</html>

@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>KRE — Settings</title>
+<link rel="stylesheet" href="kre-style.css">
+</head>
+<body>
+<div class="kre-page">
+
+  <div class="page-header">
+    <div class="page-title">
+      <h1>Settings</h1>
+      <p>Configure all parameters, lists, pipeline stages and users</p>
+    </div>
+    <div class="page-actions">
+      <button class="btn btn-primary" onclick="saveAll()">Save All Changes</button>
+    </div>
+  </div>
+
+  <!-- COMPANY INFO -->
+  <div class="card settings-section" style="margin-bottom:20px">
+    <div class="card-header"><h2>Company Information</h2></div>
+    <div class="card-body">
+      <div class="form-row">
+        <div class="form-group"><label>Company Name</label><input id="s_company" type="text"></div>
+        <div class="form-group"><label>Phone</label><input id="s_phone" type="tel"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Email</label><input id="s_email" type="email"></div>
+        <div class="form-group"><label>Website</label><input id="s_website" type="text" placeholder="https://"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BUDGET CALCULATOR PARAMETERS -->
+  <div class="card settings-section" style="margin-bottom:20px">
+    <div class="card-header">
+      <h2>Budget Calculator Parameters</h2>
+      <span class="badge badge-teal">Auto-used in Budget module</span>
+    </div>
+    <div class="card-body">
+      <div class="section-lbl">Acquisition Costs</div>
+      <div class="form-row-3">
+        <div class="form-group">
+          <label>Transfer Tax (%)</label>
+          <div class="input-group"><span class="input-pfx">%</span><input id="b_tax" type="number" step="0.01" min="0"></div>
+          <div class="form-hint">Greek property transfer tax (currently 3.09%)</div>
+        </div>
+        <div class="form-group">
+          <label>Notary Fee (%)</label>
+          <div class="input-group"><span class="input-pfx">%</span><input id="b_notary" type="number" step="0.01" min="0"></div>
+        </div>
+        <div class="form-group">
+          <label>Lawyer Fee (€ fixed)</label>
+          <div class="input-group"><span class="input-pfx">€</span><input id="b_lawyer" type="number" min="0"></div>
+        </div>
+      </div>
+      <div class="form-row-3">
+        <div class="form-group">
+          <label>Accountant Fee (€ fixed)</label>
+          <div class="input-group"><span class="input-pfx">€</span><input id="b_accountant" type="number" min="0"></div>
+        </div>
+        <div class="form-group">
+          <label>Agency Commission (%)</label>
+          <div class="input-group"><span class="input-pfx">%</span><input id="b_commission_pct" type="number" step="0.1" min="0"></div>
+        </div>
+        <div class="form-group">
+          <label>Min. Commission (€)</label>
+          <div class="input-group"><span class="input-pfx">€</span><input id="b_commission_min" type="number" min="0"></div>
+        </div>
+      </div>
+
+      <div class="section-lbl">Construction Costs</div>
+      <div class="form-row-3">
+        <div class="form-group">
+          <label>Building Licence (€/sqm)</label>
+          <div class="input-group"><span class="input-pfx">€</span><input id="b_licence" type="number" min="0"></div>
+          <div class="form-hint">Approximate cost per sqm of permitted area</div>
+        </div>
+        <div class="form-group">
+          <label>Construction Cost (€/sqm)</label>
+          <div class="input-group"><span class="input-pfx">€</span><input id="b_construction" type="number" min="0"></div>
+        </div>
+        <div class="form-group">
+          <label>Pool Cost (€)</label>
+          <div class="input-group"><span class="input-pfx">€</span><input id="b_pool" type="number" min="0"></div>
+          <div class="form-hint">Set 0 if buyer does not want a pool</div>
+        </div>
+      </div>
+      <div class="form-row-3">
+        <div class="form-group">
+          <label>Landscaping (€)</label>
+          <div class="input-group"><span class="input-pfx">€</span><input id="b_landscaping" type="number" min="0"></div>
+        </div>
+        <div class="form-group">
+          <label>Drinkable Water Connection (€)</label>
+          <div class="input-group"><span class="input-pfx">€</span><input id="b_water_drink" type="number" min="0"></div>
+        </div>
+        <div class="form-group">
+          <label>Irrigation Water Connection (€)</label>
+          <div class="input-group"><span class="input-pfx">€</span><input id="b_water_irr" type="number" min="0"></div>
+        </div>
+      </div>
+      <div class="form-row-4">
+        <div class="form-group">
+          <label>Electricity Deposit (€)</label>
+          <div class="input-group"><span class="input-pfx">€</span><input id="b_elec_dep" type="number" min="0"></div>
+        </div>
+        <div class="form-group">
+          <label>Electricity Connection (€)</label>
+          <div class="input-group"><span class="input-pfx">€</span><input id="b_elec_conn" type="number" min="0"></div>
+        </div>
+        <div class="form-group">
+          <label>Network Connection (€)</label>
+          <div class="input-group"><span class="input-pfx">€</span><input id="b_network" type="number" min="0"></div>
+        </div>
+        <div class="form-group">
+          <label>Pole Construction (€)</label>
+          <div class="input-group"><span class="input-pfx">€</span><input id="b_pole" type="number" min="0"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px">
+
+    <!-- LOCATIONS -->
+    <div class="card settings-section">
+      <div class="card-header"><h2>Locations / Villages</h2></div>
+      <div class="card-body">
+        <p style="font-size:12px;color:var(--text-muted);margin-bottom:14px">Used in property and contact dropdowns.</p>
+        <div id="loc-tags" class="tag-list"></div>
+        <div class="tag-input-row">
+          <input id="loc-input" type="text" placeholder="Add location…" onkeydown="if(event.key==='Enter')addTag('locations','loc')">
+          <button class="btn btn-primary btn-sm" onclick="addTag('locations','loc')">Add</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- PROPERTY TYPES -->
+    <div class="card settings-section">
+      <div class="card-header"><h2>Property Types</h2></div>
+      <div class="card-body">
+        <p style="font-size:12px;color:var(--text-muted);margin-bottom:14px">Dropdown options in the Properties module.</p>
+        <div id="type-tags" class="tag-list"></div>
+        <div class="tag-input-row">
+          <input id="type-input" type="text" placeholder="Add property type…" onkeydown="if(event.key==='Enter')addTag('property_types','type')">
+          <button class="btn btn-primary btn-sm" onclick="addTag('property_types','type')">Add</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PROPERTY CHECKLIST ITEMS -->
+  <div class="card settings-section" style="margin-bottom:20px">
+    <div class="card-header">
+      <h2>Property Document Checklist</h2>
+      <span class="badge badge-teal">Shown on each property card</span>
+    </div>
+    <div class="card-body">
+      <p style="font-size:12px;color:var(--text-muted);margin-bottom:14px">Documents required for every property listing. Track which are missing.</p>
+      <div id="chk-tags" class="tag-list"></div>
+      <div class="tag-input-row">
+        <input id="chk-input" type="text" placeholder="Add checklist item…" onkeydown="if(event.key==='Enter')addTag('checklist_items','chk')">
+        <button class="btn btn-primary btn-sm" onclick="addTag('checklist_items','chk')">Add</button>
+      </div>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px">
+
+    <!-- CLIENT PIPELINE STAGES -->
+    <div class="card settings-section">
+      <div class="card-header"><h2>Client Pipeline Stages</h2></div>
+      <div class="card-body">
+        <p style="font-size:12px;color:var(--text-muted);margin-bottom:14px">Communication stages for buyer contacts.</p>
+        <div id="cs-list"></div>
+        <div class="tag-input-row" style="margin-top:12px">
+          <input id="cs-input" type="text" placeholder="New stage name…">
+          <input id="cs-color" type="color" value="#17a2b8" style="width:44px;padding:2px;border-radius:6px;height:38px;cursor:pointer">
+          <button class="btn btn-primary btn-sm" onclick="addStage('client_stages','cs')">Add</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- DEAL PIPELINE STAGES -->
+    <div class="card settings-section">
+      <div class="card-header"><h2>Deal Pipeline Stages</h2></div>
+      <div class="card-body">
+        <p style="font-size:12px;color:var(--text-muted);margin-bottom:14px">Stages for active purchase deals.</p>
+        <div id="ds-list"></div>
+        <div class="tag-input-row" style="margin-top:12px">
+          <input id="ds-input" type="text" placeholder="New stage name…">
+          <input id="ds-color" type="color" value="#28a745" style="width:44px;padding:2px;border-radius:6px;height:38px;cursor:pointer">
+          <button class="btn btn-primary btn-sm" onclick="addStage('deal_stages','ds')">Add</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- USER MANAGEMENT -->
+  <div class="card settings-section" style="margin-bottom:20px">
+    <div class="card-header">
+      <h2>User Management</h2>
+      <button class="btn btn-primary btn-sm" onclick="openModal('addUserModal')">+ Add User</button>
+    </div>
+    <div class="card-body" style="padding:0">
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Name</th><th>Email</th><th>Role</th>
+              <th>Status</th><th style="text-align:right">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="user-table"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- DATABASE INFO -->
+  <div class="card settings-section">
+    <div class="card-header"><h2>Database</h2></div>
+    <div class="card-body">
+      <div style="font-family:'DM Mono',monospace;font-size:12px;background:var(--surface-alt);padding:14px;border-radius:8px;border:1px solid var(--border);color:var(--text-muted)">
+        <div><strong style="color:var(--text)">Project:</strong> whuytfjwdjjepayeiohj.supabase.co</div>
+        <div style="margin-top:6px"><strong style="color:var(--text)">Tables:</strong> kre_properties · kre_contacts · kre_collaborators · kre_deals · kre_client_events · kre_tasks · kre_matches · kre_revenues · kre_tickets · kre_changelog · kre_settings · kre_users</div>
+        <div style="margin-top:6px"><strong style="color:var(--text)">Status:</strong> <span id="db-status">Checking…</span></div>
+      </div>
+      <div style="margin-top:12px;display:flex;gap:10px">
+        <button class="btn btn-ghost btn-sm" onclick="testDb()">🔌 Test Connection</button>
+      </div>
+    </div>
+  </div>
+
+</div><!-- end kre-page -->
+
+<!-- ADD USER MODAL -->
+<div class="modal-overlay" id="addUserModal">
+  <div class="modal modal-sm">
+    <div class="modal-header">
+      <h2 id="userModalTitle">Add User</h2>
+      <button class="modal-close" onclick="closeModal('addUserModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="u_id">
+      <div class="form-group"><label>Full Name</label><input id="u_name" type="text"></div>
+      <div class="form-group"><label>Email</label><input id="u_email" type="email"></div>
+      <div class="form-group">
+        <label>Role</label>
+        <select id="u_role">
+          <option value="admin">Admin — full access + settings</option>
+          <option value="employee">Employee — all modules except Settings & Revenue</option>
+          <option value="collaborator">Collaborator — Properties view only</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <div class="check-row">
+          <input type="checkbox" id="u_active" checked>
+          <label for="u_active">Active (can log in)</label>
+        </div>
+      </div>
+      <p style="font-size:11px;color:rgba(255,255,255,.3);margin-top:4px">Password is managed by Supabase. The user must sign up via the login page — this entry assigns their role and display name.</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('addUserModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveUser()">Save User</button>
+    </div>
+  </div>
+</div>
+
+<script src="kre-base.js"></script>
+<script src="kre-nav.js"></script>
+<script>
+let settings = {};
+let users    = [];
+
+async function init() {
+  if (!AUTH.canAdmin()) { toast('Admin access required','error'); return; }
+  settings = await SETTINGS.load();
+  fillForm();
+  await loadUsers();
+}
+
+function fillForm() {
+  const s = settings;
+  document.getElementById('s_company').value = s.company_name || '';
+  document.getElementById('s_phone').value   = s.company_phone || '';
+  document.getElementById('s_email').value   = s.company_email || '';
+  document.getElementById('s_website').value = s.company_website || '';
+
+  const b = s.budget || {};
+  document.getElementById('b_tax').value          = b.transfer_tax_pct ?? '';
+  document.getElementById('b_notary').value       = b.notary_pct ?? '';
+  document.getElementById('b_lawyer').value       = b.lawyer_fee ?? '';
+  document.getElementById('b_accountant').value   = b.accountant_fee ?? '';
+  document.getElementById('b_commission_pct').value = b.commission_pct ?? '';
+  document.getElementById('b_commission_min').value = b.commission_min ?? '';
+  document.getElementById('b_licence').value      = b.building_licence_per_sqm ?? '';
+  document.getElementById('b_construction').value = b.construction_cost_per_sqm ?? '';
+  document.getElementById('b_pool').value         = b.pool_cost ?? '';
+  document.getElementById('b_landscaping').value  = b.landscaping_cost ?? '';
+  document.getElementById('b_water_drink').value  = b.water_drinkable ?? '';
+  document.getElementById('b_water_irr').value    = b.water_irrigation ?? '';
+  document.getElementById('b_elec_dep').value     = b.electricity_deposit ?? '';
+  document.getElementById('b_elec_conn').value    = b.electricity_connection ?? '';
+  document.getElementById('b_network').value      = b.network_connection ?? '';
+  document.getElementById('b_pole').value         = b.pole_construction ?? '';
+
+  renderTags('locations',     'loc-tags',  'locations');
+  renderTags('property_types','type-tags', 'property_types');
+  renderTags('checklist_items','chk-tags', 'checklist_items');
+  renderStages('client_stages','cs-list');
+  renderStages('deal_stages',  'ds-list');
+}
+
+function renderTags(key, containerId, listKey) {
+  const arr = settings[listKey] || [];
+  document.getElementById(containerId).innerHTML = arr.map((v, i) =>
+    `<span class="tag-item">${esc(v)}<button class="tag-remove" onclick="removeItem('${key}',${i})">×</button></span>`
+  ).join('');
+}
+
+function renderStages(key, containerId) {
+  const arr = settings[key] || [];
+  document.getElementById(containerId).innerHTML = arr.map((s, i) =>
+    `<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
+      <span style="width:12px;height:12px;border-radius:50%;background:${s.color};flex-shrink:0;display:inline-block"></span>
+      <span style="flex:1;font-size:13px">${esc(s.label)}</span>
+      <button class="btn btn-icon btn-icon-sm btn-ghost" onclick="removeStage('${key}',${i})" title="Remove">✕</button>
+    </div>`
+  ).join('');
+}
+
+function removeItem(key, idx) {
+  if (!settings[key]) return;
+  settings[key].splice(idx, 1);
+  renderTags(key,
+    key === 'locations' ? 'loc-tags' : key === 'property_types' ? 'type-tags' : 'chk-tags',
+    key);
+}
+function removeStage(key, idx) {
+  if (!settings[key]) return;
+  settings[key].splice(idx, 1);
+  renderStages(key, key === 'client_stages' ? 'cs-list' : 'ds-list');
+}
+
+function addTag(key, prefix) {
+  const inp = document.getElementById(prefix + '-input');
+  const val = inp.value.trim();
+  if (!val) return;
+  if (!settings[key]) settings[key] = [];
+  if (!settings[key].includes(val)) settings[key].push(val);
+  inp.value = '';
+  renderTags(key,
+    key === 'locations' ? 'loc-tags' : key === 'property_types' ? 'type-tags' : 'chk-tags',
+    key);
+}
+
+function addStage(key, prefix) {
+  const lbl   = document.getElementById(prefix + '-input').value.trim();
+  const color = document.getElementById(prefix + '-color').value;
+  if (!lbl) return;
+  if (!settings[key]) settings[key] = [];
+  const id = lbl.toLowerCase().replace(/\s+/g,'_').replace(/[^a-z0-9_]/g,'');
+  settings[key].push({ id, label: lbl, color });
+  document.getElementById(prefix + '-input').value = '';
+  renderStages(key, key === 'client_stages' ? 'cs-list' : 'ds-list');
+}
+
+async function saveAll() {
+  const newSettings = {
+    ...settings,
+    company_name:    document.getElementById('s_company').value.trim(),
+    company_phone:   document.getElementById('s_phone').value.trim(),
+    company_email:   document.getElementById('s_email').value.trim(),
+    company_website: document.getElementById('s_website').value.trim(),
+    budget: {
+      transfer_tax_pct:        parseFloat(document.getElementById('b_tax').value)          || 0,
+      notary_pct:              parseFloat(document.getElementById('b_notary').value)        || 0,
+      lawyer_fee:              parseFloat(document.getElementById('b_lawyer').value)        || 0,
+      accountant_fee:          parseFloat(document.getElementById('b_accountant').value)    || 0,
+      commission_pct:          parseFloat(document.getElementById('b_commission_pct').value)|| 0,
+      commission_min:          parseFloat(document.getElementById('b_commission_min').value)|| 0,
+      building_licence_per_sqm:parseFloat(document.getElementById('b_licence').value)      || 0,
+      construction_cost_per_sqm:parseFloat(document.getElementById('b_construction').value)|| 0,
+      pool_cost:               parseFloat(document.getElementById('b_pool').value)          || 0,
+      landscaping_cost:        parseFloat(document.getElementById('b_landscaping').value)   || 0,
+      water_drinkable:         parseFloat(document.getElementById('b_water_drink').value)   || 0,
+      water_irrigation:        parseFloat(document.getElementById('b_water_irr').value)     || 0,
+      electricity_deposit:     parseFloat(document.getElementById('b_elec_dep').value)      || 0,
+      electricity_connection:  parseFloat(document.getElementById('b_elec_conn').value)     || 0,
+      network_connection:      parseFloat(document.getElementById('b_network').value)       || 0,
+      pole_construction:       parseFloat(document.getElementById('b_pole').value)          || 0
+    }
+  };
+  syncStart();
+  const r = await SETTINGS.save(newSettings);
+  syncDone(r.ok);
+  if (r.ok) {
+    // Re-pull from the (now-refreshed) cache and re-render the tag/stage lists
+    // so the screen always reflects exactly what was persisted — if something
+    // failed to round-trip, it shows up immediately instead of "disappearing"
+    // silently on a later visit.
+    settings = await SETTINGS.load();
+    renderTags('locations',      'loc-tags',  'locations');
+    renderTags('property_types', 'type-tags', 'property_types');
+    renderTags('checklist_items','chk-tags',  'checklist_items');
+    renderStages('client_stages','cs-list');
+    renderStages('deal_stages',  'ds-list');
+    toast('Settings saved','success');
+  } else {
+    toast('Error saving: ' + r.err, 'error');
+  }
+}
+
+/* ── USERS ─────────────────────────────────────────────────── */
+async function loadUsers() {
+  const r = await DB.loadAll('kre_users');
+  users = r.rows || [];
+  renderUsers();
+}
+function renderUsers() {
+  const tbody = document.getElementById('user-table');
+  if (!users.length) { tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:20px">No users yet.</td></tr>'; return; }
+  tbody.innerHTML = users.map(u =>
+    `<tr>
+      <td><strong>${esc(u.full_name || u.name)}</strong></td>
+      <td>${esc(u.email)}</td>
+      <td>${roleBadge(u.role)}</td>
+      <td>${u.active !== false ? '<span class="badge badge-green">Active</span>' : '<span class="badge badge-red">Inactive</span>'}</td>
+      <td class="td-actions">
+        <button class="btn btn-ghost btn-sm" onclick="editUser('${u.id}')">Edit</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteUser('${u.id}','${esc(u.full_name || u.name)}')">Delete</button>
+      </td>
+    </tr>`
+  ).join('');
+}
+
+function openAddUser() {
+  document.getElementById('userModalTitle').textContent = 'Add User';
+  document.getElementById('u_id').value    = '';
+  document.getElementById('u_name').value  = '';
+  document.getElementById('u_email').value = '';
+  document.getElementById('u_role').value  = 'employee';
+  document.getElementById('u_active').checked = true;
+  document.getElementById('u_email').disabled = false;
+  openModal('addUserModal');
+}
+
+function editUser(id) {
+  const u = users.find(x => x.id === id);
+  if (!u) return;
+  document.getElementById('userModalTitle').textContent = 'Edit User';
+  document.getElementById('u_id').value    = u.id;
+  document.getElementById('u_name').value  = u.full_name || u.name || '';
+  document.getElementById('u_email').value = u.email || '';
+  document.getElementById('u_role').value  = u.role || 'employee';
+  document.getElementById('u_active').checked = u.active !== false;
+  document.getElementById('u_email').disabled = false;
+  openModal('addUserModal');
+}
+
+async function saveUser() {
+  const id        = document.getElementById('u_id').value;
+  const full_name = document.getElementById('u_name').value.trim();
+  const email     = document.getElementById('u_email').value.trim();
+  const role      = document.getElementById('u_role').value;
+  const active    = document.getElementById('u_active').checked;
+
+  if (!full_name || !email) { toast('Name and email are required','error'); return; }
+
+  const user = { id: id || undefined, full_name, email: email.toLowerCase(), role, active };
+
+  syncStart();
+  const r = await DB.upsertOne('kre_users', user);
+  syncDone(r.ok);
+  if (r.ok) { toast('User saved','success'); closeModal('addUserModal'); await loadUsers(); }
+  else toast('Error: ' + r.err, 'error');
+}
+
+async function deleteUser(id, name) {
+  if (!confirm(`Delete user "${name}"? This cannot be undone.`)) return;
+  const r = await DB.deleteOne('kre_users', id);
+  if (r.ok) { toast('User deleted'); await loadUsers(); }
+  else toast('Error: ' + r.err, 'error');
+}
+
+/* ── DB TEST ─────────────────────────────────────────────────*/
+async function testDb() {
+  document.getElementById('db-status').textContent = 'Testing…';
+  const r = await DB.loadAll('kre_settings');
+  const ok = r.ok;
+  document.getElementById('db-status').textContent = ok ? '✓ Connected' : '✕ Error: ' + r.err;
+  document.getElementById('db-status').style.color  = ok ? 'var(--success)' : 'var(--danger)';
+}
+
+init();
+</script>
+</body>
+</html>

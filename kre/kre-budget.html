@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>KRE — Budget Calculator</title>
+<link rel="stylesheet" href="kre-style.css">
+<style>
+.budget-table td:last-child { text-align:right; font-family:'DM Mono',monospace; font-weight:600; }
+.budget-total td { font-size:15px; font-weight:700; border-top:2px solid var(--border); }
+.budget-section td:first-child { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.1em; color:var(--text-muted); padding-top:18px; }
+.budget-override { width:120px; text-align:right; padding:4px 8px; font-size:13px; }
+.print-only { display:none; }
+@media print {
+  @page { size:A4; margin:12mm; }
+  html, body { height:auto !important; }
+  .kre-page { margin:0 !important; padding:0 !important; }
+  .no-print { display:none !important; }
+  .print-only { display:block; }
+  #kre-sidebar, #kre-ham, #kre-ov, .page-header { display:none !important; }
+  body { margin:0 !important; }
+
+  /* Collapse the two-column layout to one full-width column — the left
+     column only ever holds .no-print input cards, so on paper it's just
+     dead space that pushes the summary onto a second sheet. */
+  .two-pane-wide { display:block !important; }
+  .two-pane-wide > div:first-child { display:none !important; }
+  .two-pane-wide > div:last-child  { width:100% !important; }
+
+  /* Compact the summary card + table so the full breakdown — including
+     the construction/house section — reliably fits on one printed page. */
+  .card { box-shadow:none !important; border:1px solid #ddd !important; position:static !important; }
+  .card-header { padding:10px 16px !important; }
+  .card-header h2 { font-size:15px !important; }
+  .print-only { padding:8px 16px 0 !important; }
+  .print-only > div:first-child { font-size:18px !important; }
+
+  .budget-table td            { padding:5px 14px !important; font-size:11.5px !important; line-height:1.3 !important; }
+  .budget-section td:first-child { padding-top:10px !important; font-size:9.5px !important; }
+  .budget-total td            { font-size:12.5px !important; padding:7px 14px !important; }
+  .budget-table tr[style*="kre-deep"] td { padding:9px 14px !important; font-size:13px !important; }
+  .budget-table tr[style*="kre-deep"] td:last-child { font-size:15px !important; }
+
+  table, tbody, tr { page-break-inside:avoid; }
+  .card { page-break-inside:avoid; }
+}
+</style>
+</head>
+<body>
+<div class="kre-page">
+
+  <div class="page-header">
+    <div class="page-title">
+      <h1>Budget Calculator</h1>
+      <p>Full cost breakdown for buying a plot and building a house</p>
+    </div>
+    <div class="page-actions no-print">
+      <button class="btn btn-ghost" onclick="window.print()">🖨 Print / PDF</button>
+      <button class="btn btn-primary" onclick="saveToContact()" id="saveBtn" style="display:none">💾 Save to Contact</button>
+    </div>
+  </div>
+
+  <div class="two-pane-wide">
+
+    <!-- LEFT: INPUTS -->
+    <div>
+      <div class="card no-print" style="margin-bottom:20px">
+        <div class="card-header"><h2>Property & Buyer</h2></div>
+        <div class="card-body">
+          <div class="form-row">
+            <div class="form-group">
+              <label>Select Buyer Contact (optional)</label>
+              <select id="sel-contact" onchange="onContactChange()">
+                <option value="">— Anonymous buyer —</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Select Property (optional)</label>
+              <select id="sel-property" onchange="onPropertyChange()">
+                <option value="">— Enter price manually —</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card no-print" style="margin-bottom:20px">
+        <div class="card-header"><h2>Plot Inputs</h2></div>
+        <div class="card-body">
+          <div class="form-row-3">
+            <div class="form-group">
+              <label>Plot Price (€)</label>
+              <div class="input-group"><span class="input-pfx">€</span><input id="i_plot_price" type="number" min="0" oninput="calculate()"></div>
+            </div>
+            <div class="form-group">
+              <label>Plot Size (m²)</label>
+              <input id="i_plot_sqm" type="number" min="0" oninput="calculate()">
+            </div>
+            <div class="form-group">
+              <label>Building Capacity (m²)</label>
+              <input id="i_bld_cap" type="number" min="0" oninput="calculate()">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card no-print" style="margin-bottom:20px">
+        <div class="card-header"><h2>Construction Inputs</h2></div>
+        <div class="card-body">
+          <div class="form-row-3">
+            <div class="form-group">
+              <label>House Size to Build (m²)</label>
+              <input id="i_house_sqm" type="number" min="0" oninput="calculate()">
+            </div>
+            <div class="form-group">
+              <label>Pool</label>
+              <select id="i_pool" onchange="calculate()">
+                <option value="no">No pool</option>
+                <option value="yes">Yes — include pool</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Include Landscaping</label>
+              <select id="i_landscaping" onchange="calculate()">
+                <option value="yes">Yes</option>
+                <option value="no">No</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row-3">
+            <div class="form-group">
+              <label>Water Connection (drinkable)</label>
+              <select id="i_water_drink" onchange="calculate()"><option value="yes">Include</option><option value="no">Exclude</option></select>
+            </div>
+            <div class="form-group">
+              <label>Water Connection (irrigation)</label>
+              <select id="i_water_irr" onchange="calculate()"><option value="yes">Include</option><option value="no">Exclude</option></select>
+            </div>
+            <div class="form-group">
+              <label>Electricity Network</label>
+              <select id="i_electricity" onchange="calculate()"><option value="yes">Include all</option><option value="no">Exclude</option></select>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: BUDGET TABLE -->
+    <div>
+      <div class="card" style="position:sticky;top:20px">
+        <div class="card-header">
+          <h2>Budget Summary</h2>
+          <div id="buyer-name" style="font-size:12px;color:var(--text-muted)"></div>
+        </div>
+
+        <!-- Print header -->
+        <div class="print-only" style="padding:16px 22px 0">
+          <div style="font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:500">Budget Estimate</div>
+          <div id="print-buyer" style="font-size:13px;color:#666;margin-top:4px"></div>
+          <div style="font-size:12px;color:#999;margin-top:2px">Generated: <span id="print-date"></span></div>
+        </div>
+
+        <div class="card-body" style="padding:0">
+          <table class="budget-table" style="width:100%">
+            <tbody id="budget-tbody"></tbody>
+          </table>
+        </div>
+
+        <div style="padding:16px 22px;border-top:1px solid var(--border)">
+          <div style="font-size:11px;color:var(--text-muted)">All figures are estimates. Actual costs may vary. Consult your lawyer and notary for exact figures.</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script src="kre-base.js"></script>
+<script src="kre-nav.js"></script>
+<script>
+let settings = {};
+let contacts = [];
+let props    = [];
+let selectedContactId = null;
+
+async function init() {
+  settings = await SETTINGS.load();
+  document.getElementById('print-date').textContent = new Date().toLocaleDateString('el-GR');
+
+  // Load selects
+  const [cr, pr] = await Promise.all([DB.loadAll('kre_contacts'), DB.loadAll('kre_properties')]);
+  contacts = (cr.rows || []).filter(c => c.role === 'buyer' || c.role === 'both');
+  props    = pr.rows || [];
+
+  const cSel = document.getElementById('sel-contact');
+  contacts.forEach(c => {
+    const o = document.createElement('option');
+    o.value = c.id;
+    o.textContent = (c.first_name||'') + ' ' + (c.last_name||'');
+    cSel.appendChild(o);
+  });
+
+  const pSel = document.getElementById('sel-property');
+  props.filter(p=>p.available!==false).forEach(p => {
+    const o = document.createElement('option');
+    o.value = p.id;
+    o.textContent = `#${p.property_num||'?'} ${p.type||''} – ${p.area||''} ${p.office_price ? '('+fmtEur(p.office_price)+')' : ''}`;
+    pSel.appendChild(o);
+  });
+
+  // Check URL param
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('contact')) {
+    document.getElementById('sel-contact').value = params.get('contact');
+    onContactChange();
+  }
+
+  calculate();
+}
+
+function onContactChange() {
+  const id = document.getElementById('sel-contact').value;
+  selectedContactId = id || null;
+  const c = contacts.find(x => x.id === id);
+  if (c) {
+    document.getElementById('buyer-name').textContent = (c.first_name||'')+' '+(c.last_name||'');
+    document.getElementById('print-buyer').textContent = 'Prepared for: '+(c.first_name||'')+' '+(c.last_name||'');
+    if (c.budget_max) document.getElementById('i_plot_price').value = Math.round(c.budget_max * 0.3);
+    document.getElementById('saveBtn').style.display = '';
+  } else {
+    document.getElementById('buyer-name').textContent = '';
+    document.getElementById('print-buyer').textContent = '';
+    document.getElementById('saveBtn').style.display = 'none';
+  }
+  calculate();
+}
+
+function onPropertyChange() {
+  const id = document.getElementById('sel-property').value;
+  const p  = props.find(x => x.id === id);
+  if (p) {
+    if (p.office_price) document.getElementById('i_plot_price').value = p.office_price;
+    if (p.plot)         document.getElementById('i_plot_sqm').value   = p.plot;
+    if (p.bld_cap)      document.getElementById('i_bld_cap').value    = p.bld_cap;
+  }
+  calculate();
+}
+
+function v(id) { return parseFloat(document.getElementById(id).value) || 0; }
+function sel(id) { return document.getElementById(id).value; }
+
+function calculate() {
+  const b = settings.budget || KRE_DEFAULTS.budget;
+  const plotPrice = v('i_plot_price');
+
+  // Acquisition costs
+  const transferTax  = plotPrice * (b.transfer_tax_pct / 100);
+  const notary       = plotPrice * (b.notary_pct / 100);
+  const lawyer       = b.lawyer_fee;
+  const accountant   = b.accountant_fee;
+  const commission   = Math.max(plotPrice * (b.commission_pct / 100), b.commission_min);
+  const totalAcq     = plotPrice + transferTax + notary + lawyer + accountant + commission;
+
+  // Construction costs
+  const houseSqm    = v('i_house_sqm');
+  const licence     = houseSqm * b.building_licence_per_sqm;
+  const construction= houseSqm * b.construction_cost_per_sqm;
+  const pool        = sel('i_pool') === 'yes' ? b.pool_cost : 0;
+  const landscaping = sel('i_landscaping') === 'yes' ? b.landscaping_cost : 0;
+  const waterDrink  = sel('i_water_drink') === 'yes' ? b.water_drinkable : 0;
+  const waterIrr    = sel('i_water_irr') === 'yes' ? b.water_irrigation : 0;
+  const electricity = sel('i_electricity') === 'yes'
+    ? b.electricity_deposit + b.electricity_connection + b.network_connection + b.pole_construction : 0;
+  const totalConst  = licence + construction + pool + landscaping + waterDrink + waterIrr + electricity;
+
+  const grandTotal  = totalAcq + totalConst;
+
+  const rows = [
+    { section: 'PLOT ACQUISITION' },
+    { label:'Plot Purchase Price',         value: plotPrice,    editable:false },
+    { label:`Transfer Tax (${b.transfer_tax_pct}%)`, value: transferTax },
+    { label:`Notary Fee (~${b.notary_pct}%)`,        value: notary },
+    { label:'Lawyer Fee',                  value: lawyer },
+    { label:'Accountant Fee',              value: accountant },
+    { label:`Agency Commission (${b.commission_pct}%, min €${b.commission_min.toLocaleString()})`, value: commission },
+    { total: 'Total Acquisition Cost',     value: totalAcq },
+
+    ...(houseSqm > 0 ? [
+      { section: 'CONSTRUCTION' },
+      { label:`Building Licence (${houseSqm}m² × €${b.building_licence_per_sqm}/m²)`, value: licence },
+      { label:`House Construction (${houseSqm}m² × €${b.construction_cost_per_sqm}/m²)`, value: construction },
+      ...(pool > 0        ? [{ label:'Swimming Pool', value: pool }] : []),
+      ...(landscaping > 0 ? [{ label:'Landscaping',   value: landscaping }] : []),
+      ...(waterDrink > 0  ? [{ label:'Drinkable Water Connection', value: waterDrink }] : []),
+      ...(waterIrr > 0    ? [{ label:'Irrigation Water Connection', value: waterIrr }] : []),
+      ...(electricity > 0 ? [{ label:'Electricity (Deposit + Connection + Network + Pole)', value: electricity }] : []),
+      { total: 'Total Construction Cost',  value: totalConst }
+    ] : []),
+
+    { grandTotal: 'TOTAL INVESTMENT',      value: grandTotal }
+  ];
+
+  const tbody = document.getElementById('budget-tbody');
+  tbody.innerHTML = rows.map(row => {
+    if (row.section) {
+      return `<tr class="budget-section"><td colspan="2">${row.section}</td></tr>`;
+    }
+    if (row.grandTotal) {
+      return `<tr style="background:var(--kre-deep);color:#fff">
+        <td style="padding:14px 16px;font-size:15px;font-weight:700">${row.grandTotal}</td>
+        <td style="padding:14px 16px;font-size:18px;font-weight:700;text-align:right;font-family:'DM Mono',monospace">${fmtEur(row.value)}</td>
+      </tr>`;
+    }
+    if (row.total) {
+      return `<tr class="budget-total"><td style="padding:12px 16px">${row.total}</td><td style="padding:12px 16px">${fmtEur(row.value)}</td></tr>`;
+    }
+    return `<tr>
+      <td style="padding:8px 16px;font-size:13px;color:var(--text)">${row.label}</td>
+      <td style="padding:8px 16px">${row.value > 0 ? fmtEur(row.value) : '<span style="color:var(--text-light)">—</span>'}</td>
+    </tr>`;
+  }).join('');
+}
+
+async function saveToContact() {
+  if (!selectedContactId) return;
+  const c = contacts.find(x => x.id === selectedContactId);
+  if (!c) return;
+
+  const tbody = document.getElementById('budget-tbody');
+  const summary = 'Budget calculated on ' + new Date().toLocaleDateString('el-GR') +
+    '. Plot: €' + document.getElementById('i_plot_price').value +
+    ', House: ' + (document.getElementById('i_house_sqm').value||'?') + 'm²';
+
+  const updated = { ...c, budget_note: summary };
+  const r = await DB.upsertOne('kre_contacts', updated);
+  if (r.ok) toast('Budget note saved to contact','success');
+  else toast('Error: ' + r.err,'error');
+}
+
+init();
+</script>
+</body>
+</html>

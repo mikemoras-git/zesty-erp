@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>KRE — Matches</title>
+<link rel="stylesheet" href="kre-style.css">
+</head>
+<body>
+<div class="kre-page">
+
+  <div class="page-header">
+    <div class="page-title">
+      <h1>Property Matches</h1>
+      <p>Auto-generated matches between buyers and listings</p>
+    </div>
+    <div class="page-actions">
+      <button class="btn btn-ghost" onclick="runMatchAll()">⚡ Re-run All Matches</button>
+    </div>
+  </div>
+
+  <!-- KPIs -->
+  <div class="kpi-grid" style="margin-bottom:20px">
+    <div class="kpi-card">
+      <div class="kpi-label">Total Matches</div>
+      <div class="kpi-value" id="kpi-total">—</div>
+    </div>
+    <div class="kpi-card gold">
+      <div class="kpi-label">Pending Review</div>
+      <div class="kpi-value" id="kpi-pending">—</div>
+    </div>
+    <div class="kpi-card green">
+      <div class="kpi-label">Proposed to Client</div>
+      <div class="kpi-value" id="kpi-proposed">—</div>
+    </div>
+    <div class="kpi-card orange">
+      <div class="kpi-label">Declined</div>
+      <div class="kpi-value" id="kpi-declined">—</div>
+    </div>
+  </div>
+
+  <!-- FILTER BAR -->
+  <div class="filter-bar">
+    <input class="search-input" id="f-search" type="text" placeholder="Search buyer or property…" oninput="applyFilters()">
+    <select id="f-status" onchange="applyFilters()">
+      <option value="">All Statuses</option>
+      <option value="pending">Pending</option>
+      <option value="proposed">Proposed</option>
+      <option value="declined">Declined</option>
+      <option value="deal">Deal Started</option>
+    </select>
+    <select id="f-score" onchange="applyFilters()">
+      <option value="">All Scores</option>
+      <option value="high">High (≥70)</option>
+      <option value="mid">Medium (40–69)</option>
+    </select>
+    <span class="filter-count" id="filter-count"></span>
+  </div>
+
+  <!-- TABLE -->
+  <div class="card" style="overflow:hidden">
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Buyer</th>
+            <th>Property</th>
+            <th>Match Score</th>
+            <th>Why It Matched</th>
+            <th>Status</th>
+            <th>Matched On</th>
+            <th style="text-align:right">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="matches-table">
+          <tr><td colspan="7" class="loading-row"><div class="spinner"></div> Loading…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<script src="kre-base.js"></script>
+<script src="kre-nav.js"></script>
+<script>
+let allMatches  = [];
+let allContacts = [];
+let allProps    = [];
+
+async function init() {
+  const [mr, cr, pr] = await Promise.all([
+    DB.loadAll('kre_matches'),
+    DB.loadAll('kre_contacts'),
+    DB.loadAll('kre_properties')
+  ]);
+  allMatches  = mr.rows || [];
+  allContacts = cr.rows || [];
+  allProps    = pr.rows || [];
+  updateKPIs();
+  applyFilters();
+}
+
+function updateKPIs() {
+  document.getElementById('kpi-total').textContent    = allMatches.length;
+  document.getElementById('kpi-pending').textContent  = allMatches.filter(m=>m.status==='pending').length;
+  document.getElementById('kpi-proposed').textContent = allMatches.filter(m=>m.status==='proposed').length;
+  document.getElementById('kpi-declined').textContent = allMatches.filter(m=>m.status==='declined').length;
+}
+
+function applyFilters() {
+  const search = document.getElementById('f-search').value.toLowerCase();
+  const status = document.getElementById('f-status').value;
+  const score  = document.getElementById('f-score').value;
+
+  const filtered = allMatches.filter(m => {
+    if (status && m.status !== status) return false;
+    if (score === 'high' && (m.score||0) < 70) return false;
+    if (score === 'mid'  && ((m.score||0) < 40 || (m.score||0) >= 70)) return false;
+    if (search) {
+      const c  = allContacts.find(x=>x.id===m.contact_id);
+      const p  = allProps.find(x=>x.id===m.property_id);
+      const hay = [
+        c ? (c.first_name||'')+' '+(c.last_name||'') : '',
+        p ? '#'+(p.property_num||'?')+' '+(p.area||'') : ''
+      ].join(' ').toLowerCase();
+      if (!hay.includes(search)) return false;
+    }
+    return true;
+  });
+
+  filtered.sort((a,b)=> (b.score||0)-(a.score||0));
+  document.getElementById('filter-count').textContent = `${filtered.length} of ${allMatches.length}`;
+  renderTable(filtered);
+}
+
+function renderTable(matches) {
+  const tbody = document.getElementById('matches-table');
+  if (!matches.length) {
+    tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state">
+      <div class="empty-icon">⬡</div>
+      <div class="empty-title">No matches yet</div>
+      <div class="empty-sub">Matches are auto-generated when you save a new property or contact. Click "Re-run All Matches" to generate them now.</div>
+    </div></td></tr>`;
+    return;
+  }
+  tbody.innerHTML = matches.map(m => {
+    const c = allContacts.find(x=>x.id===m.contact_id);
+    const p = allProps.find(x=>x.id===m.property_id);
+    const buyerName = c ? (c.first_name||'')+' '+(c.last_name||'') : '(deleted)';
+    const propLabel = p ? `#${p.property_num||'?'} ${p.type||''} – ${p.area||''}` : '(deleted)';
+    const score = m.score || 0;
+    const scoreColor = score >= 70 ? 'var(--success)' : score >= 40 ? 'var(--warning)' : 'var(--text-light)';
+    const statusBadge = {
+      pending:  '<span class="badge badge-gray">Pending</span>',
+      proposed: '<span class="badge badge-green">Proposed</span>',
+      declined: '<span class="badge badge-red">Declined</span>',
+      deal:     '<span class="badge badge-teal">Deal Started</span>'
+    }[m.status] || '<span class="badge badge-gray">Pending</span>';
+
+    const reasons = (m.reasons||[]).join(', ') || '—';
+
+    return `<tr>
+      <td>
+        <strong>${esc(buyerName)}</strong>
+        ${c ? `<div style="font-size:11px;color:var(--text-muted)">${esc(c.email||'')}</div>` : ''}
+      </td>
+      <td>
+        <strong>${esc(propLabel)}</strong>
+        ${p ? `<div style="font-size:11px;color:var(--text-muted)">${fmtEur(p.office_price||0)}</div>` : ''}
+      </td>
+      <td>
+        <span style="font-size:20px;font-weight:700;font-family:'DM Mono',monospace;color:${scoreColor}">${score}</span>
+        <span style="font-size:11px;color:var(--text-muted)">/100</span>
+      </td>
+      <td style="font-size:12px;color:var(--text-muted);max-width:220px">${esc(reasons)}</td>
+      <td>${statusBadge}</td>
+      <td style="font-size:12px;color:var(--text-muted)">${fmtDate(m.created_at)}</td>
+      <td class="td-actions">
+        ${m.status !== 'proposed' ? `<button class="btn btn-primary btn-sm" onclick="setStatus('${m.id}','proposed')">Mark Proposed</button>` : ''}
+        ${m.status !== 'declined' ? `<button class="btn btn-ghost btn-sm" onclick="setStatus('${m.id}','declined')">Decline</button>` : ''}
+        ${m.status !== 'pending'  ? `<button class="btn btn-ghost btn-sm" onclick="setStatus('${m.id}','pending')">Reset</button>` : ''}
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+async function setStatus(id, status) {
+  const m = allMatches.find(x=>x.id===id);
+  if (!m) return;
+  const r = await DB.upsertOne('kre_matches', {...m, status});
+  if (r.ok) {
+    m.status = status;
+    updateKPIs();
+    applyFilters();
+    toast(`Match marked as ${status}`, 'success');
+  } else {
+    toast('Error: ' + r.err, 'error');
+  }
+}
+
+async function runMatchAll() {
+  const [settings] = await Promise.all([SETTINGS.load()]);
+  const buyers = allContacts.filter(c => c.role==='buyer'||c.role==='both');
+  const available = allProps.filter(p => p.available !== false);
+  let created = 0;
+
+  for (const buyer of buyers) {
+    for (const prop of available) {
+      const existing = allMatches.find(m=>m.contact_id===buyer.id&&m.property_id===prop.id);
+      if (existing) continue;
+      const result = MATCHER.score(buyer, prop);
+      if (result.score >= 40) {
+        const r = await DB.upsertOne('kre_matches', {
+          contact_id:  buyer.id,
+          property_id: prop.id,
+          score:       result.score,
+          reasons:     result.reasons,
+          status:      'pending'
+        });
+        if (r.ok) { allMatches.push(r.row); created++; }
+      }
+    }
+  }
+
+  updateKPIs();
+  applyFilters();
+  toast(`${created} new matches generated`, 'success');
+}
+
+init();
+</script>
+</body>
+</html>

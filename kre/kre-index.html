@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>KRE — Dashboard</title>
+<link rel="stylesheet" href="kre-style.css">
+<style>
+.dash-grid { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+.dash-grid-3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:20px; }
+@media(max-width:900px){ .dash-grid,.dash-grid-3 { grid-template-columns:1fr; } }
+.activity-item { display:flex; gap:12px; padding:10px 0; border-bottom:1px solid var(--border); }
+.activity-item:last-child { border-bottom:none; }
+.activity-icon { width:32px; height:32px; border-radius:50%; display:flex;align-items:center;justify-content:center; font-size:14px; flex-shrink:0; background:var(--surface-2); }
+.activity-text { font-size:13px; line-height:1.4; }
+.activity-time { font-size:11px; color:var(--text-muted); margin-top:2px; }
+.pipeline-mini { display:flex; gap:8px; flex-wrap:wrap; margin-top:8px; }
+.pipeline-mini-stage { background:var(--surface-2); border-radius:6px; padding:6px 10px; font-size:12px; }
+.pipeline-mini-stage .count { font-size:18px; font-weight:700; display:block; font-family:'DM Mono',monospace; }
+.task-mini { display:flex; align-items:center; gap:10px; padding:8px 0; border-bottom:1px solid var(--border); }
+.task-mini:last-child { border-bottom:none; }
+.match-mini { display:flex; align-items:center; justify-content:space-between; padding:8px 0; border-bottom:1px solid var(--border); font-size:13px; }
+.match-mini:last-child { border-bottom:none; }
+.welcome-band { background:var(--kre-deep); color:#fff; border-radius:12px; padding:24px 28px; margin-bottom:24px; display:flex; align-items:center; justify-content:space-between; gap:16px; }
+.welcome-band h2 { font-family:'Cormorant Garamond',serif; font-size:24px; font-weight:500; margin:0 0 4px; }
+.welcome-band p  { font-size:13px; color:rgba(255,255,255,.65); margin:0; }
+.quick-actions { display:flex; gap:10px; flex-wrap:wrap; }
+</style>
+</head>
+<body>
+<div class="kre-page">
+
+  <!-- WELCOME -->
+  <div class="welcome-band">
+    <div>
+      <h2 id="welcome-msg">Good morning</h2>
+      <p id="welcome-date"></p>
+    </div>
+    <div class="quick-actions">
+      <a href="kre-properties.html" class="btn btn-ghost" style="color:#fff;border-color:rgba(255,255,255,.3)">+ Property</a>
+      <a href="kre-contacts.html"   class="btn btn-ghost" style="color:#fff;border-color:rgba(255,255,255,.3)">+ Contact</a>
+      <a href="kre-pipeline-deals.html" class="btn btn-ghost" style="color:#fff;border-color:rgba(255,255,255,.3)">+ Deal</a>
+    </div>
+  </div>
+
+  <!-- TOP KPIs -->
+  <div class="kpi-grid" style="margin-bottom:24px">
+    <div class="kpi-card">
+      <div class="kpi-label">Active Listings</div>
+      <div class="kpi-value" id="kpi-props">—</div>
+      <div style="font-size:11px;color:var(--text-muted);margin-top:4px" id="kpi-props-sub"></div>
+    </div>
+    <div class="kpi-card gold">
+      <div class="kpi-label">Active Buyers</div>
+      <div class="kpi-value" id="kpi-buyers">—</div>
+      <div style="font-size:11px;color:var(--text-muted);margin-top:4px" id="kpi-buyers-sub"></div>
+    </div>
+    <div class="kpi-card orange">
+      <div class="kpi-label">Open Deals</div>
+      <div class="kpi-value" id="kpi-deals">—</div>
+      <div style="font-size:11px;color:var(--text-muted);margin-top:4px" id="kpi-deals-sub"></div>
+    </div>
+    <div class="kpi-card green">
+      <div class="kpi-label">Revenue This Year</div>
+      <div class="kpi-value" id="kpi-revenue">—</div>
+      <div style="font-size:11px;color:var(--text-muted);margin-top:4px" id="kpi-revenue-sub"></div>
+    </div>
+  </div>
+
+  <div class="dash-grid" style="margin-bottom:24px">
+
+    <!-- PIPELINE SNAPSHOT: CLIENTS -->
+    <div class="card">
+      <div class="card-header" style="display:flex;align-items:center;justify-content:space-between">
+        <h2>Client Pipeline</h2>
+        <a href="kre-pipeline-clients.html" style="font-size:12px;color:var(--kre-teal)">View all →</a>
+      </div>
+      <div class="card-body">
+        <div class="pipeline-mini" id="client-pipeline-mini">
+          <div class="spinner"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PIPELINE SNAPSHOT: DEALS -->
+    <div class="card">
+      <div class="card-header" style="display:flex;align-items:center;justify-content:space-between">
+        <h2>Deal Pipeline</h2>
+        <a href="kre-pipeline-deals.html" style="font-size:12px;color:var(--kre-teal)">View all →</a>
+      </div>
+      <div class="card-body">
+        <div class="pipeline-mini" id="deal-pipeline-mini">
+          <div class="spinner"></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="dash-grid-3" style="margin-bottom:24px">
+
+    <!-- UPCOMING TASKS -->
+    <div class="card">
+      <div class="card-header" style="display:flex;align-items:center;justify-content:space-between">
+        <h2>Upcoming Tasks</h2>
+        <a href="kre-tasks.html" style="font-size:12px;color:var(--kre-teal)">View all →</a>
+      </div>
+      <div class="card-body" id="tasks-mini">
+        <div class="spinner"></div>
+      </div>
+    </div>
+
+    <!-- RECENT MATCHES -->
+    <div class="card">
+      <div class="card-header" style="display:flex;align-items:center;justify-content:space-between">
+        <h2>Recent Matches</h2>
+        <a href="kre-matches.html" style="font-size:12px;color:var(--kre-teal)">View all →</a>
+      </div>
+      <div class="card-body" id="matches-mini">
+        <div class="spinner"></div>
+      </div>
+    </div>
+
+    <!-- ACTIVITY FEED -->
+    <div class="card">
+      <div class="card-header">
+        <h2>Recent Activity</h2>
+      </div>
+      <div class="card-body" id="activity-feed">
+        <div class="spinner"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- OVERDUE CLIENTS -->
+  <div class="card" id="overdue-card" style="margin-bottom:24px;display:none">
+    <div class="card-header">
+      <h2 style="color:var(--danger)">⚠ Overdue Clients — No contact in 14+ days</h2>
+    </div>
+    <div class="card-body" style="padding:0">
+      <table>
+        <thead>
+          <tr><th>Client</th><th>Stage</th><th>Last Contact</th><th>Days Since</th><th></th></tr>
+        </thead>
+        <tbody id="overdue-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<script src="kre-base.js"></script>
+<script src="kre-nav.js"></script>
+<script>
+const today = new Date().toISOString().slice(0,10);
+const thisYear = new Date().getFullYear().toString();
+
+async function init() {
+  setWelcome();
+  const [pr, cr, dr, tr, mr, rr, er, settings] = await Promise.all([
+    DB.loadAll('kre_properties'),
+    DB.loadAll('kre_contacts'),
+    DB.loadAll('kre_deals'),
+    DB.loadAll('kre_tasks'),
+    DB.loadAll('kre_matches'),
+    DB.loadAll('kre_revenues'),
+    DB.loadAll('kre_client_events'),
+    SETTINGS.load()
+  ]);
+
+  const props   = pr.rows || [];
+  const contacts= cr.rows || [];
+  const deals   = dr.rows || [];
+  const tasks   = tr.rows || [];
+  const matches = mr.rows || [];
+  const revs    = rr.rows || [];
+  const events  = er.rows || [];
+
+  renderKPIs(props, contacts, deals, revs);
+  renderClientPipeline(contacts, settings);
+  renderDealPipeline(deals, settings);
+  renderTasks(tasks);
+  renderMatches(matches, contacts, props);
+  renderActivity(events, contacts, props, deals);
+  renderOverdue(contacts, settings);
+}
+
+function setWelcome() {
+  const h = new Date().getHours();
+  const greet = h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening';
+  const sess  = AUTH.getSession();
+  const name  = sess ? (sess.full_name||sess.email).split(' ')[0] : '';
+  document.getElementById('welcome-msg').textContent  = name ? `${greet}, ${name}` : greet;
+  document.getElementById('welcome-date').textContent = new Date().toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+}
+
+function renderKPIs(props, contacts, deals, revs) {
+  const activeProps  = props.filter(p=>p.available!==false);
+  const buyers       = contacts.filter(c=>c.role==='buyer'||c.role==='both');
+  const activeDeals  = deals.filter(d=>d.stage!=='completed'&&d.stage!=='cancelled');
+  const yearRevs     = revs.filter(r=>(r.date||'').startsWith(thisYear));
+  const totalRev     = yearRevs.reduce((s,r)=>s+(parseFloat(r.amount)||0),0);
+  const dealValue    = activeDeals.reduce((s,d)=>s+(parseFloat(d.sale_price)||0),0);
+
+  document.getElementById('kpi-props').textContent      = activeProps.length;
+  document.getElementById('kpi-props-sub').textContent  = `${props.length} total properties`;
+  document.getElementById('kpi-buyers').textContent     = buyers.filter(c=>c.active!==false).length;
+  document.getElementById('kpi-buyers-sub').textContent = `${buyers.length} total buyers`;
+  document.getElementById('kpi-deals').textContent      = activeDeals.length;
+  document.getElementById('kpi-deals-sub').textContent  = dealValue ? `${fmtEur(dealValue)} total value` : '';
+  document.getElementById('kpi-revenue').textContent    = fmtEur(totalRev);
+  document.getElementById('kpi-revenue-sub').textContent= `${yearRevs.length} transactions in ${thisYear}`;
+}
+
+function renderClientPipeline(contacts, settings) {
+  const stages = settings.client_stages || KRE_DEFAULTS.client_stages;
+  const el = document.getElementById('client-pipeline-mini');
+  const buyers = contacts.filter(c=>c.role==='buyer'||c.role==='both');
+  el.innerHTML = stages.map(s => {
+    const count = buyers.filter(c=>c.stage===s.id).length;
+    return `<div class="pipeline-mini-stage">
+      <span class="count" style="color:${s.color||'var(--kre-teal)'}">${count}</span>
+      <span style="color:var(--text-muted)">${esc(s.name)}</span>
+    </div>`;
+  }).join('');
+}
+
+function renderDealPipeline(deals, settings) {
+  const stages = settings.deal_stages || KRE_DEFAULTS.deal_stages;
+  const el = document.getElementById('deal-pipeline-mini');
+  const active = deals.filter(d=>d.stage!=='completed'&&d.stage!=='cancelled');
+  el.innerHTML = stages.filter(s=>s.id!=='completed'&&s.id!=='cancelled').map(s => {
+    const count = active.filter(d=>d.stage===s.id).length;
+    return `<div class="pipeline-mini-stage">
+      <span class="count" style="color:${s.color||'var(--kre-teal)'}">${count}</span>
+      <span style="color:var(--text-muted)">${esc(s.name)}</span>
+    </div>`;
+  }).join('');
+}
+
+function renderTasks(tasks) {
+  const open   = tasks.filter(t=>!t.done);
+  const sorted = open.sort((a,b)=>{
+    const pa = {high:0,medium:1,low:2}[a.priority||'medium'];
+    const pb = {high:0,medium:1,low:2}[b.priority||'medium'];
+    if (pa!==pb) return pa-pb;
+    return (a.due_date||'9999')<(b.due_date||'9999')?-1:1;
+  }).slice(0,6);
+
+  const el = document.getElementById('tasks-mini');
+  if (!sorted.length) {
+    el.innerHTML = `<div style="color:var(--text-muted);font-size:13px;text-align:center;padding:16px">No open tasks</div>`;
+    return;
+  }
+  el.innerHTML = sorted.map(t => {
+    const isOverdue = t.due_date && t.due_date < today;
+    const dotColor  = {high:'var(--danger)',medium:'var(--warning)',low:'var(--success)'}[t.priority||'medium'];
+    return `<div class="task-mini">
+      <span style="width:8px;height:8px;border-radius:50%;background:${dotColor};flex-shrink:0;display:inline-block"></span>
+      <span style="flex:1;font-size:13px">${esc(t.title||'')}</span>
+      ${t.due_date ? `<span style="font-size:11px;color:${isOverdue?'var(--danger)':'var(--text-muted)'};white-space:nowrap">${isOverdue?'⚠ ':''}${fmtDate(t.due_date)}</span>` : ''}
+    </div>`;
+  }).join('');
+}
+
+function renderMatches(matches, contacts, props) {
+  const pending = matches.filter(m=>m.status==='pending')
+    .sort((a,b)=>(b.score||0)-(a.score||0)).slice(0,6);
+  const el = document.getElementById('matches-mini');
+  if (!pending.length) {
+    el.innerHTML = `<div style="color:var(--text-muted);font-size:13px;text-align:center;padding:16px">No pending matches</div>`;
+    return;
+  }
+  el.innerHTML = pending.map(m => {
+    const c = contacts.find(x=>x.id===m.contact_id);
+    const p = props.find(x=>x.id===m.property_id);
+    const buyer = c ? (c.first_name||'')+' '+(c.last_name||'').trim() : '—';
+    const prop  = p ? `#${p.property_num||'?'} ${p.area||''}` : '—';
+    const score = m.score||0;
+    const col   = score>=70?'var(--success)':score>=40?'var(--warning)':'var(--text-light)';
+    return `<div class="match-mini">
+      <div>
+        <div style="font-weight:600">${esc(buyer)}</div>
+        <div style="color:var(--text-muted)">${esc(prop)}</div>
+      </div>
+      <span style="font-family:'DM Mono',monospace;font-weight:700;color:${col}">${score}</span>
+    </div>`;
+  }).join('');
+}
+
+const EVENT_ICONS = { call:'📞', email:'✉', viewing:'🏠', meeting:'📅', note:'📝' };
+function renderActivity(events, contacts, props, deals) {
+  const sorted = [...events].sort((a,b)=>b.created_at>a.created_at?1:-1).slice(0,8);
+  const el = document.getElementById('activity-feed');
+  if (!sorted.length) {
+    el.innerHTML = `<div style="color:var(--text-muted);font-size:13px;text-align:center;padding:16px">No recent activity</div>`;
+    return;
+  }
+  el.innerHTML = sorted.map(ev => {
+    const c    = contacts.find(x=>x.id===ev.contact_id);
+    const name = c ? (c.first_name||'')+' '+(c.last_name||'').trim() : 'Contact';
+    const icon = EVENT_ICONS[ev.event_type]||'◈';
+    return `<div class="activity-item">
+      <div class="activity-icon">${icon}</div>
+      <div>
+        <div class="activity-text"><strong>${esc(name)}</strong> — ${esc(ev.event_type||'')}${ev.note ? ': '+esc(ev.note.slice(0,60)) : ''}</div>
+        <div class="activity-time">${fmtRelative(ev.created_at)}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderOverdue(contacts, settings) {
+  const stages  = settings.client_stages || KRE_DEFAULTS.client_stages;
+  const buyers  = contacts.filter(c=>(c.role==='buyer'||c.role==='both')&&c.active!==false);
+  const cutoff  = new Date(Date.now()-14*86400000).toISOString().slice(0,10);
+  const overdue = buyers.filter(c=> !c.last_contact || c.last_contact < cutoff);
+  if (!overdue.length) return;
+  document.getElementById('overdue-card').style.display = '';
+  const tbody = document.getElementById('overdue-tbody');
+  tbody.innerHTML = overdue.map(c => {
+    const stage = stages.find(s=>s.id===c.stage);
+    const days  = c.last_contact
+      ? Math.floor((Date.now()-new Date(c.last_contact).getTime())/86400000)
+      : null;
+    return `<tr>
+      <td><strong>${esc((c.first_name||'')+' '+(c.last_name||''))}</strong></td>
+      <td>${stage ? `<span class="badge" style="background:${stage.color||'#666'}20;color:${stage.color||'#666'}">${stage.name}</span>` : '—'}</td>
+      <td style="font-size:13px">${c.last_contact ? fmtDate(c.last_contact) : '<span style="color:var(--text-muted)">Never</span>'}</td>
+      <td style="font-weight:700;color:var(--danger)">${days !== null ? days+'d' : '—'}</td>
+      <td><a href="kre-pipeline-clients.html" class="btn btn-ghost btn-sm">View Pipeline</a></td>
+    </tr>`;
+  }).join('');
+}
+
+init();
+</script>
+</body>
+</html>

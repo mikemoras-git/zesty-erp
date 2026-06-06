@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>KRE — Collaborators</title>
+<link rel="stylesheet" href="kre-style.css">
+</head>
+<body>
+<div class="kre-page">
+
+  <div class="page-header">
+    <div class="page-title">
+      <h1>Collaborators</h1>
+      <p>External estate agents who refer properties or clients</p>
+    </div>
+    <div class="page-actions">
+      <button class="btn btn-primary" onclick="openAdd()">+ Add Collaborator</button>
+    </div>
+  </div>
+
+  <!-- FILTER BAR -->
+  <div class="filter-bar">
+    <input class="search-input" id="f-search" type="text" placeholder="Search name, agency, email…" oninput="applyFilters()">
+    <select id="f-type" onchange="applyFilters()">
+      <option value="">All Types</option>
+      <option value="agent">Estate Agent</option>
+      <option value="individual">Individual</option>
+      <option value="agency">Agency</option>
+    </select>
+    <span class="filter-count" id="filter-count"></span>
+  </div>
+
+  <!-- STATS ROW -->
+  <div class="kpi-grid" style="margin-bottom:20px">
+    <div class="kpi-card">
+      <div class="kpi-label">Total Collaborators</div>
+      <div class="kpi-value" id="kpi-total">—</div>
+    </div>
+    <div class="kpi-card gold">
+      <div class="kpi-label">Properties Referred</div>
+      <div class="kpi-value" id="kpi-props">—</div>
+    </div>
+    <div class="kpi-card green">
+      <div class="kpi-label">Clients Referred</div>
+      <div class="kpi-value" id="kpi-clients">—</div>
+    </div>
+    <div class="kpi-card orange">
+      <div class="kpi-label">Commission Pending</div>
+      <div class="kpi-value" id="kpi-commission">—</div>
+    </div>
+  </div>
+
+  <!-- TABLE -->
+  <div class="card" style="overflow:hidden">
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th><th>Agency</th><th>Type</th>
+            <th>Phone</th><th>Email</th>
+            <th>Props Referred</th><th>Clients Referred</th>
+            <th>Commission (€)</th><th>Status</th>
+            <th style="text-align:right">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="collab-table">
+          <tr><td colspan="10" class="loading-row"><div class="spinner"></div> Loading…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<!-- ADD / EDIT MODAL -->
+<div class="modal-overlay" id="collabModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="collabModalTitle">Add Collaborator</h2>
+      <button class="modal-close" onclick="closeModal('collabModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="col_id">
+
+      <div class="section-lbl">Collaborator Details</div>
+      <div class="form-row">
+        <div class="form-group"><label>Full Name *</label><input id="col_name" type="text"></div>
+        <div class="form-group"><label>Agency / Company</label><input id="col_agency" type="text" placeholder="Agency name or self-employed"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Type</label>
+          <select id="col_type">
+            <option value="agent">Estate Agent</option>
+            <option value="agency">Agency</option>
+            <option value="individual">Individual</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Location / Area</label>
+          <input id="col_location" type="text" placeholder="e.g. Kissamos, Chania…">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Phone</label><input id="col_phone" type="tel"></div>
+        <div class="form-group"><label>Email</label><input id="col_email" type="email"></div>
+      </div>
+      <div class="form-group"><label>Website / Social</label><input id="col_website" type="text" placeholder="https://…"></div>
+
+      <div class="section-lbl">Commission Agreement</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Commission Rate (%)</label>
+          <div class="input-group"><span class="input-pfx">%</span><input id="col_commission_pct" type="number" step="0.1" min="0" placeholder="e.g. 1.0"></div>
+          <div class="form-hint">Their share of the deal commission</div>
+        </div>
+        <div class="form-group">
+          <label>Commission Pending (€)</label>
+          <div class="input-group"><span class="input-pfx">€</span><input id="col_commission_due" type="number" min="0"></div>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Status</label>
+          <select id="col_active">
+            <option value="true">Active</option>
+            <option value="false">Inactive</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Partnership Since</label>
+          <input id="col_since" type="date">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Notes</label>
+        <textarea id="col_notes" rows="3" placeholder="Notes about this collaborator…"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('collabModal')">Cancel</button>
+      <button class="btn btn-danger btn-sm" id="deleteCollabBtn" onclick="deleteCollab()" style="margin-right:auto;display:none">Delete</button>
+      <button class="btn btn-primary" onclick="saveCollab()">Save</button>
+    </div>
+  </div>
+</div>
+
+<script src="kre-base.js"></script>
+<script src="kre-nav.js"></script>
+<script>
+let allCollabs = [];
+let editingId  = null;
+
+async function init() {
+  await loadCollabs();
+}
+
+async function loadCollabs() {
+  const r = await DB.loadAll('kre_collaborators');
+  allCollabs = r.rows || [];
+  updateKPIs();
+  applyFilters();
+}
+
+function updateKPIs() {
+  document.getElementById('kpi-total').textContent      = allCollabs.length;
+  document.getElementById('kpi-props').textContent      = allCollabs.reduce((s,c)=>s+(c.props_referred||0),0);
+  document.getElementById('kpi-clients').textContent    = allCollabs.reduce((s,c)=>s+(c.clients_referred||0),0);
+  const pending = allCollabs.reduce((s,c)=>s+(parseFloat(c.commission_due)||0),0);
+  document.getElementById('kpi-commission').textContent = pending ? fmtEur(pending) : '€0';
+}
+
+function applyFilters() {
+  const search = document.getElementById('f-search').value.toLowerCase();
+  const type   = document.getElementById('f-type').value;
+  const filtered = allCollabs.filter(c => {
+    if (type && c.type !== type) return false;
+    if (search) {
+      const hay = [c.name,c.agency,c.email,c.phone,c.location].join(' ').toLowerCase();
+      if (!hay.includes(search)) return false;
+    }
+    return true;
+  });
+  document.getElementById('filter-count').textContent = `${filtered.length} of ${allCollabs.length}`;
+  renderTable(filtered);
+}
+
+function renderTable(collabs) {
+  const tbody = document.getElementById('collab-table');
+  if (!collabs.length) {
+    tbody.innerHTML = `<tr><td colspan="10"><div class="empty-state"><div class="empty-icon">◈</div><div class="empty-title">No collaborators yet</div><div class="empty-sub">Add estate agents who refer properties or clients to you.</div></div></td></tr>`;
+    return;
+  }
+  tbody.innerHTML = collabs.map(c =>
+    `<tr>
+      <td><strong>${esc(c.name)}</strong></td>
+      <td>${esc(c.agency||'—')}</td>
+      <td><span class="badge badge-gray">${c.type||'agent'}</span></td>
+      <td>${esc(c.phone||'—')}</td>
+      <td><a href="mailto:${esc(c.email||'')}" style="color:var(--kre-teal)">${esc(c.email||'—')}</a></td>
+      <td style="text-align:center"><strong>${c.props_referred||0}</strong></td>
+      <td style="text-align:center"><strong>${c.clients_referred||0}</strong></td>
+      <td>${c.commission_due ? `<strong style="color:var(--warning)">${fmtEur(c.commission_due)}</strong>` : '—'}</td>
+      <td>${c.active===false ? '<span class="badge badge-red">Inactive</span>' : '<span class="badge badge-green">Active</span>'}</td>
+      <td class="td-actions">
+        <button class="btn btn-ghost btn-sm" onclick="openEdit('${c.id}')">Edit</button>
+        <button class="btn btn-primary btn-sm" onclick="addRef('${c.id}','props')" title="Record property referral">+🏠</button>
+        <button class="btn btn-primary btn-sm" onclick="addRef('${c.id}','clients')" title="Record client referral">+👤</button>
+      </td>
+    </tr>`
+  ).join('');
+}
+
+async function addRef(id, type) {
+  const c = allCollabs.find(x => x.id === id);
+  if (!c) return;
+  const updated = {
+    ...c,
+    props_referred:   type === 'props'   ? (c.props_referred||0)+1   : (c.props_referred||0),
+    clients_referred: type === 'clients' ? (c.clients_referred||0)+1 : (c.clients_referred||0)
+  };
+  const r = await DB.upsertOne('kre_collaborators', updated);
+  if (r.ok) { toast(`Referral recorded`,'success'); await loadCollabs(); }
+  else toast('Error: ' + r.err,'error');
+}
+
+function openAdd() {
+  editingId = null;
+  document.getElementById('collabModalTitle').textContent = 'Add Collaborator';
+  document.getElementById('deleteCollabBtn').style.display = 'none';
+  clearForm();
+  openModal('collabModal');
+}
+function openEdit(id) {
+  const c = allCollabs.find(x => x.id === id);
+  if (!c) return;
+  editingId = id;
+  document.getElementById('collabModalTitle').textContent = 'Edit Collaborator';
+  document.getElementById('deleteCollabBtn').style.display = '';
+  fillForm(c);
+  openModal('collabModal');
+}
+
+function clearForm() {
+  ['col_id','col_name','col_agency','col_location','col_phone','col_email',
+   'col_website','col_commission_pct','col_commission_due','col_since','col_notes'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  document.getElementById('col_type').value   = 'agent';
+  document.getElementById('col_active').value = 'true';
+}
+
+function fillForm(c) {
+  document.getElementById('col_id').value             = c.id;
+  document.getElementById('col_name').value           = c.name || '';
+  document.getElementById('col_agency').value         = c.agency || '';
+  document.getElementById('col_type').value           = c.type || 'agent';
+  document.getElementById('col_location').value       = c.location || '';
+  document.getElementById('col_phone').value          = c.phone || '';
+  document.getElementById('col_email').value          = c.email || '';
+  document.getElementById('col_website').value        = c.website || '';
+  document.getElementById('col_commission_pct').value = c.commission_pct || '';
+  document.getElementById('col_commission_due').value = c.commission_due || '';
+  document.getElementById('col_active').value         = c.active === false ? 'false' : 'true';
+  document.getElementById('col_since').value          = c.since ? c.since.slice(0,10) : '';
+  document.getElementById('col_notes').value          = c.notes || '';
+}
+
+async function saveCollab() {
+  const name = document.getElementById('col_name').value.trim();
+  if (!name) { toast('Name is required','error'); return; }
+
+  const existing = editingId ? allCollabs.find(c=>c.id===editingId) : {};
+  const collab = {
+    id:               editingId || undefined,
+    name,
+    agency:           document.getElementById('col_agency').value.trim() || null,
+    type:             document.getElementById('col_type').value,
+    location:         document.getElementById('col_location').value.trim() || null,
+    phone:            document.getElementById('col_phone').value.trim() || null,
+    email:            document.getElementById('col_email').value.trim() || null,
+    website:          document.getElementById('col_website').value.trim() || null,
+    commission_pct:   parseFloat(document.getElementById('col_commission_pct').value) || null,
+    commission_due:   parseFloat(document.getElementById('col_commission_due').value) || null,
+    active:           document.getElementById('col_active').value !== 'false',
+    since:            document.getElementById('col_since').value || null,
+    notes:            document.getElementById('col_notes').value.trim() || null,
+    props_referred:   existing.props_referred || 0,
+    clients_referred: existing.clients_referred || 0
+  };
+
+  syncStart();
+  const r = await DB.upsertOne('kre_collaborators', collab);
+  syncDone(r.ok);
+  if (r.ok) { toast(editingId?'Updated':'Collaborator added','success'); closeModal('collabModal'); await loadCollabs(); }
+  else toast('Error: ' + r.err,'error');
+}
+
+async function deleteCollab() {
+  if (!editingId) return;
+  const c = allCollabs.find(x=>x.id===editingId);
+  if (!confirm(`Delete "${c?.name}"?`)) return;
+  const r = await DB.deleteOne('kre_collaborators', editingId);
+  if (r.ok) { toast('Deleted'); closeModal('collabModal'); await loadCollabs(); }
+  else toast('Error: ' + r.err,'error');
+}
+
+init();
+</script>
+</body>
+</html>
