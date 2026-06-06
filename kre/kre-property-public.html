@@ -253,7 +253,7 @@ function esc(s) {
 // Local photo folder convention: photos/{property_id}/{n}.{ext}, image "1" = cover.
 // No server-side listing on a static host, so we probe a fixed number of slots
 // and silently drop any that 404.
-const PUB_PHOTO_EXTS = ['jpg','jpeg','png','webp'];
+const PUB_PHOTO_EXTS = ['jpg','jpeg','png','webp','JPG','JPEG','PNG','WEBP'];
 const PUB_PHOTO_MAX  = 30;
 
 function pubPhotoUrl(propId, n, ext) { return `photos/${propId}/${n}.${ext}`; }
