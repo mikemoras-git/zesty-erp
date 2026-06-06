@@ -99,8 +99,13 @@
           <select id="p_area"></select>
         </div>
         <div class="form-group">
-          <label>Owner Name</label>
-          <input id="p_owner" type="text" placeholder="Owner's full name">
+          <label>Owner (Seller Contact)</label>
+          <input id="p_owner_search" type="text" placeholder="Type to search sellers…"
+            oninput="filterOwnerSelect(this.value)" autocomplete="off"
+            style="margin-bottom:4px">
+          <select id="p_owner_contact" size="1" style="width:100%">
+            <option value="">— No owner linked —</option>
+          </select>
         </div>
       </div>
 
@@ -209,9 +214,34 @@
 <script src="kre-nav.js"></script>
 <script src="seed-properties.js"></script>
 <script>
-let allProps   = [];
-let allBuyers  = [];
-let settings   = {};
+let allProps    = [];
+let allBuyers   = [];
+let allSellers  = [];   // contacts with role seller or both
+let settings    = {};
+let _ownerAllOptions = []; // cached for filter
+
+function populateOwnerSelect(selectedId) {
+  const sel = document.getElementById('p_owner_contact');
+  _ownerAllOptions = allSellers.map(c => ({
+    value: c.id,
+    text:  ((c.first_name||'') + ' ' + (c.last_name||'')).trim() || c.email || c.id
+  }));
+  sel.innerHTML = '<option value="">— No owner linked —</option>' +
+    _ownerAllOptions.map(o => `<option value="${o.value}"${o.value===selectedId?' selected':''}>${esc(o.text)}</option>`).join('');
+  // Set search box to show current selection
+  if (selectedId) {
+    const found = _ownerAllOptions.find(o=>o.value===selectedId);
+    if (found) document.getElementById('p_owner_search').value = found.text;
+  }
+}
+function filterOwnerSelect(q) {
+  const sel = document.getElementById('p_owner_contact');
+  const lq  = q.toLowerCase();
+  const opts = _ownerAllOptions.filter(o => !lq || o.text.toLowerCase().includes(lq));
+  sel.innerHTML = '<option value="">— No owner linked —</option>' +
+    opts.map(o => `<option value="${o.value}">${esc(o.text)}</option>`).join('');
+  if (opts.length === 1) sel.value = opts[0].value; // auto-select if unique match
+}
 let viewMode   = 'grid';
 let editingId  = null;
 let checkItems = [];
@@ -226,24 +256,27 @@ async function init() {
     document.getElementById('seedBtn').style.display    = 'none';
   }
 
-  // Deep-link from the property detail page: kre-properties.html?edit=<id>
-  // opens straight into the Edit modal for that property (instead of just
-  // landing on the list with no modal — which looked like "Edit doesn't work").
+  // Deep-link from the property detail page: kre-properties.html?edit=<id>[&return=view]
+  // opens straight into the Edit modal for that property. If ?return=view is set,
+  // saving the modal will navigate back to kre-property-view.html instead of staying here.
   const params = new URLSearchParams(window.location.search);
-  const editId = params.get('edit');
+  const editId   = params.get('edit');
+  const returnTo = params.get('return'); // 'view' → redirect back after save
   if (editId) {
     if (AUTH.canEdit() && allProps.some(p => p.id === editId)) {
       openEdit(editId);
+      if (returnTo) window._returnAfterSave = { id: editId, dest: returnTo };
     }
-    // Clean the URL so a refresh/back-nav doesn't keep re-opening the modal
     history.replaceState(null, '', window.location.pathname);
   }
 }
 
 async function loadData() {
   const [pr, cr] = await Promise.all([DB.loadAll('kre_properties'), DB.loadAll('kre_contacts')]);
-  allProps  = (pr.rows  || []).sort((a,b) => (a.property_num||9999) - (b.property_num||9999));
-  allBuyers = (cr.rows  || []).filter(c => c.role === 'buyer' || c.role === 'both');
+  allProps   = (pr.rows  || []).sort((a,b) => (a.property_num||9999) - (b.property_num||9999));
+  allBuyers  = (cr.rows  || []).filter(c => c.role === 'buyer' || c.role === 'both');
+  allSellers = (cr.rows  || []).filter(c => c.role === 'seller' || c.role === 'both');
+  populateOwnerSelect('');   // prime the dropdown with all sellers
   applyFilters();
   document.getElementById('prop-count-sub').textContent =
     `${allProps.length} properties total`;
@@ -430,11 +463,14 @@ function openEdit(id) {
 }
 
 function clearForm() {
-  ['p_id','p_owner','p_plot','p_house','p_bldcap','p_seadist',
+  ['p_id','p_plot','p_house','p_bldcap','p_seadist',
    'p_officeprice','p_ownerprice','p_coords','p_photos_url','p_desc','p_notes'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.value = '';
   });
+  // Reset owner dropdown
+  document.getElementById('p_owner_search').value = '';
+  populateOwnerSelect('');
   ['p_seaview','p_has_photos','p_topo','p_on_web'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.checked = false;
@@ -448,7 +484,7 @@ function fillForm(p) {
   document.getElementById('p_id').value         = p.id;
   document.getElementById('p_type').value        = p.type || '';
   document.getElementById('p_area').value        = p.area || '';
-  document.getElementById('p_owner').value       = p.owner_name || '';
+  populateOwnerSelect(p.owner_contact_id || '');
   document.getElementById('p_plot').value        = p.plot || '';
   document.getElementById('p_house').value       = p.house || '';
   document.getElementById('p_bldcap').value      = p.bld_cap || '';
@@ -509,7 +545,13 @@ async function saveProp() {
     property_num: editingId ? (allProps.find(p=>p.id===editingId)?.property_num) : (Math.max(0,...allProps.map(p=>p.property_num||0))+1),
     type,
     area,
-    owner_name:      document.getElementById('p_owner').value.trim() || null,
+    owner_contact_id: document.getElementById('p_owner_contact').value || null,
+    owner_name:      (() => {
+      const cid = document.getElementById('p_owner_contact').value;
+      if (!cid) return null;
+      const c = allSellers.find(s => s.id === cid);
+      return c ? (((c.first_name||'') + ' ' + (c.last_name||'')).trim() || c.email || null) : null;
+    })(),
     plot:            parseFloat(document.getElementById('p_plot').value)        || null,
     house:           parseFloat(document.getElementById('p_house').value)       || null,
     bld_cap:         parseFloat(document.getElementById('p_bldcap').value)      || null,
@@ -536,6 +578,13 @@ async function saveProp() {
 
   toast(editingId ? 'Property updated' : 'Property added','success');
   closeModal('propModal');
+
+  // If we were launched from the property detail page, go back there after save
+  if (window._returnAfterSave && editingId) {
+    window.location.href = 'kre-property-view.html?id=' + editingId;
+    return;
+  }
+
   await loadData();
 
   // Run matching for new properties

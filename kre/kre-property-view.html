@@ -418,20 +418,39 @@ async function toggleChecklist(item, val) {
   }
 }
 
-function renderOwner() {
-  const role = AUTH.getSession()?.role;
-  const el   = document.getElementById('owner-body');
-  if (!prop.owner) {
+async function renderOwner() {
+  const role      = AUTH.getSession()?.role;
+  const el        = document.getElementById('owner-body');
+  const ownerName = prop.owner_name || prop.owner || '';
+  const contactId = prop.owner_contact_id || null;
+
+  if (!ownerName && !contactId) {
     el.innerHTML = '<span style="color:var(--text-muted);font-size:13px">No owner recorded</span>';
     return;
   }
+
+  // Load full contact details if linked
+  let contact = null;
+  if (contactId) {
+    try {
+      const r = await DB.getById('kre_contacts', contactId);
+      contact = r.row || null;
+    } catch(e) { /* ignore */ }
+  }
+
+  const displayName = ownerName || (contact ? (((contact.first_name||'') + ' ' + (contact.last_name||'')).trim() || contact.email) : '?');
+  const phone = contact?.phone || prop.owner_phone || '';
+  const email = contact?.email || prop.owner_email || '';
+
   if (role === 'collaborator') {
-    el.innerHTML = `<div style="font-size:14px;font-weight:600">${esc(prop.owner)}</div>
+    el.innerHTML = `<div style="font-size:14px;font-weight:600">${esc(displayName)}</div>
       <div style="font-size:12px;color:var(--text-muted);margin-top:4px">Contact details restricted</div>`;
   } else {
-    el.innerHTML = `<div style="font-size:14px;font-weight:600">${esc(prop.owner)}</div>
-      ${prop.owner_phone ? `<div style="margin-top:8px"><a href="tel:${esc(prop.owner_phone)}" style="color:var(--kre-teal)">📞 ${esc(prop.owner_phone)}</a></div>` : ''}
-      ${prop.owner_email ? `<div style="margin-top:4px"><a href="mailto:${esc(prop.owner_email)}" style="color:var(--kre-teal)">✉ ${esc(prop.owner_email)}</a></div>` : ''}`;
+    el.innerHTML = `
+      <div style="font-size:14px;font-weight:600">${esc(displayName)}</div>
+      ${phone ? `<div style="margin-top:8px"><a href="tel:${esc(phone)}" style="color:var(--kre-teal)">📞 ${esc(phone)}</a></div>` : ''}
+      ${email ? `<div style="margin-top:4px"><a href="mailto:${esc(email)}" style="color:var(--kre-teal)">✉ ${esc(email)}</a></div>` : ''}
+      ${contactId ? `<div style="margin-top:10px"><a href="kre-contacts.html?id=${esc(contactId)}" style="font-size:12px;color:var(--kre-teal)">→ View contact record</a></div>` : ''}`;
   }
 }
 
@@ -607,7 +626,8 @@ function sharePublic() {
 }
 
 function openEditModal() {
-  window.location.href = 'kre-properties.html?edit=' + propId;
+  // Pass ?return=view so the properties page redirects back here after saving
+  window.location.href = 'kre-properties.html?edit=' + propId + '&return=view';
 }
 
 function _qtResetModal(isEdit) {

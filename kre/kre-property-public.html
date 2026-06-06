@@ -223,8 +223,9 @@ body { font-family:'DM Sans',sans-serif; background:var(--surface); color:var(--
 </div>
 
 <script>
-const SUPABASE_URL = 'https://whuytfjwdjjepayeiohj.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndodXl0Zmp3ZGpqZXBheWVpb2hqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDgyOTAzODgsImV4cCI6MjA2Mzg2NjM4OH0.IHjWL80PCJcPgFJb7iGkpQlJFHN_GFoVj4J4UCnHiJ8';
+// Must match the project used in kre-base.js (ikcpbnihnzqbgzyozowu)
+const SUPABASE_URL = 'https://ikcpbnihnzqbgzyozowu.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlrY3BibmlobnpxYmd6eW96b3d1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0NDIwODEsImV4cCI6MjA5NDAxODA4MX0.LcKm9zk2WR7F5zx7WS0yfsWaECM6CyXdmUiEk-hjX5Y';
 
 async function apiFetch(table, filter) {
   let url = `${SUPABASE_URL}/rest/v1/${table}?select=*`;
