@@ -236,15 +236,35 @@
     </div>
     <div class="modal-body">
       <input type="hidden" id="qt_id">
-      <div class="form-group"><label>Task *</label><input id="qt_title" type="text" placeholder="What needs to be done?"></div>
+      <div class="form-group">
+        <label>Task Description *</label>
+        <input id="qt_title" type="text" placeholder="What needs to be done?">
+      </div>
       <div class="form-row">
         <div class="form-group">
           <label>Priority</label>
-          <select id="qt_priority"><option value="medium">Medium</option><option value="high">High</option><option value="low">Low</option></select>
+          <select id="qt_priority">
+            <option value="medium">Medium</option>
+            <option value="high">High</option>
+            <option value="low">Low</option>
+          </select>
         </div>
         <div class="form-group"><label>Due Date</label><input id="qt_due" type="date"></div>
       </div>
-      <div class="form-group"><label>Notes</label><textarea id="qt_notes" rows="2"></textarea></div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Assigned To</label>
+          <select id="qt_assigned"></select>
+        </div>
+        <div class="form-group">
+          <label>Status</label>
+          <select id="qt_done">
+            <option value="false">Open</option>
+            <option value="true">Completed</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group"><label>Notes</label><textarea id="qt_notes" rows="2" placeholder="Additional details…"></textarea></div>
 
       <!-- Subtasks -->
       <div class="form-group" style="margin-top:4px">
@@ -287,6 +307,7 @@ let allContacts = [];
 let allMatches  = [];
 let allTasks    = [];
 let allDeals    = [];
+let allUsers    = [];
 
 async function init() {
   const params = new URLSearchParams(window.location.search);
@@ -295,12 +316,13 @@ async function init() {
 
   settings = await SETTINGS.load();
 
-  const [pr, cr, mr, tr, dr] = await Promise.all([
+  const [pr, cr, mr, tr, dr, ur] = await Promise.all([
     DB.getById('kre_properties', propId),
     DB.loadAll('kre_contacts'),
     DB.loadAll('kre_matches'),
     DB.loadAll('kre_tasks'),
-    DB.loadAll('kre_deals')
+    DB.loadAll('kre_deals'),
+    DB.loadAll('kre_users')
   ]);
 
   prop        = pr.row;
@@ -308,6 +330,7 @@ async function init() {
   allMatches  = (mr.rows || []).filter(m => m.property_id === propId);
   allTasks    = (tr.rows || []).filter(t => t.link_type === 'property' && t.link_id === propId);
   allDeals    = (dr.rows || []).filter(d => d.property_id === propId);
+  allUsers    = ur.rows || [];
 
   if (!prop) { document.getElementById('prop-hero').innerHTML = '<p style="color:#fff">Property not found.</p>'; return; }
 
@@ -553,6 +576,8 @@ function renderTasks() {
     const cmts = t.comments||[];
     const subBadge = subs.length ? `<span class="kre-sub-badge${sdone===subs.length?' all-done':''}">☑ ${sdone}/${subs.length}</span>` : '';
     const cmtBadge = cmts.length ? `<span class="kre-sub-badge">💬 ${cmts.length}</span>` : '';
+    const assignedUser = t.assigned_to ? allUsers.find(u=>u.id===t.assigned_to) : null;
+    const assignedLabel = assignedUser ? (assignedUser.full_name||assignedUser.email) : '';
     return `<div class="task-item">
       <input type="checkbox" ${t.done?'checked':''} onchange="qtToggleDone('${t.id}',this.checked)">
       <div class="task-item-body">
@@ -560,7 +585,10 @@ function renderTasks() {
           <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${dot};margin-right:5px"></span>
           ${esc(t.title||'')}${subBadge}${cmtBadge}
         </div>
-        ${t.due_date?`<div class="task-item-meta" style="${isOverdue?'color:var(--danger)':''}">${isOverdue?'⚠ ':''}${fmtDate(t.due_date)}</div>`:''}
+        <div class="task-item-meta">
+          ${t.due_date?`<span style="${isOverdue?'color:var(--danger)':''}">${isOverdue?'⚠ ':''}${fmtDate(t.due_date)}</span>`:''}
+          ${assignedLabel?`<span style="color:var(--text-muted)">👤 ${esc(assignedLabel)}</span>`:''}
+        </div>
         ${t.notes?`<div class="task-item-meta">${esc(t.notes.slice(0,80))}${t.notes.length>80?'…':''}</div>`:''}
       </div>
       <button class="btn btn-ghost btn-sm" onclick="qtOpenEdit('${t.id}')">Edit</button>
@@ -630,6 +658,18 @@ function openEditModal() {
   window.location.href = 'kre-properties.html?edit=' + propId + '&return=view';
 }
 
+function populateQtAssigned(selectedId) {
+  const sel = document.getElementById('qt_assigned');
+  sel.innerHTML = '<option value="">— Unassigned —</option>';
+  allUsers.forEach(u => {
+    const o = document.createElement('option');
+    o.value = u.id;
+    o.textContent = u.full_name || u.email;
+    if (u.id === selectedId) o.selected = true;
+    sel.appendChild(o);
+  });
+}
+
 function _qtResetModal(isEdit) {
   document.getElementById('qt-modal-title').textContent = isEdit ? 'Edit Task' : 'Add Task';
   document.getElementById('qt-save-btn').textContent    = isEdit ? 'Save' : 'Add Task';
@@ -644,6 +684,8 @@ function openAddTask() {
   ['qt_id','qt_title','qt_notes'].forEach(i=>{const el=document.getElementById(i);if(el)el.value='';});
   document.getElementById('qt_priority').value = 'medium';
   document.getElementById('qt_due').value = '';
+  document.getElementById('qt_done').value = 'false';
+  populateQtAssigned('');
   qtRenderSubs(); qtRenderComments();
   openModal('taskModal');
 }
@@ -659,8 +701,10 @@ function qtOpenEdit(id) {
   document.getElementById('qt_priority').value = t.priority||'medium';
   document.getElementById('qt_due').value      = t.due_date||'';
   document.getElementById('qt_notes').value    = t.notes||'';
+  document.getElementById('qt_done').value     = t.done ? 'true' : 'false';
   document.getElementById('qt-new-sub').value     = '';
   document.getElementById('qt-new-comment').value = '';
+  populateQtAssigned(t.assigned_to||'');
   qtRenderSubs(); qtRenderComments();
   openModal('taskModal');
 }
@@ -669,19 +713,20 @@ async function saveTask() {
   const title = document.getElementById('qt_title').value.trim();
   if (!title) { toast('Task description required','error'); return; }
   const existing = _qtEditId ? (allTasks.find(t=>t.id===_qtEditId)||{}) : {};
-  const done = !!existing.done;
+  const done = document.getElementById('qt_done').value === 'true';
   const task = {
-    id:          _qtEditId||undefined,
+    id:           _qtEditId||undefined,
     title,
-    priority:    document.getElementById('qt_priority').value,
-    due_date:    document.getElementById('qt_due').value||null,
-    notes:       document.getElementById('qt_notes').value.trim()||null,
-    link_type:   'property',
-    link_id:     propId,
+    priority:     document.getElementById('qt_priority').value,
+    due_date:     document.getElementById('qt_due').value||null,
+    notes:        document.getElementById('qt_notes').value.trim()||null,
+    assigned_to:  document.getElementById('qt_assigned').value||null,
+    link_type:    'property',
+    link_id:      propId,
     done,
     completed_at: done ? (existing.completed_at||new Date().toISOString()) : null,
-    subtasks:    _qtSubs.length     ? _qtSubs     : undefined,
-    comments:    _qtComments.length ? _qtComments : undefined
+    subtasks:     _qtSubs.length     ? _qtSubs     : undefined,
+    comments:     _qtComments.length ? _qtComments : undefined
   };
   syncStart();
   const r = await DB.upsertOne('kre_tasks', task);
