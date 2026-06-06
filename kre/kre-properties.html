@@ -225,6 +225,19 @@ async function init() {
     document.getElementById('addPropBtn').style.display = 'none';
     document.getElementById('seedBtn').style.display    = 'none';
   }
+
+  // Deep-link from the property detail page: kre-properties.html?edit=<id>
+  // opens straight into the Edit modal for that property (instead of just
+  // landing on the list with no modal — which looked like "Edit doesn't work").
+  const params = new URLSearchParams(window.location.search);
+  const editId = params.get('edit');
+  if (editId) {
+    if (AUTH.canEdit() && allProps.some(p => p.id === editId)) {
+      openEdit(editId);
+    }
+    // Clean the URL so a refresh/back-nav doesn't keep re-opening the modal
+    history.replaceState(null, '', window.location.pathname);
+  }
 }
 
 async function loadData() {
