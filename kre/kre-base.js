@@ -503,6 +503,53 @@ function esc(s) {
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
+/* ── TASK COMMENTS — lightweight markdown renderer ───────────────────────────
+ * Shared by kre-tasks.html and kre-property-view.html.
+ * Syntax: **bold**, *italic*, `code`, [text](url), - bullet list, 1. ordered
+ * list, > blockquote, # / ## headings, --- hr. Plain text with no special
+ * chars renders as-is (paragraph with <br> line breaks).
+ */
+function kreInlineMd(s) {
+  s = s.replace(/\*\*([^*\n]+?)\*\*/g, '<strong>$1</strong>');
+  s = s.replace(/__([^_\n]+?)__/g, '<strong>$1</strong>');
+  s = s.replace(/(^|[\s(])\*([^*\n]+?)\*(?=[\s).,!?;:]|$)/g, '$1<em>$2</em>');
+  s = s.replace(/(^|[\s(])_([^_\n]+?)_(?=[\s).,!?;:]|$)/g, '$1<em>$2</em>');
+  s = s.replace(/`([^`\n]+?)`/g, '<code style="background:rgba(0,0,0,.07);padding:1px 4px;border-radius:3px;font-size:.92em">$1</code>');
+  s = s.replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, '<a href="$2" target="_blank" rel="noopener" style="color:var(--kre-deep);text-decoration:underline">$1</a>');
+  return s;
+}
+window.kreFormatComment = function(text) {
+  if (!text || !text.trim()) return '<em style="color:var(--text-muted);font-size:11px">(empty)</em>';
+  const lines = text.split('\n');
+  const out = [];
+  let inUl = false, inOl = false, inQuote = false;
+  function closeBlocks() {
+    if (inUl)    { out.push('</ul>'); inUl = false; }
+    if (inOl)    { out.push('</ol>'); inOl = false; }
+    if (inQuote) { out.push('</blockquote>'); inQuote = false; }
+  }
+  lines.forEach(rawLine => {
+    const t = rawLine.trim();
+    if (/^(-{3,}|_{3,}|\*{3,})$/.test(t)) { closeBlocks(); out.push('<hr style="border:none;border-top:1px solid var(--border);margin:6px 0">'); return; }
+    const h = t.match(/^(#{1,4})\s+(.+)$/);
+    if (h) { closeBlocks(); const lvl=h[1].length; out.push(`<b style="font-size:${15-lvl}px;display:block;margin:4px 0 2px">${kreInlineMd(esc(h[2]))}</b>`); return; }
+    if (/^>\s+/.test(t)) {
+      if (inUl){out.push('</ul>');inUl=false;} if(inOl){out.push('</ol>');inOl=false;}
+      if (!inQuote) { out.push('<blockquote style="border-left:3px solid var(--border);margin:0;padding:0 0 0 10px;color:var(--text-muted)">'); inQuote=true; }
+      out.push(kreInlineMd(esc(t.replace(/^>\s+/,'')))+'<br>'); return;
+    } else if (inQuote) { out.push('</blockquote>'); inQuote=false; }
+    const ol = t.match(/^\d+[.)]\s+(.+)$/);
+    if (ol) { if(inUl){out.push('</ul>');inUl=false;} if(!inOl){out.push('<ol style="margin:4px 0 4px 18px;padding:0">');inOl=true;} out.push('<li>'+kreInlineMd(esc(ol[1]))+'</li>'); return; }
+    const ul = t.match(/^[-*+]\s+(.+)$/);
+    if (ul) { if(inOl){out.push('</ol>');inOl=false;} if(!inUl){out.push('<ul style="margin:4px 0 4px 18px;padding:0">');inUl=true;} out.push('<li>'+kreInlineMd(esc(ul[1]))+'</li>'); return; }
+    if (t === '') { closeBlocks(); out.push('<div style="height:6px"></div>'); return; }
+    closeBlocks(); out.push(kreInlineMd(esc(rawLine))+'<br>');
+  });
+  closeBlocks();
+  while (out.length && out[out.length-1] === '<br>') out.pop();
+  return out.join('');
+};
+
 /* ── PROPERTY PHOTOS ──────────────────────────────────────
  * Convention: a "photos" folder next to the app, with one
  * sub-folder per property (named with its ID, e.g. prop_0001),
