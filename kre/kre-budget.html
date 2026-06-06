@@ -12,11 +12,37 @@
 .budget-override { width:120px; text-align:right; padding:4px 8px; font-size:13px; }
 .print-only { display:none; }
 @media print {
-  .kre-page { margin:0; padding:20px; }
+  @page { size:A4; margin:12mm; }
+  html, body { height:auto !important; }
+  .kre-page { margin:0 !important; padding:0 !important; }
   .no-print { display:none !important; }
   .print-only { display:block; }
-  #kre-sidebar, #kre-ham, #kre-ov { display:none !important; }
+  #kre-sidebar, #kre-ham, #kre-ov, .page-header { display:none !important; }
   body { margin:0 !important; }
+
+  /* Collapse the two-column layout to one full-width column — the left
+     column only ever holds .no-print input cards, so on paper it's just
+     dead space that pushes the summary onto a second sheet. */
+  .two-pane-wide { display:block !important; }
+  .two-pane-wide > div:first-child { display:none !important; }
+  .two-pane-wide > div:last-child  { width:100% !important; }
+
+  /* Compact the summary card + table so the full breakdown — including
+     the construction/house section — reliably fits on one printed page. */
+  .card { box-shadow:none !important; border:1px solid #ddd !important; position:static !important; }
+  .card-header { padding:10px 16px !important; }
+  .card-header h2 { font-size:15px !important; }
+  .print-only { padding:8px 16px 0 !important; }
+  .print-only > div:first-child { font-size:18px !important; }
+
+  .budget-table td            { padding:5px 14px !important; font-size:11.5px !important; line-height:1.3 !important; }
+  .budget-section td:first-child { padding-top:10px !important; font-size:9.5px !important; }
+  .budget-total td            { font-size:12.5px !important; padding:7px 14px !important; }
+  .budget-table tr[style*="kre-deep"] td { padding:9px 14px !important; font-size:13px !important; }
+  .budget-table tr[style*="kre-deep"] td:last-child { font-size:15px !important; }
+
+  table, tbody, tr { page-break-inside:avoid; }
+  .card { page-break-inside:avoid; }
 }
 </style>
 </head>

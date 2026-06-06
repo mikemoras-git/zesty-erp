@@ -27,7 +27,7 @@
     <select id="f-area" onchange="applyFilters()"><option value="">All Areas</option></select>
     <select id="f-avail" onchange="applyFilters()">
       <option value="">All Availability</option>
-      <option value="true">For Sale</option>
+      <option value="true" selected>For Sale</option>
       <option value="false">Off Market</option>
     </select>
     <select id="f-seaview" onchange="applyFilters()">
@@ -158,8 +158,9 @@
             <input id="p_coords" type="url" placeholder="https://maps.google.com/…">
           </div>
           <div class="form-group">
-            <label>OneDrive Photo Folder URL</label>
+            <label>OneDrive Photo Folder URL <span style="font-weight:400;color:var(--text-muted)">(optional, external link)</span></label>
             <input id="p_photos_url" type="url" placeholder="https://onedrive.live.com/…">
+            <div id="p_photos_hint" style="font-size:11.5px;color:var(--text-muted);margin-top:6px;line-height:1.6"></div>
           </div>
         </div>
       </div>
@@ -322,11 +323,7 @@ function renderGrid(props) {
     const ownerP= (p.owner_price && !isCollab) ? `<span class="prop-card-price-owner">${fmtEur(p.owner_price)}</span>` : '';
     const title = `${p.type || 'Property'} #${p.property_num || ''}`;
 
-    const img = p.photos_url
-      ? `<a href="${esc(p.photos_url)}" target="_blank" style="display:block;height:100%;width:100%">
-           <div class="prop-card-img-placeholder" title="Click to open photos">📷</div>
-         </a>`
-      : `<div class="prop-card-img-placeholder">▣</div>`;
+    const img = kreCoverBox(p.id, '<div class="prop-card-img-placeholder">▣</div>');
 
     return `<div class="prop-card" onclick="openView('${p.id}')">
       <div class="prop-card-img">
@@ -427,6 +424,8 @@ function clearForm() {
     if (el) el.checked = false;
   });
   document.getElementById('p_avail').value = 'true';
+  document.getElementById('p_photos_hint').innerHTML =
+    'Photos are saved here once the property is created — see the folder path on its Edit screen.';
 }
 
 function fillForm(p) {
@@ -447,6 +446,12 @@ function fillForm(p) {
   document.getElementById('p_on_web').checked    = !!p.on_website;
   document.getElementById('p_coords').value      = p.coords || '';
   document.getElementById('p_photos_url').value  = p.photos_url || '';
+  document.getElementById('p_photos_hint').innerHTML =
+    `📁 To show photos on the listing, upload them in Plesk to:<br>` +
+    `<code style="background:var(--bg-soft,#f3f6f6);padding:2px 6px;border-radius:4px">photos/${esc(p.id)}/</code> ` +
+    `— name them <code style="background:var(--bg-soft,#f3f6f6);padding:2px 6px;border-radius:4px">1.jpg</code>, ` +
+    `<code style="background:var(--bg-soft,#f3f6f6);padding:2px 6px;border-radius:4px">2.jpg</code>, … ` +
+    `(jpg/png/webp all work). Image <strong>1</strong> becomes the cover photo shown on the list.`;
   document.getElementById('p_desc').value        = p.description || '';
   document.getElementById('p_notes').value       = p.notes || '';
 }

@@ -4,8 +4,8 @@
  * Auth backed by Supabase email+password (Supabase JS SDK loaded lazily).
  */
 
-const SUPA_URL = 'https://whuytfjwdjjepayeiohj.supabase.co';
-const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndodXl0Zmp3ZGpqZXBheWVpb2hqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDgyOTAzODgsImV4cCI6MjA2Mzg2NjM4OH0.IHjWL80PCJcPgFJb7iGkpQlJFHN_GFoVj4J4UCnHiJ8';
+const SUPA_URL = 'https://ikcpbnihnzqbgzyozowu.supabase.co';
+const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlrY3BibmlobnpxYmd6eW96b3d1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0NDIwODEsImV4cCI6MjA5NDAxODA4MX0.LcKm9zk2WR7F5zx7WS0yfsWaECM6CyXdmUiEk-hjX5Y';
 
 /* ── SUPABASE CLIENT (lazy-loaded) ───────────────────────── */
 let _sb = null;
@@ -314,6 +314,17 @@ const KRE_DEFAULTS = {
 /* ── SETTINGS MANAGER ────────────────────────────────────── */
 let _settingsCache = null;
 
+// Keys whose values are arrays (lists of tags or stage objects). These must
+// always be FRESH copies — never shared references with KRE_DEFAULTS — or
+// in-place mutations (push/splice from the Settings page) silently corrupt
+// the shared defaults object, which is the root cause of "added items vanish".
+const KRE_LIST_KEYS = ['locations', 'property_types', 'checklist_items', 'client_stages', 'deal_stages'];
+
+function kreCloneList(v) {
+  if (!Array.isArray(v)) return v;
+  return v.map(item => (item && typeof item === 'object') ? { ...item } : item);
+}
+
 const SETTINGS = {
   async load() {
     if (_settingsCache) return _settingsCache;
@@ -325,13 +336,26 @@ const SETTINGS = {
     } else {
       _settingsCache = { ...KRE_DEFAULTS };
     }
+    // Always clone list-type values so nothing aliases KRE_DEFAULTS' arrays.
+    KRE_LIST_KEYS.forEach(k => { _settingsCache[k] = kreCloneList(_settingsCache[k]); });
     return _settingsCache;
   },
   get()  { return _settingsCache || KRE_DEFAULTS; },
   async save(data) {
-    _settingsCache = null;
     const { _created, _updated, ...clean } = data;
-    return DB.upsertOne('kre_settings', { id: 'main', ...clean });
+    const res = await DB.upsertOne('kre_settings', { id: 'main', ...clean });
+    // Refresh the cache from the saved payload directly (cloning lists) instead
+    // of just nulling it out — avoids a races where a stale read repopulates the
+    // cache from the DB before the write is visible, which made new entries
+    // ("disappear") on the very next render.
+    if (res && res.ok) {
+      _settingsCache = { ...KRE_DEFAULTS, ...clean };
+      if (clean.budget) _settingsCache.budget = { ...KRE_DEFAULTS.budget, ...clean.budget };
+      KRE_LIST_KEYS.forEach(k => { _settingsCache[k] = kreCloneList(_settingsCache[k]); });
+    } else {
+      _settingsCache = null;
+    }
+    return res;
   },
   invalidate() { _settingsCache = null; }
 };
@@ -478,6 +502,108 @@ function esc(s) {
   if (!s) return '';
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
+
+/* ── PROPERTY PHOTOS ──────────────────────────────────────
+ * Convention: a "photos" folder next to the app, with one
+ * sub-folder per property (named with its ID, e.g. prop_0001),
+ * containing images named 1.jpg, 2.jpg, 3.jpg … — image "1" is
+ * used as the cover/thumbnail. jpg/jpeg/png/webp are all tried.
+ * No server listing is possible on a static host, so the gallery
+ * simply probes a fixed number of slots and removes any that 404.
+ */
+const KRE_PHOTO_EXTS = ['jpg','jpeg','png','webp'];
+const KRE_PHOTO_MAX  = 30;
+
+function krePhotoUrl(propId, n, ext) { return `photos/${propId}/${n}.${ext}`; }
+
+// Cover thumbnail box — placeholder underneath, image fades in on top once loaded
+function kreCoverBox(propId, phHtml, extraCls) {
+  const candidates = KRE_PHOTO_EXTS.map(e => krePhotoUrl(propId, 1, e));
+  const rest = candidates.slice(1).join('|');
+  return `<div class="kre-photo-wrap ${extraCls||''}">
+    <div class="kre-photo-ph">${phHtml}</div>
+    <img class="kre-photo-img" loading="lazy" alt="" src="${esc(candidates[0])}"
+      data-tries="${esc(rest)}"
+      onerror="kreImgTryNext(this)"
+      onload="this.classList.add('loaded');var w=this.closest('.kre-photo-wrap');if(w){var ph=w.querySelector('.kre-photo-ph');if(ph)ph.style.display='none';}">
+  </div>`;
+}
+window.kreImgTryNext = function (img) {
+  const tries = (img.getAttribute('data-tries') || '').split('|').filter(Boolean);
+  if (tries.length) {
+    const next = tries.shift();
+    img.setAttribute('data-tries', tries.join('|'));
+    img.src = next;
+  } else {
+    img.onerror = null;
+    img.style.display = 'none';
+  }
+};
+
+// Gallery grid for the property detail / public pages — probes KRE_PHOTO_MAX slots
+function kreGalleryHtml(propId, max) {
+  max = max || KRE_PHOTO_MAX;
+  let html = '';
+  for (let n = 1; n <= max; n++) {
+    const candidates = KRE_PHOTO_EXTS.map(e => krePhotoUrl(propId, n, e));
+    const rest = candidates.slice(1).join('|');
+    html += `<div class="kre-gallery-item">
+      <img class="kre-gallery-img" loading="lazy" alt="Photo ${n}" src="${esc(candidates[0])}"
+        data-tries="${esc(rest)}"
+        onerror="kreGalleryImgFail(this)"
+        onload="this.classList.add('loaded')"
+        onclick="kreOpenLightbox(this.currentSrc||this.src)">
+    </div>`;
+  }
+  return html;
+}
+window.kreGalleryImgFail = function (img) {
+  const tries = (img.getAttribute('data-tries') || '').split('|').filter(Boolean);
+  if (tries.length) {
+    const next = tries.shift();
+    img.setAttribute('data-tries', tries.join('|'));
+    img.src = next;
+  } else {
+    const item = img.closest('.kre-gallery-item');
+    if (item) item.remove();
+  }
+};
+
+// Returns true once the cover image (slot 1) has confirmed-loaded for a property —
+// used to decide whether to show a gallery section at all (avoids an empty card).
+function kreHasCover(propId) {
+  return new Promise(resolve => {
+    let i = 0;
+    const tryNext = () => {
+      if (i >= KRE_PHOTO_EXTS.length) return resolve(false);
+      const img = new Image();
+      img.onload  = () => resolve(true);
+      img.onerror = () => { i++; tryNext(); };
+      img.src = krePhotoUrl(propId, 1, KRE_PHOTO_EXTS[i]);
+    };
+    tryNext();
+  });
+}
+
+window.kreOpenLightbox = function (src) {
+  let lb = document.getElementById('kre-lightbox');
+  if (!lb) {
+    lb = document.createElement('div');
+    lb.id = 'kre-lightbox';
+    lb.innerHTML = '<img id="kre-lightbox-img" alt=""><button id="kre-lightbox-close" title="Close">✕</button>';
+    lb.addEventListener('click', e => {
+      if (e.target === lb || e.target.id === 'kre-lightbox-close') window.kreCloseLightbox();
+    });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') window.kreCloseLightbox(); });
+    document.body.appendChild(lb);
+  }
+  document.getElementById('kre-lightbox-img').src = src;
+  lb.classList.add('open');
+};
+window.kreCloseLightbox = function () {
+  const lb = document.getElementById('kre-lightbox');
+  if (lb) lb.classList.remove('open');
+};
 
 /* ── MODAL HELPERS ───────────────────────────────────────── */
 function openModal(id)  {

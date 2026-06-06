@@ -101,6 +101,10 @@
             <div id="spec-rows"></div>
           </div>
         </div>
+        <div class="card" style="margin-top:16px;display:none" id="photos-card">
+          <div class="card-header"><h2>Photos</h2></div>
+          <div class="card-body" id="photos-body"></div>
+        </div>
         <div class="card" style="margin-top:16px" id="desc-card">
           <div class="card-header"><h2>Description</h2></div>
           <div class="card-body">
@@ -259,6 +263,7 @@ async function init() {
   renderChecklist();
   renderOwner();
   renderMap();
+  renderPhotos();
   renderLinks();
   renderMatches();
   renderTasks();
@@ -382,6 +387,18 @@ function renderMap() {
     }
   }
   document.getElementById('map-card').style.display = 'none';
+}
+
+async function renderPhotos() {
+  const card = document.getElementById('photos-card');
+  const body = document.getElementById('photos-body');
+  const has = await kreHasCover(prop.id);
+  if (!has) { card.style.display = 'none'; return; }
+  card.style.display = '';
+  body.innerHTML = `<div class="kre-gallery-grid">${kreGalleryHtml(prop.id)}</div>
+    <p style="font-size:12px;color:var(--text-muted);margin:10px 0 0">
+      Tip: image <strong>1</strong> is used as the cover photo on the properties list.
+    </p>`;
 }
 
 function renderLinks() {

@@ -400,8 +400,21 @@ async function saveAll() {
   syncStart();
   const r = await SETTINGS.save(newSettings);
   syncDone(r.ok);
-  if (r.ok) { settings = { ...newSettings }; toast('Settings saved','success'); }
-  else toast('Error saving: ' + r.err, 'error');
+  if (r.ok) {
+    // Re-pull from the (now-refreshed) cache and re-render the tag/stage lists
+    // so the screen always reflects exactly what was persisted — if something
+    // failed to round-trip, it shows up immediately instead of "disappearing"
+    // silently on a later visit.
+    settings = await SETTINGS.load();
+    renderTags('locations',      'loc-tags',  'locations');
+    renderTags('property_types', 'type-tags', 'property_types');
+    renderTags('checklist_items','chk-tags',  'checklist_items');
+    renderStages('client_stages','cs-list');
+    renderStages('deal_stages',  'ds-list');
+    toast('Settings saved','success');
+  } else {
+    toast('Error saving: ' + r.err, 'error');
+  }
 }
 
 /* ── USERS ─────────────────────────────────────────────────── */
