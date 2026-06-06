@@ -558,7 +558,7 @@ window.kreFormatComment = function(text) {
  * No server listing is possible on a static host, so the gallery
  * simply probes a fixed number of slots and removes any that 404.
  */
-const KRE_PHOTO_EXTS = ['jpg','jpeg','png','webp'];
+const KRE_PHOTO_EXTS = ['jpg','jpeg','png','webp','JPG','JPEG','PNG','WEBP'];
 const KRE_PHOTO_MAX  = 30;
 
 function krePhotoUrl(propId, n, ext) { return `photos/${propId}/${n}.${ext}`; }
