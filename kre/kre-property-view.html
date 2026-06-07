@@ -403,8 +403,14 @@ function clPct(checklist, items) {
   return items.filter(i => checklist[i] || checklist[i.toLowerCase().replace(/\s+/g,'_').replace(/[^a-z0-9_]/g,'')]).length;
 }
 
+function getChecklistItemsForType(type) {
+  const byType = settings.checklist_by_type || {};
+  if (type && byType[type] && byType[type].length) return byType[type];
+  return settings.checklist_items || KRE_DEFAULTS.checklist_items || [];
+}
+
 function renderChecklist() {
-  const items   = settings.checklist_items || KRE_DEFAULTS.checklist_items;
+  const items   = getChecklistItemsForType(prop.type);
   const checked = prop.checklist || {};
   const done    = clPct(checked, items);
   const pct     = items.length ? Math.round(done / items.length * 100) : 0;
@@ -428,7 +434,7 @@ async function toggleChecklist(item, val) {
   const r = await DB.upsertOne('kre_properties', {...prop, checklist});
   if (r.ok) {
     prop.checklist = checklist;
-    const items = settings.checklist_items || KRE_DEFAULTS.checklist_items;
+    const items = getChecklistItemsForType(prop.type);
     const done  = clPct(checklist, items);
     const pct   = items.length ? Math.round(done / items.length * 100) : 0;
     document.getElementById('checklist-progress-text').textContent = `${done} / ${items.length} complete (${pct}%)`;
@@ -507,7 +513,7 @@ async function renderPhotos() {
 function renderLinks() {
   const el = document.getElementById('links-body');
   const lines = [];
-  if (prop.photos) lines.push(`<a href="${esc(prop.photos)}" target="_blank" class="btn btn-ghost" style="display:block;text-align:center;margin-bottom:8px">📁 Open Photos Folder (OneDrive)</a>`);
+  if (prop.photos_url) lines.push(`<a href="${esc(prop.photos_url)}" target="_blank" class="btn btn-ghost" style="display:block;text-align:center;margin-bottom:8px">📁 Open OneDrive / Photos Folder</a>`);
   if (!lines.length) { document.getElementById('links-card').style.display = 'none'; return; }
   el.innerHTML = lines.join('');
 }

@@ -92,7 +92,7 @@
       <div class="form-row-3">
         <div class="form-group">
           <label>Property Type *</label>
-          <select id="p_type"></select>
+          <select id="p_type" onchange="buildChecklistForm(null)"></select>
         </div>
         <div class="form-group">
           <label>Area / Location *</label>
@@ -242,13 +242,22 @@ function filterOwnerSelect(q) {
     opts.map(o => `<option value="${o.value}">${esc(o.text)}</option>`).join('');
   if (opts.length === 1) sel.value = opts[0].value; // auto-select if unique match
 }
-let viewMode   = 'grid';
-let editingId  = null;
-let checkItems = [];
+let viewMode        = 'grid';
+let editingId       = null;
+let checkItems      = [];   // default/fallback
+let checklistByType = {};   // per-type checklist map
+let _curCheckItems  = [];   // items currently rendered in the edit form
+
+function getChecklistItemsForType(type) {
+  if (type && checklistByType[type] && checklistByType[type].length)
+    return checklistByType[type];
+  return checkItems;
+}
 
 async function init() {
-  settings  = await SETTINGS.load();
-  checkItems = settings.checklist_items || [];
+  settings        = await SETTINGS.load();
+  checkItems      = settings.checklist_items    || [];
+  checklistByType = settings.checklist_by_type  || {};
   populateFilters();
   await loadData();
   if (!AUTH.canEdit()) {
@@ -350,12 +359,11 @@ function setView(v) {
 }
 
 function checklistPct(prop) {
-  if (!checkItems.length) return 0;
+  const items = getChecklistItemsForType(prop.type);
+  if (!items.length) return 0;
   const cl = prop.checklist || {};
-  // Support both raw-string keys (saved by property-view toggleChecklist)
-  // and slugified keys (legacy from old edit modal saves).
-  const done = checkItems.filter(item => cl[item] || cl[slugify(item)]).length;
-  return Math.round((done / checkItems.length) * 100);
+  const done = items.filter(item => cl[item] || cl[slugify(item)]).length;
+  return Math.round((done / items.length) * 100);
 }
 function slugify(s) { return s.toLowerCase().replace(/\s+/g,'_').replace(/[^a-z0-9_]/g,''); }
 
@@ -511,8 +519,14 @@ function fillForm(p) {
 function buildChecklistForm(prop) {
   const container = document.getElementById('p_checklist_form');
   const checklist = (prop && prop.checklist) || {};
-  container.innerHTML = checkItems.map((item, idx) => {
-    // Read both raw and slugified keys (backward compat with old saves)
+  // Use type from prop, or from the currently selected type dropdown
+  const type      = (prop && prop.type) || document.getElementById('p_type')?.value || '';
+  _curCheckItems  = getChecklistItemsForType(type);
+  if (!_curCheckItems.length) {
+    container.innerHTML = '<span style="font-size:12px;color:var(--text-muted)">No checklist defined for this property type. Add items in Settings.</span>';
+    return;
+  }
+  container.innerHTML = _curCheckItems.map((item, idx) => {
     const done = !!(checklist[item] || checklist[slugify(item)]);
     return `<div class="checklist-item${done?' done':''}">
       <input type="checkbox" id="chk_${idx}" ${done?'checked':''}
@@ -524,8 +538,7 @@ function buildChecklistForm(prop) {
 
 function getChecklistValues() {
   const result = {};
-  checkItems.forEach((item, idx) => {
-    // Save with raw string keys — same as toggleChecklist in property-view
+  _curCheckItems.forEach((item, idx) => {
     const el = document.getElementById('chk_' + idx);
     if (el) result[item] = el.checked;
   });
