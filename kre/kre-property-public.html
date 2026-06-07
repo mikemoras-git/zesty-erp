@@ -27,12 +27,16 @@ body { font-family:'DM Sans',sans-serif; background:var(--surface); color:var(--
 .pub-header .contact-pill a { color:var(--kre-gold); text-decoration:none; }
 
 /* HERO */
-.pub-hero { background:var(--kre-deep); color:#fff; padding:48px 32px 40px; text-align:center; position:relative; }
+.pub-hero { background:var(--kre-deep); color:#fff; padding:56px 32px 48px; text-align:center; position:relative; }
 .pub-hero::after { content:''; position:absolute; bottom:0; left:0; right:0; height:60px; background:var(--surface); border-radius:60px 60px 0 0; }
-.pub-hero h1 { font-family:'Cormorant Garamond',serif; font-size:36px; font-weight:500; margin-bottom:8px; }
-.pub-hero .sub { font-size:15px; color:rgba(255,255,255,.6); margin-bottom:28px; }
-.pub-price { display:inline-block; background:var(--kre-teal); color:#fff; border-radius:10px; padding:14px 32px; font-family:'DM Mono',monospace; font-size:28px; font-weight:700; letter-spacing:.02em; }
+.pub-type-badge { display:inline-block; background:rgba(201,168,76,.18); color:var(--kre-gold); border:1px solid rgba(201,168,76,.45); border-radius:20px; padding:5px 18px; font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.12em; margin-bottom:18px; }
+.pub-hero h1 { font-family:'Cormorant Garamond',serif; font-size:40px; font-weight:500; margin-bottom:10px; line-height:1.2; }
+.pub-hero .sub { font-size:15px; color:rgba(255,255,255,.6); margin-bottom:32px; }
+.pub-price { display:inline-block; background:var(--kre-teal); color:#fff; border-radius:10px; padding:14px 36px; font-family:'DM Mono',monospace; font-size:28px; font-weight:700; letter-spacing:.02em; }
 .pub-price .lbl { font-family:'DM Sans',sans-serif; font-size:11px; font-weight:500; text-transform:uppercase; letter-spacing:.1em; opacity:.8; display:block; margin-bottom:4px; }
+/* PRINT BUTTON */
+.pub-print-btn { background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.28); color:#fff; padding:8px 16px; border-radius:8px; font-size:13px; font-family:'DM Sans',sans-serif; cursor:pointer; transition:background .15s; }
+.pub-print-btn:hover { background:rgba(255,255,255,.22); }
 
 /* CONTENT */
 .pub-content { max-width:860px; margin:0 auto; padding:32px 24px 60px; }
@@ -113,10 +117,29 @@ body { font-family:'DM Sans',sans-serif; background:var(--surface); color:var(--
 @keyframes spin { to { transform:rotate(360deg); } }
 
 @media(max-width:600px) {
-  .pub-hero h1 { font-size:26px; }
+  .pub-hero h1  { font-size:28px; }
   .pub-price    { font-size:22px; }
   .pub-header   { padding:14px 18px; }
   .pub-content  { padding:24px 16px 48px; }
+}
+
+/* ── PRINT / PDF ─────────────────────────────────────── */
+@media print {
+  @page { margin:15mm 15mm 18mm; size:A4; }
+  .pub-print-btn, .pub-cta, #pub-lightbox { display:none !important; }
+  body { background:#fff; font-size:12px; }
+  .pub-header { -webkit-print-color-adjust:exact; print-color-adjust:exact; padding:12px 24px; }
+  .pub-hero   { -webkit-print-color-adjust:exact; print-color-adjust:exact; padding:32px 24px 36px; }
+  .pub-hero::after { display:none; }
+  .pub-content { padding:24px 0 0; }
+  .spec-grid  { break-inside:avoid; }
+  .pub-section { break-inside:avoid; margin-bottom:20px; }
+  .pub-gallery-grid { grid-template-columns:repeat(4,1fr); gap:6px; }
+  .pub-gallery-item:hover .pub-gallery-img { transform:none; }
+  .map-btn { border:1px solid #ccc; }
+  .map-btn .arrow { display:none; }
+  .pub-footer { background:#0b1f30; -webkit-print-color-adjust:exact; print-color-adjust:exact; padding:12px; }
+  a[href]:not([href='#'])::after { content:none; }
 }
 </style>
 </head>
@@ -125,7 +148,10 @@ body { font-family:'DM Sans',sans-serif; background:var(--surface); color:var(--
 <!-- HEADER -->
 <div class="pub-header">
   <div class="brand">Kissamos <span>Real Estate</span></div>
-  <div class="contact-pill" id="pub-contact-pill"></div>
+  <div style="display:flex;align-items:center;gap:16px">
+    <div class="contact-pill" id="pub-contact-pill"></div>
+    <button class="pub-print-btn" onclick="window.print()">🖨 Save as PDF</button>
+  </div>
 </div>
 
 <!-- HERO -->
@@ -135,6 +161,7 @@ body { font-family:'DM Sans',sans-serif; background:var(--surface); color:var(--
     <div>Loading property…</div>
   </div>
   <div id="hero-content" style="display:none;position:relative;z-index:1">
+    <div id="h-type-badge" class="pub-type-badge" style="display:none"></div>
     <h1 id="h-title"></h1>
     <p class="sub" id="h-sub"></p>
     <div class="pub-price">
@@ -354,21 +381,30 @@ async function init() {
   // Hero
   document.getElementById('pub-loading').style.display  = 'none';
   document.getElementById('hero-content').style.display = '';
-  document.getElementById('h-title').textContent = `#${prop.property_num||'?'} — ${prop.type||'Property'} in ${prop.area||'Crete'}`;
+  // Type badge
+  if (prop.type) {
+    const badge = document.getElementById('h-type-badge');
+    badge.textContent = prop.type;
+    badge.style.display = '';
+  }
+  // Title: "#5 — Platanos, Crete" (type already in badge)
+  document.getElementById('h-title').textContent = `#${prop.property_num||'?'} — ${prop.area||'Crete'}`;
   const sub = [];
-  if (prop.plot)  sub.push(prop.plot + 'm² plot');
-  if (prop.house) sub.push(prop.house + 'm² house');
+  if (prop.plot)     sub.push(prop.plot + 'm² plot');
+  if (prop.house)    sub.push(prop.house + 'm² house');
+  if (prop.bld_cap)  sub.push('build up to ' + prop.bld_cap + 'm²');
+  if (prop.sea_view) sub.push('sea view');
   document.getElementById('h-sub').textContent   = sub.join(' · ') || 'Kissamos, Crete';
   document.getElementById('h-price').textContent = prop.office_price ? fmtEur(prop.office_price) : 'Contact for price';
 
   // Specs
   const specs = [];
-  if (prop.plot)        specs.push({ lbl:'Plot Size',         val: prop.plot+'m²' });
-  if (prop.house)       specs.push({ lbl:'House Size',        val: prop.house+'m²' });
-  if (prop.bld_cap)     specs.push({ lbl:'Build Capacity',    val: prop.bld_cap+'m²' });
-  if (prop.sea_view)    specs.push({ lbl:'Sea View',          val: prop.sea_m ? prop.sea_m+'m' : 'Yes' });
-  if (prop.area)        specs.push({ lbl:'Area',              val: prop.area });
-  if (prop.type)        specs.push({ lbl:'Property Type',     val: prop.type });
+  if (prop.plot)              specs.push({ lbl:'Plot Size',        val: prop.plot + 'm²' });
+  if (prop.house)             specs.push({ lbl:'House Size',       val: prop.house + 'm²' });
+  if (prop.bld_cap)           specs.push({ lbl:'Build Capacity',   val: prop.bld_cap + 'm²' });
+  if (prop.sea_distance_m)    specs.push({ lbl:'Distance to Sea',  val: prop.sea_distance_m + 'm' });
+  if (prop.sea_view)          specs.push({ lbl:'Sea View',         val: '✓ Yes' });
+  if (prop.area)              specs.push({ lbl:'Village / Area',   val: prop.area });
   document.getElementById('spec-grid').innerHTML = specs.map(s =>
     `<div class="spec-cell"><div class="lbl">${esc(s.lbl)}</div><div class="val">${esc(s.val)}</div></div>`
   ).join('');
@@ -412,9 +448,9 @@ async function init() {
   await renderGallery(prop.id);
 
   // Photos — external link (OneDrive / other), shown alongside if present
-  if (prop.photos) {
+  if (prop.photos_url) {
     document.getElementById('photos-section').style.display = '';
-    document.getElementById('photos-link').href = prop.photos;
+    document.getElementById('photos-link').href = prop.photos_url;
   }
 
   // CTA
