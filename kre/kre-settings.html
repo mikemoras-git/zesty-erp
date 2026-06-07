@@ -153,17 +153,32 @@
     </div>
   </div>
 
-  <!-- PROPERTY CHECKLIST ITEMS -->
+  <!-- PER-TYPE DOCUMENT CHECKLISTS -->
   <div class="card settings-section" style="margin-bottom:20px">
     <div class="card-header">
-      <h2>Property Document Checklist</h2>
-      <span class="badge badge-teal">Shown on each property card</span>
+      <h2>Document Checklists by Property Type</h2>
+      <span class="badge badge-teal">Per-type requirements · drives the % on each property</span>
     </div>
     <div class="card-body">
-      <p style="font-size:12px;color:var(--text-muted);margin-bottom:14px">Documents required for every property listing. Track which are missing.</p>
+      <p style="font-size:12px;color:var(--text-muted);margin-bottom:16px">
+        Set which documents are required for each property type.
+        If a type has no list, the <strong>Default Checklist</strong> below is used as fallback.
+      </p>
+      <div id="type-chk-sections"></div>
+    </div>
+  </div>
+
+  <!-- DEFAULT CHECKLIST (fallback) -->
+  <div class="card settings-section" style="margin-bottom:20px">
+    <div class="card-header">
+      <h2>Default Document Checklist</h2>
+      <span class="badge badge-gray">Fallback for types with no specific list</span>
+    </div>
+    <div class="card-body">
+      <p style="font-size:12px;color:var(--text-muted);margin-bottom:14px">Used when a property type has no specific checklist defined above.</p>
       <div id="chk-tags" class="tag-list"></div>
       <div class="tag-input-row">
-        <input id="chk-input" type="text" placeholder="Add checklist item…" onkeydown="if(event.key==='Enter')addTag('checklist_items','chk')">
+        <input id="chk-input" type="text" placeholder="Add default checklist item…" onkeydown="if(event.key==='Enter')addTag('checklist_items','chk')">
         <button class="btn btn-primary btn-sm" onclick="addTag('checklist_items','chk')">Add</button>
       </div>
     </div>
@@ -313,6 +328,7 @@ function fillForm() {
   renderTags('locations',     'loc-tags',  'locations');
   renderTags('property_types','type-tags', 'property_types');
   renderTags('checklist_items','chk-tags', 'checklist_items');
+  renderTypeChecklists();
   renderStages('client_stages','cs-list');
   renderStages('deal_stages',  'ds-list');
 }
@@ -334,6 +350,57 @@ function renderStages(key, containerId) {
     </div>`
   ).join('');
 }
+
+/* ── PER-TYPE CHECKLISTS ────────────────────────────────────── */
+function slugifyType(s) { return s.toLowerCase().replace(/[^a-z0-9]/g, '_'); }
+
+function renderTypeChecklists() {
+  const types  = settings.property_types || [];
+  const byType = settings.checklist_by_type || {};
+  const el     = document.getElementById('type-chk-sections');
+  if (!types.length) {
+    el.innerHTML = '<p style="font-size:12px;color:var(--text-muted)">Add property types first (above) — a checklist section will appear here for each type.</p>';
+    return;
+  }
+  el.innerHTML = types.map(type => {
+    const items  = byType[type] || [];
+    const sk     = slugifyType(type);
+    const tagHtml = items.map((v, i) =>
+      `<span class="tag-item">${esc(v)}<button class="tag-remove" onclick="removeTypeItem('${esc(type)}',${i})">×</button></span>`
+    ).join('');
+    return `<div style="border:1px solid var(--border);border-radius:8px;padding:14px;margin-bottom:12px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+        <strong style="font-size:14px">${esc(type)}</strong>
+        <span style="font-size:11px;color:var(--text-muted)">${items.length} item${items.length===1?'':'s'}</span>
+      </div>
+      <div id="type-chk-tags-${sk}" class="tag-list" style="margin-bottom:8px">${tagHtml || '<span style="font-size:12px;color:var(--text-muted);font-style:italic">No items yet — uses Default Checklist as fallback.</span>'}</div>
+      <div class="tag-input-row">
+        <input id="type-chk-inp-${sk}" type="text" placeholder="Add item for ${esc(type)}…"
+          onkeydown="if(event.key==='Enter')addTypeItem('${esc(type)}')">
+        <button class="btn btn-primary btn-sm" onclick="addTypeItem('${esc(type)}')">Add</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function addTypeItem(type) {
+  const sk  = slugifyType(type);
+  const inp = document.getElementById('type-chk-inp-' + sk);
+  const val = inp.value.trim();
+  if (!val) return;
+  if (!settings.checklist_by_type)      settings.checklist_by_type = {};
+  if (!settings.checklist_by_type[type]) settings.checklist_by_type[type] = [];
+  if (!settings.checklist_by_type[type].includes(val)) settings.checklist_by_type[type].push(val);
+  inp.value = '';
+  renderTypeChecklists();
+}
+
+function removeTypeItem(type, idx) {
+  if (!settings.checklist_by_type?.[type]) return;
+  settings.checklist_by_type[type].splice(idx, 1);
+  renderTypeChecklists();
+}
+/* ──────────────────────────────────────────────────────────── */
 
 function removeItem(key, idx) {
   if (!settings[key]) return;
@@ -358,6 +425,8 @@ function addTag(key, prefix) {
   renderTags(key,
     key === 'locations' ? 'loc-tags' : key === 'property_types' ? 'type-tags' : 'chk-tags',
     key);
+  // When a new property type is added, re-render the per-type checklist section
+  if (key === 'property_types') renderTypeChecklists();
 }
 
 function addStage(key, prefix) {
@@ -409,6 +478,7 @@ async function saveAll() {
     renderTags('locations',      'loc-tags',  'locations');
     renderTags('property_types', 'type-tags', 'property_types');
     renderTags('checklist_items','chk-tags',  'checklist_items');
+    renderTypeChecklists();
     renderStages('client_stages','cs-list');
     renderStages('deal_stages',  'ds-list');
     toast('Settings saved','success');
