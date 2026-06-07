@@ -20,7 +20,15 @@ CREATE TABLE IF NOT EXISTS kre_settings (
   updated_at  timestamptz NOT NULL DEFAULT now()
 );
 
--- Property listings
+-- Rental property listings (long-term)
+CREATE TABLE IF NOT EXISTS kre_rentals (
+  id          text PRIMARY KEY,
+  data        jsonb NOT NULL DEFAULT '{}'::jsonb,
+  created_at  timestamptz NOT NULL DEFAULT now(),
+  updated_at  timestamptz NOT NULL DEFAULT now()
+);
+
+-- Property listings (for sale)
 CREATE TABLE IF NOT EXISTS kre_properties (
   id          text PRIMARY KEY,
   data        jsonb NOT NULL DEFAULT '{}'::jsonb,
@@ -85,6 +93,9 @@ CREATE TABLE IF NOT EXISTS kre_revenues (
 );
 
 -- ── INDEXES ──────────────────────────────────────────────────
+CREATE INDEX IF NOT EXISTS idx_kre_rentals_type        ON kre_rentals    ((data->>'type'));
+CREATE INDEX IF NOT EXISTS idx_kre_rentals_area        ON kre_rentals    ((data->>'area'));
+CREATE INDEX IF NOT EXISTS idx_kre_rentals_avail       ON kre_rentals    ((data->>'available'));
 CREATE INDEX IF NOT EXISTS idx_kre_properties_type     ON kre_properties ((data->>'type'));
 CREATE INDEX IF NOT EXISTS idx_kre_properties_area     ON kre_properties ((data->>'area'));
 CREATE INDEX IF NOT EXISTS idx_kre_properties_avail    ON kre_properties ((data->>'available'));
@@ -101,6 +112,7 @@ CREATE INDEX IF NOT EXISTS idx_kre_revenues_date       ON kre_revenues   ((data-
 -- Role restrictions are enforced at the application level.
 ALTER TABLE kre_users        ENABLE ROW LEVEL SECURITY;
 ALTER TABLE kre_settings     ENABLE ROW LEVEL SECURITY;
+ALTER TABLE kre_rentals      ENABLE ROW LEVEL SECURITY;
 ALTER TABLE kre_properties   ENABLE ROW LEVEL SECURITY;
 ALTER TABLE kre_contacts     ENABLE ROW LEVEL SECURITY;
 ALTER TABLE kre_collaborators ENABLE ROW LEVEL SECURITY;
@@ -113,6 +125,7 @@ ALTER TABLE kre_revenues     ENABLE ROW LEVEL SECURITY;
 -- Allow full access via anon key (app-level role control handles restrictions)
 CREATE POLICY "anon full access" ON kre_users        FOR ALL TO anon USING (true) WITH CHECK (true);
 CREATE POLICY "anon full access" ON kre_settings     FOR ALL TO anon USING (true) WITH CHECK (true);
+CREATE POLICY "anon full access" ON kre_rentals      FOR ALL TO anon USING (true) WITH CHECK (true);
 CREATE POLICY "anon full access" ON kre_properties   FOR ALL TO anon USING (true) WITH CHECK (true);
 CREATE POLICY "anon full access" ON kre_contacts     FOR ALL TO anon USING (true) WITH CHECK (true);
 CREATE POLICY "anon full access" ON kre_collaborators FOR ALL TO anon USING (true) WITH CHECK (true);

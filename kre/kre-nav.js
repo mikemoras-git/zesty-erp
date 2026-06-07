@@ -8,7 +8,8 @@
 
   const MODULES = [
     { url:'kre-index.html',            icon:'⬡', label:'Dashboard',        roles:['admin','employee'] },
-    { url:'kre-properties.html',       icon:'▣', label:'Properties',       roles:['admin','employee','collaborator'] },
+    { url:'kre-properties.html',       icon:'▣', label:'For Sale',          roles:['admin','employee','collaborator'] },
+    { url:'kre-rentals.html',          icon:'⌂', label:'Rentals',           roles:['admin','employee','collaborator'] },
     { url:'kre-contacts.html',         icon:'◉', label:'Contacts',         roles:['admin','employee'] },
     { url:'kre-collaborators.html',    icon:'◈', label:'Collaborators',    roles:['admin','employee'] },
     { url:'kre-budget.html',           icon:'◳', label:'Budget Calc.',     roles:['admin','employee'] },
@@ -35,7 +36,8 @@
     if (document.getElementById('kre-sidebar')) return;
 
     const session  = getSession();
-    const isPublic = window.location.pathname.includes('kre-property-public');
+    const isPublic = window.location.pathname.includes('kre-property-public') ||
+                     window.location.pathname.includes('kre-rental-public');
     const isLogin  = window.location.pathname.includes('kre-login');
     const isSeed   = window.location.pathname.includes('kre-seed');
 

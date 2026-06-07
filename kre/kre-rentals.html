@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>KRE — Rentals</title>
+<link rel="stylesheet" href="kre-style.css">
+<style>
+/* Rental-specific accent: indigo-blue to distinguish from For Sale (teal) */
+:root { --rent:#4f6ef7; --rent-soft:rgba(79,110,247,.12); }
+.badge-rent  { background:var(--rent-soft); color:var(--rent); border:1px solid rgba(79,110,247,.25); }
+.badge-avail { background:#d4edda; color:#155724; }
+.badge-rented{ background:#fff3cd; color:#856404; }
+.rent-card   { background:#fff; border:1px solid var(--border); border-radius:12px; padding:18px; cursor:pointer; transition:box-shadow .15s,transform .15s; display:flex; flex-direction:column; gap:4px; }
+.rent-card:hover { box-shadow:0 6px 24px rgba(0,0,0,.1); transform:translateY(-2px); }
+.rent-card-top  { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:6px; }
+.rent-card-num  { font-family:'DM Mono',monospace; font-size:11px; color:var(--text-muted); }
+.rent-card-type { font-size:11px; font-weight:600; }
+.rent-card-area { font-size:14px; font-weight:600; color:var(--kre-deep); }
+.rent-card-beds { font-size:12px; color:var(--text-muted); }
+.rent-card-price{ font-family:'DM Mono',monospace; font-size:20px; font-weight:700; color:var(--kre-deep); margin-top:6px; }
+.rent-card-price span { font-family:'DM Sans',sans-serif; font-size:11px; font-weight:400; color:var(--text-muted); margin-left:3px; }
+.rent-card-foot { display:flex; justify-content:space-between; align-items:center; margin-top:8px; }
+.rent-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:16px; }
+.kre-chk-pct { font-size:11px; color:var(--text-muted); }
+.kre-pct-bar { height:4px; background:var(--border); border-radius:2px; overflow:hidden; width:80px; display:inline-block; vertical-align:middle; }
+.kre-pct-fill{ height:100%; background:var(--kre-teal); border-radius:2px; }
+</style>
+</head>
+<body>
+<div class="kre-page">
+
+  <div class="page-header">
+    <div class="page-title">
+      <h1>Rental Properties</h1>
+      <p>Long-term rental portfolio — available and rented units</p>
+    </div>
+    <div class="page-actions">
+      <button class="btn btn-primary" id="addRentBtn" onclick="openAdd()">+ Add Rental</button>
+    </div>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats-row" style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px">
+    <div class="stat-card"><div class="stat-val" id="st-total">—</div><div class="stat-lbl">Total</div></div>
+    <div class="stat-card"><div class="stat-val" id="st-avail">—</div><div class="stat-lbl">Available</div></div>
+    <div class="stat-card"><div class="stat-val" id="st-rented">—</div><div class="stat-lbl">Rented</div></div>
+    <div class="stat-card"><div class="stat-val" id="st-avgrent">—</div><div class="stat-lbl">Avg Monthly Rent</div></div>
+  </div>
+
+  <!-- FILTERS -->
+  <div class="filter-bar" style="margin-bottom:20px">
+    <select id="f_type" onchange="applyFilters()"><option value="">All Types</option></select>
+    <select id="f_area" onchange="applyFilters()"><option value="">All Areas</option></select>
+    <select id="f_avail" onchange="applyFilters()">
+      <option value="">All Status</option>
+      <option value="available">Available</option>
+      <option value="rented">Rented</option>
+    </select>
+    <input type="text" id="f_search" placeholder="Search rentals…" oninput="applyFilters()" style="flex:1;min-width:140px">
+    <div class="view-toggle">
+      <button id="vgBtn" class="btn btn-ghost btn-sm active" onclick="setView('grid')">⊞ Grid</button>
+      <button id="vlBtn" class="btn btn-ghost btn-sm" onclick="setView('list')">☰ List</button>
+    </div>
+  </div>
+
+  <!-- GRID VIEW -->
+  <div id="gridView" class="rent-grid"></div>
+
+  <!-- LIST VIEW -->
+  <div id="listView" style="display:none">
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th>#</th><th>Type</th><th>Area</th>
+          <th>Beds</th><th>m²</th>
+          <th>Monthly Rent</th><th>Deposit</th>
+          <th>Status</th><th>Checklist</th><th></th>
+        </tr></thead>
+        <tbody id="listBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div id="emptyState" class="empty-state" style="display:none">
+    <div class="empty-icon">⌂</div>
+    <div class="empty-title">No rental properties found</div>
+    <div class="empty-sub">Try adjusting filters, or click "+ Add Rental" to add your first rental listing.</div>
+  </div>
+
+</div><!-- end kre-page -->
+
+<!-- ADD / EDIT MODAL -->
+<div class="modal-overlay" id="rentModal">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <h2 id="rentModalTitle">Add Rental</h2>
+      <button class="modal-close" onclick="closeModal('rentModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="r_id">
+
+      <div class="section-lbl">Basic Information</div>
+      <div class="form-row-3">
+        <div class="form-group">
+          <label>Property Type *</label>
+          <select id="r_type" onchange="buildChecklistForm(null)"></select>
+        </div>
+        <div class="form-group">
+          <label>Area / Location *</label>
+          <select id="r_area"></select>
+        </div>
+        <div class="form-group">
+          <label>Landlord / Owner</label>
+          <input id="r_owner_search" type="text" placeholder="Type to search…"
+            oninput="filterLandlordSelect(this.value)" autocomplete="off" style="margin-bottom:4px">
+          <select id="r_owner_contact" size="1" style="width:100%">
+            <option value="">— No landlord linked —</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="section-lbl">Dimensions</div>
+      <div class="form-row-4">
+        <div class="form-group"><label>Bedrooms</label><input id="r_beds" type="number" min="0"></div>
+        <div class="form-group"><label>Bathrooms</label><input id="r_baths" type="number" min="0"></div>
+        <div class="form-group"><label>House / Apt Size (m²)</label><input id="r_house" type="number" min="0"></div>
+        <div class="form-group"><label>Plot Size (m²)</label><input id="r_plot" type="number" min="0"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Sea Distance (m)</label><input id="r_seadist" type="number" min="0"></div>
+      </div>
+
+      <div class="section-lbl">Rental Terms</div>
+      <div class="form-row-3">
+        <div class="form-group">
+          <label>Monthly Rent (€)</label>
+          <div class="input-group"><span class="input-pfx">€</span><input id="r_rent" type="number" min="0"></div>
+        </div>
+        <div class="form-group">
+          <label>Deposit (€)</label>
+          <div class="input-group"><span class="input-pfx">€</span><input id="r_deposit" type="number" min="0"></div>
+        </div>
+        <div class="form-group">
+          <label>Status</label>
+          <select id="r_avail" onchange="toggleTenancySection()">
+            <option value="available">Available</option>
+            <option value="rented">Rented</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Tenancy section — visible when status = Rented -->
+      <div id="tenancy-section" style="display:none">
+        <div class="section-lbl">Current Tenancy</div>
+        <div class="form-row-3">
+          <div class="form-group">
+            <label>Tenant (Contact)</label>
+            <input id="r_tenant_search" type="text" placeholder="Type to search contacts…"
+              oninput="filterTenantSelect(this.value)" autocomplete="off" style="margin-bottom:4px">
+            <select id="r_tenant_contact" size="1" style="width:100%">
+              <option value="">— No tenant linked —</option>
+            </select>
+          </div>
+          <div class="form-group"><label>Lease Start</label><input id="r_lease_start" type="date"></div>
+          <div class="form-group"><label>Lease End</label><input id="r_lease_end" type="date"></div>
+        </div>
+      </div>
+
+      <div class="section-lbl">Features &amp; Media</div>
+      <div class="form-row">
+        <div>
+          <div class="check-row"><input type="checkbox" id="r_seaview"><label for="r_seaview">Sea View</label></div>
+          <div class="check-row"><input type="checkbox" id="r_has_photos"><label for="r_has_photos">Has Photos</label></div>
+          <div class="check-row"><input type="checkbox" id="r_on_web"><label for="r_on_web">Listed on Website</label></div>
+        </div>
+        <div>
+          <div class="form-group">
+            <label>Google Maps / Coordinates URL</label>
+            <input id="r_coords" type="url" placeholder="https://maps.google.com/…">
+          </div>
+          <div class="form-group">
+            <label>OneDrive Photo Folder URL</label>
+            <input id="r_photos_url" type="url" placeholder="https://onedrive.live.com/…">
+            <div id="r_photos_hint" style="font-size:11.5px;color:var(--text-muted);margin-top:6px;line-height:1.6"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Description (for listings)</label>
+        <textarea id="r_desc" rows="3" placeholder="Property description for prospective tenants…"></textarea>
+      </div>
+      <div class="form-group">
+        <label>Internal Notes</label>
+        <textarea id="r_notes" rows="2" placeholder="Internal notes (not shown to tenants)…"></textarea>
+      </div>
+
+      <div class="section-lbl">Document Checklist</div>
+      <div id="r_checklist_form" class="checklist"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('rentModal')">Cancel</button>
+      <button class="btn btn-danger btn-sm" id="deleteRentBtn" onclick="deleteRental()" style="margin-right:auto;display:none">Delete</button>
+      <button class="btn btn-primary" onclick="saveRental()">Save Rental</button>
+    </div>
+  </div>
+</div>
+
+<script src="kre-base.js"></script>
+<script src="kre-nav.js"></script>
+<script>
+let allRentals    = [];
+let allContacts   = [];
+let settings      = {};
+let checkItems    = [];
+let checklistByType = {};
+let _curCheckItems  = [];
+let editingId     = null;
+let viewMode      = 'grid';
+
+// Landlord (owner) dropdown
+let _llAllOptions   = [];
+// Tenant dropdown
+let _tnAllOptions   = [];
+
+function getChecklistItemsForType(type) {
+  if (type && checklistByType[type] && checklistByType[type].length)
+    return checklistByType[type];
+  return checkItems;
+}
+function slugify(s){ return s.toLowerCase().replace(/\s+/g,'_').replace(/[^a-z0-9_]/g,''); }
+
+/* ── OWNER / LANDLORD SEARCH ──────────────────────────── */
+function populateLandlordSelect(selectedId) {
+  const sel = document.getElementById('r_owner_contact');
+  _llAllOptions = allContacts.map(c => ({
+    value: c.id,
+    text: ((c.first_name||'') + ' ' + (c.last_name||'')).trim() || c.email || c.id
+  }));
+  sel.innerHTML = '<option value="">— No landlord linked —</option>' +
+    _llAllOptions.map(o => `<option value="${o.value}"${o.value===selectedId?' selected':''}>${esc(o.text)}</option>`).join('');
+  if (selectedId) {
+    const found = _llAllOptions.find(o=>o.value===selectedId);
+    if (found) document.getElementById('r_owner_search').value = found.text;
+  }
+}
+function filterLandlordSelect(q) {
+  const sel = document.getElementById('r_owner_contact');
+  const lq  = q.toLowerCase();
+  const opts = _llAllOptions.filter(o => !lq || o.text.toLowerCase().includes(lq));
+  sel.innerHTML = '<option value="">— No landlord linked —</option>' +
+    opts.map(o => `<option value="${o.value}">${esc(o.text)}</option>`).join('');
+  if (opts.length === 1) sel.value = opts[0].value;
+}
+
+/* ── TENANT SEARCH ────────────────────────────────────── */
+function populateTenantSelect(selectedId) {
+  const sel = document.getElementById('r_tenant_contact');
+  _tnAllOptions = allContacts.map(c => ({
+    value: c.id,
+    text: ((c.first_name||'') + ' ' + (c.last_name||'')).trim() || c.email || c.id
+  }));
+  sel.innerHTML = '<option value="">— No tenant linked —</option>' +
+    _tnAllOptions.map(o => `<option value="${o.value}"${o.value===selectedId?' selected':''}>${esc(o.text)}</option>`).join('');
+  if (selectedId) {
+    const found = _tnAllOptions.find(o=>o.value===selectedId);
+    if (found) document.getElementById('r_tenant_search').value = found.text;
+  }
+}
+function filterTenantSelect(q) {
+  const sel = document.getElementById('r_tenant_contact');
+  const lq  = q.toLowerCase();
+  const opts = _tnAllOptions.filter(o => !lq || o.text.toLowerCase().includes(lq));
+  sel.innerHTML = '<option value="">— No tenant linked —</option>' +
+    opts.map(o => `<option value="${o.value}">${esc(o.text)}</option>`).join('');
+  if (opts.length === 1) sel.value = opts[0].value;
+}
+
+function toggleTenancySection() {
+  const val = document.getElementById('r_avail').value;
+  document.getElementById('tenancy-section').style.display = val === 'rented' ? '' : 'none';
+}
+
+/* ── INIT ─────────────────────────────────────────────── */
+async function init() {
+  settings        = await SETTINGS.load();
+  checkItems      = settings.checklist_items   || [];
+  checklistByType = settings.checklist_by_type || {};
+  populateFilters();
+  await loadData();
+  if (!AUTH.canEdit()) {
+    document.getElementById('addRentBtn').style.display = 'none';
+  }
+  // Handle ?edit=ID&return=view deep-link
+  const params = new URLSearchParams(window.location.search);
+  const editId   = params.get('edit');
+  const returnTo = params.get('return');
+  if (editId) {
+    if (AUTH.canEdit() && allRentals.some(r => r.id === editId)) {
+      openEdit(editId);
+      if (returnTo) window._returnAfterSave = { id: editId, dest: returnTo };
+    }
+    history.replaceState(null, '', window.location.pathname);
+  }
+}
+
+async function loadData() {
+  const [rr, cr] = await Promise.all([DB.loadAll('kre_rentals'), DB.loadAll('kre_contacts')]);
+  allRentals  = (rr.rows || []).sort((a,b) => (a.property_num||9999) - (b.property_num||9999));
+  allContacts = cr.rows || [];
+  applyFilters();
+  updateStats();
+}
+
+function populateFilters() {
+  const types = settings.property_types || [];
+  const areas = settings.locations      || [];
+  const tSel  = document.getElementById('f_type');
+  const aSel  = document.getElementById('f_area');
+  tSel.innerHTML = '<option value="">All Types</option>' + types.map(t=>`<option>${esc(t)}</option>`).join('');
+  aSel.innerHTML = '<option value="">All Areas</option>' + areas.map(a=>`<option>${esc(a)}</option>`).join('');
+
+  const rType = document.getElementById('r_type');
+  const rArea = document.getElementById('r_area');
+  rType.innerHTML = '<option value="">— Select type —</option>' + types.map(t=>`<option>${esc(t)}</option>`).join('');
+  rArea.innerHTML = '<option value="">— Select area —</option>' + areas.map(a=>`<option>${esc(a)}</option>`).join('');
+}
+
+function applyFilters() {
+  const type   = document.getElementById('f_type').value;
+  const area   = document.getElementById('f_area').value;
+  const avail  = document.getElementById('f_avail').value;
+  const search = document.getElementById('f_search').value.toLowerCase();
+
+  let filtered = allRentals.filter(r => {
+    if (type  && r.type  !== type)  return false;
+    if (area  && r.area  !== area)  return false;
+    if (avail === 'available' && r.available !== 'available') return false;
+    if (avail === 'rented'    && r.available !== 'rented')    return false;
+    if (search) {
+      const hay = `${r.type||''} ${r.area||''} ${r.property_num||''} ${r.owner_name||''} ${r.description||''}`.toLowerCase();
+      if (!hay.includes(search)) return false;
+    }
+    return true;
+  });
+
+  document.getElementById('emptyState').style.display = filtered.length ? 'none' : '';
+  if (viewMode === 'grid') renderGrid(filtered);
+  else renderList(filtered);
+}
+
+function updateStats() {
+  const total   = allRentals.length;
+  const avail   = allRentals.filter(r => r.available === 'available').length;
+  const rented  = allRentals.filter(r => r.available === 'rented').length;
+  const rents   = allRentals.map(r=>r.monthly_rent).filter(Boolean);
+  const avg     = rents.length ? Math.round(rents.reduce((a,b)=>a+b,0)/rents.length) : 0;
+  document.getElementById('st-total').textContent  = total;
+  document.getElementById('st-avail').textContent  = avail;
+  document.getElementById('st-rented').textContent = rented;
+  document.getElementById('st-avgrent').textContent = avg ? fmtEur(avg) : '—';
+}
+
+function setView(v) {
+  viewMode = v;
+  document.getElementById('gridView').style.display = v==='grid' ? '' : 'none';
+  document.getElementById('listView').style.display = v==='list' ? '' : 'none';
+  document.getElementById('vgBtn').classList.toggle('active', v==='grid');
+  document.getElementById('vlBtn').classList.toggle('active', v==='list');
+  applyFilters();
+}
+
+function statusBadge(r) {
+  return r.available === 'rented'
+    ? '<span class="badge badge-rented">Rented</span>'
+    : '<span class="badge badge-avail">Available</span>';
+}
+
+function checklistPct(r) {
+  const items = getChecklistItemsForType(r.type);
+  if (!items.length) return 0;
+  const cl   = r.checklist || {};
+  const done = items.filter(i => cl[i] || cl[slugify(i)]).length;
+  return Math.round(done / items.length * 100);
+}
+
+function pctBar(pct) {
+  const color = pct >= 80 ? 'var(--success)' : pct >= 40 ? 'var(--warning)' : 'var(--danger)';
+  return `<span class="kre-chk-pct">
+    <span class="kre-pct-bar"><span class="kre-pct-fill" style="width:${pct}%;background:${color}"></span></span>
+    ${pct}%</span>`;
+}
+
+function renderGrid(rentals) {
+  const canEdit = AUTH.canEdit();
+  const el = document.getElementById('gridView');
+  if (!rentals.length) { el.innerHTML = ''; return; }
+  el.innerHTML = rentals.map(r => {
+    const pct   = checklistPct(r);
+    const beds  = r.bedrooms  ? `${r.bedrooms} bed${r.bedrooms>1?'s':''}` : '';
+    const baths = r.bathrooms ? `${r.bathrooms} bath${r.bathrooms>1?'s':''}` : '';
+    const size  = r.house ? r.house+'m²' : '';
+    const dims  = [beds, baths, size].filter(Boolean).join(' · ');
+    const price = r.monthly_rent ? `${fmtEur(r.monthly_rent)}<span>/month</span>` : '<span>Price on request</span>';
+    return `<div class="rent-card" onclick="openView('${r.id}')">
+      <div class="rent-card-top">
+        <span class="badge badge-gray rent-card-num">#${r.property_num||'—'}</span>
+        <span class="badge badge-rent rent-card-type">${esc(r.type||'—')}</span>
+      </div>
+      <div class="rent-card-area">${esc(r.area||'—')}</div>
+      ${dims ? `<div class="rent-card-beds">${dims}</div>` : ''}
+      <div class="rent-card-price">${price}</div>
+      <div class="rent-card-foot">
+        ${statusBadge(r)}
+        ${pctBar(pct)}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderList(rentals) {
+  const canEdit = AUTH.canEdit();
+  const el = document.getElementById('listBody');
+  if (!rentals.length) { el.innerHTML = ''; return; }
+  el.innerHTML = rentals.map(r => {
+    const pct = checklistPct(r);
+    return `<tr onclick="openView('${r.id}')" style="cursor:pointer">
+      <td><span class="badge badge-gray">#${r.property_num||'—'}</span></td>
+      <td><span class="badge badge-rent">${esc(r.type||'—')}</span></td>
+      <td>${esc(r.area||'—')}</td>
+      <td>${r.bedrooms||'—'}</td>
+      <td>${r.house ? r.house+'m²' : '—'}</td>
+      <td style="font-family:'DM Mono',monospace;font-weight:700">${r.monthly_rent ? fmtEur(r.monthly_rent) : '—'}</td>
+      <td>${r.deposit ? fmtEur(r.deposit) : '—'}</td>
+      <td>${statusBadge(r)}</td>
+      <td>${pctBar(pct)}</td>
+      <td class="td-actions" onclick="event.stopPropagation()">
+        ${canEdit ? `<button class="btn btn-ghost btn-sm" onclick="openEdit('${r.id}')">Edit</button>` : ''}
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function openView(id) {
+  window.location.href = 'kre-rental-view.html?id=' + encodeURIComponent(id);
+}
+
+/* ── MODAL ────────────────────────────────────────────── */
+function openAdd() {
+  editingId = null;
+  document.getElementById('rentModalTitle').textContent = 'Add Rental';
+  document.getElementById('deleteRentBtn').style.display = 'none';
+  clearForm();
+  buildChecklistForm(null);
+  populateLandlordSelect('');
+  populateTenantSelect('');
+  openModal('rentModal');
+}
+
+function openEdit(id) {
+  const r = allRentals.find(x => x.id === id);
+  if (!r) return;
+  editingId = id;
+  document.getElementById('rentModalTitle').textContent = 'Edit Rental';
+  document.getElementById('deleteRentBtn').style.display = '';
+  fillForm(r);
+  buildChecklistForm(r);
+  populateLandlordSelect(r.owner_contact_id || '');
+  populateTenantSelect(r.tenant_contact_id  || '');
+  openModal('rentModal');
+}
+
+function clearForm() {
+  ['r_id','r_plot','r_house','r_beds','r_baths','r_seadist',
+   'r_rent','r_deposit','r_coords','r_photos_url','r_desc','r_notes',
+   'r_lease_start','r_lease_end'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.value = '';
+  });
+  ['r_seaview','r_has_photos','r_on_web'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.checked = false;
+  });
+  document.getElementById('r_avail').value = 'available';
+  document.getElementById('tenancy-section').style.display = 'none';
+  document.getElementById('r_owner_search').value = '';
+  document.getElementById('r_tenant_search').value = '';
+  document.getElementById('r_photos_hint').innerHTML =
+    'Photos are served from the <code>photos/</code> folder once the rental is created.';
+}
+
+function fillForm(r) {
+  document.getElementById('r_id').value          = r.id;
+  document.getElementById('r_type').value         = r.type || '';
+  document.getElementById('r_area').value         = r.area || '';
+  document.getElementById('r_beds').value         = r.bedrooms || '';
+  document.getElementById('r_baths').value        = r.bathrooms || '';
+  document.getElementById('r_house').value        = r.house || '';
+  document.getElementById('r_plot').value         = r.plot || '';
+  document.getElementById('r_seadist').value      = r.sea_distance_m || '';
+  document.getElementById('r_rent').value         = r.monthly_rent || '';
+  document.getElementById('r_deposit').value      = r.deposit || '';
+  document.getElementById('r_avail').value        = r.available || 'available';
+  document.getElementById('r_lease_start').value  = r.lease_start || '';
+  document.getElementById('r_lease_end').value    = r.lease_end   || '';
+  document.getElementById('r_seaview').checked    = !!r.sea_view;
+  document.getElementById('r_has_photos').checked = !!r.has_photos;
+  document.getElementById('r_on_web').checked     = !!r.on_website;
+  document.getElementById('r_coords').value       = r.coords || '';
+  document.getElementById('r_photos_url').value   = r.photos_url || '';
+  document.getElementById('r_photos_hint').innerHTML =
+    `📁 Upload photos to Plesk: <code style="background:var(--bg-soft,#f3f6f6);padding:2px 6px;border-radius:4px">photos/${esc(r.id)}/</code> — name them <code style="background:var(--bg-soft,#f3f6f6);padding:2px 6px;border-radius:4px">1.jpg</code>, 2.jpg, … (1 = cover)`;
+  document.getElementById('r_desc').value         = r.description || '';
+  document.getElementById('r_notes').value        = r.notes || '';
+  toggleTenancySection();
+}
+
+function buildChecklistForm(rental) {
+  const container = document.getElementById('r_checklist_form');
+  const checklist = (rental && rental.checklist) || {};
+  const type      = (rental && rental.type) || document.getElementById('r_type')?.value || '';
+  _curCheckItems  = getChecklistItemsForType(type);
+  if (!_curCheckItems.length) {
+    container.innerHTML = '<span style="font-size:12px;color:var(--text-muted)">No checklist defined for this property type. Add items in Settings.</span>';
+    return;
+  }
+  container.innerHTML = _curCheckItems.map((item, idx) => {
+    const done = !!(checklist[item] || checklist[slugify(item)]);
+    return `<div class="checklist-item${done?' done':''}">
+      <input type="checkbox" id="rchk_${idx}" ${done?'checked':''}
+        onchange="this.closest('.checklist-item').classList.toggle('done',this.checked)">
+      <span>${esc(item)}</span>
+    </div>`;
+  }).join('');
+}
+
+function getChecklistValues() {
+  const result = {};
+  _curCheckItems.forEach((item, idx) => {
+    const el = document.getElementById('rchk_' + idx);
+    if (el) result[item] = el.checked;
+  });
+  return result;
+}
+
+async function saveRental() {
+  const type = document.getElementById('r_type').value;
+  const area = document.getElementById('r_area').value;
+  if (!type) { toast('Property type is required','error'); return; }
+  if (!area) { toast('Area is required','error'); return; }
+
+  const cid = document.getElementById('r_owner_contact').value;
+  const c   = cid ? allContacts.find(x=>x.id===cid) : null;
+  const ownerName = c ? (((c.first_name||'') + ' ' + (c.last_name||'')).trim() || c.email || null) : null;
+
+  const tcid = document.getElementById('r_tenant_contact').value;
+  const tc   = tcid ? allContacts.find(x=>x.id===tcid) : null;
+  const tenantName = tc ? (((tc.first_name||'') + ' ' + (tc.last_name||'')).trim() || tc.email || null) : null;
+
+  const rental = {
+    id:                editingId || undefined,
+    property_num:      editingId
+      ? (allRentals.find(r=>r.id===editingId)?.property_num)
+      : (Math.max(0, ...allRentals.map(r=>r.property_num||0)) + 1),
+    type,
+    area,
+    owner_contact_id:  cid || null,
+    owner_name:        ownerName,
+    bedrooms:          parseFloat(document.getElementById('r_beds').value)    || null,
+    bathrooms:         parseFloat(document.getElementById('r_baths').value)   || null,
+    house:             parseFloat(document.getElementById('r_house').value)   || null,
+    plot:              parseFloat(document.getElementById('r_plot').value)    || null,
+    sea_distance_m:    parseFloat(document.getElementById('r_seadist').value) || null,
+    monthly_rent:      parseFloat(document.getElementById('r_rent').value)    || null,
+    deposit:           parseFloat(document.getElementById('r_deposit').value) || null,
+    available:         document.getElementById('r_avail').value,
+    tenant_contact_id: tcid || null,
+    tenant_name:       tenantName,
+    lease_start:       document.getElementById('r_lease_start').value || null,
+    lease_end:         document.getElementById('r_lease_end').value   || null,
+    sea_view:          document.getElementById('r_seaview').checked,
+    has_photos:        document.getElementById('r_has_photos').checked,
+    on_website:        document.getElementById('r_on_web').checked,
+    coords:            document.getElementById('r_coords').value.trim()     || null,
+    photos_url:        document.getElementById('r_photos_url').value.trim() || null,
+    description:       document.getElementById('r_desc').value.trim()       || null,
+    notes:             document.getElementById('r_notes').value.trim()      || null,
+    checklist:         getChecklistValues()
+  };
+
+  syncStart();
+  const r = await DB.upsertOne('kre_rentals', rental);
+  syncDone(r.ok);
+
+  if (!r.ok) { toast('Error saving: ' + r.err, 'error'); return; }
+
+  toast(editingId ? 'Rental updated' : 'Rental added', 'success');
+
+  if (editingId) {
+    const idx = allRentals.findIndex(x => x.id === editingId);
+    if (idx >= 0) allRentals[idx] = r.row; else allRentals.push(r.row);
+  } else {
+    allRentals.push(r.row);
+  }
+
+  closeModal('rentModal');
+  applyFilters();
+  updateStats();
+
+  if (window._returnAfterSave && editingId) {
+    window.location.href = 'kre-rental-view.html?id=' + editingId;
+    return;
+  }
+}
+
+async function deleteRental() {
+  if (!editingId) return;
+  const r = allRentals.find(x => x.id === editingId);
+  if (!confirm(`Delete rental #${r?.property_num||'?'} (${r?.area||''})?`)) return;
+  syncStart();
+  const res = await DB.deleteOne('kre_rentals', editingId);
+  syncDone(res.ok);
+  if (res.ok) {
+    allRentals = allRentals.filter(x => x.id !== editingId);
+    closeModal('rentModal');
+    applyFilters();
+    updateStats();
+    toast('Rental deleted');
+  } else {
+    toast('Error: ' + res.err, 'error');
+  }
+}
+
+init();
+</script>
+</body>
+</html>
