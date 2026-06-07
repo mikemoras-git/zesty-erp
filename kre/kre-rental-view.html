@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>KRE — Rental Detail</title>
+<link rel="stylesheet" href="kre-style.css">
+<style>
+/* Rental accent: indigo-blue */
+:root { --rent:#4f6ef7; --rent-soft:rgba(79,110,247,.12); }
+.rent-hero { background:linear-gradient(135deg,#0b1f30 0%,#1a2e5a 100%); color:#fff; border-radius:12px; padding:28px 32px; margin-bottom:24px; position:relative; overflow:hidden; }
+.rent-hero::before { content:''; position:absolute; inset:0; background:linear-gradient(135deg,rgba(79,110,247,.18),transparent); pointer-events:none; }
+.rent-hero h1 { font-family:'Cormorant Garamond',serif; font-size:28px; font-weight:500; margin:0 0 6px; }
+.rent-hero .sub { font-size:14px; color:rgba(255,255,255,.6); margin:0 0 20px; }
+.rent-hero-meta { display:flex; gap:24px; flex-wrap:wrap; }
+.rent-hero-stat .lbl { font-size:11px; color:rgba(255,255,255,.5); text-transform:uppercase; letter-spacing:.08em; }
+.rent-hero-stat .val { font-size:20px; font-weight:700; font-family:'DM Mono',monospace; color:#fff; }
+.rent-hero-actions { position:absolute; top:24px; right:24px; display:flex; gap:8px; }
+.detail-grid { display:grid; grid-template-columns:1fr 340px; gap:20px; align-items:start; }
+@media(max-width:960px){ .detail-grid { grid-template-columns:1fr; } }
+.spec-row { display:flex; justify-content:space-between; padding:9px 0; border-bottom:1px solid var(--border); font-size:13px; }
+.spec-row:last-child { border-bottom:none; }
+.spec-lbl { color:var(--text-muted); }
+.spec-val { font-weight:600; text-align:right; }
+.checklist-item { display:flex; align-items:center; gap:10px; padding:8px 0; border-bottom:1px solid var(--border); font-size:13px; }
+.checklist-item:last-child { border-bottom:none; }
+.checklist-item input[type=checkbox] { width:16px;height:16px;cursor:pointer; }
+.checklist-done { color:var(--text-muted); text-decoration:line-through; }
+.section-title { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.1em; color:var(--text-muted); margin:20px 0 10px; }
+.tab-bar { display:flex; gap:0; border-bottom:2px solid var(--border); margin-bottom:20px; }
+.tab-btn { padding:10px 18px; font-size:13px; font-weight:500; cursor:pointer; border:none; background:none; color:var(--text-muted); border-bottom:2px solid transparent; margin-bottom:-2px; transition:color .15s; }
+.tab-btn.active { color:var(--rent); border-bottom-color:var(--rent); }
+.tab-panel { display:none; }
+.tab-panel.active { display:block; }
+/* Subtasks + Comments */
+.kre-sub-list { list-style:none; padding:0; margin:0 0 6px; }
+.kre-sub-list li { display:flex; align-items:center; gap:8px; padding:5px 0; border-bottom:1px dashed var(--border); font-size:13px; }
+.kre-sub-list li:last-child { border-bottom:none; }
+.kre-sub-list li.done > span { text-decoration:line-through; color:var(--text-muted); }
+.kre-sub-list li input[type=checkbox] { flex-shrink:0; width:15px; height:15px; cursor:pointer; }
+.kre-sub-list li > span { flex:1; }
+.kre-sub-del { background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:14px; padding:0 2px; line-height:1; }
+.kre-sub-del:hover { color:var(--danger); }
+.kre-comment-list { max-height:200px; overflow-y:auto; margin-bottom:8px; }
+.kre-comment-entry { padding:8px 10px; border-left:3px solid var(--border); margin-bottom:8px; border-radius:0 4px 4px 0; background:var(--bg); }
+.kre-comment-meta { font-size:11px; color:var(--text-muted); display:flex; justify-content:space-between; align-items:center; margin-bottom:4px; }
+.kre-comment-body { font-size:13px; line-height:1.6; }
+.kre-comment-body strong { font-weight:700; }
+.kre-comment-body em { font-style:italic; }
+.kre-comment-body ul, .kre-comment-body ol { margin:4px 0 4px 18px; padding:0; }
+.kre-comment-actions { display:flex; gap:6px; }
+.kre-comment-btn { background:none; border:none; font-size:11px; color:var(--text-muted); cursor:pointer; padding:0; }
+.kre-comment-btn:hover { color:var(--danger); }
+.kre-sub-badge { display:inline-block; font-size:10px; padding:1px 5px; border-radius:10px; background:var(--bg); border:1px solid var(--border); margin-left:4px; color:var(--text-muted); }
+.kre-sub-badge.all-done { background:#d4edda; border-color:#c3e6cb; color:#155724; }
+.task-item { display:flex; align-items:flex-start; gap:10px; padding:10px 0; border-bottom:1px solid var(--border); }
+.task-item:last-child { border-bottom:none; }
+.task-item input[type=checkbox] { margin-top:2px; flex-shrink:0; width:16px; height:16px; cursor:pointer; }
+.task-item-body { flex:1; }
+.task-item-title { font-size:13px; font-weight:600; }
+.task-item-title.done { text-decoration:line-through; color:var(--text-muted); }
+.task-item-meta { font-size:11px; color:var(--text-muted); margin-top:2px; }
+/* Tenancy section */
+.tenancy-block { background:var(--rent-soft); border:1px solid rgba(79,110,247,.2); border-radius:10px; padding:18px; }
+.tenancy-field { display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid rgba(79,110,247,.12); font-size:13px; }
+.tenancy-field:last-child { border-bottom:none; }
+.tenancy-lbl { color:var(--text-muted); }
+.tenancy-val { font-weight:600; }
+.badge-avail  { background:#d4edda; color:#155724; padding:3px 10px; border-radius:10px; font-size:11px; font-weight:600; }
+.badge-rented { background:#fff3cd; color:#856404; padding:3px 10px; border-radius:10px; font-size:11px; font-weight:600; }
+</style>
+</head>
+<body>
+<div class="kre-page">
+
+  <div style="margin-bottom:16px">
+    <a href="kre-rentals.html" style="font-size:13px;color:var(--rent)">← Back to Rentals</a>
+  </div>
+
+  <!-- HERO -->
+  <div id="rent-hero" class="rent-hero">
+    <div class="rent-hero-actions">
+      <button class="btn btn-ghost" id="share-btn" onclick="sharePublic()" style="color:#fff;border-color:rgba(255,255,255,.3)">🔗 Share Link</button>
+      <button class="btn btn-ghost" id="edit-btn" onclick="openEditModal()" style="color:#fff;border-color:rgba(255,255,255,.3)">✎ Edit</button>
+    </div>
+    <div class="spinner" id="hero-spinner"></div>
+    <div id="hero-content" style="display:none">
+      <h1 id="h-title">—</h1>
+      <p class="sub" id="h-sub"></p>
+      <div class="rent-hero-meta">
+        <div class="rent-hero-stat">
+          <div class="lbl">Monthly Rent</div>
+          <div class="val" id="h-rent">—</div>
+        </div>
+        <div class="rent-hero-stat">
+          <div class="lbl">Deposit</div>
+          <div class="val" id="h-deposit">—</div>
+        </div>
+        <div class="rent-hero-stat">
+          <div class="lbl">Sea View</div>
+          <div class="val" id="h-sea">—</div>
+        </div>
+        <div class="rent-hero-stat">
+          <div class="lbl">Status</div>
+          <div class="val" id="h-status">—</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="detail-grid">
+
+    <!-- LEFT: TABS -->
+    <div>
+      <div class="tab-bar">
+        <button class="tab-btn active" onclick="showTab('details')">Details</button>
+        <button class="tab-btn" onclick="showTab('checklist')">Checklist</button>
+        <button class="tab-btn" onclick="showTab('tasks')">Tasks</button>
+        <button class="tab-btn" onclick="showTab('tenancy')">Tenancy</button>
+      </div>
+
+      <!-- DETAILS TAB -->
+      <div class="tab-panel active" id="tab-details">
+        <div class="card">
+          <div class="card-header"><h2>Specifications</h2></div>
+          <div class="card-body" style="padding:0 22px">
+            <div id="spec-rows"></div>
+          </div>
+        </div>
+        <div class="card" style="margin-top:16px;display:none" id="photos-card">
+          <div class="card-header"><h2>Photos</h2></div>
+          <div class="card-body" id="photos-body"></div>
+        </div>
+        <div class="card" style="margin-top:16px" id="desc-card">
+          <div class="card-header"><h2>Description</h2></div>
+          <div class="card-body">
+            <p id="prop-desc" style="font-size:14px;line-height:1.7;color:var(--text);white-space:pre-wrap;margin:0"></p>
+          </div>
+        </div>
+        <div class="card" style="margin-top:16px" id="links-card">
+          <div class="card-header"><h2>Links &amp; Media</h2></div>
+          <div class="card-body" id="links-body"></div>
+        </div>
+      </div>
+
+      <!-- CHECKLIST TAB -->
+      <div class="tab-panel" id="tab-checklist">
+        <div class="card">
+          <div class="card-header">
+            <h2>Document Checklist</h2>
+            <div id="checklist-progress-text" style="font-size:13px;color:var(--text-muted)"></div>
+          </div>
+          <div class="card-body" style="padding:0 22px" id="checklist-body"></div>
+        </div>
+      </div>
+
+      <!-- TASKS TAB -->
+      <div class="tab-panel" id="tab-tasks">
+        <div class="card">
+          <div class="card-header">
+            <h2>Tasks</h2>
+            <button class="btn btn-primary btn-sm" onclick="openAddTask()">+ Task</button>
+          </div>
+          <div class="card-body" style="padding:0 22px" id="tasks-body">
+            <div class="spinner"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TENANCY TAB -->
+      <div class="tab-panel" id="tab-tenancy">
+        <div class="card">
+          <div class="card-header"><h2>Tenancy Details</h2></div>
+          <div class="card-body" id="tenancy-body">
+            <div class="spinner"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT SIDEBAR -->
+    <div>
+      <!-- LANDLORD -->
+      <div class="card" style="margin-bottom:16px" id="landlord-card">
+        <div class="card-header"><h2>Landlord / Owner</h2></div>
+        <div class="card-body" id="landlord-body">
+          <div class="spinner"></div>
+        </div>
+      </div>
+
+      <!-- MAP -->
+      <div class="card" style="margin-bottom:16px" id="map-card">
+        <div class="card-header"><h2>Location</h2></div>
+        <div class="card-body" id="map-body"></div>
+      </div>
+
+      <!-- QUICK ACTIONS -->
+      <div class="card">
+        <div class="card-header"><h2>Quick Actions</h2></div>
+        <div class="card-body" style="display:flex;flex-direction:column;gap:8px">
+          <button class="btn btn-ghost" onclick="sharePublic()" id="public-link-btn">🔗 Copy Shareable Link</button>
+          <button class="btn btn-ghost" onclick="openEditModal()" id="sidebar-edit-btn">✎ Edit Rental</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- TASK MODAL -->
+<div class="modal-overlay" id="taskModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="qt-modal-title">Add Task</h2>
+      <button class="modal-close" onclick="closeModal('taskModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="qt_id">
+      <div class="form-group">
+        <label>Task Description *</label>
+        <input id="qt_title" type="text" placeholder="What needs to be done?">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Priority</label>
+          <select id="qt_priority">
+            <option value="medium">Medium</option>
+            <option value="high">High</option>
+            <option value="low">Low</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Due Date</label><input id="qt_due" type="date"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Assigned To</label>
+          <select id="qt_assigned"></select>
+        </div>
+        <div class="form-group">
+          <label>Status</label>
+          <select id="qt_done">
+            <option value="false">Open</option>
+            <option value="true">Completed</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group"><label>Notes</label><textarea id="qt_notes" rows="2" placeholder="Additional details…"></textarea></div>
+
+      <!-- Subtasks -->
+      <div class="form-group" style="margin-top:4px">
+        <label>Subtasks</label>
+        <ul class="kre-sub-list" id="qt-sub-list"></ul>
+        <div style="display:flex;gap:8px">
+          <input id="qt-new-sub" type="text" placeholder="Add subtask… (Enter)" style="flex:1"
+            onkeydown="if(event.key==='Enter'){event.preventDefault();qtAddSub();}">
+          <button type="button" class="btn btn-ghost btn-sm" onclick="qtAddSub()">+ Add</button>
+        </div>
+      </div>
+
+      <!-- Comments -->
+      <div class="form-group" style="margin-top:4px">
+        <label>Comments</label>
+        <div class="kre-comment-list" id="qt-comment-list"></div>
+        <textarea id="qt-new-comment" rows="2" placeholder="Add a comment… (Ctrl+Enter to post)"
+          onkeydown="if((event.ctrlKey||event.metaKey)&&event.key==='Enter'){event.preventDefault();qtPostComment();}"></textarea>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px">
+          <span style="font-size:11px;color:var(--text-muted)">**bold** · *italic* · `code` · - list</span>
+          <button type="button" class="btn btn-ghost btn-sm" onclick="qtPostComment()">Post</button>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('taskModal')">Cancel</button>
+      <button class="btn btn-danger btn-sm" id="qt-delete-btn" onclick="deleteTaskFromView()" style="margin-right:auto;display:none">Delete</button>
+      <button class="btn btn-primary" id="qt-save-btn" onclick="saveTask()">Add Task</button>
+    </div>
+  </div>
+</div>
+
+<script src="kre-base.js"></script>
+<script src="kre-nav.js"></script>
+<script>
+let rental   = null;
+let rentalId = null;
+let settings = {};
+let allContacts = [];
+let allTasks    = [];
+let allUsers    = [];
+
+async function init() {
+  const params = new URLSearchParams(window.location.search);
+  rentalId = params.get('id');
+  if (!rentalId) {
+    document.getElementById('rent-hero').innerHTML = '<p style="color:#fff">No rental ID specified.</p>';
+    return;
+  }
+
+  settings = await SETTINGS.load();
+
+  const [rr, cr, tr, ur] = await Promise.all([
+    DB.getById('kre_rentals', rentalId),
+    DB.loadAll('kre_contacts'),
+    DB.loadAll('kre_tasks'),
+    DB.loadAll('kre_users')
+  ]);
+
+  rental      = rr.row;
+  allContacts = cr.rows || [];
+  allTasks    = (tr.rows || []).filter(t => t.link_type === 'rental' && t.link_id === rentalId);
+  allUsers    = ur.rows || [];
+
+  if (!rental) {
+    document.getElementById('rent-hero').innerHTML = '<p style="color:#fff">Rental not found.</p>';
+    return;
+  }
+
+  renderHero();
+  renderSpecs();
+  renderChecklist();
+  renderLandlord();
+  renderMap();
+  renderPhotos();
+  renderLinks();
+  renderTasks();
+  renderTenancy();
+
+  document.title = `KRE — Rental #${rental.property_num||'?'} ${rental.area||''}`;
+}
+
+function renderHero() {
+  document.getElementById('hero-spinner').style.display = 'none';
+  document.getElementById('hero-content').style.display = '';
+  const role = AUTH.getSession()?.role;
+
+  document.getElementById('h-title').textContent   = `#${rental.property_num||'?'} — ${rental.type||''} in ${rental.area||''}`;
+  document.getElementById('h-sub').textContent      =
+    [rental.bedrooms  ? rental.bedrooms+'bed'  : null,
+     rental.bathrooms ? rental.bathrooms+'bath' : null,
+     rental.house     ? rental.house+'m²'       : null]
+    .filter(Boolean).join(' · ');
+  document.getElementById('h-rent').textContent    = rental.monthly_rent ? fmtEur(rental.monthly_rent) + '/mo' : '—';
+  document.getElementById('h-deposit').textContent = rental.deposit ? fmtEur(rental.deposit) : '—';
+  document.getElementById('h-sea').textContent     = rental.sea_view ? (rental.sea_distance_m ? rental.sea_distance_m+'m' : 'Yes') : 'No';
+  document.getElementById('h-status').textContent  = rental.available === 'rented' ? 'Rented' : 'Available';
+
+  if (role === 'collaborator') {
+    document.getElementById('edit-btn').style.display = 'none';
+    document.getElementById('sidebar-edit-btn').style.display = 'none';
+  }
+}
+
+function renderSpecs() {
+  const specs = [
+    { lbl:'Rental #',        val: rental.property_num || '—' },
+    { lbl:'Type',            val: rental.type  || '—' },
+    { lbl:'Area',            val: rental.area  || '—' },
+    { lbl:'Bedrooms',        val: rental.bedrooms  ?? '—' },
+    { lbl:'Bathrooms',       val: rental.bathrooms ?? '—' },
+    { lbl:'House Size',      val: rental.house ? rental.house+'m²' : '—' },
+    { lbl:'Plot Size',       val: rental.plot  ? rental.plot+'m²'  : '—' },
+    { lbl:'Sea View',        val: rental.sea_view ? 'Yes' : 'No' },
+    { lbl:'Distance to Sea', val: rental.sea_distance_m ? rental.sea_distance_m+'m' : '—' },
+    { lbl:'Monthly Rent',    val: rental.monthly_rent ? fmtEur(rental.monthly_rent) : '—' },
+    { lbl:'Deposit',         val: rental.deposit ? fmtEur(rental.deposit) : '—' },
+    { lbl:'Status',          val: rental.available === 'rented' ? 'Rented' : 'Available' },
+    { lbl:'On Website',      val: rental.on_website ? 'Yes' : 'No' }
+  ];
+  document.getElementById('spec-rows').innerHTML = specs.map(s =>
+    `<div class="spec-row"><span class="spec-lbl">${s.lbl}</span><span class="spec-val">${s.val}</span></div>`
+  ).join('');
+
+  const desc = rental.description || rental.notes || '';
+  if (desc) {
+    document.getElementById('prop-desc').textContent = desc;
+  } else {
+    document.getElementById('desc-card').style.display = 'none';
+  }
+}
+
+function getChecklistItemsForType(type) {
+  const byType = settings.checklist_by_type || {};
+  if (type && byType[type] && byType[type].length) return byType[type];
+  return settings.checklist_items || [];
+}
+
+function slugify(s) { return s.toLowerCase().replace(/\s+/g,'_').replace(/[^a-z0-9_]/g,''); }
+
+function renderChecklist() {
+  const items   = getChecklistItemsForType(rental.type);
+  const checked = rental.checklist || {};
+  const done    = items.filter(i => checked[i] || checked[slugify(i)]).length;
+  const pct     = items.length ? Math.round(done / items.length * 100) : 0;
+  document.getElementById('checklist-progress-text').textContent = `${done} / ${items.length} complete (${pct}%)`;
+  document.getElementById('checklist-body').innerHTML = items.map(item => {
+    const isDone = !!(checked[item] || checked[slugify(item)]);
+    return `<div class="checklist-item">
+      <input type="checkbox" ${isDone?'checked':''} onchange="toggleChecklist('${esc(item)}',this.checked)">
+      <span class="${isDone?'checklist-done':''}">${esc(item)}</span>
+    </div>`;
+  }).join('');
+}
+
+async function toggleChecklist(item, val) {
+  const sl   = slugify(item);
+  const prev = {...(rental.checklist||{})};
+  delete prev[sl];
+  const checklist = {...prev, [item]: val};
+  const r = await DB.upsertOne('kre_rentals', {...rental, checklist});
+  if (r.ok) {
+    rental.checklist = checklist;
+    const items = getChecklistItemsForType(rental.type);
+    const done  = items.filter(i => checklist[i] || checklist[slugify(i)]).length;
+    const pct   = items.length ? Math.round(done / items.length * 100) : 0;
+    document.getElementById('checklist-progress-text').textContent = `${done} / ${items.length} complete (${pct}%)`;
+    document.querySelectorAll('#checklist-body .checklist-item span').forEach((el, idx) => {
+      if (items[idx]) el.className = (checklist[items[idx]] || checklist[slugify(items[idx])]) ? 'checklist-done' : '';
+    });
+    toast(val ? 'Document marked complete' : 'Unchecked', 'success');
+  } else toast('Error: '+r.err,'error');
+}
+
+async function renderLandlord() {
+  const el        = document.getElementById('landlord-body');
+  const role      = AUTH.getSession()?.role;
+  const ownerName = rental.owner_name || '';
+  const contactId = rental.owner_contact_id || null;
+
+  if (!ownerName && !contactId) {
+    el.innerHTML = '<span style="color:var(--text-muted);font-size:13px">No landlord recorded</span>';
+    return;
+  }
+
+  let contact = null;
+  if (contactId) {
+    try { const r = await DB.getById('kre_contacts', contactId); contact = r.row || null; } catch(e){}
+  }
+
+  const displayName = ownerName || (contact ? (((contact.first_name||'')+' '+(contact.last_name||'')).trim() || contact.email) : '?');
+  const phone = contact?.phone || '';
+  const email = contact?.email || '';
+
+  if (role === 'collaborator') {
+    el.innerHTML = `<div style="font-size:14px;font-weight:600">${esc(displayName)}</div>
+      <div style="font-size:12px;color:var(--text-muted);margin-top:4px">Contact details restricted</div>`;
+  } else {
+    el.innerHTML = `
+      <div style="font-size:14px;font-weight:600">${esc(displayName)}</div>
+      ${phone ? `<div style="margin-top:8px"><a href="tel:${esc(phone)}" style="color:var(--rent)">📞 ${esc(phone)}</a></div>` : ''}
+      ${email ? `<div style="margin-top:4px"><a href="mailto:${esc(email)}" style="color:var(--rent)">✉ ${esc(email)}</a></div>` : ''}
+      ${contactId ? `<div style="margin-top:10px"><a href="kre-contacts.html?id=${esc(contactId)}" style="font-size:12px;color:var(--rent)">→ View contact record</a></div>` : ''}`;
+  }
+}
+
+function renderMap() {
+  const el = document.getElementById('map-body');
+  if (rental.coords) {
+    const [lat,lng] = rental.coords.split(',').map(s=>s.trim());
+    if (lat && lng) {
+      el.innerHTML = `
+        <div style="margin-bottom:10px;font-size:13px;color:var(--text-muted)">📍 ${esc(rental.area||'')}</div>
+        <a href="https://www.google.com/maps?q=${encodeURIComponent(rental.coords)}" target="_blank" class="btn btn-ghost" style="width:100%;text-align:center;display:block">Open in Google Maps</a>
+        <div style="font-size:11px;color:var(--text-muted);margin-top:8px;text-align:center">${esc(rental.coords)}</div>`;
+      return;
+    }
+  }
+  document.getElementById('map-card').style.display = 'none';
+}
+
+async function renderPhotos() {
+  const card = document.getElementById('photos-card');
+  const body = document.getElementById('photos-body');
+  const has  = await kreHasCover(rental.id);
+  if (!has) { card.style.display = 'none'; return; }
+  card.style.display = '';
+  body.innerHTML = `<div class="kre-gallery-grid">${kreGalleryHtml(rental.id)}</div>
+    <p style="font-size:12px;color:var(--text-muted);margin:10px 0 0">
+      Tip: image <strong>1</strong> is used as the cover on the rentals list.
+    </p>`;
+}
+
+function renderLinks() {
+  const el = document.getElementById('links-body');
+  const lines = [];
+  if (rental.photos_url) lines.push(`<a href="${esc(rental.photos_url)}" target="_blank" class="btn btn-ghost" style="display:block;text-align:center;margin-bottom:8px">📁 Open OneDrive / Photos Folder</a>`);
+  if (!lines.length) { document.getElementById('links-card').style.display = 'none'; return; }
+  el.innerHTML = lines.join('');
+}
+
+function renderTenancy() {
+  const el = document.getElementById('tenancy-body');
+
+  if (rental.available !== 'rented') {
+    el.innerHTML = `<div style="text-align:center;padding:24px 0">
+      <span class="badge-avail">Available</span>
+      <p style="margin:16px 0 0;font-size:13px;color:var(--text-muted)">No current tenant — this unit is available for rent.</p>
+    </div>`;
+    return;
+  }
+
+  // Resolve tenant contact
+  const tcid    = rental.tenant_contact_id || null;
+  const tc      = tcid ? allContacts.find(x=>x.id===tcid) : null;
+  const tName   = rental.tenant_name || (tc ? (((tc.first_name||'')+' '+(tc.last_name||'')).trim()||tc.email) : '') || '—';
+  const tPhone  = tc?.phone || '';
+  const tEmail  = tc?.email || '';
+
+  const role = AUTH.getSession()?.role;
+
+  const leaseStart = rental.lease_start ? fmtDate(rental.lease_start) : '—';
+  const leaseEnd   = rental.lease_end   ? fmtDate(rental.lease_end)   : '—';
+  const today      = new Date().toISOString().slice(0,10);
+  const expiring   = rental.lease_end && rental.lease_end < today;
+  const daysLeft   = rental.lease_end ? Math.ceil((new Date(rental.lease_end)-new Date())/86400000) : null;
+
+  el.innerHTML = `
+    <div class="tenancy-block" style="margin-bottom:16px">
+      <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--rent);margin-bottom:12px">Current Tenant</div>
+      ${role === 'collaborator'
+        ? `<div style="font-size:14px;font-weight:600">${esc(tName)}</div><div style="font-size:12px;color:var(--text-muted);margin-top:4px">Contact details restricted</div>`
+        : `<div style="font-size:14px;font-weight:600;margin-bottom:6px">${esc(tName)}</div>
+           ${tPhone ? `<div><a href="tel:${esc(tPhone)}" style="color:var(--rent);font-size:13px">📞 ${esc(tPhone)}</a></div>` : ''}
+           ${tEmail ? `<div><a href="mailto:${esc(tEmail)}" style="color:var(--rent);font-size:13px">✉ ${esc(tEmail)}</a></div>` : ''}
+           ${tcid ? `<div style="margin-top:8px"><a href="kre-contacts.html?id=${esc(tcid)}" style="font-size:12px;color:var(--rent)">→ View contact record</a></div>` : ''}`
+      }
+    </div>
+    <div class="tenancy-block">
+      <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--rent);margin-bottom:12px">Lease</div>
+      <div class="tenancy-field"><span class="tenancy-lbl">Lease Start</span><span class="tenancy-val">${leaseStart}</span></div>
+      <div class="tenancy-field"><span class="tenancy-lbl">Lease End</span>
+        <span class="tenancy-val" style="${expiring?'color:var(--danger)':''}">
+          ${leaseEnd}${daysLeft !== null ? ` <span style="font-size:11px;font-weight:400;color:${expiring?'var(--danger)':'var(--text-muted)'}">(${expiring?'expired':'expires in '+daysLeft+' days'})</span>` : ''}
+        </span>
+      </div>
+      <div class="tenancy-field"><span class="tenancy-lbl">Monthly Rent</span><span class="tenancy-val">${rental.monthly_rent ? fmtEur(rental.monthly_rent) : '—'}</span></div>
+      <div class="tenancy-field"><span class="tenancy-lbl">Deposit</span><span class="tenancy-val">${rental.deposit ? fmtEur(rental.deposit) : '—'}</span></div>
+    </div>`;
+}
+
+function showTab(name) {
+  document.querySelectorAll('.tab-btn').forEach((b,i) => {
+    const tabs = ['details','checklist','tasks','tenancy'];
+    b.classList.toggle('active', tabs[i]===name);
+  });
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+}
+
+function sharePublic() {
+  const url = location.origin + location.pathname.replace('kre-rental-view.html','kre-rental-public.html') + '?id=' + rentalId;
+  navigator.clipboard.writeText(url).then(() => toast('Link copied to clipboard','success')).catch(() => {
+    prompt('Copy this link:', url);
+  });
+}
+
+function openEditModal() {
+  window.location.href = 'kre-rentals.html?edit=' + rentalId + '&return=view';
+}
+
+/* ── Tasks ───────────────────────────────────────────── */
+let _qtSubs = [], _qtComments = [], _qtEditId = null;
+
+function renderTasks() {
+  const el    = document.getElementById('tasks-body');
+  const today = new Date().toISOString().slice(0,10);
+  if (!allTasks.length) {
+    el.innerHTML = `<div style="color:var(--text-muted);font-size:13px;text-align:center;padding:16px">No tasks — click "+ Task" to add one</div>`;
+    return;
+  }
+  const sorted = [...allTasks].sort((a,b) => a.done === b.done ? 0 : a.done ? 1 : -1);
+  el.innerHTML = sorted.map(t => {
+    const isOverdue = !t.done && t.due_date && t.due_date < today;
+    const dot = {high:'var(--danger)',medium:'var(--warning)',low:'var(--success)'}[t.priority||'medium'];
+    const subs = t.subtasks||[], sdone=subs.filter(s=>s.done).length;
+    const cmts = t.comments||[];
+    const subBadge = subs.length ? `<span class="kre-sub-badge${sdone===subs.length?' all-done':''}">☑ ${sdone}/${subs.length}</span>` : '';
+    const cmtBadge = cmts.length ? `<span class="kre-sub-badge">💬 ${cmts.length}</span>` : '';
+    const assignedUser  = t.assigned_to ? allUsers.find(u=>u.id===t.assigned_to) : null;
+    const assignedLabel = assignedUser ? (assignedUser.full_name||assignedUser.email) : '';
+    return `<div class="task-item">
+      <input type="checkbox" ${t.done?'checked':''} onchange="qtToggleDone('${t.id}',this.checked)">
+      <div class="task-item-body">
+        <div class="task-item-title${t.done?' done':''}">
+          <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${dot};margin-right:5px"></span>
+          ${esc(t.title||'')}${subBadge}${cmtBadge}
+        </div>
+        <div class="task-item-meta">
+          ${t.due_date?`<span style="${isOverdue?'color:var(--danger)':''}">${isOverdue?'⚠ ':''}${fmtDate(t.due_date)}</span>`:''}
+          ${assignedLabel?`<span style="color:var(--text-muted)">👤 ${esc(assignedLabel)}</span>`:''}
+        </div>
+        ${t.notes?`<div class="task-item-meta">${esc(t.notes.slice(0,80))}${t.notes.length>80?'…':''}</div>`:''}
+      </div>
+      <button class="btn btn-ghost btn-sm" onclick="qtOpenEdit('${t.id}')">Edit</button>
+    </div>`;
+  }).join('');
+}
+
+async function qtToggleDone(id, done) {
+  const t=allTasks.find(x=>x.id===id); if(!t) return;
+  const u={...t, done, completed_at:done?new Date().toISOString():null};
+  const r=await DB.upsertOne('kre_tasks',u);
+  if(r.ok){Object.assign(t,u);renderTasks();} else toast('Error: '+r.err,'error');
+}
+function qtRenderSubs() {
+  const ul=document.getElementById('qt-sub-list'); if(!ul) return;
+  if(!_qtSubs.length){ul.innerHTML='<li style="color:var(--text-muted);font-size:12px;font-style:italic">No subtasks yet.</li>';return;}
+  ul.innerHTML=_qtSubs.map((s,i)=>`<li class="${s.done?'done':''}"><input type="checkbox" ${s.done?'checked':''} onchange="qtToggleSub(${i})"><span>${esc(s.text)}</span><button class="kre-sub-del" onclick="qtRemoveSub(${i})">×</button></li>`).join('');
+}
+function qtAddSub(){const inp=document.getElementById('qt-new-sub');const v=inp.value.trim();if(!v)return;_qtSubs.push({id:'sub_'+Date.now(),text:v,done:false});inp.value='';qtRenderSubs();}
+function qtToggleSub(i){_qtSubs[i].done=!_qtSubs[i].done;qtRenderSubs();}
+function qtRemoveSub(i){_qtSubs.splice(i,1);qtRenderSubs();}
+function qtCommentAuthor(){const s=AUTH.getSession();return s?(s.full_name||s.email||'me'):'me';}
+function qtRenderComments() {
+  const el=document.getElementById('qt-comment-list'); if(!el) return;
+  if(!_qtComments.length){el.innerHTML='<div style="font-size:12px;font-style:italic;color:var(--text-muted);padding:4px 0">No comments yet.</div>';return;}
+  el.innerHTML=[..._qtComments].reverse().map(c=>`<div class="kre-comment-entry" id="qce-${c.id}"><div class="kre-comment-meta"><span>${esc(c.by||'me')} · ${fmtDate(c.at)}</span><span class="kre-comment-actions"><button class="kre-comment-btn" onclick="qtEditCmt('${c.id}')">✎ Edit</button><button class="kre-comment-btn" onclick="qtDelCmt('${c.id}')">× Del</button></span></div><div class="kre-comment-body" id="qcb-${c.id}">${kreFormatComment(c.text||'')}</div></div>`).join('');
+}
+function qtPostComment(){const ta=document.getElementById('qt-new-comment');const text=ta.value.trim();if(!text)return;_qtComments.push({id:'cmt_'+Date.now(),by:qtCommentAuthor(),at:new Date().toISOString(),text});ta.value='';qtRenderComments();}
+function qtEditCmt(id){const c=_qtComments.find(x=>x.id===id);if(!c)return;const b=document.getElementById('qcb-'+id);if(!b)return;b.innerHTML=`<textarea id="qceta-${id}" style="width:100%;box-sizing:border-box" rows="3">${esc(c.text||'')}</textarea><div style="display:flex;gap:6px;margin-top:4px;justify-content:flex-end"><button class="btn btn-ghost btn-sm" onclick="qtRenderComments()">Cancel</button><button class="btn btn-primary btn-sm" onclick="qtSaveCmt('${id}')">Save</button></div>`;}
+function qtSaveCmt(id){const c=_qtComments.find(x=>x.id===id);if(!c)return;const ta=document.getElementById('qceta-'+id);if(!ta)return;c.text=ta.value.trim();c.edited_at=new Date().toISOString();qtRenderComments();}
+function qtDelCmt(id){if(!confirm('Delete this comment?'))return;_qtComments=_qtComments.filter(x=>x.id!==id);qtRenderComments();}
+
+function populateQtAssigned(selectedId) {
+  const sel = document.getElementById('qt_assigned');
+  sel.innerHTML = '<option value="">— Unassigned —</option>';
+  allUsers.forEach(u => {
+    const o = document.createElement('option');
+    o.value = u.id;
+    o.textContent = u.full_name || u.email;
+    if (u.id === selectedId) o.selected = true;
+    sel.appendChild(o);
+  });
+}
+
+function _qtResetModal(isEdit) {
+  document.getElementById('qt-modal-title').textContent   = isEdit ? 'Edit Task' : 'Add Task';
+  document.getElementById('qt-save-btn').textContent      = isEdit ? 'Save' : 'Add Task';
+  document.getElementById('qt-delete-btn').style.display  = isEdit ? '' : 'none';
+  document.getElementById('qt-new-sub').value     = '';
+  document.getElementById('qt-new-comment').value = '';
+}
+
+function openAddTask() {
+  _qtEditId = null; _qtSubs = []; _qtComments = [];
+  _qtResetModal(false);
+  ['qt_id','qt_title','qt_notes'].forEach(i=>{const el=document.getElementById(i);if(el)el.value='';});
+  document.getElementById('qt_priority').value = 'medium';
+  document.getElementById('qt_due').value = '';
+  document.getElementById('qt_done').value = 'false';
+  populateQtAssigned('');
+  qtRenderSubs(); qtRenderComments();
+  openModal('taskModal');
+}
+
+function qtOpenEdit(id) {
+  const t=allTasks.find(x=>x.id===id); if(!t) return;
+  _qtEditId=id;
+  _qtSubs=(t.subtasks||[]).map(s=>({...s}));
+  _qtComments=(t.comments||[]).map(c=>({...c}));
+  _qtResetModal(true);
+  document.getElementById('qt_id').value       = t.id;
+  document.getElementById('qt_title').value    = t.title||'';
+  document.getElementById('qt_priority').value = t.priority||'medium';
+  document.getElementById('qt_due').value      = t.due_date||'';
+  document.getElementById('qt_notes').value    = t.notes||'';
+  document.getElementById('qt_done').value     = t.done ? 'true' : 'false';
+  document.getElementById('qt-new-sub').value     = '';
+  document.getElementById('qt-new-comment').value = '';
+  populateQtAssigned(t.assigned_to||'');
+  qtRenderSubs(); qtRenderComments();
+  openModal('taskModal');
+}
+
+async function saveTask() {
+  const title = document.getElementById('qt_title').value.trim();
+  if (!title) { toast('Task description required','error'); return; }
+  const existing = _qtEditId ? (allTasks.find(t=>t.id===_qtEditId)||{}) : {};
+  const done = document.getElementById('qt_done').value === 'true';
+  const task = {
+    id:           _qtEditId||undefined,
+    title,
+    priority:     document.getElementById('qt_priority').value,
+    due_date:     document.getElementById('qt_due').value||null,
+    notes:        document.getElementById('qt_notes').value.trim()||null,
+    assigned_to:  document.getElementById('qt_assigned').value||null,
+    link_type:    'rental',
+    link_id:      rentalId,
+    done,
+    completed_at: done ? (existing.completed_at||new Date().toISOString()) : null,
+    subtasks:     _qtSubs.length     ? _qtSubs     : undefined,
+    comments:     _qtComments.length ? _qtComments : undefined
+  };
+  syncStart();
+  const r = await DB.upsertOne('kre_tasks', task);
+  syncDone(r.ok);
+  if (r.ok) {
+    if (_qtEditId) {
+      const idx=allTasks.findIndex(x=>x.id===_qtEditId);
+      if(idx>=0) allTasks[idx]=r.row; else allTasks.push(r.row);
+    } else {
+      allTasks.push(r.row);
+    }
+    renderTasks();
+    closeModal('taskModal');
+    toast(_qtEditId ? 'Task updated' : 'Task added','success');
+  } else {
+    toast('Error: '+r.err,'error');
+  }
+}
+
+async function deleteTaskFromView() {
+  if (!_qtEditId) return;
+  const t=allTasks.find(x=>x.id===_qtEditId);
+  if (!confirm(`Delete task "${t?.title}"?`)) return;
+  const r=await DB.deleteOne('kre_tasks', _qtEditId);
+  if (r.ok) {
+    allTasks=allTasks.filter(x=>x.id!==_qtEditId);
+    renderTasks(); closeModal('taskModal'); toast('Task deleted');
+  } else toast('Error: '+r.err,'error');
+}
+
+init();
+</script>
+</body>
+</html>
