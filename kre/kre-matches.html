@@ -199,16 +199,31 @@ async function setStatus(id, status) {
   }
 }
 
+async function purgeAllMatches() {
+  if (!allMatches.length) return;
+  const ids = allMatches.map(m => m.id);
+  const CHUNK = 200;
+  for (let i = 0; i < ids.length; i += CHUNK) {
+    const chunk = ids.slice(i, i + CHUNK);
+    await fetch(`${SUPA_URL}/rest/v1/kre_matches?id=in.(${chunk.join(',')})`, {
+      method: 'DELETE',
+      headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY }
+    });
+  }
+  allMatches = [];
+}
+
 async function runMatchAll() {
-  const [settings] = await Promise.all([SETTINGS.load()]);
-  const buyers = allContacts.filter(c => c.role==='buyer'||c.role==='both');
+  await SETTINGS.load();
+  toast('Clearing old matches…', '');
+  await purgeAllMatches();
+
+  const buyers   = allContacts.filter(c => c.role === 'buyer' || c.role === 'both');
   const available = allProps.filter(p => p.available !== false);
   let created = 0;
 
   for (const buyer of buyers) {
     for (const prop of available) {
-      const existing = allMatches.find(m=>m.contact_id===buyer.id&&m.property_id===prop.id);
-      if (existing) continue;
       const result = MATCHER.score(buyer, prop);
       if (result.score >= 40) {
         const r = await DB.upsertOne('kre_matches', {
@@ -225,7 +240,7 @@ async function runMatchAll() {
 
   updateKPIs();
   applyFilters();
-  toast(`${created} new matches generated`, 'success');
+  toast(`${created} matches generated`, 'success');
 }
 
 init();
