@@ -407,7 +407,11 @@ const MATCHER = {
       if (parseFloat(property.plot) >= parseFloat(buyer.min_plot) * 0.8) { pts += 5; reasons.push('Plot size'); }
     }
 
-    const score = possible > 0 ? Math.round((pts / possible) * 100) : 0;
+    // If no criteria were scoreable (incomplete profile) but something matched (e.g. area),
+    // give a base score of 50 so the match is still created rather than silently dropped.
+    const score = possible > 0 ? Math.round((pts / possible) * 100)
+                : reasons.length > 0 ? 50
+                : 0;
     return { score, reasons };
   },
 
