@@ -33,22 +33,17 @@
       <div class="kpi-label">Proposed to Client</div>
       <div class="kpi-value" id="kpi-proposed">—</div>
     </div>
-    <div class="kpi-card orange">
-      <div class="kpi-label">Declined</div>
-      <div class="kpi-value" id="kpi-declined">—</div>
-    </div>
   </div>
 
   <!-- FILTER BAR -->
   <div class="filter-bar">
     <input class="search-input" id="f-search" type="text" placeholder="Search buyer or property…" oninput="applyFilters()">
-    <select id="f-status" onchange="applyFilters()">
-      <option value="">All Statuses</option>
-      <option value="pending">Pending</option>
-      <option value="proposed">Proposed</option>
-      <option value="declined">Declined</option>
-      <option value="deal">Deal Started</option>
-    </select>
+    <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer">
+      <input type="checkbox" id="f-pending" checked onchange="applyFilters()"> Pending
+    </label>
+    <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer">
+      <input type="checkbox" id="f-proposed" checked onchange="applyFilters()"> Proposed
+    </label>
     <select id="f-score" onchange="applyFilters()">
       <option value="">All Scores</option>
       <option value="high">High (≥70)</option>
@@ -102,24 +97,27 @@ async function init() {
 }
 
 function updateKPIs() {
-  document.getElementById('kpi-total').textContent    = allMatches.length;
-  document.getElementById('kpi-pending').textContent  = allMatches.filter(m=>m.status==='pending').length;
-  document.getElementById('kpi-proposed').textContent = allMatches.filter(m=>m.status==='proposed').length;
-  document.getElementById('kpi-declined').textContent = allMatches.filter(m=>m.status==='declined').length;
+  const visible = allMatches.filter(m => m.status !== 'declined');
+  document.getElementById('kpi-total').textContent    = visible.length;
+  document.getElementById('kpi-pending').textContent  = visible.filter(m => m.status === 'pending').length;
+  document.getElementById('kpi-proposed').textContent = visible.filter(m => m.status === 'proposed').length;
 }
 
 function applyFilters() {
-  const search = document.getElementById('f-search').value.toLowerCase();
-  const status = document.getElementById('f-status').value;
-  const score  = document.getElementById('f-score').value;
+  const search       = document.getElementById('f-search').value.toLowerCase();
+  const showPending  = document.getElementById('f-pending').checked;
+  const showProposed = document.getElementById('f-proposed').checked;
+  const score        = document.getElementById('f-score').value;
 
-  const filtered = allMatches.filter(m => {
-    if (status && m.status !== status) return false;
+  const visible = allMatches.filter(m => m.status !== 'declined');
+  const filtered = visible.filter(m => {
+    if (m.status === 'pending'  && !showPending)  return false;
+    if (m.status === 'proposed' && !showProposed) return false;
     if (score === 'high' && (m.score||0) < 70) return false;
     if (score === 'mid'  && ((m.score||0) < 40 || (m.score||0) >= 70)) return false;
     if (search) {
-      const c  = allContacts.find(x=>x.id===m.contact_id);
-      const p  = allProps.find(x=>x.id===m.property_id);
+      const c   = allContacts.find(x => x.id === m.contact_id);
+      const p   = allProps.find(x => x.id === m.property_id);
       const hay = [
         c ? (c.first_name||'')+' '+(c.last_name||'') : '',
         p ? '#'+(p.property_num||'?')+' '+(p.area||'') : ''
@@ -129,8 +127,8 @@ function applyFilters() {
     return true;
   });
 
-  filtered.sort((a,b)=> (b.score||0)-(a.score||0));
-  document.getElementById('filter-count').textContent = `${filtered.length} of ${allMatches.length}`;
+  filtered.sort((a,b) => (b.score||0) - (a.score||0));
+  document.getElementById('filter-count').textContent = `${filtered.length} of ${visible.length}`;
   renderTable(filtered);
 }
 
@@ -200,8 +198,10 @@ async function setStatus(id, status) {
 }
 
 async function purgeAllMatches() {
-  if (!allMatches.length) return;
-  const ids = allMatches.map(m => m.id);
+  // Only delete non-declined matches — declined ones are kept to prevent re-appearing
+  const toDelete = allMatches.filter(m => m.status !== 'declined');
+  if (!toDelete.length) return;
+  const ids = toDelete.map(m => m.id);
   const CHUNK = 200;
   for (let i = 0; i < ids.length; i += CHUNK) {
     const chunk = ids.slice(i, i + CHUNK);
@@ -210,20 +210,22 @@ async function purgeAllMatches() {
       headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY }
     });
   }
-  allMatches = [];
+  allMatches = allMatches.filter(m => m.status === 'declined');
 }
 
 async function runMatchAll() {
   await SETTINGS.load();
   toast('Clearing old matches…', '');
   await purgeAllMatches();
+  // allMatches now contains only previously-declined pairs — skip those during regen
 
-  const buyers   = allContacts.filter(c => c.role === 'buyer' || c.role === 'both');
+  const buyers    = allContacts.filter(c => c.role === 'buyer' || c.role === 'both');
   const available = allProps.filter(p => p.available !== false);
   let created = 0;
 
   for (const buyer of buyers) {
     for (const prop of available) {
+      if (allMatches.find(m => m.contact_id === buyer.id && m.property_id === prop.id)) continue;
       const result = MATCHER.score(buyer, prop);
       if (result.score >= 40) {
         const r = await DB.upsertOne('kre_matches', {
