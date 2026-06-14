@@ -109,6 +109,15 @@
         </div>
       </div>
 
+      <div class="form-row" style="margin-top:0">
+        <div class="form-group">
+          <label>Sourced by (Collaborator) <span style="font-weight:400;color:var(--text-muted)">— who brought this property to us</span></label>
+          <select id="p_sourced_by" style="width:100%">
+            <option value="">— Not sourced by a collaborator —</option>
+          </select>
+        </div>
+      </div>
+
       <div class="section-lbl">Dimensions</div>
       <div class="form-row-4">
         <div class="form-group">
@@ -217,6 +226,7 @@
 let allProps    = [];
 let allBuyers   = [];
 let allSellers  = [];   // contacts with role seller or both
+let allCollabs  = [];   // collaborators for "sourced by" dropdown
 let settings    = {};
 let _ownerAllOptions = []; // cached for filter
 
@@ -281,14 +291,25 @@ async function init() {
 }
 
 async function loadData() {
-  const [pr, cr] = await Promise.all([DB.loadAll('kre_properties'), DB.loadAll('kre_contacts')]);
+  const [pr, cr, colr] = await Promise.all([
+    DB.loadAll('kre_properties'), DB.loadAll('kre_contacts'), DB.loadAll('kre_collaborators')
+  ]);
   allProps   = (pr.rows  || []).sort((a,b) => (a.property_num||9999) - (b.property_num||9999));
   allBuyers  = (cr.rows  || []).filter(c => c.role === 'buyer' || c.role === 'both');
   allSellers = (cr.rows  || []).filter(c => c.role === 'seller' || c.role === 'both');
-  populateOwnerSelect('');   // prime the dropdown with all sellers
+  allCollabs = colr.rows || [];
+  populateOwnerSelect('');
+  populateSourcedBySelect('');
   applyFilters();
   document.getElementById('prop-count-sub').textContent =
     `${allProps.length} properties total`;
+}
+
+function populateSourcedBySelect(selectedId) {
+  const sel = document.getElementById('p_sourced_by');
+  if (!sel) return;
+  sel.innerHTML = '<option value="">— Not sourced by a collaborator —</option>' +
+    allCollabs.map(c => `<option value="${c.id}"${c.id===selectedId?' selected':''}>${esc(c.name+(c.agency?' ('+c.agency+')':''))}</option>`).join('');
 }
 
 function populateFilters() {
@@ -476,9 +497,9 @@ function clearForm() {
     const el = document.getElementById(id);
     if (el) el.value = '';
   });
-  // Reset owner dropdown
   document.getElementById('p_owner_search').value = '';
   populateOwnerSelect('');
+  populateSourcedBySelect('');
   ['p_seaview','p_has_photos','p_topo','p_on_web'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.checked = false;
@@ -514,6 +535,7 @@ function fillForm(p) {
     `(jpg/png/webp all work). Image <strong>1</strong> becomes the cover photo shown on the list.`;
   document.getElementById('p_desc').value        = p.description || '';
   document.getElementById('p_notes').value       = p.notes || '';
+  populateSourcedBySelect(p.sourced_by_collab_id || '');
 }
 
 function buildChecklistForm(prop) {
@@ -580,7 +602,14 @@ async function saveProp() {
     photos_url:      document.getElementById('p_photos_url').value.trim()  || null,
     description:     document.getElementById('p_desc').value.trim()        || null,
     notes:           document.getElementById('p_notes').value.trim()        || null,
-    checklist:       getChecklistValues()
+    checklist:            getChecklistValues(),
+    sourced_by_collab_id: document.getElementById('p_sourced_by').value || null,
+    sourced_by_collab_name: (() => {
+      const cid = document.getElementById('p_sourced_by').value;
+      if (!cid) return null;
+      const c = allCollabs.find(x => x.id === cid);
+      return c ? c.name : null;
+    })()
   };
 
   syncStart();

@@ -99,6 +99,31 @@
     while (wrap.firstChild) document.body.insertBefore(wrap.firstChild, document.body.firstChild);
 
     document.getElementById('kre-ov').addEventListener('click', kreSidebarClose);
+
+    // Floating ticket button — visible on all internal pages
+    initFab();
+  }
+
+  function initFab() {
+    if (document.getElementById('kre-fab')) return;
+    const wrap = document.createElement('div');
+    wrap.innerHTML = `
+      <button id="kre-fab" onclick="kreFabOpen()" title="Report a bug or request a feature">＋</button>
+      <div id="kre-fab-overlay" style="display:none" onclick="kreFabClose()"></div>
+      <div id="kre-fab-panel" style="display:none">
+        <div id="kre-fab-panel-hdr">
+          <span>Quick Ticket</span>
+          <button class="kre-fab-close" onclick="kreFabClose()">✕</button>
+        </div>
+        <select id="kre-fab-type">
+          <option value="bug">🐛 Bug / Problem</option>
+          <option value="feature">✨ Feature Request</option>
+          <option value="idea">💡 Idea</option>
+        </select>
+        <textarea id="kre-fab-text" rows="3" placeholder="Describe the issue or request…"></textarea>
+        <button id="kre-fab-submit" onclick="kreFabSave()">Submit Ticket</button>
+      </div>`;
+    document.body.appendChild(wrap);
   }
 
   function esc(s) {
@@ -180,6 +205,62 @@
         #kre-sidebar.open{transform:translateX(0)}
         #kre-ham{display:flex;align-items:center}
       }
+
+      /* ── Floating ticket button ─────────────────────── */
+      #kre-fab {
+        position:fixed; bottom:28px; right:28px; z-index:950;
+        width:52px; height:52px; border-radius:50%;
+        background:linear-gradient(135deg,#1c8a8c,#c9a84c);
+        color:#fff; font-size:26px; font-weight:300;
+        border:none; cursor:pointer; box-shadow:0 4px 18px rgba(0,0,0,.28);
+        display:flex; align-items:center; justify-content:center;
+        transition:transform .15s,box-shadow .15s; line-height:1;
+        font-family:'DM Sans',sans-serif;
+      }
+      #kre-fab:hover { transform:scale(1.1); box-shadow:0 6px 24px rgba(0,0,0,.35); }
+      #kre-fab-overlay {
+        position:fixed; inset:0; z-index:951; background:rgba(0,0,0,.35);
+      }
+      #kre-fab-panel {
+        position:fixed; bottom:92px; right:28px; z-index:952;
+        width:300px; background:#fff; border-radius:14px;
+        box-shadow:0 8px 32px rgba(0,0,0,.22);
+        padding:0; overflow:hidden;
+        font-family:'DM Sans',sans-serif;
+      }
+      #kre-fab-panel-hdr {
+        background:linear-gradient(135deg,#0b1f30,#0f2a3f);
+        color:#fff; padding:13px 16px;
+        display:flex; justify-content:space-between; align-items:center;
+        font-size:14px; font-weight:600;
+      }
+      .kre-fab-close {
+        background:none; border:none; color:rgba(255,255,255,.6);
+        font-size:16px; cursor:pointer; padding:0; line-height:1;
+      }
+      .kre-fab-close:hover { color:#fff; }
+      #kre-fab-type {
+        width:calc(100% - 24px); margin:12px 12px 8px;
+        font-family:'DM Sans',sans-serif; font-size:13px;
+        padding:8px 10px; border:1px solid #e2e8ed; border-radius:8px;
+        background:#f7f9fb; color:#1a2633; cursor:pointer; display:block;
+      }
+      #kre-fab-text {
+        width:calc(100% - 24px); margin:0 12px 8px; display:block;
+        font-family:'DM Sans',sans-serif; font-size:13px;
+        padding:8px 10px; border:1px solid #e2e8ed; border-radius:8px;
+        background:#fff; color:#1a2633; resize:vertical;
+        box-sizing:border-box;
+      }
+      #kre-fab-submit {
+        width:calc(100% - 24px); margin:0 12px 12px; display:block;
+        background:linear-gradient(135deg,#1c8a8c,#c9a84c);
+        color:#fff; border:none; border-radius:8px; padding:10px;
+        font-family:'DM Sans',sans-serif; font-size:13px; font-weight:600;
+        cursor:pointer; transition:opacity .15s;
+      }
+      #kre-fab-submit:hover { opacity:.9; }
+      #kre-fab-submit:disabled { opacity:.5; cursor:not-allowed; }
     `;
     document.head.appendChild(s);
   }
@@ -200,6 +281,40 @@
   window.kreSidebarClose = function () {
     document.getElementById('kre-sidebar').classList.remove('open');
     document.getElementById('kre-ov').classList.remove('open');
+  };
+
+  window.kreFabOpen = function() {
+    document.getElementById('kre-fab-overlay').style.display = '';
+    document.getElementById('kre-fab-panel').style.display   = '';
+    document.getElementById('kre-fab-text').focus();
+  };
+  window.kreFabClose = function() {
+    document.getElementById('kre-fab-overlay').style.display = 'none';
+    document.getElementById('kre-fab-panel').style.display   = 'none';
+    document.getElementById('kre-fab-text').value = '';
+  };
+  window.kreFabSave = async function() {
+    const text = document.getElementById('kre-fab-text').value.trim();
+    if (!text) { document.getElementById('kre-fab-text').focus(); return; }
+    const btn = document.getElementById('kre-fab-submit');
+    btn.disabled = true; btn.textContent = 'Submitting…';
+    const session  = getSession();
+    const pageName = window.location.pathname.split('/').pop().replace('.html','') || 'unknown';
+    try {
+      await DB.upsertOne('kre_tickets', {
+        type:   document.getElementById('kre-fab-type').value,
+        page:   pageName,
+        text,
+        who:    session ? (session.full_name || session.email || null) : null,
+        status: 'open'
+      });
+      kreFabClose();
+      if (window.toast) toast('Ticket submitted ✓', 'success');
+    } catch(e) {
+      if (window.toast) toast('Could not submit ticket', 'error');
+    } finally {
+      btn.disabled = false; btn.textContent = 'Submit Ticket';
+    }
   };
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);

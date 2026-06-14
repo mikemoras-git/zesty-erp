@@ -387,10 +387,12 @@ const MATCHER = {
       else if (price <= bMax * 1.25) { pts += 15; reasons.push('Budget close'); }
     }
 
-    // Area preference
-    if (buyer.area_pref && property.area) {
+    // Area preference — supports both legacy area_pref (string) and areas_of_interest (array)
+    const buyerAreas = buyer.areas_of_interest?.length ? buyer.areas_of_interest
+                     : buyer.area_pref ? [buyer.area_pref] : [];
+    if (buyerAreas.length && property.area) {
       possible += 15;
-      if (buyer.area_pref === property.area) { pts += 15; reasons.push('Area match'); }
+      if (buyerAreas.includes(property.area)) { pts += 15; reasons.push('Area match'); }
     }
 
     // Sea view
