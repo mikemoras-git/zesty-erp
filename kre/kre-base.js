@@ -262,6 +262,11 @@ const KRE_DEFAULTS = {
     'Nopigia','Piperiana','Pirgos','Plakalona','Platanos','Polyrinia','Potamida',
     'Sfinari','Trachilas','Vardiana','Viglia'],
 
+  nationalities: ['Austrian','Belgian','British','Bulgarian','Canadian','Czech',
+    'Danish','Dutch','Finnish','French','German','Greek','Hungarian','Irish',
+    'Israeli','Italian','Norwegian','Polish','Portuguese','Romanian','Russian',
+    'Slovak','Spanish','Swedish','Swiss','American','Australian','Other'],
+
   property_types: ['Plot','Investment Plot','House','Old House','New House','Villa','Apartment','Plot + House'],
 
   checklist_items: ['Topographic Plan','Title Deeds','Building Permit',
@@ -318,7 +323,7 @@ let _settingsCache = null;
 // always be FRESH copies — never shared references with KRE_DEFAULTS — or
 // in-place mutations (push/splice from the Settings page) silently corrupt
 // the shared defaults object, which is the root cause of "added items vanish".
-const KRE_LIST_KEYS = ['locations', 'property_types', 'checklist_items', 'client_stages', 'deal_stages'];
+const KRE_LIST_KEYS = ['locations', 'property_types', 'checklist_items', 'client_stages', 'deal_stages', 'nationalities'];
 
 function kreCloneList(v) {
   if (!Array.isArray(v)) return v;
@@ -387,10 +392,12 @@ const MATCHER = {
       else if (price <= bMax * 1.25) { pts += 15; reasons.push('Budget close'); }
     }
 
-    // Area preference
-    if (buyer.area_pref && property.area) {
-      possible += 15;
-      if (buyer.area_pref === property.area) { pts += 15; reasons.push('Area match'); }
+    // Area — hard requirement: if buyer has area preferences and property area doesn't match, skip
+    const buyerAreas = buyer.areas_of_interest?.length ? buyer.areas_of_interest
+                     : buyer.area_pref ? [buyer.area_pref] : [];
+    if (buyerAreas.length) {
+      if (!property.area || !buyerAreas.includes(property.area)) return { score: 0, reasons: [] };
+      reasons.push('Area match');
     }
 
     // Sea view
@@ -405,7 +412,11 @@ const MATCHER = {
       if (parseFloat(property.plot) >= parseFloat(buyer.min_plot) * 0.8) { pts += 5; reasons.push('Plot size'); }
     }
 
-    const score = possible > 0 ? Math.round((pts / possible) * 100) : 0;
+    // If no criteria were scoreable (incomplete profile) but something matched (e.g. area),
+    // give a base score of 50 so the match is still created rather than silently dropped.
+    const score = possible > 0 ? Math.round((pts / possible) * 100)
+                : reasons.length > 0 ? 50
+                : 0;
     return { score, reasons };
   },
 
