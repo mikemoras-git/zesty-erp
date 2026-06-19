@@ -22,13 +22,14 @@
 
   <!-- FILTER BAR -->
   <div class="filter-bar">
-    <input class="search-input" id="f-search" type="text" placeholder="Search by area, type, notes…" oninput="applyFilters()">
+    <input class="search-input" id="f-search" type="text" placeholder="Search by #number, area, type, notes…" oninput="applyFilters()">
     <select id="f-type" onchange="applyFilters()"><option value="">All Types</option></select>
     <select id="f-area" onchange="applyFilters()"><option value="">All Areas</option></select>
     <select id="f-avail" onchange="applyFilters()">
       <option value="">All Availability</option>
       <option value="true" selected>For Sale</option>
       <option value="false">Off Market</option>
+      <option value="unknown">Unknown / Not Set</option>
     </select>
     <select id="f-seaview" onchange="applyFilters()">
       <option value="">Any Sea View</option>
@@ -343,8 +344,8 @@ function applyFilters() {
     if (type && p.type !== type) return false;
     if (area && p.area !== area) return false;
     if (avail !== '') {
-      const pAvail = p.available === true ? 'true' : p.available === false ? 'false' : '';
-      if (pAvail !== avail) return false;
+      if (avail === 'unknown') { if (p.available === true || p.available === false) return false; }
+      else { const pAvail = p.available === true ? 'true' : p.available === false ? 'false' : ''; if (pAvail !== avail) return false; }
     }
     if (sv !== '') {
       const pSv = p.sea_view ? 'true' : 'false';
@@ -356,7 +357,7 @@ function applyFilters() {
       if (op < mn || op > mx) return false;
     }
     if (search) {
-      const hay = [p.type, p.area, p.notes, p.description, p.owner_name].join(' ').toLowerCase();
+      const hay = [String(p.property_num||''), p.type, p.area, p.notes, p.description, p.owner_name].join(' ').toLowerCase();
       if (!hay.includes(search)) return false;
     }
     return true;
