@@ -117,7 +117,7 @@
         </div>
         <select id="kre-fab-type">
           <option value="bug">🐛 Bug / Problem</option>
-          <option value="feature">✨ Feature Request</option>
+          <option value="improvement">✨ Improvement / Feature</option>
           <option value="idea">💡 Idea</option>
         </select>
         <textarea id="kre-fab-text" rows="3" placeholder="Describe the issue or request…"></textarea>

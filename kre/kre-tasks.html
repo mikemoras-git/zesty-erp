@@ -407,9 +407,9 @@ function renderTable(tasks) {
     const cmts = t.comments || [];
     const cmtBadge = cmts.length ? `<span class="kre-sub-badge" title="${cmts.length} comment(s)">💬 ${cmts.length}</span>` : '';
 
-    return `<tr class="task-row${t.done?' done':''}">
+    return `<tr class="task-row${t.done?' done':''}" style="cursor:pointer" onclick="openEdit('${t.id}')">
       <td>
-        <input type="checkbox" ${t.done?'checked':''} onchange="toggleDone('${t.id}',this.checked)" style="cursor:pointer;width:16px;height:16px">
+        <input type="checkbox" ${t.done?'checked':''} onchange="toggleDone('${t.id}',this.checked)" onclick="event.stopPropagation()" style="cursor:pointer;width:16px;height:16px">
       </td>
       <td>
         <strong>${esc(t.title||'')}</strong>${subsBadge}${cmtBadge}
@@ -420,7 +420,7 @@ function renderTable(tasks) {
       <td>${linkLabel(t)}</td>
       <td style="font-size:13px">${user ? esc(user.full_name||user.email) : '<span style="color:var(--text-light)">Unassigned</span>'}</td>
       <td class="td-actions">
-        <button class="btn btn-ghost btn-sm" onclick="openEdit('${t.id}')">Edit</button>
+        <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openEdit('${t.id}')">Edit</button>
       </td>
     </tr>`;
   }).join('');

@@ -120,7 +120,7 @@ function applyFilters() {
       const p   = allProps.find(x => x.id === m.property_id);
       const hay = [
         c ? (c.first_name||'')+' '+(c.last_name||'') : '',
-        p ? '#'+(p.property_num||'?')+' '+(p.area||'') : ''
+        p ? '#'+(p.property_num||'?')+' '+(p.area||'')+' '+(p.property_num||'') : ''
       ].join(' ').toLowerCase();
       if (!hay.includes(search)) return false;
     }
@@ -198,8 +198,8 @@ async function setStatus(id, status) {
 }
 
 async function purgeAllMatches() {
-  // Only delete non-declined matches — declined ones are kept to prevent re-appearing
-  const toDelete = allMatches.filter(m => m.status !== 'declined');
+  // Only delete pending matches — declined and proposed are preserved as-is
+  const toDelete = allMatches.filter(m => m.status !== 'declined' && m.status !== 'proposed');
   if (!toDelete.length) return;
   const ids = toDelete.map(m => m.id);
   const CHUNK = 200;
@@ -210,7 +210,7 @@ async function purgeAllMatches() {
       headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY }
     });
   }
-  allMatches = allMatches.filter(m => m.status === 'declined');
+  allMatches = allMatches.filter(m => m.status === 'declined' || m.status === 'proposed');
 }
 
 async function runMatchAll() {

@@ -262,6 +262,11 @@ const KRE_DEFAULTS = {
     'Nopigia','Piperiana','Pirgos','Plakalona','Platanos','Polyrinia','Potamida',
     'Sfinari','Trachilas','Vardiana','Viglia'],
 
+  nationalities: ['Austrian','Belgian','British','Bulgarian','Canadian','Czech',
+    'Danish','Dutch','Finnish','French','German','Greek','Hungarian','Irish',
+    'Israeli','Italian','Norwegian','Polish','Portuguese','Romanian','Russian',
+    'Slovak','Spanish','Swedish','Swiss','American','Australian','Other'],
+
   property_types: ['Plot','Investment Plot','House','Old House','New House','Villa','Apartment','Plot + House'],
 
   checklist_items: ['Topographic Plan','Title Deeds','Building Permit',
@@ -318,7 +323,7 @@ let _settingsCache = null;
 // always be FRESH copies — never shared references with KRE_DEFAULTS — or
 // in-place mutations (push/splice from the Settings page) silently corrupt
 // the shared defaults object, which is the root cause of "added items vanish".
-const KRE_LIST_KEYS = ['locations', 'property_types', 'checklist_items', 'client_stages', 'deal_stages'];
+const KRE_LIST_KEYS = ['locations', 'property_types', 'checklist_items', 'client_stages', 'deal_stages', 'nationalities'];
 
 function kreCloneList(v) {
   if (!Array.isArray(v)) return v;

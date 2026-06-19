@@ -41,6 +41,12 @@
       <option value="buyer">Buyers</option>
       <option value="seller">Sellers</option>
       <option value="both">Both</option>
+      <option value="engineer">Engineers</option>
+      <option value="topographer">Topographers</option>
+      <option value="architect">Architects</option>
+      <option value="notary">Notaries</option>
+      <option value="lawyer">Lawyers</option>
+      <option value="unknown">Unknown / Not Set</option>
     </select>
     <select id="f-active" onchange="applyFilters()">
       <option value="">All Status</option>
@@ -112,9 +118,21 @@
             <option value="buyer">Buyer</option>
             <option value="seller">Seller</option>
             <option value="both">Both (Buyer &amp; Seller)</option>
+            <optgroup label="Professionals">
+              <option value="engineer">Engineer</option>
+              <option value="topographer">Topographer</option>
+              <option value="architect">Architect</option>
+              <option value="notary">Notary</option>
+              <option value="lawyer">Lawyer</option>
+            </optgroup>
           </select>
         </div>
-        <div class="form-group"><label>Nationality</label><input id="c_nationality" type="text" placeholder="e.g. British, German…"></div>
+        <div class="form-group">
+          <label>Nationality</label>
+          <select id="c_nationality">
+            <option value="">— Select —</option>
+          </select>
+        </div>
         <div class="form-group">
           <label>Status</label>
           <select id="c_active">
@@ -238,6 +256,13 @@ function toggleBuyerSection() {
     (role === 'buyer' || role === 'both') ? '' : 'none';
 }
 
+function populateNationalitySelect(selected) {
+  const sel = document.getElementById('c_nationality');
+  const nats = (settings.nationalities || KRE_DEFAULTS.nationalities || []);
+  sel.innerHTML = '<option value="">— Select —</option>' +
+    nats.map(n => `<option value="${esc(n)}"${n===selected?' selected':''}>${esc(n)}</option>`).join('');
+}
+
 /* ── Init ─────────────────────────────────────────────── */
 async function init() {
   settings = await SETTINGS.load();
@@ -268,8 +293,9 @@ function populateDropdowns() {
 async function loadContacts() {
   const r = await DB.loadAll('kre_contacts');
   allContacts = r.rows || [];
+  const PROF = ['engineer','topographer','architect','notary','lawyer'];
   document.getElementById('contact-sub').textContent =
-    `${allContacts.filter(c=>c.role==='buyer'||c.role==='both').length} buyers · ${allContacts.filter(c=>c.role==='seller'||c.role==='both').length} sellers`;
+    `${allContacts.filter(c=>c.role==='buyer'||c.role==='both').length} buyers · ${allContacts.filter(c=>c.role==='seller'||c.role==='both').length} sellers · ${allContacts.filter(c=>PROF.includes(c.role)).length} professionals`;
   applyFilters();
 }
 
@@ -279,8 +305,10 @@ function applyFilters() {
   const active = document.getElementById('f-active').value;
   const stage  = document.getElementById('f-stage').value;
 
+  const KNOWN_ROLES = ['buyer','seller','both','engineer','topographer','architect','notary','lawyer'];
   const filtered = allContacts.filter(c => {
-    if (role   && c.role !== role) return false;
+    if (role === 'unknown') { if (c.role && KNOWN_ROLES.includes(c.role)) return false; }
+    else if (role && c.role !== role) return false;
     if (active !== '' && String(c.active !== false) !== active) return false;
     if (stage  && c.stage !== stage) return false;
     if (search) {
@@ -316,7 +344,8 @@ function renderTable(contacts) {
     const budg    = (c.budget_min||c.budget_max)
       ? `${c.budget_min?fmtEur(c.budget_min):'?'} – ${c.budget_max?fmtEur(c.budget_max):'?'}`
       : '—';
-    const roleBg  = c.role==='buyer'?'badge-blue':c.role==='seller'?'badge-orange':'badge-purple';
+    const PROF_ROLES = ['engineer','topographer','architect','notary','lawyer'];
+    const roleBg  = c.role==='buyer'?'badge-blue':c.role==='seller'?'badge-orange':c.role==='both'?'badge-purple':PROF_ROLES.includes(c.role)?'badge-teal':'badge-gray';
     return `<tr style="cursor:pointer" onclick="openView('${c.id}')">
       <td>
         <strong>${esc(c.first_name||'')} ${esc(c.last_name||'')}</strong>
@@ -448,7 +477,7 @@ function openEdit(id) {
 }
 
 function clearForm() {
-  ['c_id','c_fname','c_lname','c_nationality','c_phone1','c_phone2','c_email',
+  ['c_id','c_fname','c_lname','c_phone1','c_phone2','c_email',
    'c_first_contact','c_last_contact','c_source','c_notes','c_likes','c_dislikes',
    'c_min_plot','c_budget_min','c_budget_max'].forEach(id => {
     const el = document.getElementById(id);
@@ -462,6 +491,7 @@ function clearForm() {
     const el = document.getElementById(id);
     if (el) el.value = '';
   });
+  populateNationalitySelect('');
   _selectedAreas = [];
   renderAreaTags();
   toggleBuyerSection();
@@ -472,7 +502,7 @@ function fillForm(c) {
   document.getElementById('c_fname').value        = c.first_name || '';
   document.getElementById('c_lname').value        = c.last_name  || '';
   document.getElementById('c_role').value         = c.role || 'buyer';
-  document.getElementById('c_nationality').value  = c.nationality || '';
+  populateNationalitySelect(c.nationality || '');
   document.getElementById('c_active').value       = c.active === false ? 'false' : 'true';
   document.getElementById('c_phone1').value       = c.phone1 || '';
   document.getElementById('c_phone2').value       = c.phone2 || '';
