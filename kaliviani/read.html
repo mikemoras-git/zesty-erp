@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>History of Kaliviani — Corte Interna Guest Archive</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Crimson+Pro:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#f2e6c9; --paper-2:#ecdcb3; --paper-deep:#e2cf9d;
+  --ink:#3a2a1a; --ink-soft:#6b5842; --ink-faint:#9a8567;
+  --gold:#a9822f; --gold-deep:#7c5e22;
+  --olive:#6b7a4f;
+  --terracotta:#a1503a;
+  --line:rgba(58,42,26,.18);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  font-family:'Crimson Pro',serif;color:var(--ink);
+  background:radial-gradient(ellipse at 50% -10%, var(--paper-2), var(--paper) 55%, #e6d5ac 100%);
+  min-height:100vh;position:relative;
+}
+body::before{
+  content:'';position:fixed;inset:0;pointer-events:none;z-index:1;
+  opacity:.08;mix-blend-mode:multiply;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+}
+
+/* ── watermark ── */
+.watermark-layer{
+  position:fixed;inset:0;pointer-events:none;z-index:2;
+  background-repeat:repeat;
+}
+
+/* ── anti-copy ── */
+.ms-content, .ms-content *{
+  user-select:none;-webkit-user-select:none;-ms-user-select:none;
+  -webkit-touch-callout:none;
+}
+
+/* ── reading-paused blur ── */
+body.reading-paused .ms-wrap{filter:blur(20px);transition:filter .3s ease}
+.pause-overlay{
+  display:none;position:fixed;inset:0;z-index:40;
+  align-items:center;justify-content:center;background:rgba(58,42,26,.15);
+}
+body.reading-paused .pause-overlay{display:flex}
+.pause-card{
+  background:var(--paper);border:1px solid var(--line);border-radius:8px;
+  padding:22px 30px;text-align:center;box-shadow:0 20px 50px rgba(58,42,26,.3);
+  font-family:'Cinzel',serif;font-size:12.5px;letter-spacing:.06em;color:var(--ink-soft);
+  text-transform:uppercase;max-width:280px;
+}
+
+/* ── progress bar ── */
+.progress-track{position:fixed;top:0;left:0;right:0;height:3px;z-index:30;background:rgba(58,42,26,.08)}
+.progress-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--gold),var(--gold-deep));transition:width .1s linear}
+
+/* ── header ── */
+.ms-header{
+  position:sticky;top:3px;z-index:20;
+  background:rgba(242,230,201,.88);backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--line);
+}
+.ms-header-inner{
+  max-width:760px;margin:0 auto;padding:12px 24px;
+  display:flex;align-items:center;justify-content:space-between;gap:16px;
+}
+.ms-brand{
+  font-family:'Cinzel',serif;font-size:13px;letter-spacing:1.5px;text-transform:uppercase;
+  color:var(--ink);text-decoration:none;white-space:nowrap;
+}
+.ms-header-right{display:flex;align-items:center;gap:14px;font-size:12.5px;color:var(--ink-soft)}
+.ms-header-right button{
+  background:none;border:1px solid var(--line);border-radius:5px;padding:6px 12px;
+  font-family:'Crimson Pro',serif;font-size:12.5px;color:var(--ink-soft);cursor:pointer;
+}
+.ms-header-right button:hover{border-color:var(--gold-deep);color:var(--gold-deep)}
+.lang-switch{display:flex;gap:4px;background:var(--paper-deep);border-radius:6px;padding:3px}
+.lang-switch a{
+  padding:5px 10px;border-radius:4px;font-family:'Cinzel',serif;font-size:11px;letter-spacing:.4px;
+  text-decoration:none;color:var(--ink-soft);
+}
+.lang-switch a.active{background:var(--paper);color:var(--ink);box-shadow:0 1px 4px rgba(58,42,26,.15)}
+
+/* ── manuscript typography ── */
+.ms-wrap{max-width:680px;margin:0 auto;padding:48px 24px 120px;position:relative;z-index:3}
+.ms-title{
+  font-family:'Cinzel',serif;font-weight:700;font-size:clamp(26px,5vw,36px);
+  text-align:center;letter-spacing:1px;line-height:1.3;margin:20px 0 30px;
+}
+.ms-translator-note{
+  font-style:italic;font-size:14.5px;color:var(--ink-soft);line-height:1.8;
+  background:rgba(255,255,255,.35);border:1px solid var(--line);border-left:3px solid var(--olive);
+  border-radius:4px;padding:16px 20px;margin:0 0 30px;
+}
+.ms-byline{
+  text-align:center;font-style:italic;font-size:13.5px;letter-spacing:.5px;
+  color:var(--ink-soft);margin:8px 0 26px;
+}
+.ms-divider{display:flex;justify-content:center;color:var(--olive);opacity:.6}
+.ms-divider-major{margin:52px 0 6px}
+.ms-divider-major svg{width:56px;height:auto}
+.ms-divider-minor{
+  height:1px;width:70px;margin:38px auto 4px;
+  background:linear-gradient(90deg,transparent,var(--line),transparent);
+}
+.ms-h2{
+  font-family:'Cinzel',serif;font-weight:600;font-size:19px;letter-spacing:1.2px;
+  text-transform:uppercase;text-align:center;color:var(--ink);margin:6px 0 22px;
+}
+.ms-h3{
+  font-family:'Cinzel',serif;font-weight:600;font-size:12.5px;letter-spacing:1.4px;
+  text-transform:uppercase;text-align:center;color:var(--ink-faint);margin:4px 0 16px;
+}
+.ms-content p{
+  font-size:18.5px;line-height:1.9;margin-bottom:20px;color:var(--ink);
+  text-align:left;
+}
+.ms-content p.ms-lead::first-letter{
+  font-family:'Cinzel',serif;font-size:46px;font-weight:700;float:left;
+  line-height:.8;padding:5px 8px 0 0;color:var(--gold-deep);
+}
+.ms-content p.ms-verse{
+  font-style:italic;font-size:17.5px;line-height:1.6;
+  margin-bottom:2px;color:var(--ink-soft);text-align:left;
+}
+.ms-stanza-break{height:22px}
+
+/* ── expired state ── */
+.expired-wrap{display:none;min-height:100vh;align-items:center;justify-content:center;padding:32px 16px;position:relative;z-index:3}
+.expired-card{
+  max-width:480px;width:100%;background:var(--paper);border:1px solid var(--line);border-radius:6px;
+  box-shadow:0 30px 70px rgba(58,42,26,.28);padding:44px 40px;text-align:center;
+}
+.expired-card h1{font-family:'Cinzel',serif;font-size:22px;letter-spacing:.5px;margin:14px 0 16px}
+.expired-status{
+  background:rgba(161,80,58,.12);border:1px solid rgba(161,80,58,.3);color:var(--terracotta);
+  border-radius:6px;padding:16px 18px;font-size:14.5px;line-height:1.7;text-align:left;margin-bottom:22px;
+}
+.expired-status a{color:inherit}
+.btn-ghost{
+  display:inline-block;padding:11px 22px;border:1px solid var(--line);border-radius:6px;
+  font-family:'Cinzel',serif;font-size:12px;letter-spacing:1px;text-transform:uppercase;
+  color:var(--ink-soft);background:transparent;cursor:pointer;text-decoration:none;
+}
+.btn{
+  padding:11px 22px;border:none;border-radius:6px;cursor:pointer;
+  font-family:'Cinzel',serif;font-size:12px;font-weight:600;letter-spacing:1px;text-transform:uppercase;
+  color:#fbf3de;background:linear-gradient(135deg,var(--gold),var(--gold-deep));
+}
+.btn:hover{filter:brightness(1.08)}
+.btn:disabled{opacity:.55;cursor:not-allowed}
+
+.f-error{background:rgba(161,80,58,.12);border:1px solid rgba(161,80,58,.3);color:var(--terracotta);border-radius:6px;padding:10px 14px;font-size:13.5px;margin-top:12px;display:none}
+.f-success{background:rgba(107,122,79,.14);border:1px solid rgba(107,122,79,.35);color:#4c5a35;border-radius:6px;padding:10px 14px;font-size:13.5px;margin-top:12px;display:none}
+
+/* ── flag-a-passage FAB + modal ── */
+.flag-fab{
+  position:fixed;bottom:24px;right:24px;z-index:25;
+  width:52px;height:52px;border-radius:50%;
+  background:linear-gradient(135deg,var(--gold),var(--gold-deep));
+  color:#fbf3de;border:none;box-shadow:0 10px 30px rgba(58,42,26,.35);
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+}
+.flag-fab:hover{filter:brightness(1.08);transform:translateY(-2px)}
+.modal-overlay{
+  display:none;position:fixed;inset:0;z-index:60;
+  align-items:center;justify-content:center;background:rgba(58,42,26,.35);padding:20px;
+}
+.modal-overlay.open{display:flex}
+.modal-card{
+  background:var(--paper);border-radius:8px;max-width:440px;width:100%;padding:28px 26px;
+  box-shadow:0 30px 70px rgba(58,42,26,.35);
+}
+.modal-card h3{font-family:'Cinzel',serif;font-size:17px;margin-bottom:12px;letter-spacing:.5px}
+.modal-context{
+  font-style:italic;font-size:13.5px;color:var(--ink-soft);background:rgba(255,255,255,.35);
+  border-left:3px solid var(--olive);padding:10px 14px;border-radius:4px;margin-bottom:16px;line-height:1.6;
+}
+.modal-card textarea,.review-panel textarea{
+  width:100%;min-height:100px;padding:11px 14px;font-family:'Crimson Pro',serif;font-size:15px;
+  border:1.5px solid var(--line);border-radius:5px;background:rgba(255,255,255,.4);
+  resize:vertical;outline:none;color:var(--ink);
+}
+.modal-card textarea:focus,.review-panel textarea:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(169,130,47,.18)}
+.modal-actions{display:flex;gap:10px;margin-top:14px;justify-content:flex-end}
+
+/* ── end-of-book review ── */
+.review-panel{margin-top:60px;text-align:center;user-select:text}
+.review-sub{color:var(--ink-soft);font-style:italic;font-size:15px;margin:6px 0 22px}
+.stars{display:flex;justify-content:center;gap:6px;margin-bottom:18px;font-size:32px}
+.stars button{background:none;border:none;cursor:pointer;color:var(--line);transition:color .15s;padding:0;line-height:1}
+.stars button.filled{color:var(--gold-deep)}
+.review-panel textarea{margin-bottom:14px}
+
+@media print{
+  body *{visibility:hidden !important}
+  body::after{
+    content:"Printing is disabled for the Corte Interna Guest Archive.";
+    visibility:visible !important;position:fixed;top:44%;left:0;right:0;
+    text-align:center;font-family:serif;font-size:20px;color:#000;
+  }
+}
+</style>
+</head>
+<body>
+<div class="watermark-layer" id="watermark"></div>
+<div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+<div class="pause-overlay"><div class="pause-card">Reading paused<br>Return to this tab to continue</div></div>
+
+<header class="ms-header" id="ms-header">
+  <div class="ms-header-inner">
+    <a class="ms-brand" href="welcome.html">Corte Interna</a>
+    <div class="ms-header-right">
+      <div class="lang-switch" id="lang-switch"></div>
+      <span id="guest-name"></span>
+      <button onclick="AUTH.logout()">Sign Out</button>
+    </div>
+  </div>
+</header>
+
+<main class="ms-wrap" id="ms-wrap">
+  <div class="ms-content" id="ms-content"></div>
+
+  <section class="review-panel" id="review-panel">
+    <div class="ms-divider ms-divider-major">
+      <svg viewBox="0 0 100 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M2 20 Q 25 2, 50 20 T 98 20" stroke="currentColor" stroke-width="1.4"/>
+        <ellipse cx="18" cy="14" rx="5" ry="2.6" transform="rotate(-25 18 14)" fill="currentColor" opacity=".8"/>
+        <ellipse cx="34" cy="8" rx="5" ry="2.6" transform="rotate(-15 34 8)" fill="currentColor" opacity=".8"/>
+        <ellipse cx="66" cy="8" rx="5" ry="2.6" transform="rotate(15 66 8)" fill="currentColor" opacity=".8"/>
+        <ellipse cx="82" cy="14" rx="5" ry="2.6" transform="rotate(25 82 14)" fill="currentColor" opacity=".8"/>
+        <circle cx="50" cy="24" r="2.4" fill="currentColor"/>
+      </svg>
+    </div>
+    <h2 class="ms-h2">Your Thoughts</h2>
+    <p class="review-sub">You've reached the end. What did you think of this history?</p>
+    <div class="stars" id="stars">
+      <button type="button" data-star="1">☆</button>
+      <button type="button" data-star="2">☆</button>
+      <button type="button" data-star="3">☆</button>
+      <button type="button" data-star="4">☆</button>
+      <button type="button" data-star="5">☆</button>
+    </div>
+    <textarea id="review-body" placeholder="Optional — tell your host what stood out, or what you'd like to see improved."></textarea>
+    <div><button class="btn" onclick="submitReview()">Submit Review</button></div>
+    <div class="f-success" id="review-ok"></div>
+    <div class="f-error" id="review-err"></div>
+  </section>
+</main>
+
+<button class="flag-fab" id="flag-fab" title="Flag a passage" aria-label="Flag a passage" onclick="openCommentModal()">
+  <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/>
+    <line x1="4" y1="22" x2="4" y2="15"/>
+  </svg>
+</button>
+
+<div class="modal-overlay" id="comment-modal">
+  <div class="modal-card">
+    <h3>Flag This Passage</h3>
+    <p class="modal-context" id="comment-context"></p>
+    <textarea id="comment-body" placeholder="What seems off, or what would you like to tell your host?"></textarea>
+    <div class="f-error" id="comment-err"></div>
+    <div class="modal-actions">
+      <button class="btn-ghost" onclick="closeCommentModal()">Cancel</button>
+      <button class="btn" onclick="submitComment()">Send</button>
+    </div>
+  </div>
+</div>
+
+<div class="expired-wrap" id="expired-wrap">
+  <div class="expired-card">
+    <h1>Your Access Has Ended</h1>
+    <div class="expired-status" id="expired-status"></div>
+    <a class="btn-ghost" href="welcome.html">← Back</a>
+  </div>
+</div>
+
+<script src="kaliviani-base.js"></script>
+<script>
+const params = new URLSearchParams(location.search);
+const BOOK = getBook(params.get('book') || 'kaliviani-history') || BOOKS[0];
+const DOC_SLUG = BOOK.document;
+const availableLangs = Object.keys(BOOK.languages);
+const LANG = (availableLangs.includes(params.get('lang')) ? params.get('lang') : availableLangs[0]);
+const DOC_FILE = BOOK.languages[LANG] ? BOOK.languages[LANG].file : null;
+
+let maxScrollPct = 0;
+let secondsActive = 0;
+let sessionRowId = null;
+
+(async function init() {
+  const session = AUTH.requireAuth();
+  if (!session) return;
+
+  document.title = BOOK.title + ' — Corte Interna Guest Archive';
+  document.documentElement.lang = LANG || 'en';
+  document.getElementById('guest-name').textContent = session.name || '';
+  renderLangSwitch();
+
+  if (!DOC_FILE) {
+    document.getElementById('ms-content').innerHTML =
+      '<p style="text-align:center;font-style:italic;color:var(--ink-soft)">This book is not available yet.</p>';
+    document.getElementById('review-panel').style.display = 'none';
+    document.getElementById('flag-fab').style.display = 'none';
+    return;
+  }
+
+  if (AUTH.isExpired(session)) {
+    showExpired(session);
+    return;
+  }
+
+  const wmText = `${session.name} · ${session.email} · ${new Date().toLocaleString('en-GB')}`;
+  document.getElementById('watermark').style.backgroundImage = buildWatermarkDataUri(wmText);
+
+  let mdText;
+  try {
+    const res = await fetch(DOC_FILE);
+    if (!res.ok) throw new Error('fetch failed');
+    mdText = await res.text();
+  } catch (e) {
+    document.getElementById('ms-content').innerHTML =
+      '<p>The manuscript could not be loaded. Please refresh, or write to ' + OWNER_CONTACT_EMAIL + '.</p>';
+    return;
+  }
+  document.getElementById('ms-content').innerHTML = renderManuscript(mdText);
+
+  setupAntiCopy();
+  setupProgress();
+  startTracking(session);
+  initReview(session);
+})();
+
+function renderLangSwitch() {
+  const el = document.getElementById('lang-switch');
+  if (availableLangs.length < 2) { el.style.display = 'none'; return; }
+  el.innerHTML = availableLangs.map(code => {
+    const l = BOOK.languages[code];
+    const cls = code === LANG ? 'active' : '';
+    const href = `read.html?book=${encodeURIComponent(DOC_SLUG)}&lang=${encodeURIComponent(code)}`;
+    return `<a class="${cls}" href="${href}">${esc(l.label)}</a>`;
+  }).join('');
+}
+
+function showExpired(session) {
+  document.getElementById('ms-header').style.display = 'none';
+  document.getElementById('ms-wrap').style.display = 'none';
+  document.getElementById('progress-fill').parentElement.style.display = 'none';
+  document.getElementById('flag-fab').style.display = 'none';
+  const wrap = document.getElementById('expired-wrap');
+  wrap.style.display = 'flex';
+  document.getElementById('expired-status').innerHTML =
+    'Your access period ended on <b>' + fmtDate(session.expires_at) + '</b>. To keep reading, ask your host ' +
+    'for an extension at <a href="mailto:' + OWNER_CONTACT_EMAIL + '">' + OWNER_CONTACT_EMAIL + '</a>.';
+}
+
+function setupAntiCopy() {
+  document.addEventListener('contextmenu', e => e.preventDefault());
+  document.addEventListener('copy', e => e.preventDefault());
+  document.addEventListener('cut', e => e.preventDefault());
+  document.addEventListener('keydown', e => {
+    const k = e.key.toLowerCase();
+    const mod = e.ctrlKey || e.metaKey;
+    if (mod && (k === 'c' || k === 'p' || k === 's')) e.preventDefault();
+  });
+
+  let hiddenTimer = null;
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      hiddenTimer = setTimeout(() => document.body.classList.add('reading-paused'), 2000);
+    } else {
+      clearTimeout(hiddenTimer);
+      document.body.classList.remove('reading-paused');
+    }
+  });
+}
+
+function computeScrollPct() {
+  const scrollable = document.documentElement.scrollHeight - window.innerHeight;
+  if (scrollable <= 0) return 100;
+  return Math.min(100, Math.max(0, Math.round((window.scrollY / scrollable) * 100)));
+}
+
+function setupProgress() {
+  const fill = document.getElementById('progress-fill');
+  const update = () => {
+    const pct = computeScrollPct();
+    if (pct > maxScrollPct) maxScrollPct = pct;
+    fill.style.width = pct + '%';
+  };
+  window.addEventListener('scroll', update, { passive: true });
+  update();
+}
+
+async function startTracking(session) {
+  const sbc = await getSbClient();
+  const { data, error } = await sbc.from('kaliviani_reading_sessions')
+    .insert({ guest_id: session.id, document: DOC_SLUG, language: LANG })
+    .select().single();
+  if (!error && data) sessionRowId = data.id;
+
+  setInterval(async () => {
+    if (document.hidden || document.body.classList.contains('reading-paused')) return;
+    secondsActive += 15;
+    if (!sessionRowId) return;
+    const sbc2 = await getSbClient();
+    await sbc2.from('kaliviani_reading_sessions').update({
+      seconds_active: secondsActive,
+      last_heartbeat: new Date().toISOString(),
+      max_scroll_pct: maxScrollPct
+    }).eq('id', sessionRowId);
+  }, 15000);
+}
+
+/* ── PARAGRAPH-ANCHORED COMMENTS ── */
+let flagParaRef = null;
+let currentSession = null;
+
+function findClosestParagraph() {
+  const paras = document.querySelectorAll('[data-para]');
+  const centerY = window.innerHeight / 2;
+  let best = null, bestDist = Infinity;
+  paras.forEach(p => {
+    const r = p.getBoundingClientRect();
+    const dist = Math.abs((r.top + r.bottom) / 2 - centerY);
+    if (dist < bestDist) { bestDist = dist; best = p; }
+  });
+  return best;
+}
+
+function openCommentModal() {
+  const p = findClosestParagraph();
+  if (!p) return;
+  flagParaRef = p.getAttribute('data-para');
+  const text = p.textContent.trim();
+  document.getElementById('comment-context').textContent =
+    '"' + text.slice(0, 120) + (text.length > 120 ? '…' : '') + '"';
+  document.getElementById('comment-body').value = '';
+  document.getElementById('comment-err').style.display = 'none';
+  document.getElementById('comment-modal').classList.add('open');
+}
+function closeCommentModal() {
+  document.getElementById('comment-modal').classList.remove('open');
+}
+
+async function submitComment() {
+  const errEl = document.getElementById('comment-err');
+  errEl.style.display = 'none';
+  const body = document.getElementById('comment-body').value.trim();
+  if (!body) { errEl.textContent = 'Please write something first.'; errEl.style.display = 'block'; return; }
+
+  const sbc = await getSbClient();
+  const { error } = await sbc.from('kaliviani_comments').insert({
+    guest_id: currentSession.id, document: DOC_SLUG, language: LANG, paragraph_ref: flagParaRef, body
+  });
+  if (error) { errEl.textContent = error.message; errEl.style.display = 'block'; return; }
+  closeCommentModal();
+  toast('Sent to your host — thank you.');
+}
+
+/* ── END-OF-BOOK REVIEW ── */
+let currentRating = 0;
+
+function renderStars() {
+  document.querySelectorAll('#stars button').forEach(b => {
+    const v = parseInt(b.dataset.star, 10);
+    b.classList.toggle('filled', v <= currentRating);
+    b.textContent = v <= currentRating ? '★' : '☆';
+  });
+}
+
+async function initReview(session) {
+  currentSession = session;
+  document.getElementById('stars').addEventListener('click', e => {
+    const btn = e.target.closest('button[data-star]');
+    if (!btn) return;
+    currentRating = parseInt(btn.dataset.star, 10);
+    renderStars();
+  });
+
+  const sbc = await getSbClient();
+  const { data } = await sbc.from('kaliviani_reviews').select('*')
+    .eq('document', DOC_SLUG).maybeSingle();
+  if (data) {
+    currentRating = data.rating;
+    renderStars();
+    document.getElementById('review-body').value = data.body || '';
+    const ok = document.getElementById('review-ok');
+    ok.textContent = 'You already reviewed this — feel free to update it.';
+    ok.style.display = 'block';
+  }
+}
+
+async function submitReview() {
+  const errEl = document.getElementById('review-err');
+  const okEl = document.getElementById('review-ok');
+  errEl.style.display = 'none';
+  if (!currentRating) { errEl.textContent = 'Please choose a rating.'; errEl.style.display = 'block'; return; }
+
+  const body = document.getElementById('review-body').value.trim();
+  const sbc = await getSbClient();
+  const { error } = await sbc.from('kaliviani_reviews').upsert({
+    guest_id: currentSession.id, document: DOC_SLUG, language: LANG, rating: currentRating, body
+  }, { onConflict: 'guest_id,document' });
+  if (error) { errEl.textContent = error.message; errEl.style.display = 'block'; return; }
+  okEl.textContent = 'Thank you — your review has been saved.';
+  okEl.style.display = 'block';
+}
+</script>
+</body>
+</html>

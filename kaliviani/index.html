@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Corte Interna — Guest Archive</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Crimson+Pro:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#f2e6c9; --paper-2:#ecdcb3; --paper-deep:#e2cf9d;
+  --ink:#3a2a1a; --ink-soft:#6b5842; --ink-faint:#9a8567;
+  --gold:#a9822f; --gold-deep:#7c5e22;
+  --olive:#6b7a4f;
+  --terracotta:#a1503a;
+  --line:rgba(58,42,26,.18);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font-family:'Crimson Pro',serif;
+  color:var(--ink);
+  background:radial-gradient(ellipse at 50% -10%, var(--paper-2), var(--paper) 55%, #e6d5ac 100%);
+  min-height:100vh;
+  display:flex;align-items:center;justify-content:center;
+  padding:32px 16px;
+  position:relative;
+  overflow-x:hidden;
+}
+/* paper grain */
+body::before{
+  content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  opacity:.08;mix-blend-mode:multiply;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+}
+/* vignette */
+body::after{
+  content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:radial-gradient(ellipse at 50% 40%, transparent 40%, rgba(58,42,26,.22) 100%);
+}
+.corner-motif{
+  position:fixed;bottom:-40px;right:-40px;width:320px;height:320px;
+  opacity:.05;pointer-events:none;z-index:0;color:var(--olive);
+}
+
+.auth-wrap{position:relative;z-index:1;width:100%;max-width:460px}
+
+.auth-card{
+  background:var(--paper);
+  border:1px solid rgba(58,42,26,.12);
+  border-radius:6px;
+  box-shadow:0 30px 70px rgba(58,42,26,.28), 0 0 0 6px rgba(255,255,255,.15) inset;
+  padding:44px 40px 36px;
+}
+
+.brand{text-align:center;margin-bottom:20px}
+.brand-motif{width:56px;height:auto;color:var(--olive);opacity:.75;margin:0 auto 10px}
+.brand-name{
+  font-family:'Cinzel',serif;font-weight:700;
+  font-size:27px;letter-spacing:2.5px;color:var(--ink);
+  text-transform:uppercase;
+}
+.brand-sub{
+  font-family:'Crimson Pro',serif;font-style:italic;font-size:14.5px;
+  color:var(--ink-soft);margin-top:6px;letter-spacing:.2px;
+}
+
+.ornament{
+  display:flex;align-items:center;gap:10px;margin:22px 0 22px;color:var(--ink-faint);
+}
+.ornament::before,.ornament::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,transparent,var(--line),transparent)}
+.ornament svg{width:14px;height:14px;flex-shrink:0;color:var(--gold)}
+
+.tabs{display:flex;gap:4px;margin-bottom:26px;background:var(--paper-deep);border-radius:8px;padding:4px}
+.tab{
+  flex:1;text-align:center;padding:10px 6px;border:none;background:transparent;
+  font-family:'Cinzel',serif;font-size:11.5px;letter-spacing:1px;text-transform:uppercase;
+  color:var(--ink-soft);cursor:pointer;border-radius:6px;transition:all .15s;
+}
+.tab.active{background:var(--paper);color:var(--ink);box-shadow:0 2px 8px rgba(58,42,26,.15)}
+
+.panel{display:none}
+.panel.active{display:block}
+
+.f-group{margin-bottom:16px}
+.f-label{
+  display:block;font-size:11px;font-weight:600;text-transform:uppercase;
+  letter-spacing:.09em;color:var(--ink-soft);margin-bottom:6px;
+  font-family:'Crimson Pro',serif;
+}
+.f-input{
+  width:100%;padding:11px 14px;
+  background:rgba(255,255,255,.4);
+  border:1.5px solid var(--line);
+  border-radius:5px;
+  font-family:'Crimson Pro',serif;font-size:15.5px;color:var(--ink);
+  outline:none;transition:border-color .15s,box-shadow .15s;
+}
+.f-input::placeholder{color:var(--ink-faint)}
+.f-input:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(169,130,47,.18)}
+
+.f-check{display:flex;gap:9px;align-items:flex-start;margin:18px 0;font-size:13px;color:var(--ink-soft);line-height:1.5}
+.f-check input{margin-top:3px;flex-shrink:0;accent-color:var(--gold-deep)}
+.f-check a{color:var(--gold-deep)}
+
+.f-btn{
+  width:100%;padding:13px;border:none;border-radius:6px;
+  font-family:'Cinzel',serif;font-size:13px;font-weight:600;letter-spacing:1.2px;text-transform:uppercase;
+  cursor:pointer;transition:all .17s;margin-top:6px;color:#fbf3de;
+  background:linear-gradient(135deg,var(--gold),var(--gold-deep));
+  display:flex;align-items:center;justify-content:center;gap:8px;
+}
+.f-btn:hover{filter:brightness(1.08);transform:translateY(-1px);box-shadow:0 8px 22px rgba(124,94,34,.35)}
+.f-btn:disabled{opacity:.55;cursor:not-allowed;transform:none}
+
+.f-error{
+  background:rgba(161,80,58,.12);border:1px solid rgba(161,80,58,.3);
+  color:var(--terracotta);border-radius:6px;padding:10px 14px;
+  font-size:13.5px;margin-bottom:16px;display:none;
+}
+.f-success{
+  background:rgba(107,122,79,.14);border:1px solid rgba(107,122,79,.35);
+  color:#4c5a35;border-radius:6px;padding:10px 14px;
+  font-size:13.5px;margin-bottom:16px;display:none;
+}
+
+.f-links{text-align:center;margin-top:16px}
+.f-link{background:none;border:none;color:var(--ink-faint);font-size:12.5px;cursor:pointer;font-family:'Crimson Pro',serif;text-decoration:underline;transition:color .15s}
+.f-link:hover{color:var(--gold-deep)}
+
+@keyframes spin{to{transform:rotate(360deg)}}
+.spinner-sm{width:14px;height:14px;border:2px solid rgba(251,243,222,.4);border-top-color:#fbf3de;border-radius:50%;animation:spin .7s linear infinite;display:inline-block}
+
+details.legal{margin-top:26px;font-size:12.5px;color:var(--ink-soft);border-top:1px solid var(--line);padding-top:16px}
+details.legal summary{cursor:pointer;font-family:'Cinzel',serif;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-faint);list-style:none}
+details.legal summary::-webkit-details-marker{display:none}
+details.legal summary::before{content:'⁜  '}
+details.legal p{margin-top:10px;line-height:1.6}
+details.legal p+p{margin-top:8px}
+</style>
+</head>
+<body>
+<svg class="corner-motif" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path d="M100 190 C40 160 20 100 40 40 C70 60 90 100 100 190 Z" stroke="currentColor" stroke-width="1.2"/>
+  <path d="M100 190 C160 160 180 100 160 40 C130 60 110 100 100 190 Z" stroke="currentColor" stroke-width="1.2"/>
+</svg>
+
+<div class="auth-wrap">
+  <div class="auth-card">
+    <div class="brand">
+      <svg class="brand-motif" viewBox="0 0 100 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M2 20 Q 25 2, 50 20 T 98 20" stroke="currentColor" stroke-width="1.4"/>
+        <ellipse cx="18" cy="14" rx="5" ry="2.6" transform="rotate(-25 18 14)" fill="currentColor" opacity=".8"/>
+        <ellipse cx="34" cy="8" rx="5" ry="2.6" transform="rotate(-15 34 8)" fill="currentColor" opacity=".8"/>
+        <ellipse cx="66" cy="8" rx="5" ry="2.6" transform="rotate(15 66 8)" fill="currentColor" opacity=".8"/>
+        <ellipse cx="82" cy="14" rx="5" ry="2.6" transform="rotate(25 82 14)" fill="currentColor" opacity=".8"/>
+        <circle cx="50" cy="24" r="2.4" fill="currentColor"/>
+      </svg>
+      <div class="brand-name">Corte Interna</div>
+      <div class="brand-sub">Guest Archive · History of Kaliviani</div>
+    </div>
+
+    <div class="tabs">
+      <button class="tab active" id="tab-signin" onclick="showTab('signin')">Returning Guest</button>
+      <button class="tab" id="tab-register" onclick="showTab('register')">First Visit</button>
+    </div>
+
+    <!-- SIGN IN -->
+    <div class="panel active" id="panel-signin">
+      <div class="f-error" id="err-signin"></div>
+      <div class="f-group">
+        <label class="f-label">Email</label>
+        <input id="si-email" class="f-input" type="email" placeholder="you@example.com" autocomplete="username">
+      </div>
+      <div class="f-group">
+        <label class="f-label">Password</label>
+        <input id="si-pw" class="f-input" type="password" placeholder="••••••••" autocomplete="current-password">
+      </div>
+      <button class="f-btn" id="btn-signin" onclick="doSignIn()">Enter the Archive</button>
+      <div class="f-links">
+        <button class="f-link" onclick="showTab('forgot')">Forgot password?</button>
+      </div>
+    </div>
+
+    <!-- REGISTER -->
+    <div class="panel" id="panel-register">
+      <div class="f-error" id="err-register"></div>
+      <div class="f-success" id="ok-register"></div>
+      <div class="f-group">
+        <label class="f-label">Full Name</label>
+        <input id="rg-name" class="f-input" type="text" placeholder="e.g. Maria Papadaki">
+      </div>
+      <div class="f-group">
+        <label class="f-label">Email</label>
+        <input id="rg-email" class="f-input" type="email" placeholder="you@example.com" autocomplete="username">
+      </div>
+      <div class="f-group">
+        <label class="f-label">Access Code</label>
+        <input id="rg-code" class="f-input" type="text" placeholder="Given to you by your host">
+      </div>
+      <div class="f-group">
+        <label class="f-label">Password (min. 6 characters)</label>
+        <input id="rg-pw" class="f-input" type="password" placeholder="Choose a password" autocomplete="new-password">
+      </div>
+      <label class="f-check">
+        <input type="checkbox" id="rg-consent">
+        <span>I have read and agree to the data &amp; access notice below.</span>
+      </label>
+      <button class="f-btn" id="btn-register" onclick="doRegister()">Create Account &amp; Enter</button>
+    </div>
+
+    <!-- FORGOT PASSWORD -->
+    <div class="panel" id="panel-forgot">
+      <div class="f-error" id="err-forgot"></div>
+      <div class="f-success" id="ok-forgot"></div>
+      <div class="f-group">
+        <label class="f-label">Email</label>
+        <input id="fp-email" class="f-input" type="email" placeholder="you@example.com">
+      </div>
+      <button class="f-btn" id="btn-forgot" onclick="doForgot()">Send Reset Link</button>
+      <div class="f-links">
+        <button class="f-link" onclick="showTab('signin')">← Back to sign in</button>
+      </div>
+    </div>
+
+    <details class="legal">
+      <summary>Data &amp; Access Notice</summary>
+      <p>
+        © Corte Interna, 2026<!-- TODO: confirm the legal copyright holder's name with the owner before launch -->.
+        This text is a private translation and digitization of an original handwritten
+        manuscript, provided to registered guests of Corte Interna for personal,
+        non-commercial reading during their stay only. Reproduction, copying,
+        screenshotting, printing, redistribution, or publication of this content, in
+        whole or in part, by any means, is prohibited without prior written consent.
+        Access is personal to the registered guest, is time-limited, and may be
+        revoked. Each copy of this text is uniquely watermarked to the accessing
+        account.
+      </p>
+      <p>
+        We store your name, email, and reading activity solely to manage access to
+        this archive and to improve it. This data is kept for the duration of your
+        access period plus a reasonable retention window afterward, and is never
+        shared with third parties. To ask about your data, or to request an
+        extension of your access, write to
+        <a href="mailto:mikemoras@gmail.com">mikemoras@gmail.com</a>.
+      </p>
+    </details>
+  </div>
+</div>
+
+<script src="kaliviani-base.js"></script>
+<script>
+(function checkExisting() {
+  const sess = AUTH.getSession();
+  if (sess) window.location.href = 'welcome.html';
+  const hash = window.location.hash;
+  if (hash.includes('type=recovery')) {
+    showTab('signin');
+    showErr('err-signin', 'Set your new password via the email link, then sign in.');
+  }
+})();
+
+function showTab(name) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('panel-' + name).classList.add('active');
+  const tab = document.getElementById('tab-' + name);
+  if (tab) tab.classList.add('active');
+  else if (name === 'forgot') document.getElementById('tab-signin').classList.add('active');
+  clearMessages();
+}
+
+function showErr(id, msg) { const el = document.getElementById(id); if (el) { el.textContent = msg; el.style.display = 'block'; } }
+function showOk(id, msg)  { const el = document.getElementById(id); if (el) { el.textContent = msg; el.style.display = 'block'; } }
+function clearMessages() { document.querySelectorAll('.f-error,.f-success').forEach(el => { el.style.display = 'none'; el.textContent = ''; }); }
+
+function setLoading(btnId, loading, label) {
+  const btn = document.getElementById(btnId);
+  if (!btn) return;
+  btn.disabled = loading;
+  btn.innerHTML = loading ? '<span class="spinner-sm"></span> Please wait…' : label;
+}
+
+async function doSignIn() {
+  clearMessages();
+  const email = document.getElementById('si-email').value.trim();
+  const pw    = document.getElementById('si-pw').value;
+  if (!email || !pw) { showErr('err-signin', 'Please enter your email and password.'); return; }
+  setLoading('btn-signin', true, 'Enter the Archive');
+  const r = await AUTH.login(email, pw);
+  setLoading('btn-signin', false, 'Enter the Archive');
+  if (!r.ok) { showErr('err-signin', r.err); return; }
+  window.location.href = 'welcome.html';
+}
+
+let _signedUp = false;
+
+async function doRegister() {
+  clearMessages();
+  const name    = document.getElementById('rg-name').value.trim();
+  const email   = document.getElementById('rg-email').value.trim();
+  const code    = document.getElementById('rg-code').value.trim();
+  const pw      = document.getElementById('rg-pw').value;
+  const consent = document.getElementById('rg-consent').checked;
+
+  if (!name || !email || !code || !pw) { showErr('err-register', 'Please fill in every field.'); return; }
+  if (pw.length < 6) { showErr('err-register', 'Password must be at least 6 characters.'); return; }
+  if (!consent) { showErr('err-register', 'Please confirm you agree to the notice below.'); return; }
+
+  setLoading('btn-register', true, 'Create Account & Enter');
+
+  if (!_signedUp) {
+    const r1 = await AUTH.signUpAccount(email, pw, name);
+    if (!r1.ok) {
+      setLoading('btn-register', false, 'Create Account & Enter');
+      showErr('err-register', r1.err);
+      return;
+    }
+    _signedUp = true;
+  }
+
+  const r2 = await AUTH.claimAccessCode(name, email, code);
+  setLoading('btn-register', false, 'Create Account & Enter');
+  if (!r2.ok) {
+    showErr('err-register', r2.err + ' You can correct the code above and try again.');
+    return;
+  }
+
+  AUTH.setSession(r2.guest);
+  window.location.href = 'welcome.html';
+}
+
+async function doForgot() {
+  clearMessages();
+  const email = document.getElementById('fp-email').value.trim();
+  if (!email) { showErr('err-forgot', 'Please enter your email.'); return; }
+  setLoading('btn-forgot', true, 'Send Reset Link');
+  const r = await AUTH.forgotPassword(email);
+  setLoading('btn-forgot', false, 'Send Reset Link');
+  if (!r.ok) { showErr('err-forgot', r.err); return; }
+  showOk('ok-forgot', 'Reset link sent — check your inbox.');
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Enter') return;
+  const active = document.querySelector('.panel.active');
+  if (!active) return;
+  if (active.id === 'panel-signin')   doSignIn();
+  if (active.id === 'panel-register') doRegister();
+  if (active.id === 'panel-forgot')   doForgot();
+});
+</script>
+</body>
+</html>

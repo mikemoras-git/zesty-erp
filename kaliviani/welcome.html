@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Corte Interna — Guest Archive</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Crimson+Pro:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#f2e6c9; --paper-2:#ecdcb3; --paper-deep:#e2cf9d;
+  --ink:#3a2a1a; --ink-soft:#6b5842; --ink-faint:#9a8567;
+  --gold:#a9822f; --gold-deep:#7c5e22;
+  --olive:#6b7a4f;
+  --terracotta:#a1503a;
+  --line:rgba(58,42,26,.18);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font-family:'Crimson Pro',serif;color:var(--ink);
+  background:radial-gradient(ellipse at 50% -10%, var(--paper-2), var(--paper) 55%, #e6d5ac 100%);
+  min-height:100vh;padding:40px 16px 60px;position:relative;
+}
+body::before{
+  content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  opacity:.08;mix-blend-mode:multiply;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+}
+body::after{
+  content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:radial-gradient(ellipse at 50% 40%, transparent 40%, rgba(58,42,26,.22) 100%);
+}
+.wrap{position:relative;z-index:1;width:100%;max-width:600px;margin:0 auto}
+
+.header{text-align:center;margin-bottom:28px}
+.motif{width:56px;height:auto;color:var(--olive);opacity:.75;margin:0 auto 14px}
+.eyebrow{font-family:'Cinzel',serif;font-size:10.5px;letter-spacing:.15em;text-transform:uppercase;color:var(--ink-faint)}
+h1{font-family:'Cinzel',serif;font-weight:700;font-size:26px;letter-spacing:1px;margin:10px 0 6px}
+.sub{font-style:italic;color:var(--ink-soft);font-size:15px}
+
+.status{
+  border-radius:6px;padding:16px 18px;margin:22px 0;font-size:14.5px;line-height:1.6;text-align:left;
+}
+.status.active{background:rgba(107,122,79,.14);border:1px solid rgba(107,122,79,.35);color:#43512d}
+.status.expired{background:rgba(161,80,58,.12);border:1px solid rgba(161,80,58,.3);color:var(--terracotta)}
+.status b{font-weight:600}
+.status a{color:inherit;text-decoration:underline}
+
+.shelf-label{
+  font-family:'Cinzel',serif;font-size:11px;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--ink-faint);text-align:center;margin:30px 0 16px;
+}
+
+.book-card{
+  background:var(--paper);border:1px solid rgba(58,42,26,.12);border-radius:6px;
+  box-shadow:0 16px 40px rgba(58,42,26,.16);padding:26px 28px;margin-bottom:16px;
+}
+.book-card.soon{opacity:.6}
+.book-title{font-family:'Cinzel',serif;font-weight:600;font-size:18px;letter-spacing:.3px;margin-bottom:6px}
+.book-sub{font-style:italic;color:var(--ink-soft);font-size:14px;margin-bottom:18px;line-height:1.5}
+
+.lang-row{display:flex;flex-wrap:wrap;gap:10px}
+.lang-btn{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:9px 18px;border:none;border-radius:6px;cursor:pointer;text-decoration:none;
+  font-family:'Cinzel',serif;font-size:11.5px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;
+  color:#fbf3de;background:linear-gradient(135deg,var(--gold),var(--gold-deep));
+}
+.lang-btn:hover{filter:brightness(1.08)}
+.soon-badge{
+  display:inline-block;padding:8px 16px;border-radius:6px;border:1px dashed var(--line);
+  font-family:'Cinzel',serif;font-size:11px;letter-spacing:.8px;text-transform:uppercase;color:var(--ink-faint);
+}
+
+.footer-actions{text-align:center;margin-top:30px}
+.btn-ghost{
+  display:inline-block;padding:11px 24px;border:1px solid var(--line);border-radius:6px;cursor:pointer;
+  font-family:'Cinzel',serif;font-size:12px;letter-spacing:1px;text-transform:uppercase;
+  color:var(--ink-soft);background:transparent;
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="header">
+    <svg class="motif" viewBox="0 0 100 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M2 20 Q 25 2, 50 20 T 98 20" stroke="currentColor" stroke-width="1.4"/>
+      <ellipse cx="18" cy="14" rx="5" ry="2.6" transform="rotate(-25 18 14)" fill="currentColor" opacity=".8"/>
+      <ellipse cx="34" cy="8" rx="5" ry="2.6" transform="rotate(-15 34 8)" fill="currentColor" opacity=".8"/>
+      <ellipse cx="66" cy="8" rx="5" ry="2.6" transform="rotate(15 66 8)" fill="currentColor" opacity=".8"/>
+      <ellipse cx="82" cy="14" rx="5" ry="2.6" transform="rotate(25 82 14)" fill="currentColor" opacity=".8"/>
+      <circle cx="50" cy="24" r="2.4" fill="currentColor"/>
+    </svg>
+    <div class="eyebrow">Corte Interna &middot; Guest Archive</div>
+    <h1 id="greeting">Welcome</h1>
+    <div class="sub">Three histories, told by the house</div>
+  </div>
+
+  <div class="status" id="status"></div>
+
+  <div class="shelf-label">The Archive</div>
+  <div id="shelf"></div>
+
+  <div class="footer-actions">
+    <button class="btn-ghost" onclick="AUTH.logout()">Sign Out</button>
+  </div>
+</div>
+
+<script src="kaliviani-base.js"></script>
+<script>
+const session = AUTH.requireAuth();
+if (session) {
+  document.getElementById('greeting').textContent = 'Welcome, ' + (session.name || 'Guest');
+  const expired = AUTH.isExpired(session);
+  const statusEl = document.getElementById('status');
+
+  if (expired) {
+    statusEl.className = 'status expired';
+    statusEl.innerHTML = 'Your access period ended on <b>' + fmtDate(session.expires_at) + '</b>. '
+      + 'To keep reading, ask your host for an extension at '
+      + '<a href="mailto:' + OWNER_CONTACT_EMAIL + '">' + OWNER_CONTACT_EMAIL + '</a>.';
+  } else {
+    statusEl.className = 'status active';
+    statusEl.innerHTML = 'Your access is open until <b>' + fmtDate(session.expires_at) + '</b>.';
+    renderShelf();
+  }
+}
+
+function renderShelf() {
+  const shelf = document.getElementById('shelf');
+  shelf.innerHTML = BOOKS.map(book => {
+    const langs = Object.entries(book.languages);
+    const buttons = langs.length
+      ? langs.map(([code, l]) =>
+          `<a class="lang-btn" href="read.html?book=${esc(book.document)}&lang=${esc(code)}">${esc(l.label)}</a>`
+        ).join('')
+      : `<span class="soon-badge">Coming Soon</span>`;
+    return `<div class="book-card${langs.length ? '' : ' soon'}">
+      <div class="book-title">${esc(book.title)}</div>
+      <div class="book-sub">${esc(book.subtitle)}</div>
+      <div class="lang-row">${buttons}</div>
+    </div>`;
+  }).join('');
+}
+</script>
+</body>
+</html>
