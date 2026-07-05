@@ -1,4 +1,4 @@
-*Translator's note: This is a faithful English translation of a handwritten Greek manuscript by the late owner of the house, Stylianos V. Koutsaftakis, a Kaliviani parish elder. His voice in the original is long-breathed, repetitive, and sometimes deliberately archaic — closer to oral storytelling or sermon than to written prose, with the run-on sentences and circling-back of a man thinking aloud. I have kept that voice rather than smoothing it into conventional English nonfiction. The original manuscript numbers each page; those page numbers are omitted here as they carry no narrative meaning. Where the author gave a page its own title — "The use of the spirit," "The Creation," "Faith" — or marked it as a "Notes" aside, those headings are preserved.*
+*Translator's note: This is a faithful English translation of a handwritten Greek manuscript by the late owner of the house, Stylianos V. Koutsaftakis, a Kaliviani parish elder. His voice in the original is long-breathed, repetitive, and sometimes deliberately archaic — closer to oral storytelling or sermon than to written prose, with the run-on sentences and circling-back of a man thinking aloud. I have kept that voice rather than smoothing it into conventional English nonfiction. The original manuscript numbers each page; this edition preserves those page breaks, with each page's notes — which the author wrote on the back or lower part of the page — shown at its foot. Where the author gave a page its own title — "The use of the spirit," "The Creation," "Faith" — or marked it as a "Notes" aside, those headings are preserved.*
 
 ---
 
@@ -18,11 +18,15 @@ History is the woven thread of the flow of time; for this reason, every age must
 
 History is every moment that passes, carrying with it what has been accomplished, so as to guard it from the rust and decay of the moment that follows.
 
+%%page:1%%
+
 The beginning of man is inquiry. For a man to inquire, he must think; and to think, in order to inquire, he must see something — and man, wherever he lives, looks about him. Yet in the course of his life, for all his experience, for all his powers of observation, he cannot explain everything that happens around him.
 
 From the very beginning, wherever man found himself on the earth, he inquired; and according to the place he found himself — be it near mountains, seas, rivers, or plains — he drew his own conclusions about everything he could observe.
 
 And he wondered: who created all this? And he said: some Creator. But for there to be a creator, there first had to be a creation, by which to seek him. Very many are those who have told the story of creation, each according to how far his own thought could reach. But was any single thought ever complete? That was, and remains, the great question.
+
+%%page:2%%
 
 And they called a spring, or a river, a god — and so they named the creator. They named it so because it brought its waters and gave life to grasses, to trees, to fruit, and through these gave life to the animals, and to every living thing — birds, insects, fish.
 
@@ -38,11 +42,15 @@ And each society fashioned, in its own way, its own account of how man came to b
 
 One society says God shaped all things, and afterward shaped man, and gave him breath, and took spirit, and gave him the image of God.
 
+%%page:3%%
+
 In every place where men lived, there was spirit, and through it they formed thoughts and opinions; and broadly speaking, all spoke of the creator, each one believing, in his own place, that he held the truest understanding of him. So, as time passed, in different lands men formed their faiths, and according to that faith they formed groups and peoples; and because, throughout the past, communication between them was difficult, this became the occasion for great events that tore men apart — wars and migrations which, under the pretext of one proving superior to the other, made life hard for both sides in the struggle. Yet both were creations of the very same Creator!
 
 How did this come to be?
 
 That creations of the very same Creator should come into conflict with one another?
+
+%%page:4%%
 
 And so the myths tell it.
 
@@ -66,11 +74,15 @@ When man looks up at the vault of heaven, he sees creation. What can he understa
 
 But what are all these stars?
 
+
 Every man who plays the all-knowing one, the wise observer, the astronomer, the mathematician, believes he knows their purpose. No single idea is correct, and no scientist, no wise man, knows anything at all about any of it!
 
 Who truly knows what the earth is, or the stars? He takes a little matter, examines it, and gives that matter various names — he says silicon, iron, gold, copper. But what is the whole? Who knows whether all these stars are not themselves alive, in some way man cannot even perceive — whether they breathe, or take nourishment and strength from the universe, in ways man cannot even determine? What does he know of the purpose of each star-being he beholds? Nothing. Woe to him who boasts that he knows something of these things.
 
 Here comes the prophecy of all the ages: do not ask what lies beyond paradise — for then comes the expulsion.
+
+
+%%page:5%%
 
 All living things on earth have a developed instinct to preserve and perpetuate themselves. This is why the drive toward self-preservation is evident from the very first moment any creature is born.
 
@@ -80,11 +92,16 @@ In man there exist both these drives — but there is a third as well, which set
 
 This is why it is said the Creator shaped him to his own measure — that is, to be a creator himself. Hence the phrase, "He shaped him in the image of God" — not that the Creator has a human form.
 
+%%page:6%%
+
 The Creator shaped and gave form to all creatures; to nearly all animals he gave an almost identical life, an almost identical means of living, to the insects, to the fish — light, water, air. He gave nearly all of them a similar frame, a head, a mind by which to move, limbs, wings, in the various shapes their needs required.
 
 To man, too, he gave a mind, limbs. So that many say he, too, is simply one more among the many animals. To all he gave a mind — but how much of it can each truly use, to reflect upon creation? Here we come to see that the human mind is set apart from that of all other animals and beings. This is why so many men have thought, and said, that it is divine breath.
 
 That man can think, and inquire into creation — this is what sets him apart.
+
+
+%%page:7%%
 
 The Creator, through the breath he gave the human mind, gave it a miniature of the universe — of the whole of creation.
 
@@ -92,11 +109,14 @@ But just as the universe has, for the Creator, a purpose known only to the Creat
 
 This is creation.
 
+
 Man perceives the whole of Creation when he looks beyond the earth, at the sky, at all these forms he beholds — looking from the north and turning south, he sees stars as distant on the one side as on the other; and beyond that, how far does the end of the universe lie?
 
 To look — that is merely a word.
 
 Which of the Creator's creatures upon this earth turns its eyes to the sky to behold Creation, except man?
+
+%%page:8%%
 
 For the Creation to be able to reflect upon its Creator, it had to be, itself, something set apart. This is why he shaped it in the image of God — shaped it as a creator, gave it spirit — but shaped it, too, as something distinct: in its making he shaped hands, and with them made it a creator, able to fashion its own things for its own survival.
 
@@ -106,11 +126,15 @@ Man boasts, the moment he fashions something with his own hands and conceives it
 
 Then the very spirit he possesses turns against him, and he begins to use that power against his fellow men — he wishes to become a ruler.
 
+%%page:9%%
+
 The spirit he received, which made him a creator, carries him to the point where he begins to think himself all-powerful. There the spirit loses its purpose, and descends to the level of instinct — descends, that is, to the order of the animals — and he looks only to turn his creation to his own use, or to the use of his own tribe; and here, again, man is set apart. In every animal, the instinct to live and to preserve itself is a struggle, but it is a struggle of the individual, never of the group — except in a struggle of defense, and even that arises only from necessity.
 
 But never does an animal wage an offensive struggle against its own kind. Here man is the exception. The struggles of the strong are waged against his own kind — against the man whom the strong one wishes to bring beneath his influence, beneath his commands. There the ruler-creator begins to intervene!
 
 And among the men afflicted by this manner of creation, resistance, too, is born — yet this too is the work of the great Creator.
+
+%%page:10%%
 
 This humble spirit acts in cunning, only for itself, turning its own spirit and strength wholly to its own use, wanting everything for itself, and begins, by its own instinct, to store up goods, to hoard money and every other material thing — which, in the end, becomes a torment even to that same humble spirit. But to make and store material goods, many men must labor at it; many must become slaves, and lose their purpose. And this humble spirit is so greedy, so insatiable, that it finds no end to its wanting.
 
@@ -118,11 +142,15 @@ And from this follow base acts — falsehood, deceit, theft, robbery, slander, e
 
 In the midst of the oppression of slavery, and the hardships of the oppressed, who labor and yet can enjoy nothing — there, too, various spirits are born, and come into the light.
 
+%%page:11%%
+
 Then Creation begins, and acts according to the law set for it by the Creator. In the various ages through which man passed, founding tribes, nations, peoples, the presence of Creation stood always before them. The tribes shaped ways of life that bettered their living, and, with their spirit, creating in order to live, they discovered tilling, sowing, the planting of trees for the food they needed, and began to build huts and settlements, and to advance.
 
 Within these societies and groups, all of the above began to take shape, and within them, too, were formed the long observations of the strong and the weak; and the spirit took on its various currents, difficult for all men to grasp in its full greatness. Here, again, Creation made its appearance.
 
 There appeared men of spirit, set apart, who took up responsibility, to show a way of life, and, often enough, to bring the strong back to their senses, so that they would not stray from their purpose.
+
+%%page:12%%
 
 ### The use of the spirit
 
@@ -132,6 +160,8 @@ And then, in a few men, the spirit of creation appeared, who took up responsibil
 
 between the good spirit and the evil one. And they named the spirit of creation God, and the humble one, the Devil. Within these oppositions man was called to live. And so it is said: he was placed in paradise. He sinned. He made use only of the humble spirit. And he was driven from paradise.
 
+%%page:13%%
+
 ### The Creation
 
 And scripture says God shaped Adam, and placed him in paradise. Did Adam write this himself?
@@ -139,6 +169,7 @@ And scripture says God shaped Adam, and placed him in paradise. Did Adam write t
 The wise men wrote it, as they had seen man — who had already lived for thousands of years — through their own spirit, their own experience; and they say: with the spirit, they saw God; with the mind, they found divinity. And the wise men write: He sent forth Adam. He shaped the man, placed him in paradise; he lacked nothing — was he content?
 
 The wise men say, in scripture: He sent him a companion — was paradise theirs, were they content?
+
 
 And the scriptures say they wanted more. The wise men wrote, in the scriptures, that the two had children, and one brother killed the other. What was the cause?
 
@@ -148,6 +179,8 @@ And the wise men go on adding to it, and say: but were there only two men in all
 
 All that the scriptures wrote was the experience of the spirit, and they wrote it in the hope that, one day, the spirit of justice would prevail.
 
+%%page:14%%
+
 The scriptures present man, and liken him to every newborn child, who first sees the light and beholds Creation. He grows; he seeks a companion, so as to carry on the work for which he is destined.
 
 And the past shows him his way, sets his path, and tells him he must remain content with what he has, must labor, must live within the measure that creation — the spirit — has set for him. But when ingratitude, when greed, make a slave of him, then — then he departs from paradise. He is driven out.
@@ -156,6 +189,8 @@ And it likens wealth to greed, and says: he killed his own brother, because the 
 
 And so they strayed from the path of God — that is, from the purpose the Creator had set for them.
 
+%%page:15%%
+
 Ages passed, and centuries, and millennia; peoples and tribes lived and died, and every people, every clan, every tribe formed its own societies, and, according to the spirit of each age and each place, gave its own ways and rules to its manner of living, so as to endure through the passing of time. In no society, in no tribe, was the thought ever absent that some higher being had created all things. And here the spirit took on its own currents, and there were believers, and there were unbelievers.
 
 Conflict again. One said: God exists. The other said: no, he does not. And these oppositions were present, always, in every society, and it was a very hard thing to find any middle ground between the two.
@@ -163,6 +198,8 @@ Conflict again. One said: God exists. The other said: no, he does not. And these
 Yet both — the believer and the unbeliever alike — were the creation of the very same Creator. And again Creation intervened, by the law of the Creator.
 
 And so, in every age, there appeared men who placed themselves in the service of the whole, so as to counsel those who, for one reason or another, would not have the whole of society live and walk by ways of life no different from those of the other creatures.
+
+%%page:16%%
 
 Thus religions were formed, every one of them resting, at its foundation, upon God, upon the Creator.
 
@@ -174,6 +211,8 @@ And so they said, we shall set up representatives — and they made priests, and
 
 And so every religion gave to every man a kind of fear, by which he might govern his own conduct within the society in which he lived.
 
+%%page:17%%
+
 Yet however hard all these religions tried to bring to reason those whose greed could never be satisfied, it was a struggle of the spirit that often seemed labor wasted, and it wore down the rulers of religion, and little by little the ways they used to counsel the people grew faint, and faded.
 
 Then new men would appear, who took it upon themselves to renew the old religions, or to preach ideas of their own — hoping, in their own way, or according to the interest of their tribe or people, to bring about something better, and to begin a new religion, aimed at the betterment of the life of the individual, and of the whole.
@@ -181,6 +220,8 @@ Then new men would appear, who took it upon themselves to renew the old religion
 But was such a change ever easy?
 
 So centuries passed, and millennia, and other peoples, forever crossing from one faith or religion to another, tore at one another across many generations, and the outcome was always the same. And again, within these very religions, Creation made its presence known — the higher spirit, in the few; the base one, in the many.
+
+%%page:18%%
 
 And the myths told that, whenever the men of the spirit grew few, and the greater part of mankind no longer believed in the true spirit, but crises of the spirit came upon them, the Creator would intervene, and punish the unbelievers, the corrupt, the sinners.
 
@@ -196,6 +237,8 @@ And He rained down fire and sulfur, and burned them to ash.
 
 And new religions arose. That the God Zeus was just. And the Hebrews said that Moses heard God, and received commandments.
 
+%%page:19%%
+
 And the Chinese say the Buddha is the Messenger of God.
 
 And the Indians say Brahma is the messenger of God.
@@ -210,6 +253,8 @@ Who believed him?
 
 All spiritual men, in every age, stood apart, and were never easily understood by the many; and so they were driven to turn to small bands of people who would listen to them, and these, in turn, became preachers among the peoples; and little by little their teaching began to take on dimension, to take the shape of doctrine, and a new religion would begin — and whether that teaching was received or not depended on the temperament of each people.
 
+%%page:20%%
+
 But from the moment societies began to grow, taking on dimension, expanding — whether as fellow believers, as tribes, or as speakers of one tongue — nations were formed. Every nation had its rulers: its kings, its emperors, its governors, and these wished to impose their own will.
 
 And to impose that will, more often than not, they turned to force, to make themselves masters over the whole of the people, and there injustice began. To rule, they needed officials, followers, who, more often than not, became tyrants, plunderers, unjust men. And so were made the rich and the poor; the rulers and the ruled; the high and the low.
@@ -217,6 +262,8 @@ And to impose that will, more often than not, they turned to force, to make them
 And so, amid these inequalities and injustices, the spirit made its appearance once again — a spirit that was the inheritance of neither the poor nor the rich — and these men of the spirit took up a labor exceedingly difficult.
 
 There were many, in every society, who saw these injustices, and were outraged by them, yet dared not speak the truth when the powerful man was unjust.
+
+%%page:21%%
 
 So, in every age, and wherever societies, nations, and empires arose, there were always teachers, prophets, wise men — and wherever, and whenever, they were heeded, better days came for the people. But were they always heeded? Here, again, the base spirit made its appearance. The rulers of every society, whenever they saw some teacher or prophet beginning, through his teaching, to accuse them, would summon him, and press him, either to cease his preaching, or to be won over to their own side.
 
@@ -226,6 +273,8 @@ And so every religion that did not begin from a genuine, higher spirit came to t
 
 And so the nations took religion, and made it their own possession, that they might grow strong, and brook no objection from anyone.
 
+%%page:22%%
+
 ### Faith
 
 And societies began to govern religion, and made it a thing of the nation. And there began, too, a scrutiny of what one believed. Where men were unlettered, most simply professed to believe whatever the priesthoods offered them, whatever the seers and priests of each nation, each district, declared; and religions, more often than not, split apart, and sects were formed, which corrupted the preaching of the true faith, so as to seize, for their own gain, the power of religion, and grow rich however it suited them — and then doubt crept in among the common believers, and little by little religion lost its purpose, and became a tyrant over the very faithful it was meant to serve.
@@ -234,39 +283,55 @@ And then the nations merged with religion, and became — whether the people wil
 
 God, and the Devil.
 
+%%page:23%%
+
 And the priesthoods and the oracles, each wanting the believer for their own purposes, sought to win him over; and the believer, out of fear for his faith, was led by them into the very clutches of the Devil.
 
 And they told the believer: sacrifice a little, and you may enter the temple, a simple participant in the faith. Sacrifice a lamb, and your part is greater. A calf, greater still. An ox, or ten oxen, and you enter paradise. A hundred oxen, and gold besides, and your offering raises you up, and makes you a lord of religion. And, together with the other lords, you held rights over the priesthood, over the oracle, over other shared dominions. And so a certain portion of mankind bought their religion, and so satisfied their faith, believing that, in this way, God had vindicated them. Here, again, arrogance.
+
+%%page:24%%
 
 And so every nation wanted a religion of its own, that its rulers might satisfy their own desires, and impose their will according to their own interests. And ages passed, and periods, and in every age, different religions, and peoples vanished, only for others to come in their place, each succeeding the last; and each people, by the very same means, with new methods, sought to impose its own ways upon the others — to dominate, to prevail, to take on ever more. The purpose was always the same: to rule, so as to enjoy material goods.
 
 The base spirit!
 
+
 Within this endless chain of religions and doctrines, the peoples, more often than not, began to doubt — their own religions, and the rulers of their own nations alike — and then came confusion, and crises, for rulers and for peoples both.
 
 And then came the appearance of slander and division: "I am the one sent by God," said one. "I am," said another!
+
+%%page:25%%
 
 And then history arrives, and all that happened, all that was said, began to be set down in writing.
 
 Each people wrote its own history. Around the Mediterranean lived peoples who, owing to their connections with one another, had advanced further than others, and each, in its own way, wished to stand at a higher level — materially, and in spirit. There were other peoples, too, who had their own religions and civilizations, but wished to keep them for themselves, and hid their discoveries so that they would not spread, believing that in this way they would surpass the rest. And there were not a few peoples who had raised their level of civic life quite high — Sumerians, Babylonians, Chaldeans, Egyptians, Assyrians, Hebrews, Greeks, Medes. Every one of these peoples, in its own way, wanted its religion, its discoveries, its history, to remain its own.
 
+
 Among every people there were wise men, chosen teachers, judges, prophets, and priests.
 
 Yet among every people, they were few. And every people wished its own ruler to be the best of all.
+
+%%page:26%%
 
 And here, again, arrogance: the wealthy peoples, each in their own way, wished to display their own superiority, and each one attempted something — to become the creator of some great material work — that might make them renowned, and immortal.
 
 So the Babylonians built their notorious tower, so that no one might penetrate into their life, into the ways they managed their material wealth, their arts, their achievements.
 
+
 The Egyptians built their pyramids, yet gave nothing away of their way of life, or of their art. The Medes raised armies, to impose themselves upon others by force. Thus civilizations were created, and each destroyed the other in turn.
 
 In this way, none of these civilizations passed on its way of life to other peoples, and their own arrogance became the very cause of their destruction, and of the loss of their purpose.
+
+%%page:27%%
 
 So the years passed, the centuries, the millennia; and the more they passed, with so many deities, so many beliefs, and each place, each nation, each tribe spreading abroad — or at times imposing — its own ideas and notions upon the others, the more confusion came, and crisis, and the peoples began to doubt all their religions and their customs, until in the end they became wholly faithless, and, more often than not, each went his own way in his own manner of living, until each time they found themselves beginning life anew, in some primitive fashion.
 
 And more often than not, uncertainty and distrust arose in every society, which each time worked against that society, and men lost their very standing, and lived like animals. Yet even then, Creation did not leave the simple man without help.
 
 Then the chosen ones made their appearance. Out of experience, and out of need, many came forward who possessed ability, and took up responsibility on behalf of the whole, and set out to serve the lowliest, and to bring a new order of progress, for the good of all.
+
+
+%%page:28%%
 
 And there appeared men who placed themselves in the service of others, in the hope that, one day, all men might live a life higher than that of the other creatures.
 
@@ -276,7 +341,10 @@ Their first concern was how to pass this spirit on to those who would come after
 
 And so they discovered the means by which to set down their laws, and the ideas of use to all, and from there man began his ascent.
 
+
 In this way began the work of every thinker, every inspired man, every man of the intellect, and they began to preach their ideas, and gathered followers and disciples about them, so as to send them out, later, to carry their work onward.
+
+%%page:29%%
 
 And so societies began to transform, to change their forms and their ways, so that one man, in one sphere, might become its voice, and another, in some other sphere the first could not reach; and thus there was made — or rather, began to be made — the many-sided society, in which, once all men worked with responsibility and conscience, the life of man would change, and he would be turned back toward the higher purpose the Creator had set for him.
 
@@ -284,11 +352,14 @@ And within these societies, once more, the spirit made its appearance. There cam
 
 In the Greek world there were many such men, each, according to his own experience, offering direction, setting down, through his teaching, principles and ideas that, for their time, were hard to make heard, hard to have accepted by the whole of society; and for this reason they founded places for their teaching, and laid the foundations of civilized society.
 
+%%page:30%%
+
 And here, once more, Creation made its appearance. They placed themselves in the service of the whole.
 
 Socrates captivated his students, and told them: do not do to another what you yourself hate — and that it is better to suffer injustice than to commit it.
 
 The Gods do not dwell on Olympus — but God is one and the same, for all men!
+
 
 He spoke of truth; he explained what truth was.
 
@@ -302,7 +373,10 @@ He told his students: refuse no one who seeks learning; give it freely.
 
 There was Hippocrates, the physician, who said: refuse your services to no sick man, and without payment, until he is made well.
 
+%%page:31%%
+
 The wise men said: deny learning to no one, for it is light. Every refusal is darkness.
+
 
 They were the first to build schools and academies, and welcomed students from every tribe and nation.
 
@@ -310,7 +384,10 @@ They wrote down their ideas, that they might later be passed on to the whole wor
 
 All of this, out of tribal stubbornness, for the Greeks, with their ideas, often unsettled the way of life each people, each kingdom had chosen for its own governance. And again envy made its appearance, to carry forward division, and the base interests of the rulers of every clan and people, who lived as they wished, by force — the kings, the princes, and all the heirs of those powers of the time, which were anything but humane.
 
+%%page:32%%
+
 Another ancient people were the Hebrews, who lived around the Mediterranean; they had patriarchs, who received commandments, and it was said that God told Abraham: from your descendants a spirit shall come forth.
+
 
 And the Hebrews boasted that they were God's chosen people. In various ages, men appeared among them as the sent of God.
 
@@ -319,6 +396,9 @@ Yet they did not wish to share either themselves or their ways of life with othe
 In the passing of time, hard moments are experience and lesson both, for individuals and for peoples alike; and their rulers, like the rulers of most peoples, held arrogance as the greatest virtue, and let it govern their lives.
 
 They took pride in their Abraham, in their David, in their Solomon, in their religion, in the commandments of their religion, which were wisdom.
+
+
+%%page:33%%
 
 And they had established priesthoods, and High Priests, Pharisees, and scribes. And all of these exercised the authority of the law, by which, in their own way, they wished to impose themselves.
 
@@ -334,6 +414,8 @@ And the prophets said: the Messiah will come, the savior of the people.
 
 For the prophets saw that the people would always want new Teachers. And with each new one who came, the rulers always sought to seize him for themselves, to win him to their own side. And the crises went on.
 
+%%page:34%%
+
 In the midst of these crises, Creation, once again, made its appearance.
 
 A new prophet appeared, who said, "Peace unto all" — that God belonged to no one: not to any single man, nor to any one people, nor to the earth alone, nor to certain stars, the sun, the moon, and the rest — but was God of the whole universe, of things seen and unseen. The rulers were alarmed, and said: who is this man?
@@ -348,9 +430,13 @@ Because it was a divine command, because it was the beginning from which the div
 
 He called the twelve; they walked together for three years; they all heard the very same things — did they all behave the same? If he taught them all the very same thing, how were they to turn out so different from one another?
 
+
 This was meant to show that society is made up of, and depends upon, the whole of Creation. Within these twelve, Creation itself was contained in miniature, to remind every generation that society does not change — that for men to live together, within every group of twelve there will always be the faithful, and the faithless, the strong and the able, the betrayers, the slanderers, the two-faced. And so every ruler, to be a true ruler, had to be able to bear with all of them. In this way, true selection would be made. This was the very purpose of Christ's teaching: to be a servant to all, in order to be a ruler.
 
 For this reason he wished to show that his mission was divine.
+
+
+%%page:35%%
 
 And Christ said: first, each man must set himself in order, and only then ask of others that they too become good and honest — only thus can one hold authority over the whole.
 
@@ -360,6 +446,7 @@ They did not deny his teaching, as he had told them not to.
 
 Go out to the nations and to the peoples, and preach everywhere, to the very ends of the earth.
 
+
 And once, when Greeks too came to hear him, he said: now the hour has come for my Gospel to go out into all the world.
 
 He refused to hear no one. And the Hebrews said: this man is a Gentile, this one a Roman, this one a Greek.
@@ -368,7 +455,10 @@ And they began to write the Gospels. And Matthew tells them — Matthew, who was
 
 You say, gentlemen, that you are the chosen people of the Lord.
 
+
 And he lists forty-two generations.
+
+%%page:36%%
 
 And he says: Abraham begot Isaac — and through the whole chain of that genealogy he asks the Hebrews: which of you never strayed from the law of God, from his commandments? And he says: not only are you not God's chosen people, you are worse than all the rest.
 
@@ -376,11 +466,15 @@ They said he was the God of Israel. They wanted God for themselves alone, in the
 
 And the prophets said that God was just, and that, being just, they too must keep his commandments. Most of these prophets were tormented and killed, simply for demanding that the law be kept.
 
+
 And the rulers, the kings, the high priests, were their persecutors. And the people, in turn, became the executors of the laws of the priests and the Pharisees.
 
 Where, then, is this chosen people?
 
 Abraham and Isaac do not make you a chosen people. Woe to the people who boast of their ancestors, yet go their own way, without striving to keep the spiritual inheritance they themselves once called a divine command. And time comes, in the end, to confirm the prophecies.
+
+
+%%page:37%%
 
 God says to Abraham: go forth, dwell in the land of Canaan, and live there. And he went to a land flowing with milk and honey, scripture says.
 
@@ -392,15 +486,21 @@ And so the struggle began, to return to where they had set out from — a hard t
 
 Joshua, son of Nun, told them: if you return to your idols, God will punish you again — and did they always listen to him?
 
+
 They killed their own spiritual men; they raised up Kings — Herods — High Priests, an Annas, a Caiaphas — so as to hold power, to grow rich, to flaunt themselves in the manner by which they believed they would remain God's own chosen.
+
+%%page:38%%
 
 And then come the Greeks, driven by their own resistance to the Asiatics, who, time and again, launched raids to plunder Greek cities and lands, always finding some pretext to descend upon Greece — a people who, by tradition, kept an orderly, settled house, who lived in permanent cities and villages, and worked together so as to better their lives, and to raise mankind in spirit. And precisely because they kept so well-ordered a house, they were envied.
 
 For this reason, every few years, the Asiatics set out from Persia, to descend upon this well-kept land and seize it. But the Greeks never abandoned what was theirs; they defended their land, their ideals, and all they had made their own through experience, through toil, through perseverance.
 
+
 Unlike the Hebrews, they did not go abroad to seize what was not theirs; they were creators, and for that reason loved, and grieved over, what they themselves had made. And they said: "the homeland is worth more than father or mother."
 
 And homeland, for them, was not the soil of the land alone, but the spiritual and cultural inheritance, unlike that of any other land then known.
+
+%%page:39%%
 
 Most peoples received them as liberators, for they freed their lands from the various Satraps and Tyrants.
 
@@ -412,9 +512,12 @@ Here the struggles divided. To struggle in defense of one's ideals, of one's spi
 
 But the struggles that were mere raids, meant to seize from others what they had already made — these were unjust; these were banditry, plunder. With such struggles the Greeks were never in accord.
 
+%%page:40%%
+
 The wise men of Greece, with their letters, with their arts, had set as the purpose of their lives to change the way of life of all mankind — whether of their own nation or another — for they wished every man to be able to be educated, and to change the way of life that divided men, making some rulers, and the rest slaves.
 
 And so they made democracy, which was a rule of merit, by which rulers had to be chosen, and rule was never to be inherited.
+
 
 And here, too, struggle.
 
@@ -424,7 +527,10 @@ Such was the world of that age — changes, upheavals, crises, wars.
 
 And through it all, every powerful man preached that he alone would bring Peace, and Prosperity, and every good thing — and so it went, until he himself became master.
 
+
 Then all were made to obey the king, the high priest, the officials — and once again, the martyrdom of the peoples, and above all, of the powerless.
+
+%%page:41%%
 
 And Christ comes, and says: Peace unto all.
 
@@ -433,6 +539,9 @@ And his own people crucified him, for he undid the schemes of that unjust, that 
 After his condemnation, his disciples hastened elsewhere to teach, since his own people had not heeded him.
 
 They went east, south, west, and north. The peoples of those lands received them; though, but for a few exceptions, they did not truly receive Christ, for they were a trading people, and his teaching did not suit their measure. The Romans would not even listen, and began instead to hunt them down, to put them to death. And so, wandering from city to city, the disciples went on as teachers. They reached Greece, too, and in every city taught in a different manner; and the Greeks, because this teaching ran parallel to that of their own wise men and thinkers, were willing to hear the teaching of this new Ruler.
+
+
+%%page:42%%
 
 And his words and his sermons began to be examined closely. The Gospels began to be written, and sent from city to city, and they kept in touch with one another through letters and writings; and so the foundations of the Church, and of its preaching, were laid.
 
@@ -446,7 +555,10 @@ And so began the martyrdom of the followers, and of the apostles.
 
 This lasted some three hundred years. And it took the sacrifice of thousands who fought for the teaching of Christ before it prevailed, before it reached every nation, every people, and became the beginning from which the world could speak of what Truth truly is.
 
+%%page:43%%
+
 But the rulers of Rome would not even hear such ideas, for they swept away their privileges, their very power. They hunted them, drove them out, in the most barbarous manner.
+
 
 For they held that the emperor, the ruler — Caesar — was ruler of the whole world.
 
@@ -458,6 +570,8 @@ And Christ had said: you shall go to the nations, to the peoples, without distin
 
 And that place will remain marked. And on the day of judgment, woe to them.
 
+%%page:44%%
+
 And the historians write that councils were held, and that there took part Romans, Greeks, Medes, Hebrews, and Cretans.
 
 And so, in every nation, among every people, someone would resolve to go first, knowing his task to be exceedingly hard — yet each one, somewhere, dared to begin.
@@ -465,6 +579,8 @@ And so, in every nation, among every people, someone would resolve to go first, 
 In Crete, the rulers of the polytheistic religion preferred to build their shrines wherever life was abundant; and the places that met this condition lay near springs, near great caves, along stretches of coast fit for sailing vessels — and so, throughout every inhabited place, the deity, too, was chosen according to the needs of those who lived there.
 
 Near the springs were the caves where the fairy-nymphs were worshipped; near the sea were the gods of the sea, and the Nereids, the nymphs of the waters. In the mountains were the satyrs, the Sileni, and other various gods and deities.
+
+%%page:45%%
 
 The Cretans worshipped Zeus as the god of justice, and upon justice they founded their faith; they made laws, and kept them with great strictness.
 
@@ -486,13 +602,18 @@ This was the immense difference between Christ's teaching and the other religion
 
 And not for himself alone!
 
+%%page:46%%
+
 The people saw the injustice, but what could they do? And so religion, which had become merely a means of taxation, little by little lost its splendor, and no one paid any heed to the preaching of the priesthoods, and there was only confusion. Such was the state of things when the Apostle Paul came to Crete, to preach the teaching of Christ.
+
 
 He landed at Heraklion — then Knossos — and the moment he sought someone to speak to of the new teaching, the reaction was such that they would not let him near the people at all, but drove him out, none too gently, with threats that they would do him harm if he dared to speak again.
 
 He was forced to leave, and as he left, tradition says, he shook out his sandals, so as not to carry away with him so much as the dust of that place.
 
 And he adorns the Cretans with fine epithets indeed: "Cretans are always liars, evil beasts, lazy bellies" — freeloaders, as we would say today.
+
+%%page:47%%
 
 But as he left, and journeyed on toward Rome, in the course of that journey he had a vision, which told him: you did wrong — repent. And after a year, he sent his disciple Titus, and told him: you shall go to Crete, you shall speak to the people, and you shall persevere, and they will come to believe.
 
@@ -502,9 +623,14 @@ And so began the struggle for the teaching of Christ to prevail.
 
 It took three centuries to pass, full of struggle, of martyrdom, of sacrifice, of thousands of martyrs; yet, untiring, undaunted by the persecutions and the threats of every ruler — whether king or local lord — there were always men who took up the fight for justice to prevail, for the highest ideal Creation holds for man.
 
+%%page:48%%
+
 Then the first temples and churches began to be built, so as to drive out, little by little, the influence the Roman priests had forced upon the people of this land — a people who, by their own inheritance and nature, were free-spirited, and would not endure oppression, or direction imposed by force.
 
 When Christianity began to be preached freely — a new religion, a new faith, founded not on the material but on the spiritual, the higher thought of man — the whole people of Crete turned back, and remembered that age-old tradition of Cretan divinity, which held that Zeus was god of both heaven and earth, the highest of all the gods; and seeing that this new religion, too, was founded on the divinity of justice, of the equality of men, they felt that the spirit had truly returned, to renew mankind, and to restore him to the spiritual role the Creator had set for him. And they believed, and struggled for it to prevail, once and for all.
+
+
+%%page:49%%
 
 And so every cave-shrine was turned into a Christian temple, so that nothing should remain to recall the past.
 
@@ -518,11 +644,16 @@ The peoples who had a cultivated spirit, these held fast to the teaching. But di
 
 When the spirit prevailed, the teaching, too, was kept. But did they truly let it prevail, deep down? That is another question.
 
+
+%%page:50%%
+
 History teaches, and gives dates to events that, in order to take place, required the strong, the rulers, to be able to impose themselves; and to impose themselves, they needed social foundations to support their claims — and these foundations were two: the power of the state, and the power of religion.
 
 A state, an empire, a kingdom would begin a war, with plunder as its true purpose, and would call upon the head of the church to which it belonged — and both camps belonged, often enough, to the very same religion — to bless the arms and the deeds of its rulers. And what did the leaders of the church do? Did they resist? Did they say no to war? Christ said, "peace" — they did not. Where, then, is the faith in Christ?
 
 History records more than twelve thousand wars; more than half of them were waged by Christians, at times among themselves, at times against those of other faiths. Where, then, is Christianity? And here, once more, man strayed from his purpose.
+
+%%page:51%%
 
 And so all the peoples who, in various ages, in the passing of time, crossed from one religion to another, and came to know teachings and doctrines, sects and the various factions of religion, and, in comparing these various religions — which, at bottom, held the very same purpose for man — found that, in practice, they were all the same.
 
@@ -530,13 +661,17 @@ For this reason, peoples often grew indifferent to the teachings and the counsel
 
 But how truly without faith were they?
 
+
 No man who truly thinks is without faith. For simply seeing that he lives, that he breathes, is enough for him to understand that he lives within God. And the moment he cuts off that connection with God, he cannot live even five minutes more. Let him not breathe for five minutes; let him take neither food nor water — and he will see how entirely he depends on God, on God's own creation.
 
 Here, then, is the real question: man believes in God, lives with God — but when it comes to declaring it openly, most have wanted God for their own gain, for themselves, for their own clan, for their own nation.
 
 Well! It was only such men as these who did not truly believe in God.
 
+%%page:52%%
+
 Religion is like a great tree, which, to live, needs roots, trunk, branches, leaves, blossom, and fruit.
+
 
 Its whole purpose lies in what its fruit will yield. So too with religion, whose purpose is the spirit: it must always aim toward that purpose, that destiny — only then does it truly fulfill its calling.
 
@@ -544,15 +679,20 @@ When a tree ceases to bear fruit, its only purpose left is for firewood. So too 
 
 And so religions, in every place, every nation, every region of the earth, according to the ideas and the temperament of each people, flourished, endured, and carried their work onward, toward the high mission of the spiritual world, toward the duty and the responsibility of those who would carry that mission forward, for the good of the men of every age; and always there were men who, with hard struggle, with perseverance, carried it on, and joined past, present, and future together with the links of the true history of the spirit, and of the responsibility set for them, in every age and every place, so that it might spread to every corner of the earth.
 
+%%page:53%%
+
 This beautiful spiritual world was visible to but few — yet enough of them, in every age, to carry out its purpose, and to see clearly that, through the struggle of these few, duty and responsibility would never be wanting from the whole.
 
 The proportion between spirit and material interest was always like the proportion of a great tree — trunk and branches and roots, against its fruit. So it was, always, with Creation.
+
 
 The roots, the trunk, the branches, are all essential for the fruit, in its turn, to exist.
 
 The centuries passed, with all their events and changes — now a spiritual flourishing, now a crisis, now a decline — yet also renewals, which, time and again, gave new heart to the lost hopes that had once seemed to lie ahead, in various ages.
 
 All this, in broad terms, is the history of religions and of nations. But on what, in those hard times when the whole edifice of religion was shaken, did it lean — and not fall?
+
+%%page:54%%
 
 In every region, not all religions endured in the same way.
 
@@ -561,6 +701,7 @@ Crete, lying geographically among three great landmasses, was a place everyone a
 Beyond their religion, the Cretans, in every age, kept a way of life entirely their own.
 
 For this reason, no foreign influence could easily change the whole of their life. Even after this new religion had prevailed, the Cretans were never quick to change their customs, their character, for whatever novelty each new conqueror offered them, demanding that they be changed for the conqueror's own benefit. The Arabs came — the Saracens — and remained one hundred and forty years in Crete. In this period they destroyed every temple, and forbade all Christian teaching, all Christian observance — yet the Cretans never became their instrument.
+
 
 After the Byzantines drove them out, the Cretans began once more to rebuild their temples; they returned to their faith, and fought hard to preserve their identity.
 
@@ -574,13 +715,19 @@ It was the same under Venetian rule: though Christians themselves, the Venetians
 
 Above the doorway, in front, they would set into the wall the four small plates they had eaten from, arranged in the shape of a cross and fixed with whitewash — to keep alive the memory of that faith built on simplicity.
 
+
+%%page:55%%
+
 All this, the Cretans knew only through oral tradition — the history of every age, passed down from generation to generation only in broad outline, for with every change of occupier the records of every place were destroyed; and since, under every occupation, the teaching of Greek letters was forbidden, this became an obstacle to setting down, in any detail, exactly how the church and religion had functioned in each district.
 
 Just as history was preserved by the very peoples who lived it, who made it, so that it might come to be, and be written — so too was religion made, and proven true, by the peoples themselves, through their own hard struggles, which left their mark on their very being, remained in their blood, and were handed down from generation to generation, so that it could never be uprooted, and might carry forward, forever, the sacred purpose of its mission.
 
 All this weighs on the mind of every man who lives within the small districts of the church, in the small villages, in the small parishes, which are the very foundations of religion — and when the foundations are sound, the building need never fear the passing of time.
 
+%%page:56%%
+
 It is for all of this that I have been moved to set down something of the history of this place — for one often wonders who came before, in every place, in every parish, small or great.
+
 
 And it is simple curiosity — anyone who lives, who passes so many years in one place, serving as the carrier of the parish's continuing life in his own day, would wish to know, too, who passed through before him, so as to join their struggles to the present — both the hard times, and the days of each parish's own making — so as to show those who come after that struggle must continue in every age, and to give a picture by which each one can see that whoever passed through was a single link in the chain of history.
 
@@ -588,7 +735,10 @@ And then he will see that his own work is not lost, but carries with it a respon
 
 And to walk forward in the immortality of that purpose, which is the handing-down of the holy spirit — the spirit of Creation, the spirit of God.
 
+%%page:57%%
+
 Parishes are the small particles of the Church, just as drops are the particles of the seas.
+
 
 They are, then, the foundations of the faith, which, in every age, played their part, and upheld the Church. How worthwhile it would be, for every parish, throughout its life, if we could know every figure who passed through it, know when each small and great temple was built, what role each played in every age.
 
@@ -601,10 +751,12 @@ I took office as parish warden (*Epitropos*) in 1956, under the priest FATHER LE
 The parish comprises seven settlements:
 
 KALIVIANI · NIO CHORIO · AZOGYRA
+
 METOCHI · KOUTOUFIANA
 TRACHILA · PIPERIANA
 
 How many times were we asked, at the little chapels we visited for the village feasts, when they had been built? And they were not few. There was, at the headland, the church of the Panagia of the Dormition; at Chambatha, a little further along, the Ypapanti — the Presentation of Christ; at Kaliviani, the Panagia Odigitria; and out on the plain, the Holy Cross, at the place called Sfakos.
+
 
 ### Notes
 
@@ -613,6 +765,8 @@ The church of Saint Spyridon at Piperiana was built in 1960–1963. And the chur
 The little chapel of the Prodromos (Saint John the Forerunner) at the headland likewise dates to the Byzantine period, to the year 1197.
 
 The church at Tigani, too, was built in this same period — we know it because it was covered in frescoes — but with the passing of time these were destroyed, and only a shadow of them remains here and there, for the place served, in the last invasion, as a shelter, and people were often forced to light fires inside it, and so every trace of the painting was lost.
+
+%%page:58%%
 
 Saint George at Kaliviani; Saint Nicholas at Nio Chorio; Saint Anthony at Koutoufiana; Saint George at Piperiana; Saint Spyridon at Trachila, with the Nativity of the Panagia; and at the headland, Saint John the Forerunner, and Saint Irene at Gramvousa, the Synaxis of the Apostles; and at Tigani, the old church of Saint George.
 
@@ -623,6 +777,8 @@ Tradition holds that, at Kaliviani, at Tylofos, and at Chambatha, there were anc
 Yet eight centuries passed, until the Saracens came to the island.
 
 These men were pirates, raiders of the sea, and they wished to impose their own religion, Islam, as well — and by what means? By force. Throughout the Saracen occupation the inhabitants were driven out of the lowlands, and went to live in inaccessible places — mountains and gorges. The churches were torn down, and only after the occupation did the people begin to rebuild them.
+
+%%page:59%%
 
 They built the church of Saint Peter, and a village of the same name grew up around it; they built a tower for their safety, since it lay close to the sea, and the village itself held every promise for a good life. For it lay within the fertile plain of Mesogeia, and the land was rich, and they had, too, the wealth of the sea. Within two centuries it had become a fine village, and its people were content — yet their life was not to remain undisturbed.
 
@@ -640,6 +796,9 @@ Many men, in various villages, kept their own private churches as well; being in
 
 Tradition says that the last abbot at Chambatha was named Nikiforakis, and that, after the Turks burned it down in 1823, he left, and after 1840 took refuge at Gonia as a monk. This much tradition tells us; no earlier names have survived.
 
+
+%%page:60%%
+
 The Venetians were Christians, but they were Roman Catholics; they did not agree with the doctrine of the Patriarchate of Byzantium, and wanted religion shaped in their own manner, to their own measure.
 
 And so whatever monasteries paid the taxes imposed upon them by the Popes were left to carry out their religious duties; those that refused, were closed. Chambatha and Tylifos, being far from the main centers, were left to operate, paying only small taxes. In this way the Orthodox church was confined to remote, inaccessible places, while the Venetians held dominion over the centers themselves.
@@ -650,13 +809,17 @@ And so, from the monasteries of Chambatha and Tylifos, the monks and the priests
 
 Then churches began to be built everywhere.
 
+
 ## THE PARISH OF KALIVIANI
 
 Throughout the whole long span of foreign rule in Crete, the Cretans were never left free to practice their faith; every conqueror, in his own way, sought to impose upon the Cretan people the manner in which they had to live, simply to be free to worship at all. And every so often, that manner would change again. Every Provveditore, every Pasha, would alter, by decree and according to his own interest, the provisions of the law, the transfers, the prohibitions placed upon the dioceses — and through all of this, one unresolved problem always remained. They split up the parishes; they drove the priests, for long stretches, from place to place, and so confusion and chaos were created, and it often took great patience simply not to be lost.
 
+%%page:61%%
+
 Then every settlement built its own church, each one cherished in its own particular way, and every church was maintained through the participation of all its residents — and this helped them feel their faith more deeply, and so each church became the possession of every household.
 
 This was what allowed the faith to endure through the years that followed — years that, for Crete, were dark ones.
+
 
 For the occupation of the island lasted seven hundred years. After this freedom to build churches was granted, Saint Anthony was built at Nio Chorio, Saint George at Koutoufiana, and at Sfakos.
 
@@ -668,11 +831,14 @@ After 1900, when the island became free, many of the villages enlarged their chu
 
 The priest Yannis Kokinakis, a resident of Kaliviani, after this second building of the church, gave the parish the name Kaliviani; and he was the first parish priest whom no one could transfer elsewhere, or forbid to carry out his duties — and so, from then on, the parish's life began to exist on a permanent footing, free of transfers, free of persecution.
 
+
 He was, too, the leading figure behind the building of the church — a task that, for its time, was no easy undertaking.
 
 The Turks, after the Organic Law was imposed on them in 1877, could no longer interfere as they once had — when they would drive a priest from a village, and years would pass before anyone came to replace him, and so the churches fell into ruin, and it was difficult to build them up again.
 
 And so begins the history of the parish — a history that must be set down in writing, so that those who come after may know the role it has played.
+
+%%page:62%%
 
 At Koutoufiana, between 1904 and 1908, a large church was likewise built.
 
@@ -694,6 +860,9 @@ It was a difficult thing at the time — we had no permanent parish priest — y
 
 We found boats, and in the summer of 1969 set to work, repairing it, fitting it out with an iconostasis and icons, and resolved to hold its inauguration. A great many people came, eager to see the historic fortress as well. But rough seas kept the Metropolitan from coming, and so we postponed it. We went again in 1971, and inaugurated it on the feast of the Synaxis of the Apostles, the thirtieth of June. A struggle — but a necessary one, for the history of the parish.
 
+
+%%page:63%%
+
 Tylifos was the monastery that served as the leading house of the Kissamos region, until the Monastery of Gonia, at Kolymbari, was built in 1634. But the Turks forbade the teaching of Greek letters, and would not allow men to be ordained as priests. For this reason, Tylifos sent to Kythera whoever wished to become a monk or a priest; there they were ordained, and sent back, so the monastery could place them wherever they were needed.
 
 And tradition tells us that, from 1780 to 1821, the priests were Father Panagiotis, of Nio Chorio, and Father Dimitris, of Kaliviani. From 1840 until 1866, Father Michalis Deiktakis. From 1877 to 1900, Father Yannis Kokinakis, likewise of Kaliviani. From 1904 to 1942, Father Yorgis Papadakis, of Nio Chorio. From 1942 to 1966, Father Lefteris Koutsaftakis.
@@ -712,6 +881,9 @@ In 1821, when the revolutionary committee came seeking contributions, they were 
 
 But the Turks had their informers too, and learned of all this, and came and burned the place down; they destroyed the buildings, burned the church, and over the eight years the revolution lasted, the monastery lost all its former splendor. Much later, fifty years afterward, Vasilis Christoforakis gathered it back together again, in 1878.
 
+
+%%page:64%%
+
 At Kaliviani, around the church, there was an enclosure, part of which was used as a cemetery, but in a disordered way, without line or plan, in a manner that could not go on — we had to bring some order to it.
 
 The bell tower was built of stone, but part of it had decayed, and had become dangerous; we were forced to build it anew.
@@ -726,9 +898,12 @@ In 1956, there at Chambatha, we built up a cave a little above the little chapel
 
 In 1978 we opened a road for vehicles, and we hope that, little by little, owing to its beautiful setting, it will become a gathering place that draws many visitors, and recovers something of its old glory. Chambatha was the monastery from which a priest would be requested, to perform some sacrament — a service, a baptism, a wedding, a funeral — for it was there that newly ordained priests would go, before being sent on to staff other parishes that had no priest of their own.
 
+%%page:65%%
+
 In 1970 the road was built, and bus service began passing through Kaliviani; electric light came, too, that same year.
 
 We wanted to work in new ways, to renew the parish, so that it might become a small world of its own, one that would go on serving mankind.
+
 
 Amid the many conflicting opinions, the many obstacles, we had to act with great thought and prudence, so as to displease no one, and to benefit the whole.
 
@@ -744,6 +919,9 @@ In 1976, the wardens had to be replaced; carrying the work onward was a difficul
 
 In 1978 we built the enclosure wall of the new cemetery, repaired the square, and gave the village a better image, a better standing, so that it could meet the newer needs of daily life.
 
+
+%%page:66%%
+
 In 1974 we made access for vehicles; we took down the old enclosure, and made the church courtyard into a spacious square, so that a vehicle could reach every part of it.
 
 Since the villages of the parish lay far apart from one another, we agreed that each should have its own ground, its own cemetery, so that no one would be forced, in a time of need, to travel far. And so a cemetery was made at Nio Chorio, and another at Koutoufiana; and so, with a fair division of the ground, each village kept its own people close — a just arrangement.
@@ -752,9 +930,12 @@ In 1980, new troubles. Father Yorgis Petrakis, who, of course, was not himself f
 
 *FATHER MANOLIS BARIOTAKIS*
 
+%%page:67%%
+
 Every new member of the parish, to answer his own calling, must begin from the very point where he took up the torch, and create something that carries the parish's course onward, according to whatever needs each new age presents.
 
 As the new age unfolded, bringing easier communication among people, it forced us to consider that, beyond the church itself, some cultural center was needed too — one that would bind people together, both through religion and through culture alike. We resolved to build a parish center, which, together with the church, would give the village a face, a character, all its own. How did we begin?
+
 
 The church had no income to speak of, beyond the candles it sold, and the profit from these was meager — but our will was inexhaustible.
 
@@ -762,7 +943,10 @@ We resolved that, every year, we would set aside whatever surplus we had, and so
 
 ### Notes
 
+
 We collected, from the villages, one thousand kilos of oil, at two hundred and fifty drachmas the kilo, and so raised two hundred and fifty thousand; the village itself gave us two hundred thousand more — and with this, we went forward with the building.
+
+%%page:68%%
 
 When, in 1983, we made the decision to build, many came forward to give — some anonymously, others under their own names — and the sum doubled within a few days; it was then that we made the further decision to hold a fund drive.
 
@@ -780,9 +964,12 @@ Within a single year, we had already done half the work of the building.
 
 When the little chapel of Saint Nicholas was built, it held a number of plots of land, given by various Christians unknown to us today, who remain anonymous, since no record was kept of their names. But in 1882, when the church was enlarged, these plots were sold off one by one, and by the time the work was finished, only a few remained around the church itself. These we kept for the churchyard, and held onto until 1989.
 
+
 There was also a parcel of land at the place called Lepidolakkos, bordering the sea, which, being uncultivated, had been left to the church's keeping — perhaps by some descendant of Father Dimitris, since the surrounding land belonged to other members of the Papadimitrakis family. As it yielded nothing at all, in 1956 we put it up for auction, with a starting price, for the whole parcel, of twenty-five *okas* of oil — but not a single buyer came forward. After two years, we withdrew the offer, since it seemed to us less a fair price than a giveaway.
 
 Thirty years later, from this very same parcel of land, we received ten thousand kilos of oil — a value a thousand times greater. For all of this, the patience was worth it.
+
+%%page:69%%
 
 In 1984 we made the decision to sell it. The church, after a hundred years, had suffered much wear, and had many shortcomings that the little we had left over could not begin to cover.
 

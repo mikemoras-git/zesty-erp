@@ -215,48 +215,91 @@ const MS_DIVIDER_SVG = `<svg viewBox="0 0 100 40" fill="none" xmlns="http://www.
   <circle cx="50" cy="24" r="2.4" fill="currentColor"/>
 </svg>`;
 
-function renderManuscript(md) {
+/**
+ * Splits the manuscript into leaves (one per original handwritten page).
+ * %%page:N%% markers — recovered from the manuscript's own page
+ * numbering — start a new leaf with folio N. Content before the first
+ * marker becomes the title/front leaf (folio null). A Σημειώσεις/Notes
+ * heading inside a leaf switches the rest of that leaf into its notes
+ * area, mirroring the original, where the author kept notes on the back
+ * or lower part of each page.
+ * Returns [{ folio, html, paraCount }].
+ */
+function renderBookLeaves(md) {
   const lines = md.split('\n').map(l => l.trim());
-  const out = [];
+  const leaves = [];
   let pIdx = 0;
   let justHeaded = false;
   let inVerse = false;
+  let cur = null;
+
+  function buildLeaf(l) {
+    let html = '<div class="leaf-body">' + l.body.join('\n') + '</div>';
+    if (l.notes.length) html += '<div class="leaf-notes">' + l.notes.join('\n') + '</div>';
+    return { folio: l.folio, html, paraCount: l.paraCount };
+  }
+  function finishLeaf() {
+    if (cur && (cur.body.length || cur.notes.length)) leaves.push(buildLeaf(cur));
+    cur = null;
+  }
+  function newLeaf(folio) {
+    finishLeaf();
+    cur = { folio, body: [], notes: [], inNotes: false, paraCount: 0 };
+  }
+  function push(html, isPara) {
+    (cur.inNotes ? cur.notes : cur.body).push(html);
+    if (isPara) cur.paraCount++;
+  }
+
+  newLeaf(null);
 
   for (const line of lines) {
+    let m;
+    if ((m = line.match(/^%%page:(\d+)%%$/))) { newLeaf(parseInt(m[1], 10)); justHeaded = false; continue; }
     if (line === '%%verse%%') { inVerse = true; continue; }
     if (!line) {
       // Inside verse, a blank source line is a real stanza break — keep it.
-      // Everywhere else, blank lines are just .md readability, not content.
-      if (inVerse && out.length && !out[out.length - 1].startsWith('<div class="ms-stanza-break"')) {
-        out.push('<div class="ms-stanza-break"></div>');
+      if (inVerse && cur) {
+        const arr = cur.inNotes ? cur.notes : cur.body;
+        if (arr.length && !arr[arr.length - 1].startsWith('<div class="ms-stanza-break"')) {
+          arr.push('<div class="ms-stanza-break"></div>');
+        }
       }
       continue;
     }
     if (line === '---') continue;
-    let m;
     if ((m = line.match(/^#\s+(.+)$/))) {
-      out.push(`<h1 class="ms-title">${esc(m[1])}</h1>`);
+      push(`<h1 class="ms-title">${esc(m[1])}</h1>`, false);
       justHeaded = true;
     } else if ((m = line.match(/^##\s+(.+)$/))) {
-      out.push(`<div class="ms-divider ms-divider-major">${MS_DIVIDER_SVG}</div><h2 class="ms-h2">${esc(m[1])}</h2>`);
+      push(`<div class="ms-divider ms-divider-major">${MS_DIVIDER_SVG}</div><h2 class="ms-h2">${esc(m[1])}</h2>`, false);
       justHeaded = true;
     } else if ((m = line.match(/^###\s+(.+)$/))) {
-      out.push(`<div class="ms-divider ms-divider-minor"></div><h3 class="ms-h3">${esc(m[1])}</h3>`);
+      const nm = m[1].match(/^(Σημειώσεις|Notes)\.?\s*(?:—\s*(.+))?$/);
+      if (nm) {
+        cur.inNotes = true;
+        let label = `<div class="leaf-notes-label">${esc(nm[1])}</div>`;
+        if (nm[2]) label += `<div class="leaf-notes-sub">${esc(nm[2])}</div>`;
+        cur.notes.push(label);
+      } else {
+        push(`<div class="ms-divider ms-divider-minor"></div><h3 class="ms-h3">${esc(m[1])}</h3>`, false);
+      }
       justHeaded = true;
     } else if ((m = line.match(/^\*(.+)\*$/))) {
       const cls = m[1].length > 80 ? 'ms-translator-note' : 'ms-byline';
-      out.push(`<p class="${cls}" data-para="p${++pIdx}">${esc(m[1])}</p>`);
+      push(`<p class="${cls}" data-para="p${++pIdx}">${esc(m[1])}</p>`, true);
       justHeaded = false;
     } else if (inVerse) {
-      out.push(`<p class="ms-verse" data-para="p${++pIdx}">${esc(line)}</p>`);
+      push(`<p class="ms-verse" data-para="p${++pIdx}">${esc(line)}</p>`, true);
       justHeaded = false;
     } else {
       const cls = justHeaded ? ' class="ms-lead"' : '';
-      out.push(`<p${cls} data-para="p${++pIdx}">${esc(line)}</p>`);
+      push(`<p${cls} data-para="p${++pIdx}">${esc(line)}</p>`, true);
       justHeaded = false;
     }
   }
-  return out.join('\n');
+  finishLeaf();
+  return leaves;
 }
 
 /* ── WATERMARK ─────────────────────────────────────────────
