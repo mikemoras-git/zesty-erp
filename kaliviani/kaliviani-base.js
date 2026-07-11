@@ -12,7 +12,7 @@ const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsI
 // Where guests are told to write if their access has expired or they
 // hit a problem. Change this to whatever address you want guests to
 // actually reach.
-const OWNER_CONTACT_EMAIL = 'mikemoras@gmail.com';
+const OWNER_CONTACT_EMAIL = 'info@zesty.gr';
 
 /* ── BOOK REGISTRY ────────────────────────────────────────────
  * Single source of truth for what's in the archive. The library page

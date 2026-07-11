@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Corte Interna — Guest Welcome Card</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Crimson+Pro:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#f2e6c9; --paper-2:#ecdcb3; --leaf:#f6ecd4;
+  --ink:#3a2a1a; --ink-soft:#6b5842; --ink-faint:#9a8567;
+  --gold:#a9822f; --gold-deep:#7c5e22; --olive:#6b7a4f; --terracotta:#a1503a;
+  --line:rgba(58,42,26,.18);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{background:#d9c9a0}
+body{
+  font-family:'Crimson Pro',serif;color:var(--ink);
+  display:flex;flex-direction:column;align-items:center;
+  padding:26px 16px 60px;min-height:100vh;
+  -webkit-print-color-adjust:exact;print-color-adjust:exact;
+}
+.toolbar{width:210mm;max-width:100%;display:flex;justify-content:flex-end;margin-bottom:14px}
+.print-btn{
+  font-family:'Cinzel',serif;font-size:12px;letter-spacing:1px;text-transform:uppercase;
+  color:#fbf3de;background:linear-gradient(135deg,var(--gold),var(--gold-deep));
+  border:none;border-radius:6px;padding:11px 22px;cursor:pointer;
+}
+.print-btn:hover{filter:brightness(1.08)}
+
+.card{
+  position:relative;width:210mm;min-height:297mm;
+  background:
+    radial-gradient(ellipse at 50% -8%, var(--paper-2), var(--paper) 55%, #e6d5ac 100%);
+  box-shadow:0 24px 60px rgba(58,42,26,.28);
+  overflow:hidden;
+  padding:15mm 20mm 13mm;
+  display:flex;flex-direction:column;
+}
+.card::before{
+  content:'';position:absolute;inset:0;pointer-events:none;z-index:0;
+  opacity:.07;mix-blend-mode:multiply;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+}
+.card::after{
+  content:'';position:absolute;inset:0;pointer-events:none;z-index:0;
+  background:radial-gradient(ellipse at 50% 42%, transparent 55%, rgba(58,42,26,.14) 100%);
+}
+.card > *{position:relative;z-index:1}
+
+.frame{
+  position:absolute;inset:8mm;border:1px solid var(--line);
+  border-radius:3px;z-index:0;pointer-events:none;
+}
+.frame::before{
+  content:'';position:absolute;inset:2.4mm;border:1px solid rgba(58,42,26,.10);border-radius:2px;
+}
+
+.head{text-align:center;margin-bottom:14px}
+.motif{width:74px;height:auto;color:var(--olive);opacity:.8;margin:0 auto 12px}
+.brand{
+  font-family:'Cinzel',serif;font-weight:700;font-size:34px;letter-spacing:3px;
+  text-transform:uppercase;line-height:1;
+}
+.brand-sub{
+  font-family:'Cinzel',serif;font-size:11px;letter-spacing:.32em;text-transform:uppercase;
+  color:var(--ink-faint);margin-top:10px;
+}
+.welcome-gr{font-style:italic;font-size:15px;color:var(--ink-soft);margin-top:12px;letter-spacing:.4px}
+
+.rule{display:flex;align-items:center;gap:12px;color:var(--gold);margin:18px 0}
+.rule::before,.rule::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,transparent,var(--line),transparent)}
+.rule svg{width:15px;height:15px;flex:none}
+
+.intro{
+  text-align:center;font-size:16.5px;line-height:1.7;color:var(--ink-soft);
+  max-width:150mm;margin:0 auto 6px;
+}
+
+.access{
+  display:flex;gap:20px;align-items:stretch;margin:16px 0 6px;
+}
+.access-main{
+  flex:1;display:flex;flex-direction:column;justify-content:center;
+  background:rgba(255,255,255,.34);border:1px solid var(--line);border-radius:8px;
+  padding:20px 22px;
+}
+.access-label{
+  font-family:'Cinzel',serif;font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--ink-faint);margin-bottom:8px;
+}
+.url{
+  font-family:'Cinzel',serif;font-weight:600;font-size:24px;letter-spacing:.6px;color:var(--gold-deep);
+  word-break:break-all;line-height:1.15;
+}
+.code-row{margin-top:16px;padding-top:15px;border-top:1px dashed var(--line)}
+.code-box{
+  display:inline-block;font-family:'Cinzel',serif;font-weight:600;font-size:19px;letter-spacing:2px;
+  color:var(--ink);background:rgba(169,130,47,.14);border:1px solid rgba(124,94,34,.4);
+  border-radius:6px;padding:7px 16px;margin-top:6px;
+}
+.qr-wrap{
+  flex:none;width:150px;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  background:rgba(255,255,255,.34);border:1px solid var(--line);border-radius:8px;padding:14px 12px;
+}
+.qr-tile{background:#faf3e0;border-radius:6px;padding:8px;line-height:0}
+.qr-tile canvas,.qr-tile img{display:block;width:112px !important;height:112px !important}
+.qr-cap{
+  font-family:'Cinzel',serif;font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--ink-faint);margin-top:10px;text-align:center;
+}
+
+.steps-title{
+  font-family:'Cinzel',serif;font-size:13px;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--ink);text-align:center;margin:14px 0 12px;
+}
+.steps-title span{color:var(--gold-deep)}
+.steps{display:flex;flex-direction:column;gap:11px;max-width:158mm;margin:0 auto;width:100%}
+.step{display:flex;gap:14px;align-items:flex-start}
+.step-n{
+  flex:none;width:30px;height:30px;border-radius:50%;
+  background:linear-gradient(135deg,var(--gold),var(--gold-deep));color:#fbf3de;
+  font-family:'Cinzel',serif;font-weight:600;font-size:15px;
+  display:flex;align-items:center;justify-content:center;margin-top:1px;
+}
+.step-t{font-size:16.5px;line-height:1.5;color:var(--ink)}
+.step-t b{font-weight:600;color:var(--ink)}
+.step-t .q{font-style:italic;color:var(--gold-deep);font-weight:600}
+
+.returning{
+  text-align:center;font-size:15.5px;line-height:1.6;color:var(--ink-soft);
+  background:rgba(107,122,79,.12);border:1px solid rgba(107,122,79,.3);border-left:3px solid var(--olive);
+  border-radius:6px;padding:12px 18px;margin:16px auto 0;max-width:158mm;
+}
+.returning .q{font-style:italic;color:#4c5a35;font-weight:600}
+
+.foot{
+  margin-top:auto;padding-top:18px;text-align:center;
+  font-size:13.5px;line-height:1.65;color:var(--ink-soft);
+}
+.foot a{color:var(--gold-deep);text-decoration:none;border-bottom:1px solid rgba(124,94,34,.4)}
+.foot .legal{margin-top:9px;font-size:11px;letter-spacing:.05em;color:var(--ink-faint)}
+
+@media print{
+  html,body{background:#fff;padding:0}
+  .toolbar{display:none}
+  .card{width:210mm;min-height:297mm;box-shadow:none;margin:0}
+}
+@page{size:A4;margin:0}
+</style>
+</head>
+<body>
+<div class="toolbar">
+  <button class="print-btn" onclick="window.print()">Print this card</button>
+</div>
+
+<div class="card">
+  <div class="frame"></div>
+
+  <div class="head">
+    <svg class="motif" viewBox="0 0 100 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M2 20 Q 25 2, 50 20 T 98 20" stroke="currentColor" stroke-width="1.4"/>
+      <ellipse cx="18" cy="14" rx="5" ry="2.6" transform="rotate(-25 18 14)" fill="currentColor" opacity=".85"/>
+      <ellipse cx="34" cy="8" rx="5" ry="2.6" transform="rotate(-15 34 8)" fill="currentColor" opacity=".85"/>
+      <ellipse cx="66" cy="8" rx="5" ry="2.6" transform="rotate(15 66 8)" fill="currentColor" opacity=".85"/>
+      <ellipse cx="82" cy="14" rx="5" ry="2.6" transform="rotate(25 82 14)" fill="currentColor" opacity=".85"/>
+      <circle cx="50" cy="24" r="2.4" fill="currentColor"/>
+    </svg>
+    <div class="brand">Corte Interna</div>
+    <div class="brand-sub">The Guest Archive</div>
+    <div class="welcome-gr">Καλῶς ἤλθατε — a welcome to the house's history</div>
+  </div>
+
+  <div class="rule">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/></svg>
+  </div>
+
+  <p class="intro">
+    During the restoration of this house we found the late owner's handwritten
+    chronicles of Kaliviani and Gramvousa — kept in a drawer, intact, for decades.
+    We gathered them into a private archive for you to read during your stay. Here
+    is how to open it.
+  </p>
+
+  <div class="access">
+    <div class="access-main">
+      <div class="access-label">Read the archive at</div>
+      <div class="url">corteinterna.zesty.gr</div>
+      <div class="code-row">
+        <div class="access-label">Your access code</div>
+        <div class="code-box" id="code-display">CORTE-INTERNA-2026</div>
+      </div>
+    </div>
+    <div class="qr-wrap">
+      <div class="qr-tile" id="qr"></div>
+      <div class="qr-cap">Scan to open</div>
+    </div>
+  </div>
+
+  <div class="steps-title">First visit — <span>create your account</span></div>
+  <div class="steps">
+    <div class="step"><div class="step-n">1</div><div class="step-t">Open <b>corteinterna.zesty.gr</b> on your phone, tablet, or laptop — or scan the code above.</div></div>
+    <div class="step"><div class="step-n">2</div><div class="step-t">Choose the <span class="q">First Visit</span> tab.</div></div>
+    <div class="step"><div class="step-n">3</div><div class="step-t">Enter your name, your email, and the <b>access code</b> shown above.</div></div>
+    <div class="step"><div class="step-n">4</div><div class="step-t">Set a password of at least 6 characters, tick the notice, and choose <span class="q">Create Account &amp; Enter</span>.</div></div>
+    <div class="step"><div class="step-n">5</div><div class="step-t">That's all — the archive opens, and your reading begins.</div></div>
+  </div>
+
+  <div class="returning">
+    Been here before? Choose the <span class="q">Returning Guest</span> tab and sign in with your email and password.
+  </div>
+
+  <div class="foot">
+    Your access stays open for <b>30 days</b>. These texts are private and each page is
+    quietly watermarked to your account — we kindly ask that you keep them to yourself.<br>
+    Questions, or wish to keep reading afterward? Write to <a href="mailto:info@zesty.gr">info@zesty.gr</a>.
+    <div class="legal">© Zesty Rentals and Investments IKE · A private translation, for registered guests only.</div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+(function(){
+  try{
+    new QRCode(document.getElementById('qr'), {
+      text: 'https://corteinterna.zesty.gr',
+      width: 224, height: 224,
+      colorDark: '#3a2a1a', colorLight: '#faf3e0',
+      correctLevel: QRCode.CorrectLevel.M
+    });
+  }catch(e){
+    document.getElementById('qr').innerHTML =
+      '<div style="font-family:Cinzel,serif;font-size:10px;color:#9a8567;text-align:center;padding:20px">QR unavailable offline —<br>type the address above</div>';
+  }
+})();
+</script>
+</body>
+</html>
