@@ -36,7 +36,7 @@ body{
     radial-gradient(ellipse at 50% -8%, var(--paper-2), var(--paper) 55%, #e6d5ac 100%);
   box-shadow:0 24px 60px rgba(58,42,26,.28);
   overflow:hidden;
-  padding:15mm 20mm 13mm;
+  padding:12mm 20mm 10mm;
   display:flex;flex-direction:column;
 }
 .card::before{
@@ -70,7 +70,7 @@ body{
 }
 .welcome-gr{font-style:italic;font-size:15px;color:var(--ink-soft);margin-top:12px;letter-spacing:.4px}
 
-.rule{display:flex;align-items:center;gap:12px;color:var(--gold);margin:18px 0}
+.rule{display:flex;align-items:center;gap:12px;color:var(--gold);margin:12px 0}
 .rule::before,.rule::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,transparent,var(--line),transparent)}
 .rule svg{width:15px;height:15px;flex:none}
 
@@ -78,9 +78,17 @@ body{
   text-align:center;font-size:16.5px;line-height:1.7;color:var(--ink-soft);
   max-width:150mm;margin:0 auto 6px;
 }
+.note{max-width:156mm;margin:0 auto 4px}
+.note-title{
+  font-family:'Cinzel',serif;font-size:12px;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--gold-deep);text-align:center;margin-bottom:11px;
+}
+.note p{font-size:15px;line-height:1.6;color:var(--ink-soft);margin-bottom:8px;text-align:center}
+.note p:last-child{margin-bottom:0}
+.note em{font-style:italic;color:var(--ink)}
 
 .access{
-  display:flex;gap:20px;align-items:stretch;margin:16px 0 6px;
+  display:flex;gap:20px;align-items:stretch;margin:11px 0 4px;
 }
 .access-main{
   flex:1;display:flex;flex-direction:column;justify-content:center;
@@ -114,10 +122,10 @@ body{
 
 .steps-title{
   font-family:'Cinzel',serif;font-size:13px;letter-spacing:.16em;text-transform:uppercase;
-  color:var(--ink);text-align:center;margin:14px 0 12px;
+  color:var(--ink);text-align:center;margin:10px 0 9px;
 }
 .steps-title span{color:var(--gold-deep)}
-.steps{display:flex;flex-direction:column;gap:11px;max-width:158mm;margin:0 auto;width:100%}
+.steps{display:flex;flex-direction:column;gap:9px;max-width:158mm;margin:0 auto;width:100%}
 .step{display:flex;gap:14px;align-items:flex-start}
 .step-n{
   flex:none;width:30px;height:30px;border-radius:50%;
@@ -132,13 +140,13 @@ body{
 .returning{
   text-align:center;font-size:15.5px;line-height:1.6;color:var(--ink-soft);
   background:rgba(107,122,79,.12);border:1px solid rgba(107,122,79,.3);border-left:3px solid var(--olive);
-  border-radius:6px;padding:12px 18px;margin:16px auto 0;max-width:158mm;
+  border-radius:6px;padding:10px 18px;margin:11px auto 0;max-width:158mm;
 }
 .returning .q{font-style:italic;color:#4c5a35;font-weight:600}
 
 .foot{
-  margin-top:auto;padding-top:18px;text-align:center;
-  font-size:13.5px;line-height:1.65;color:var(--ink-soft);
+  margin-top:auto;padding-top:13px;text-align:center;
+  font-size:13.5px;line-height:1.6;color:var(--ink-soft);
 }
 .foot a{color:var(--gold-deep);text-decoration:none;border-bottom:1px solid rgba(124,94,34,.4)}
 .foot .legal{margin-top:9px;font-size:11px;letter-spacing:.05em;color:var(--ink-faint)}
@@ -177,12 +185,16 @@ body{
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/></svg>
   </div>
 
-  <p class="intro">
-    During the restoration of this house we found the late owner's handwritten
-    chronicles of Kaliviani and Gramvousa — kept in a drawer, intact, for decades.
-    We gathered them into a private archive for you to read during your stay. Here
-    is how to open it.
-  </p>
+  <div class="note">
+    <div class="note-title">A note on these books</div>
+    <p>During the restoration of the complex, the late owner's handwritten books came to
+      light — left in the drawer of a table, kept there intact for decades until the day
+      we opened it.</p>
+    <p>We felt it our duty to share them with the guests of this house, and made this
+      archive to accompany you through your stay.</p>
+    <p><em>It remains a work in progress — we go on transcribing, translating, and
+      enriching the manuscripts we found.</em></p>
+  </div>
 
   <div class="access">
     <div class="access-main">
