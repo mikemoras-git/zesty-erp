@@ -49,6 +49,24 @@ PDF to the euro across all ten forecast years):
   year** (Excel's `NPV()` over 2024–2044 at 10 %). The workbook uses the same convention.
   Reconstructed results: NPV ≈ €746,820, IRR ≈ 15.14 % (PDF: €746,821 / 15.1 %).
 
+## How this was verified
+
+The workbook was checked end-to-end, not just generated:
+
+1. **Independent reconstruction.** The model logic was first rebuilt in plain Python and asserted
+   against all 228 printed figures before any spreadsheet was written.
+2. **Formula evaluation.** The committed `.xlsx` was parsed and every formula evaluated with the
+   `formulas` library: **228 / 228 checks OK**, NPV €746,819, IRR 15.14%.
+3. **Real spreadsheet application.** The file was opened in LibreOffice Calc, which recalculated it
+   on load and independently produced the same results — **228 / 228 OK**, identical NPV and IRR,
+   with no blank or uncalculated cells.
+4. **Scenario switching.** Verified live in LibreOffice: selecting Upside/Downside propagates
+   through the drivers to the P&L and returns (Upside NPV €3.04 m / IRR 35.6%; Downside
+   −€1.62 m / −6.6%). Both engines agree to the euro.
+
+Note that the Check sheet only reads "228 of 228" under the **Base** scenario — that is by design,
+since it compares against the published plan. Under other scenarios most rows will read CHECK.
+
 ## Caveats — read before relying on the numbers
 
 1. **Rent of €90,000 from 2035 is inferred, not printed.** The PDF shows rent only to 2034. The
