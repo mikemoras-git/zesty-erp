@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Care Log — Settings</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="health-style.css">
+<style>
+.danger-card { border: 1px solid #f0cdc8; background: #fffbfa; }
+.danger-card .card-title { color: var(--critical); }
+.store-bar { height: 8px; border-radius: 4px; background: var(--grid); overflow: hidden; margin: 9px 0 6px; }
+.store-fill { height: 100%; background: var(--teal); }
+.med-row { display: flex; align-items: center; gap: 11px; padding: 10px 0; border-bottom: 1px solid var(--grid); }
+.med-row:last-child { border-bottom: none; }
+.med-name { font-size: 13.5px; font-weight: 600; }
+.med-meta { font-size: 11.5px; color: var(--text-muted); margin-top: 2px; }
+.med-row.off { opacity: .5; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="page-hdr">
+    <div>
+      <div class="page-title">Settings</div>
+      <div class="page-sub">Who this log is for, what counts as on-target, and how to keep it safe.</div>
+    </div>
+    <div class="hdr-actions">
+      <button class="btn btn-gold" onclick="doBackup()">💾 Back up now</button>
+    </div>
+  </div>
+
+  <!-- ── Privacy note ── -->
+  <div class="card" style="border-left:4px solid var(--teal)">
+    <div class="card-title" style="margin-bottom:7px">🔒 Where this data lives</div>
+    <div style="font-size:13px;color:var(--text-2);line-height:1.65">
+      Everything you enter — readings, appointments, lab values and scanned documents — is stored
+      <strong>only in this browser, on this device</strong>. It is never uploaded, and no one else can
+      read it. That also means nothing is recoverable if this browser's data is cleared, the device is
+      lost, or you use private/incognito mode. <strong>Export a backup regularly</strong> and keep the
+      file somewhere you trust.
+    </div>
+  </div>
+
+  <!-- ── Patient ── -->
+  <div class="card">
+    <div class="card-hdr"><div class="card-title">Patient</div></div>
+    <div class="form-row">
+      <div class="form-group"><label>Name</label><input type="text" id="p_name" placeholder="Full name"></div>
+      <div class="form-group"><label>Date of birth</label><input type="date" id="p_dob"></div>
+    </div>
+    <div class="form-row3">
+      <div class="form-group"><label>Height (cm)</label><input type="number" id="p_heightCm" placeholder="165"></div>
+      <div class="form-group"><label>Blood group</label><input type="text" id="p_bloodType" placeholder="A+"></div>
+      <div class="form-group"><label>Phone</label><input type="text" id="p_phone" placeholder="Contact number"></div>
+    </div>
+    <div class="form-group">
+      <label>Allergies &amp; things doctors must know</label>
+      <input type="text" id="p_allergies" placeholder="e.g. penicillin, iodine contrast">
+      <div class="hint">This line is printed at the top of every report.</div>
+    </div>
+  </div>
+
+  <!-- ── Diagnosis ── -->
+  <div class="card">
+    <div class="card-hdr"><div class="card-title">Diagnosis &amp; care team</div></div>
+    <div class="form-row">
+      <div class="form-group"><label>Diagnosis</label><input type="text" id="p_diagnosis" placeholder="e.g. Breast carcinoma, left"></div>
+      <div class="form-group"><label>Stage / grade</label><input type="text" id="p_stage" placeholder="e.g. Stage II"></div>
+    </div>
+    <div class="form-row3">
+      <div class="form-group"><label>Diagnosed on</label><input type="date" id="p_diagnosedOn"></div>
+      <div class="form-group"><label>Treating doctor</label><input type="text" id="p_oncologist" placeholder="Dr. …"></div>
+      <div class="form-group"><label>Hospital / clinic</label><input type="text" id="p_hospital" placeholder="…"></div>
+    </div>
+    <div class="form-group"><label>Notes</label><textarea id="p_notes" placeholder="Anything worth keeping at hand"></textarea></div>
+  </div>
+
+  <!-- ── Targets ── -->
+  <div class="card">
+    <div class="card-hdr">
+      <div class="card-title">Targets</div>
+      <div class="card-note">Drawn as a shaded band on the charts</div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Weight — keep above (kg)</label><input type="number" step="0.1" id="t_weightLow" placeholder="e.g. 58"></div>
+      <div class="form-group"><label>Weight — keep below (kg)</label><input type="number" step="0.1" id="t_weightHigh" placeholder="e.g. 68"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Blood sugar — low limit (mg/dL)</label><input type="number" id="t_glucoseLow" placeholder="70"></div>
+      <div class="form-group"><label>Blood sugar — high limit (mg/dL)</label><input type="number" id="t_glucoseHigh" placeholder="180"></div>
+    </div>
+    <div class="card-note">Use the numbers her own doctor gave — the defaults are only general adult guides.</div>
+    <div style="margin-top:16px"><button class="btn btn-teal" onclick="saveAll()">Save settings</button></div>
+  </div>
+
+  <!-- ── Medication ── -->
+  <div class="card">
+    <div class="card-hdr">
+      <div class="card-title">Current medication</div>
+      <button class="btn btn-outline btn-sm" onclick="openMed()">+ Add medicine</button>
+    </div>
+    <div id="medBox"></div>
+  </div>
+
+  <!-- ── Backup ── -->
+  <div class="card">
+    <div class="card-hdr"><div class="card-title">Backup &amp; restore</div></div>
+    <div style="font-size:13px;color:var(--text-2);line-height:1.6;margin-bottom:15px">
+      The backup is a single <code>.json</code> file containing every record <em>and</em> every scanned
+      document. Keep it somewhere safe — and it is also how you move this log to another phone or computer.
+    </div>
+    <div id="backupStatus" style="margin-bottom:15px"></div>
+    <div style="display:flex;gap:9px;flex-wrap:wrap">
+      <button class="btn btn-gold" onclick="doBackup()">💾 Export full backup</button>
+      <button class="btn btn-outline" onclick="doBackup(false)">Export without documents</button>
+      <button class="btn btn-outline" onclick="document.getElementById('importFile').click()">📂 Restore from backup</button>
+      <button class="btn btn-outline" onclick="exportVitalsCSV()">↓ Daily readings CSV</button>
+      <button class="btn btn-outline" onclick="exportLabsCSV()">↓ Lab values CSV</button>
+    </div>
+    <input type="file" id="importFile" accept=".json,application/json" style="display:none" onchange="doRestore(this)">
+  </div>
+
+  <!-- ── Storage ── -->
+  <div class="card">
+    <div class="card-hdr"><div class="card-title">What is stored</div></div>
+    <div id="storageBox"><div class="loading" style="font-size:13px;color:var(--text-muted)">Measuring…</div></div>
+  </div>
+
+  <!-- ── Danger ── -->
+  <div class="card danger-card">
+    <div class="card-hdr"><div class="card-title">Erase everything</div></div>
+    <div style="font-size:13px;color:var(--text-2);line-height:1.6;margin-bottom:14px">
+      Deletes every reading, appointment, lab value and document from this device. There is no undo and
+      no copy anywhere else. Export a backup first.
+    </div>
+    <button class="btn btn-danger" onclick="wipeAll()">Erase all Care Log data</button>
+  </div>
+
+</div>
+
+<!-- ── Medicine modal ──────────────────────────────────────── -->
+<div class="modal-overlay" id="medModal">
+  <div class="modal">
+    <h2 id="medTitle">Add medicine</h2>
+    <div class="modal-sub">These appear on the doctor-visit report.</div>
+    <input type="hidden" id="m_id">
+    <div class="form-group"><label>Name</label><input type="text" id="m_name" placeholder="e.g. Ondansetron"></div>
+    <div class="form-row">
+      <div class="form-group"><label>Dose</label><input type="text" id="m_dose" placeholder="8 mg"></div>
+      <div class="form-group"><label>When</label><input type="text" id="m_schedule" placeholder="twice a day, after food"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Started</label><input type="date" id="m_startDate"></div>
+      <div class="form-group"><label>Status</label>
+        <select id="m_active"><option value="yes">Taking now</option><option value="no">Stopped</option></select>
+      </div>
+    </div>
+    <div class="form-group"><label>Notes</label><textarea id="m_notes" placeholder="Why it was prescribed, side effects…"></textarea></div>
+    <div class="modal-footer">
+      <button class="btn btn-danger" id="mDeleteBtn" onclick="deleteMed()" style="margin-right:auto;display:none">Delete</button>
+      <button class="btn btn-outline" onclick="closeModal('medModal')">Cancel</button>
+      <button class="btn btn-teal" onclick="saveMed()">Save</button>
+    </div>
+  </div>
+</div>
+
+<script src="health-base.js"></script>
+<script>
+const PROFILE_FIELDS = ['name','dob','heightCm','bloodType','phone','allergies',
+                        'diagnosis','stage','diagnosedOn','oncologist','hospital','notes'];
+const TARGET_FIELDS  = ['weightLow','weightHigh','glucoseLow','glucoseHigh'];
+
+function loadForm() {
+  const p = getProfile();
+  PROFILE_FIELDS.forEach(k => { const el = document.getElementById('p_' + k); if (el) el.value = p[k] ?? ''; });
+  TARGET_FIELDS.forEach(k => { const el = document.getElementById('t_' + k); if (el) el.value = p.targets[k] ?? ''; });
+}
+
+function saveAll() {
+  const p = getProfile();
+  PROFILE_FIELDS.forEach(k => { const el = document.getElementById('p_' + k); if (el) p[k] = el.value.trim(); });
+  TARGET_FIELDS.forEach(k => { const el = document.getElementById('t_' + k); if (el) p.targets[k] = el.value === '' ? '' : num(el.value); });
+
+  const lo = num(p.targets.weightLow), hi = num(p.targets.weightHigh);
+  if (lo !== null && hi !== null && lo > hi) { toast('The weight target’s low limit is above its high limit.', 'error'); return; }
+  const glo = num(p.targets.glucoseLow), ghi = num(p.targets.glucoseHigh);
+  if (glo !== null && ghi !== null && glo > ghi) { toast('The blood-sugar low limit is above the high limit.', 'error'); return; }
+
+  saveProfile(p);
+  toast('Settings saved.');
+  setTimeout(() => location.reload(), 700);   // refresh the sidebar patient name
+}
+
+/* ── Medication ────────────────────────────────────────────── */
+function renderMeds() {
+  const meds = getMeds();
+  const box = document.getElementById('medBox');
+  if (!meds.length) {
+    box.innerHTML = `<div class="empty" style="padding:26px 12px"><div class="empty-icon">💊</div>
+      Nothing added. Listing her medicines here puts them on every doctor report.</div>`;
+    return;
+  }
+  box.innerHTML = meds.map(m => `<div class="med-row ${m.active === false ? 'off' : ''}">
+    <span style="font-size:18px">💊</span>
+    <span style="flex:1;min-width:0">
+      <div class="med-name">${esc(m.name)} ${m.dose ? `<span style="font-weight:400;color:var(--text-muted)">${esc(m.dose)}</span>` : ''}</div>
+      <div class="med-meta">${esc([m.schedule, m.startDate ? 'since ' + fmtDate(m.startDate) : ''].filter(Boolean).join(' · '))}
+        ${m.active === false ? '<span class="badge badge-neutral" style="margin-left:6px">stopped</span>' : ''}</div>
+    </span>
+    <button class="btn btn-outline btn-sm" onclick="openMed('${m.id}')">Edit</button>
+  </div>`).join('');
+}
+
+function openMed(id) {
+  const m = id ? Store.find(HK.meds, id) : null;
+  document.getElementById('medTitle').textContent = m ? 'Edit medicine' : 'Add medicine';
+  document.getElementById('mDeleteBtn').style.display = m ? '' : 'none';
+  document.getElementById('m_id').value        = m ? m.id : '';
+  document.getElementById('m_name').value      = m ? m.name : '';
+  document.getElementById('m_dose').value      = m ? (m.dose || '') : '';
+  document.getElementById('m_schedule').value  = m ? (m.schedule || '') : '';
+  document.getElementById('m_startDate').value = m ? (m.startDate || '') : '';
+  document.getElementById('m_notes').value     = m ? (m.notes || '') : '';
+  document.getElementById('m_active').value    = m && m.active === false ? 'no' : 'yes';
+  openModal('medModal');
+}
+
+function saveMed() {
+  const name = document.getElementById('m_name').value.trim();
+  if (!name) { toast('The medicine needs a name.', 'error'); return; }
+  const rec = Store.find(HK.meds, document.getElementById('m_id').value) || {};
+  rec.name      = name;
+  rec.dose      = document.getElementById('m_dose').value.trim();
+  rec.schedule  = document.getElementById('m_schedule').value.trim();
+  rec.startDate = document.getElementById('m_startDate').value;
+  rec.notes     = document.getElementById('m_notes').value.trim();
+  rec.active    = document.getElementById('m_active').value === 'yes';
+  Store.upsert(HK.meds, rec);
+  closeModal('medModal');
+  toast('Saved.');
+  renderMeds();
+}
+
+function deleteMed() {
+  const id = document.getElementById('m_id').value;
+  confirmAction('Remove this medicine?', 'It will no longer appear on reports.', 'Remove', () => {
+    Store.remove(HK.meds, id);
+    closeModal('medModal');
+    renderMeds();
+    toast('Removed.');
+  });
+}
+
+/* ── Backup ────────────────────────────────────────────────── */
+function renderBackupStatus() {
+  const since = daysSinceBackup();
+  const el = document.getElementById('backupStatus');
+  if (since === null) {
+    el.innerHTML = '<span class="badge badge-warning">▲ Never backed up</span>';
+  } else if (since > BACKUP_NAG_DAYS) {
+    el.innerHTML = `<span class="badge badge-warning">▲ Last backup ${since} days ago</span>`;
+  } else {
+    el.innerHTML = `<span class="badge badge-good">✓ Last backup ${since === 0 ? 'today' : since + ' day(s) ago'}</span>`;
+  }
+}
+
+async function doBackup(withFiles = true) {
+  toast('Preparing the backup…', 'info');
+  try {
+    const r = await exportBackup(withFiles);
+    toast(`Backup saved — ${r.records} records${withFiles ? `, ${r.files} documents` : ''} (${fmtBytes(r.bytes)}).`);
+    renderBackupStatus();
+    renderStorage();
+  } catch (e) {
+    toast('Backup failed: ' + e.message, 'error');
+  }
+}
+
+function doRestore(input) {
+  const file = input.files[0];
+  if (!file) return;
+  input.value = '';
+  confirmAction('Restore from this backup?',
+    'Choose Merge to add anything missing while keeping what is here. To replace everything instead, erase the data first, then restore.',
+    'Merge in', async () => {
+      try {
+        const r = await importBackup(file, 'merge');
+        toast(`Restored — ${r.records} records and ${r.files} documents added.`);
+        setTimeout(() => location.reload(), 1000);
+      } catch (e) {
+        toast(e.message, 'error');
+      }
+    }, false);
+}
+
+/* ── Storage readout ───────────────────────────────────────── */
+async function renderStorage() {
+  let lsBytes = 0;
+  Object.values(HK).forEach(k => { lsBytes += (localStorage.getItem(k) || '').length * 2; });
+  const fileBytes = await Files.totalBytes().catch(() => 0);
+
+  let quotaTxt = '';
+  let pct = null;
+  if (navigator.storage && navigator.storage.estimate) {
+    try {
+      const est = await navigator.storage.estimate();
+      if (est.quota) {
+        pct = Math.min(((est.usage || 0) / est.quota) * 100, 100);
+        quotaTxt = `${fmtBytes(est.usage || 0)} of about ${fmtBytes(est.quota)} available to this site`;
+      }
+    } catch {}
+  }
+
+  document.getElementById('storageBox').innerHTML = `
+    <div class="stats" style="margin-bottom:14px">
+      <div class="stat blue"><div class="stat-val">${getVitals().length}</div><div class="stat-lbl">Daily readings</div></div>
+      <div class="stat aqua"><div class="stat-val">${getEvents().length}</div><div class="stat-lbl">Calendar events</div></div>
+      <div class="stat orange"><div class="stat-val">${getLabs().length}</div><div class="stat-lbl">Lab result sets</div></div>
+      <div class="stat"><div class="stat-val">${getRecords().length}</div><div class="stat-lbl">Documents</div></div>
+    </div>
+    <div style="font-size:12.5px;color:var(--text-2);line-height:1.7">
+      Records (text): <strong>${fmtBytes(lsBytes)}</strong><br>
+      Scanned documents: <strong>${fmtBytes(fileBytes)}</strong>
+    </div>
+    ${pct !== null ? `<div class="store-bar"><div class="store-fill" style="width:${pct.toFixed(1)}%"></div></div>
+      <div style="font-size:11px;color:var(--text-muted)">${esc(quotaTxt)}</div>` : ''}`;
+}
+
+/* ── Wipe ──────────────────────────────────────────────────── */
+function wipeAll() {
+  confirmAction('Erase everything?',
+    'Every reading, appointment, lab value and scanned document will be deleted from this device permanently.',
+    'Erase it all', () => {
+      confirmAction('Really erase it all?', 'This is the last warning. If you have not exported a backup, the data is gone for good.',
+        'Yes, erase', async () => {
+          for (const r of getRecords()) for (const a of (r.attachments || [])) await Files.del(a.id).catch(() => {});
+          Object.values(HK).forEach(k => localStorage.removeItem(k));
+          toast('All Care Log data erased.');
+          setTimeout(() => location.reload(), 900);
+        });
+    });
+}
+
+loadForm();
+renderMeds();
+renderBackupStatus();
+renderStorage();
+</script>
+<script src="health-nav.js"></script>
+</body>
+</html>

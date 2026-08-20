@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Care Log — Lab Results</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="health-style.css">
+<style>
+.panel { border: 1px solid var(--border); border-radius: 9px; margin-bottom: 10px; overflow: hidden; }
+.panel > summary { padding: 10px 14px; cursor: pointer; font-size: 12.5px; font-weight: 600;
+  color: var(--teal-dark); background: var(--teal-wash); list-style: none; display: flex;
+  align-items: center; justify-content: space-between; gap: 10px; }
+.panel > summary::-webkit-details-marker { display: none; }
+.panel > summary::after { content: '▾'; color: var(--text-muted); font-size: 11px; }
+.panel[open] > summary::after { content: '▴'; }
+.panel-body { padding: 10px 14px 14px; }
+.test-row { display: grid; grid-template-columns: 1fr 88px 74px 64px 64px; gap: 8px; align-items: center; margin-bottom: 7px; }
+.test-row .tname { font-size: 12.5px; color: var(--text-2); min-width: 0; }
+.test-row input { padding: 6px 9px; border: 1px solid var(--border); border-radius: 6px;
+  font-family: inherit; font-size: 12.5px; outline: none; width: 100%; }
+.test-row input:focus { border-color: var(--teal); }
+.test-row input.val { font-weight: 600; }
+.test-row .tunit { font-size: 11px; color: var(--text-muted); text-align: center; }
+.test-head { display: grid; grid-template-columns: 1fr 88px 74px 64px 64px; gap: 8px;
+  font-size: 9.5px; text-transform: uppercase; letter-spacing: .07em; color: var(--text-muted);
+  font-weight: 600; margin-bottom: 6px; }
+.test-head span:first-child { text-align: left; }
+.test-head span { text-align: center; }
+.result-card { border-bottom: 1px solid var(--grid); padding: 14px 0; }
+.result-card:last-child { border-bottom: none; }
+.result-hdr { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.result-title { font-size: 14px; font-weight: 600; color: var(--text); }
+.result-meta { font-size: 12px; color: var(--text-muted); margin-top: 3px; }
+.val-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(158px, 1fr)); gap: 8px; margin-top: 11px; }
+.val-chip { border: 1px solid var(--grid); border-radius: 8px; padding: 8px 10px; background: var(--surface); }
+.val-chip.out { border-color: #f3d3ce; background: #fffaf9; }
+.val-name { font-size: 10.5px; color: var(--text-muted); margin-bottom: 3px; }
+.val-num { font-size: 15px; font-weight: 700; color: var(--teal-dark); font-variant-numeric: tabular-nums; }
+.val-chip.out .val-num { color: var(--critical); }
+.val-num .u { font-size: 10.5px; font-weight: 500; color: var(--text-muted); margin-left: 3px; }
+.val-ref { font-size: 10px; color: var(--text-muted); margin-top: 2px; font-variant-numeric: tabular-nums; }
+.trend-arrow { font-size: 11px; font-weight: 700; margin-left: 5px; }
+@media(max-width:900px){
+  .test-row, .test-head { grid-template-columns: 1fr 76px 56px; }
+  .test-row input.lo, .test-row input.hi, .test-head span:nth-child(4), .test-head span:nth-child(5) { display: none; }
+}
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="page-hdr">
+    <div>
+      <div class="page-title">Lab Results</div>
+      <div class="page-sub">Type the numbers in once and every one of them becomes a trend line.</div>
+    </div>
+    <div class="hdr-actions">
+      <button class="btn btn-outline" onclick="exportLabsCSV()">↓ CSV</button>
+      <button class="btn btn-gold" onclick="openLab()">+ Add results</button>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" data-tab="latest" onclick="setTab('latest', this)">Latest values</button>
+    <button class="tab" data-tab="all" onclick="setTab('all', this)">All results</button>
+  </div>
+
+  <div id="tabLatest">
+    <div class="card">
+      <div class="card-hdr">
+        <div class="card-title">Most recent value of every test</div>
+        <div class="card-note">Arrow compares with the result before it.</div>
+      </div>
+      <div id="latestBox"></div>
+    </div>
+  </div>
+
+  <div id="tabAll" style="display:none">
+    <div class="filters">
+      <input class="search-box" id="searchBox" placeholder="Search by date, lab or note…" oninput="renderAll()">
+    </div>
+    <div class="card"><div id="resultsBox"></div></div>
+  </div>
+
+</div>
+
+<!-- ── Lab entry modal ─────────────────────────────────────── -->
+<div class="modal-overlay" id="labModal">
+  <div class="modal wide">
+    <h2 id="labTitle">Add lab results</h2>
+    <div class="modal-sub">Fill in only the tests on the report. Reference ranges are pre-filled with typical adult values — overwrite them with the ones your lab printed.</div>
+
+    <input type="hidden" id="l_id">
+
+    <div class="form-row">
+      <div class="form-group"><label>Date of the test</label><input type="date" id="l_date"></div>
+      <div class="form-group"><label>Lab / hospital</label><input type="text" id="l_source" placeholder="e.g. Bioiatriki"></div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group"><label>Title</label><input type="text" id="l_title" placeholder="e.g. Pre-chemo blood work"></div>
+      <div class="form-group"><label>Link to a calendar event</label><select id="l_event"></select></div>
+    </div>
+
+    <div id="panels"></div>
+
+    <div class="form-group">
+      <label>Add a test that isn't listed</label>
+      <div class="form-row3">
+        <input type="text" id="c_name" placeholder="Test name">
+        <input type="text" id="c_unit" placeholder="Unit">
+        <button class="btn btn-outline" onclick="addCustomTest()">+ Add row</button>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Notes</label>
+      <textarea id="l_notes" placeholder="What the doctor said about these results…"></textarea>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn btn-danger" id="lDeleteBtn" onclick="deleteLab()" style="margin-right:auto;display:none">Delete</button>
+      <button class="btn btn-outline" onclick="closeModal('labModal')">Cancel</button>
+      <button class="btn btn-teal" onclick="saveLab()">Save results</button>
+    </div>
+  </div>
+</div>
+
+<script src="health-base.js"></script>
+<script>
+let tab = 'latest';
+let customRows = [];
+
+function setTab(t, btn) {
+  tab = t;
+  document.querySelectorAll('[data-tab]').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('tabLatest').style.display = t === 'latest' ? '' : 'none';
+  document.getElementById('tabAll').style.display    = t === 'all' ? '' : 'none';
+  render();
+}
+
+/* ── Entry form ────────────────────────────────────────────── */
+function buildPanels(existing) {
+  const have = {};
+  (existing?.values || []).forEach(v => { have[v.key] = v; });
+
+  document.getElementById('panels').innerHTML = LAB_PANELS.map((p, i) => {
+    const filled = p.tests.filter(t => have[t.key]).length;
+    const rows = p.tests.map(t => {
+      const v = have[t.key] || {};
+      return `<div class="test-row" data-key="${t.key}">
+        <span class="tname">${esc(t.label)}</span>
+        <input class="val" type="number" step="any" inputmode="decimal" id="t_${t.key}" value="${v.value ?? ''}" placeholder="—">
+        <span class="tunit">${esc(t.unit)}</span>
+        <input class="lo" type="number" step="any" id="lo_${t.key}" value="${v.low ?? t.low}" title="Reference low">
+        <input class="hi" type="number" step="any" id="hi_${t.key}" value="${v.high ?? t.high}" title="Reference high">
+      </div>`;
+    }).join('');
+    return `<details class="panel" ${i === 0 || filled ? 'open' : ''}>
+      <summary><span>${esc(p.label)}</span>${filled ? `<span class="badge badge-teal">${filled} filled</span>` : ''}</summary>
+      <div class="panel-body">
+        <div class="test-head"><span>Test</span><span>Value</span><span>Unit</span><span>Ref low</span><span>Ref high</span></div>
+        ${rows}
+      </div>
+    </details>`;
+  }).join('') + '<div id="customPanel"></div>';
+
+  customRows = (existing?.values || []).filter(v => v.custom);
+  renderCustomRows();
+}
+
+function renderCustomRows() {
+  const box = document.getElementById('customPanel');
+  if (!box) return;
+  if (!customRows.length) { box.innerHTML = ''; return; }
+  box.innerHTML = `<details class="panel" open>
+    <summary><span>Other tests</span><span class="badge badge-teal">${customRows.length}</span></summary>
+    <div class="panel-body">
+      <div class="test-head"><span>Test</span><span>Value</span><span>Unit</span><span>Ref low</span><span>Ref high</span></div>
+      ${customRows.map((c, i) => `<div class="test-row">
+        <span class="tname">${esc(c.label)}
+          <button class="btn btn-sm" style="background:none;color:var(--critical);padding:0 4px" onclick="removeCustom(${i})" title="Remove">×</button></span>
+        <input class="val" type="number" step="any" inputmode="decimal" id="tc_${i}" value="${c.value ?? ''}" placeholder="—">
+        <span class="tunit">${esc(c.unit || '')}</span>
+        <input class="lo" type="number" step="any" id="loc_${i}" value="${c.low ?? ''}">
+        <input class="hi" type="number" step="any" id="hic_${i}" value="${c.high ?? ''}">
+      </div>`).join('')}
+    </div></details>`;
+}
+
+function addCustomTest() {
+  const name = document.getElementById('c_name').value.trim();
+  if (!name) { toast('Give the test a name first.', 'error'); return; }
+  syncCustomFromDom();
+  customRows.push({ key: 'x_' + name.toLowerCase().replace(/[^a-z0-9]+/g, '_'), label: name,
+                    unit: document.getElementById('c_unit').value.trim(), value: '', low: '', high: '', custom: true });
+  document.getElementById('c_name').value = '';
+  document.getElementById('c_unit').value = '';
+  renderCustomRows();
+}
+function removeCustom(i) { syncCustomFromDom(); customRows.splice(i, 1); renderCustomRows(); }
+function syncCustomFromDom() {
+  customRows.forEach((c, i) => {
+    const v = document.getElementById('tc_' + i);
+    if (!v) return;
+    c.value = v.value;
+    c.low  = document.getElementById('loc_' + i).value;
+    c.high = document.getElementById('hic_' + i).value;
+  });
+}
+
+function buildEventSelect(selected) {
+  const opts = ['<option value="">— not linked —</option>'].concat(
+    getEvents().slice().reverse().slice(0, 120).map(e =>
+      `<option value="${e.id}" ${e.id === selected ? 'selected' : ''}>${esc(fmtDate(e.date))} · ${esc(e.title || eventLabel(e.type))}</option>`)
+  );
+  document.getElementById('l_event').innerHTML = opts.join('');
+}
+
+function openLab(id) {
+  const l = id ? Store.find(HK.labs, id) : null;
+  document.getElementById('labTitle').textContent = l ? 'Edit lab results' : 'Add lab results';
+  document.getElementById('lDeleteBtn').style.display = l ? '' : 'none';
+  document.getElementById('l_id').value     = l ? l.id : '';
+  document.getElementById('l_date').value   = l ? l.date : todayISO();
+  document.getElementById('l_source').value = l ? (l.source || '') : '';
+  document.getElementById('l_title').value  = l ? (l.title || '') : '';
+  document.getElementById('l_notes').value  = l ? (l.notes || '') : '';
+  buildEventSelect(l ? l.eventId : '');
+  buildPanels(l);
+  openModal('labModal');
+}
+
+function saveLab() {
+  const date = document.getElementById('l_date').value;
+  if (!date) { toast('Pick the date of the test.', 'error'); return; }
+  syncCustomFromDom();
+
+  const values = [];
+  LAB_PANELS.forEach(p => p.tests.forEach(t => {
+    const raw = document.getElementById('t_' + t.key).value;
+    if (num(raw) === null) return;
+    values.push({
+      key: t.key, label: t.label, unit: t.unit, value: num(raw),
+      low:  num(document.getElementById('lo_' + t.key).value),
+      high: num(document.getElementById('hi_' + t.key).value)
+    });
+  }));
+  customRows.forEach(c => {
+    if (num(c.value) === null) return;
+    values.push({ key: c.key, label: c.label, unit: c.unit, value: num(c.value),
+                  low: num(c.low), high: num(c.high), custom: true });
+  });
+
+  if (!values.length) { toast('Fill in at least one test value.', 'error'); return; }
+
+  const rec = Store.find(HK.labs, document.getElementById('l_id').value) || {};
+  rec.date    = date;
+  rec.source  = document.getElementById('l_source').value.trim();
+  rec.title   = document.getElementById('l_title').value.trim() || 'Lab results';
+  rec.eventId = document.getElementById('l_event').value;
+  rec.notes   = document.getElementById('l_notes').value.trim();
+  rec.values  = values;
+
+  Store.upsert(HK.labs, rec);
+  closeModal('labModal');
+  toast(`Saved — ${values.length} value${values.length > 1 ? 's' : ''} recorded.`);
+  render();
+}
+
+function deleteLab() {
+  const id = document.getElementById('l_id').value;
+  if (!id) return;
+  confirmAction('Delete these results?', 'Every value in this set disappears from the trend charts too.', 'Delete', () => {
+    Store.remove(HK.labs, id);
+    closeModal('labModal');
+    toast('Results deleted.');
+    render();
+  });
+}
+
+/* ── Latest values view ────────────────────────────────────── */
+function renderLatest() {
+  const labs = getLabs();                    // newest first
+  const box = document.getElementById('latestBox');
+  if (!labs.length) {
+    box.innerHTML = `<div class="empty"><div class="empty-icon">🧪</div>
+      <strong>No lab results yet</strong>
+      Add the numbers from a blood-test report and they will start plotting themselves.</div>`;
+    return;
+  }
+
+  /* Walk newest→oldest, keeping the first two sightings of each test. */
+  const seen = {};
+  labs.forEach(l => (l.values || []).forEach(v => {
+    if (num(v.value) === null) return;
+    (seen[v.key] = seen[v.key] || []).push({ ...v, date: l.date });
+  }));
+
+  const byPanel = {};
+  Object.keys(seen).forEach(k => {
+    const def = LAB_TESTS[k];
+    const panel = def ? def.panelLabel : 'Other tests';
+    (byPanel[panel] = byPanel[panel] || []).push({ key: k, hist: seen[k] });
+  });
+
+  const order = LAB_PANELS.map(p => p.label).concat(['Other tests']);
+  box.innerHTML = order.filter(p => byPanel[p]).map(panel => {
+    const chips = byPanel[panel].map(({ key, hist }) => {
+      const cur = hist[0], prev = hist[1];
+      const st = rangeStatus(cur.value, cur.low, cur.high);
+      const def = LAB_TESTS[key] || {};
+      const dec = def.dec ?? 1;
+      let arrow = '';
+      if (prev) {
+        const d = cur.value - prev.value;
+        if (Math.abs(d) > 1e-9) {
+          arrow = `<span class="trend-arrow" style="color:var(--text-muted)" title="was ${fmtNum(prev.value, dec)} on ${fmtDate(prev.date)}">${d > 0 ? '↑' : '↓'}</span>`;
+        }
+      }
+      return `<div class="val-chip ${st && st !== 'good' ? 'out' : ''}">
+        <div class="val-name">${esc(cur.label || def.label || key)}</div>
+        <div class="val-num">${fmtNum(cur.value, dec)}<span class="u">${esc(cur.unit || def.unit || '')}</span>${arrow}</div>
+        <div class="val-ref">${cur.low != null || cur.high != null ? `ref ${cur.low ?? '–'}–${cur.high ?? '–'}` : ''} · ${esc(fmtDateShort(cur.date))}</div>
+      </div>`;
+    }).join('');
+    return `<div style="margin-bottom:18px">
+      <div style="font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);margin-bottom:8px">${esc(panel)}</div>
+      <div class="val-grid">${chips}</div></div>`;
+  }).join('') + `<div class="card-note" style="margin-top:6px">
+    Values outside their reference range are outlined in red. Reference ranges differ between laboratories —
+    always read these next to the report your lab issued, and let the treating doctor interpret them.</div>`;
+}
+
+/* ── All results view ──────────────────────────────────────── */
+function renderAll() {
+  const q = (document.getElementById('searchBox').value || '').toLowerCase().trim();
+  let labs = getLabs();
+  if (q) labs = labs.filter(l =>
+    (l.title + ' ' + (l.source || '') + ' ' + (l.notes || '') + ' ' + fmtDate(l.date)).toLowerCase().includes(q));
+
+  const box = document.getElementById('resultsBox');
+  if (!labs.length) {
+    box.innerHTML = `<div class="empty"><div class="empty-icon">🧪</div>
+      <strong>${q ? 'Nothing matches that search' : 'No lab results yet'}</strong>
+      ${q ? 'Try a different word.' : 'Add the values from a blood-test report to get started.'}</div>`;
+    return;
+  }
+
+  box.innerHTML = labs.map(l => {
+    const ev = l.eventId ? Store.find(HK.events, l.eventId) : null;
+    const out = (l.values || []).filter(v => {
+      const s = rangeStatus(v.value, v.low, v.high);
+      return s && s !== 'good';
+    }).length;
+    const chips = (l.values || []).map(v => {
+      const st = rangeStatus(v.value, v.low, v.high);
+      const def = LAB_TESTS[v.key] || {};
+      return `<div class="val-chip ${st && st !== 'good' ? 'out' : ''}">
+        <div class="val-name">${esc(v.label || def.label || v.key)}</div>
+        <div class="val-num">${fmtNum(v.value, def.dec ?? 1)}<span class="u">${esc(v.unit || '')}</span></div>
+        <div class="val-ref">${v.low != null || v.high != null ? `ref ${v.low ?? '–'}–${v.high ?? '–'}` : '&nbsp;'}</div>
+      </div>`;
+    }).join('');
+
+    return `<div class="result-card" id="${l.id}">
+      <div class="result-hdr">
+        <div>
+          <div class="result-title">🧪 ${esc(l.title)}</div>
+          <div class="result-meta">${esc(fmtDateLong(l.date))}${l.source ? ' · ' + esc(l.source) : ''}
+            ${ev ? ` · <a href="calendar.html" style="color:var(--teal)">${eventIcon(ev.type)} ${esc(ev.title || eventLabel(ev.type))}</a>` : ''}</div>
+        </div>
+        <div style="display:flex;gap:7px;align-items:center;flex-wrap:wrap">
+          <span class="badge ${out ? 'badge-warning' : 'badge-good'}">${out ? `▲ ${out} outside range` : '✓ all in range'}</span>
+          <button class="btn btn-outline btn-sm" onclick="openLab('${l.id}')">Edit</button>
+        </div>
+      </div>
+      <div class="val-grid">${chips}</div>
+      ${l.notes ? `<div class="result-meta" style="margin-top:9px">📝 ${esc(l.notes)}</div>` : ''}
+    </div>`;
+  }).join('');
+
+  /* Deep link from the calendar (#labId) */
+  if (location.hash) {
+    const el = document.getElementById(location.hash.slice(1));
+    if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); el.style.background = 'var(--teal-wash)'; }
+  }
+}
+
+function render() { if (tab === 'latest') renderLatest(); else renderAll(); }
+
+if (location.hash) { tab = 'all'; }
+render();
+if (tab === 'all') {
+  document.querySelectorAll('[data-tab]').forEach(b => b.classList.toggle('active', b.dataset.tab === 'all'));
+  document.getElementById('tabLatest').style.display = 'none';
+  document.getElementById('tabAll').style.display = '';
+  renderAll();
+}
+</script>
+<script src="health-nav.js"></script>
+</body>
+</html>

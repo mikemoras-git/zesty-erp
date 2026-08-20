@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Care Log — Overview</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="health-style.css">
+<style>
+.hero { background: linear-gradient(135deg, #0a3d36 0%, #1a7a6e 100%); color: #fff;
+  border-radius: 16px; padding: 26px 28px; margin-bottom: 18px; }
+.hero-name { font-family: 'Cormorant Garamond', Georgia, serif; font-size: 27px; font-weight: 500; }
+.hero-dx { font-size: 13px; color: rgba(255,255,255,.72); margin-top: 4px; }
+.hero-next { margin-top: 18px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,.14);
+  display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.hero-next-lbl { font-size: 10px; text-transform: uppercase; letter-spacing: .12em; color: rgba(255,255,255,.44); }
+.hero-next-title { font-size: 17px; font-weight: 600; margin-top: 5px; display: flex; align-items: center; gap: 8px; }
+.hero-next-when { font-size: 12.5px; color: rgba(255,255,255,.72); margin-top: 4px; }
+.hero-countdown { text-align: right; }
+.hero-countdown .n { font-size: 40px; font-weight: 700; line-height: 1; color: var(--gold-light); }
+.hero-countdown .u { font-size: 11px; text-transform: uppercase; letter-spacing: .1em; color: rgba(255,255,255,.5); margin-top: 3px; }
+
+.quick { display: grid; grid-template-columns: repeat(auto-fit, minmax(168px, 1fr)); gap: 11px; margin-bottom: 20px; }
+.quick a { background: var(--surface); border-radius: var(--radius); box-shadow: var(--shadow);
+  padding: 15px 17px; text-decoration: none; color: var(--text); display: flex; align-items: center;
+  gap: 12px; transition: all .18s; border-left: 4px solid transparent; }
+.quick a:hover { box-shadow: var(--shadow-lg); border-left-color: var(--gold); transform: translateY(-1px); }
+.quick .ico { font-size: 21px; }
+.quick .lbl { font-size: 13px; font-weight: 600; display: block; }
+.quick .sub { font-size: 11px; color: var(--text-muted); margin-top: 2px; display: block; }
+
+.two-col { display: grid; grid-template-columns: 1.15fr .85fr; gap: 16px; align-items: start; }
+@media(max-width:980px){ .two-col { grid-template-columns: 1fr; } }
+
+.mini-ev { display: flex; align-items: center; gap: 11px; padding: 10px 0; border-bottom: 1px solid var(--grid); }
+.mini-ev:last-child { border-bottom: none; }
+.mini-ev .ic { width: 30px; height: 30px; border-radius: 8px; display: flex; align-items: center;
+  justify-content: center; font-size: 14px; flex-shrink: 0; }
+.mini-ev .tx { flex: 1; min-width: 0; }
+.mini-ev .t1 { font-size: 13px; font-weight: 600; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mini-ev .t2 { font-size: 11.5px; color: var(--text-muted); margin-top: 2px; }
+.mini-ev .rel { font-size: 11.5px; font-weight: 600; color: var(--teal); white-space: nowrap; }
+
+.nag { background: var(--warning-bg); border-left: 4px solid var(--warning); border-radius: var(--radius);
+  padding: 13px 17px; margin-bottom: 16px; font-size: 13px; color: #6b4a00;
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.nag strong { color: #4a3300; }
+.setup { background: var(--teal-wash); border: 1px solid #bfe3dd; border-radius: var(--radius);
+  padding: 24px 26px; margin-bottom: 18px; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div id="setupBox"></div>
+  <div id="nagBox"></div>
+  <div id="heroBox"></div>
+
+  <div class="quick">
+    <a href="vitals.html"><span class="ico">◔</span><span><span class="lbl">Log today</span><span class="sub" id="qLog">weight, sugar, symptoms</span></span></a>
+    <a href="calendar.html"><span class="ico">📅</span><span><span class="lbl">Add appointment</span><span class="sub" id="qEv">exam, chemo, surgery</span></span></a>
+    <a href="labs.html"><span class="ico">🧪</span><span><span class="lbl">Enter blood test</span><span class="sub" id="qLab">values and ranges</span></span></a>
+    <a href="records.html"><span class="ico">🗂</span><span><span class="lbl">File a document</span><span class="sub" id="qDoc">scan or photo</span></span></a>
+  </div>
+
+  <div class="stats" id="statTiles"></div>
+
+  <div class="two-col">
+    <div>
+      <div class="chart-card">
+        <div class="chart-hdr">
+          <div>
+            <div class="chart-title">Weight — last 90 days</div>
+            <div class="chart-sub" id="wSub">kilograms</div>
+          </div>
+          <a href="charts.html" class="btn btn-outline btn-sm">All trends →</a>
+        </div>
+        <div class="chart-host" id="chartWeight"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-hdr">
+          <div class="card-title">Recently filed</div>
+          <a href="records.html" class="btn btn-outline btn-sm">Open cabinet →</a>
+        </div>
+        <div id="recentBox"></div>
+      </div>
+    </div>
+
+    <div>
+      <div class="card">
+        <div class="card-hdr">
+          <div class="card-title">Coming up</div>
+          <a href="calendar.html" class="btn btn-outline btn-sm">Calendar →</a>
+        </div>
+        <div id="upcomingBox"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-hdr">
+          <div class="card-title">Last blood test</div>
+          <a href="labs.html" class="btn btn-outline btn-sm">All results →</a>
+        </div>
+        <div id="lastLabBox"></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script src="health-base.js"></script>
+<script>
+const P = getProfile();
+
+/* ── First run ─────────────────────────────────────────────── */
+function renderSetup() {
+  const box = document.getElementById('setupBox');
+  if (P.name) { box.innerHTML = ''; return; }
+  box.innerHTML = `<div class="setup">
+    <div style="font-family:'Cormorant Garamond',Georgia,serif;font-size:24px;color:var(--teal-dark);margin-bottom:8px">Welcome to Care Log</div>
+    <p style="font-size:13.5px;color:var(--text-2);line-height:1.65;max-width:640px">
+      A private place to keep track of treatment: daily weight and blood sugar, every appointment and
+      test, the results, and the scans and reports that come with them. Everything is stored on this
+      device only — nothing is uploaded anywhere.
+    </p>
+    <div style="margin-top:16px;display:flex;gap:9px;flex-wrap:wrap">
+      <a href="settings.html" class="btn btn-teal">Set up the patient →</a>
+      <a href="vitals.html" class="btn btn-outline">Skip and log a reading</a>
+    </div>
+  </div>`;
+}
+
+/* ── Backup reminder ───────────────────────────────────────── */
+function renderNag() {
+  const box = document.getElementById('nagBox');
+  const rows = getVitals().length + getEvents().length + getRecords().length + getLabs().length;
+  if (rows < 3) { box.innerHTML = ''; return; }
+
+  const since = daysSinceBackup();
+  if (since !== null && since <= BACKUP_NAG_DAYS) { box.innerHTML = ''; return; }
+  box.innerHTML = `<div class="nag">
+    <span style="font-size:19px">⚠</span>
+    <span style="flex:1;min-width:200px">
+      <strong>${since === null ? 'You have never made a backup.' : `Last backup was ${since} days ago.`}</strong>
+      Everything lives in this browser — clearing its data would lose it all.
+    </span>
+    <a href="settings.html" class="btn btn-gold btn-sm">Back up now</a>
+  </div>`;
+}
+
+/* ── Hero ──────────────────────────────────────────────────── */
+function renderHero() {
+  const next = upcomingEvents(1)[0];
+  const dxDays = P.diagnosedOn ? daysBetween(P.diagnosedOn, todayISO()) : null;
+
+  const heroNext = next ? `
+    <div class="hero-next">
+      <div>
+        <div class="hero-next-lbl">Next appointment</div>
+        <div class="hero-next-title">${eventIcon(next.type)} ${esc(next.title || eventLabel(next.type))}</div>
+        <div class="hero-next-when">${esc(fmtDateLong(next.date))}${next.time ? ' · ' + esc(next.time) : ''}${next.place ? ' · ' + esc(next.place) : ''}${next.doctor ? ' · ' + esc(next.doctor) : ''}</div>
+      </div>
+      <div class="hero-countdown">
+        <div class="n">${Math.max(daysBetween(todayISO(), next.date), 0)}</div>
+        <div class="u">${daysBetween(todayISO(), next.date) === 1 ? 'day away' : 'days away'}</div>
+      </div>
+    </div>` : `
+    <div class="hero-next">
+      <div>
+        <div class="hero-next-lbl">Next appointment</div>
+        <div class="hero-next-when" style="margin-top:6px">Nothing scheduled yet.</div>
+      </div>
+      <a href="calendar.html" class="btn btn-gold">Add one</a>
+    </div>`;
+
+  document.getElementById('heroBox').innerHTML = `<div class="hero">
+    <div class="hero-name">${esc(P.name || 'Care Log')}</div>
+    <div class="hero-dx">${esc([P.diagnosis, P.stage].filter(Boolean).join(' · ') || 'No diagnosis recorded')}${
+      dxDays !== null ? ` · day ${dxDays} since diagnosis` : ''}</div>
+    ${heroNext}
+  </div>`;
+}
+
+/* ── Stat tiles ────────────────────────────────────────────── */
+function renderStats() {
+  const tiles = [];
+
+  const w = latestVital('weight');
+  if (w) {
+    const d = metricDelta('weight', 30);
+    tiles.push(`<div class="stat blue">
+      <div class="stat-val">${fmtNum(w.weight, 1)}<span class="unit">kg</span></div>
+      <div class="stat-lbl">Weight · ${esc(fmtDateShort(w.date))}</div>
+      <div class="stat-delta flat">${d ? `${d.diff > 0 ? '↑' : d.diff < 0 ? '↓' : '→'} ${fmtNum(Math.abs(d.diff), 1)} kg in 30 days` : 'first reading'}</div>
+    </div>`);
+  }
+
+  const g = latestVital('glucose');
+  if (g) {
+    const c = GLUCOSE_CONTEXTS[g.glucoseContext] || GLUCOSE_CONTEXTS.random;
+    const st = rangeStatus(g.glucose, c.low, c.high);
+    tiles.push(`<div class="stat ${st === 'good' ? 'good' : 'warning'}">
+      <div class="stat-val">${fmtNum(g.glucose, 0)}<span class="unit">mg/dL</span></div>
+      <div class="stat-lbl">Sugar · ${esc(c.label)}</div>
+      <div style="margin-top:6px">${statusBadge(st, st === 'good' ? 'In target' : 'Outside target')}</div>
+    </div>`);
+  }
+
+  /* How many analytes on the newest report fell outside their range. */
+  const lastLab = getLabs()[0];
+  if (lastLab) {
+    const out = (lastLab.values || []).filter(v => {
+      const s = rangeStatus(v.value, v.low, v.high);
+      return s && s !== 'good';
+    }).length;
+    tiles.push(`<div class="stat ${out ? 'warning' : 'good'}">
+      <div class="stat-val">${out}</div>
+      <div class="stat-lbl">Out of range · ${esc(fmtDateShort(lastLab.date))}</div>
+      <div class="stat-delta flat">of ${(lastLab.values || []).length} tests</div>
+    </div>`);
+  }
+
+  const soon = upcomingEvents().filter(e => daysBetween(todayISO(), e.date) <= 30).length;
+  tiles.push(`<div class="stat aqua">
+    <div class="stat-val">${soon}</div>
+    <div class="stat-lbl">Appointments · next 30 days</div>
+    <div class="stat-delta flat">${getEvents().length} recorded in total</div>
+  </div>`);
+
+  tiles.push(`<div class="stat">
+    <div class="stat-val">${getRecords().length}</div>
+    <div class="stat-lbl">Documents filed</div>
+    <div class="stat-delta flat">${getVitals().length} daily readings</div>
+  </div>`);
+
+  document.getElementById('statTiles').innerHTML = tiles.join('');
+}
+
+/* ── Weight chart ──────────────────────────────────────────── */
+function renderChart() {
+  const from = addDays(todayISO(), -90);
+  const pts = vitalSeries('weight', from, '');
+  const t = P.targets || {};
+  const first = pts[0], last = pts[pts.length - 1];
+  document.getElementById('wSub').textContent = pts.length > 1
+    ? `${fmtNum(last.y - first.y, 1)} kg change since ${fmtDate(first.x)}` : 'kilograms';
+
+  renderLineChart(document.getElementById('chartWeight'), {
+    title: 'Weight', unit: 'kg', dec: 1, height: 220,
+    band: (num(t.weightLow) !== null || num(t.weightHigh) !== null)
+      ? { low: t.weightLow, high: t.weightHigh, label: 'target range' } : null,
+    markers: treatmentMarkers(from, ''),
+    series: [{ key: 'weight', label: 'Weight', color: '#2a78d6', points: pts }],
+    emptyMsg: 'No weight logged in the last 90 days.'
+  });
+}
+
+/* ── Lists ─────────────────────────────────────────────────── */
+function renderUpcoming() {
+  const list = upcomingEvents(6);
+  const box = document.getElementById('upcomingBox');
+  if (!list.length) {
+    box.innerHTML = `<div class="empty" style="padding:30px 12px"><div class="empty-icon">📅</div>
+      Nothing scheduled. <a href="calendar.html" style="color:var(--teal)">Add an appointment</a>.</div>`;
+    return;
+  }
+  box.innerHTML = list.map(e => {
+    const c = eventColor(e.type);
+    return `<a href="calendar.html" class="mini-ev" style="text-decoration:none;color:inherit">
+      <span class="ic" style="background:${c}18;color:${c}">${eventIcon(e.type)}</span>
+      <span class="tx">
+        <span class="t1">${esc(e.title || eventLabel(e.type))}</span>
+        <span class="t2">${esc(fmtDate(e.date))}${e.time ? ' · ' + esc(e.time) : ''}${e.place ? ' · ' + esc(e.place) : ''}</span>
+      </span>
+      <span class="rel">${esc(relDays(e.date))}</span>
+    </a>`;
+  }).join('');
+}
+
+function renderRecent() {
+  const list = getRecords().slice(0, 5);
+  const box = document.getElementById('recentBox');
+  if (!list.length) {
+    box.innerHTML = `<div class="empty" style="padding:30px 12px"><div class="empty-icon">🗂</div>
+      Nothing filed yet. <a href="records.html" style="color:var(--teal)">File a report</a>.</div>`;
+    return;
+  }
+  box.innerHTML = list.map(r => {
+    const cat = RECORD_CATEGORIES[r.category] || RECORD_CATEGORIES.other;
+    return `<a href="records.html#${r.id}" class="mini-ev" style="text-decoration:none;color:inherit">
+      <span class="ic" style="background:var(--cream)">${cat.icon}</span>
+      <span class="tx">
+        <span class="t1">${esc(r.title)}</span>
+        <span class="t2">${esc(cat.label)} · ${esc(fmtDate(r.date))}${r.source ? ' · ' + esc(r.source) : ''}</span>
+      </span>
+      <span class="rel" style="color:var(--text-muted)">${(r.attachments || []).length ? '📎 ' + r.attachments.length : ''}</span>
+    </a>`;
+  }).join('');
+}
+
+function renderLastLab() {
+  const lab = getLabs()[0];
+  const box = document.getElementById('lastLabBox');
+  if (!lab) {
+    box.innerHTML = `<div class="empty" style="padding:30px 12px"><div class="empty-icon">🧪</div>
+      No blood tests recorded. <a href="labs.html" style="color:var(--teal)">Add one</a>.</div>`;
+    return;
+  }
+  const flagged = (lab.values || []).filter(v => {
+    const s = rangeStatus(v.value, v.low, v.high);
+    return s && s !== 'good';
+  });
+  box.innerHTML = `
+    <div style="font-size:12.5px;color:var(--text-muted);margin-bottom:11px">
+      ${esc(fmtDateLong(lab.date))}${lab.source ? ' · ' + esc(lab.source) : ''}
+    </div>` +
+    (flagged.length
+      ? flagged.slice(0, 7).map(v => {
+          const def = LAB_TESTS[v.key] || {};
+          const st = rangeStatus(v.value, v.low, v.high);
+          return `<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px solid var(--grid);font-size:12.5px">
+            <span>${esc(v.label || def.label || v.key)}</span>
+            <span style="font-variant-numeric:tabular-nums;font-weight:600;color:var(--critical)">
+              ${fmtNum(v.value, def.dec ?? 1)} ${esc(v.unit || '')}
+              <span style="font-weight:400;color:var(--text-muted);font-size:11px">(${v.low ?? '–'}–${v.high ?? '–'})</span>
+            </span>
+          </div>`;
+        }).join('') + (flagged.length > 7 ? `<div style="font-size:11.5px;color:var(--text-muted);margin-top:8px">+${flagged.length - 7} more outside range</div>` : '')
+      : `<div class="badge badge-good">✓ Every value in range</div>`);
+}
+
+renderSetup();
+renderNag();
+renderHero();
+renderStats();
+renderChart();
+renderUpcoming();
+renderRecent();
+renderLastLab();
+</script>
+<script src="health-nav.js"></script>
+</body>
+</html>

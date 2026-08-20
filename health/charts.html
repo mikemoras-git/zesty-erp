@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Care Log — Trends</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="health-style.css">
+<style>
+.toggle-row { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-muted); }
+.toggle-row input { accent-color: var(--teal); width: 15px; height: 15px; }
+.lab-pick { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.lab-pick select { padding: 7px 11px; border: 1px solid var(--border); border-radius: 8px;
+  font-family: inherit; font-size: 13px; outline: none; background: var(--surface); min-width: 210px; }
+.chart-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(430px, 1fr)); gap: 16px; }
+@media(max-width:1000px){ .chart-grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="container wide">
+
+  <div class="page-hdr">
+    <div>
+      <div class="page-title">Trends</div>
+      <div class="page-sub">How things are moving over time. Treatment dates are ticked along the bottom of each chart.</div>
+    </div>
+  </div>
+
+  <div class="filters">
+    <button class="chip-btn" data-range="30"  onclick="setRange('30', this)">30 days</button>
+    <button class="chip-btn active" data-range="90" onclick="setRange('90', this)">3 months</button>
+    <button class="chip-btn" data-range="180" onclick="setRange('180', this)">6 months</button>
+    <button class="chip-btn" data-range="365" onclick="setRange('365', this)">1 year</button>
+    <button class="chip-btn" data-range="all" onclick="setRange('all', this)">All time</button>
+    <label class="toggle-row" style="margin-left:auto">
+      <input type="checkbox" id="showMarkers" checked onchange="render()"> Show treatment dates
+    </label>
+  </div>
+
+  <div class="chart-grid">
+
+    <div class="chart-card">
+      <div class="chart-hdr">
+        <div>
+          <div class="chart-title">Weight</div>
+          <div class="chart-sub" id="weightSub">kilograms</div>
+        </div>
+      </div>
+      <div class="chart-host" id="chartWeight"></div>
+    </div>
+
+    <div class="chart-card">
+      <div class="chart-hdr">
+        <div>
+          <div class="chart-title">Blood sugar</div>
+          <div class="chart-sub">mg/dL — split by when the reading was taken, because the targets differ</div>
+        </div>
+      </div>
+      <div class="chart-host" id="chartGlucose"></div>
+    </div>
+
+    <div class="chart-card">
+      <div class="chart-hdr">
+        <div>
+          <div class="chart-title">Blood pressure &amp; pulse</div>
+          <div class="chart-sub">mmHg and bpm</div>
+        </div>
+      </div>
+      <div class="chart-host" id="chartBP"></div>
+    </div>
+
+    <div class="chart-card">
+      <div class="chart-hdr">
+        <div>
+          <div class="chart-title">How she felt</div>
+          <div class="chart-sub">0–10 self-reported scores</div>
+        </div>
+      </div>
+      <div class="chart-host" id="chartSymptoms"></div>
+    </div>
+
+  </div>
+
+  <div class="chart-card">
+    <div class="chart-hdr">
+      <div>
+        <div class="chart-title">Lab trend</div>
+        <div class="chart-sub" id="labSub">Pick a test to follow it across every blood test recorded.</div>
+      </div>
+      <div class="lab-pick">
+        <select id="labSelect" onchange="renderLab()"></select>
+      </div>
+    </div>
+    <div class="chart-host" id="chartLab"></div>
+  </div>
+
+  <div class="card no-print">
+    <div class="card-note">
+      These charts are a record of what was measured — they are not a medical assessment.
+      Bring them to the treating doctor rather than drawing conclusions from a moving line.
+    </div>
+  </div>
+
+</div>
+
+<script src="health-base.js"></script>
+<script>
+let range = '90';
+
+function setRange(k, btn) {
+  range = k;
+  document.querySelectorAll('[data-range]').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  render();
+}
+
+function markers() {
+  if (!document.getElementById('showMarkers').checked) return [];
+  return treatmentMarkers(rangeFrom(range), '');
+}
+
+/* ── Weight ────────────────────────────────────────────────── */
+function renderWeight() {
+  const from = rangeFrom(range);
+  const pts = vitalSeries('weight', from, '');
+  const t = getProfile().targets || {};
+  const band = (num(t.weightLow) !== null || num(t.weightHigh) !== null)
+    ? { low: t.weightLow, high: t.weightHigh, label: 'target range' } : null;
+
+  const first = pts[0], last = pts[pts.length - 1];
+  document.getElementById('weightSub').textContent = pts.length > 1
+    ? `kilograms — ${fmtNum(last.y - first.y, 1)} kg change since ${fmtDate(first.x)}`
+    : 'kilograms';
+
+  renderLineChart(document.getElementById('chartWeight'), {
+    title: 'Weight', unit: 'kg', dec: 1, height: 250, band, markers: markers(),
+    series: [{ key: 'weight', label: 'Weight', color: '#2a78d6', points: pts }],
+    emptyMsg: 'No weight recorded in this period. Add one from the Daily Log.'
+  });
+}
+
+/* ── Blood sugar ───────────────────────────────────────────── */
+function renderGlucose() {
+  const from = rangeFrom(range);
+  const buckets = glucoseSeriesByContext(from, '');
+  const order = ['fasting', 'postmeal', 'premeal', 'bedtime', 'random'];
+  const colors = { fasting: '#2a78d6', postmeal: '#eb6834', premeal: '#1baf7a', bedtime: '#eda100', random: '#eda100' };
+
+  const series = order.filter(k => buckets[k] && buckets[k].length).map(k => ({
+    key: k, label: GLUCOSE_CONTEXTS[k].label, color: colors[k], points: buckets[k]
+  }));
+
+  const t = getProfile().targets || {};
+  renderLineChart(document.getElementById('chartGlucose'), {
+    title: 'Blood sugar', unit: 'mg/dL', dec: 0, height: 250, markers: markers(),
+    band: { low: t.glucoseLow || 70, high: t.glucoseHigh || 180, label: 'target' },
+    series,
+    emptyMsg: 'No blood-sugar readings in this period.'
+  });
+}
+
+/* ── Blood pressure (one axis: systolic, diastolic and pulse are all
+      plotted against the same numeric scale, never a second y-axis) ── */
+function renderBP() {
+  const from = rangeFrom(range);
+  const series = [
+    { key: 'systolic',  label: 'Systolic',  color: '#2a78d6', points: vitalSeries('systolic', from, '') },
+    { key: 'diastolic', label: 'Diastolic', color: '#eb6834', points: vitalSeries('diastolic', from, '') },
+    { key: 'pulse',     label: 'Pulse',     color: '#1baf7a', points: vitalSeries('pulse', from, '') }
+  ].filter(s => s.points.length);
+
+  renderLineChart(document.getElementById('chartBP'), {
+    title: 'Blood pressure and pulse', unit: '', dec: 0, height: 250, markers: markers(), series,
+    emptyMsg: 'No blood-pressure or pulse readings in this period.'
+  });
+}
+
+/* ── Symptom scores ────────────────────────────────────────── */
+function renderSymptoms() {
+  const from = rangeFrom(range);
+  const series = [
+    { key: 'pain',     label: 'Pain',     color: '#2a78d6', points: vitalSeries('pain', from, '') },
+    { key: 'nausea',   label: 'Nausea',   color: '#eb6834', points: vitalSeries('nausea', from, '') },
+    { key: 'fatigue',  label: 'Fatigue',  color: '#1baf7a', points: vitalSeries('fatigue', from, '') },
+    { key: 'appetite', label: 'Appetite', color: '#eda100', points: vitalSeries('appetite', from, '') }
+  ].filter(s => s.points.length);
+
+  renderLineChart(document.getElementById('chartSymptoms'), {
+    title: 'Symptom scores', unit: '/10', dec: 0, height: 250, yMin: 0, yMax: 10, markers: markers(), series,
+    emptyMsg: 'No symptom scores in this period. The sliders in the Daily Log fill this in.'
+  });
+}
+
+/* ── Lab trend ─────────────────────────────────────────────── */
+function buildLabSelect() {
+  const keys = labTestsWithData(1);
+  const sel = document.getElementById('labSelect');
+  if (!keys.length) {
+    sel.innerHTML = '<option value="">No lab values recorded yet</option>';
+    return;
+  }
+  const prev = sel.value;
+  sel.innerHTML = keys.map(k => {
+    const def = LAB_TESTS[k];
+    const n = labSeries(k, '', '').length;
+    return `<option value="${k}">${esc(def ? def.label : k)} (${n})</option>`;
+  }).join('');
+  if (prev && keys.includes(prev)) sel.value = prev;
+}
+
+function renderLab() {
+  const key = document.getElementById('labSelect').value;
+  const host = document.getElementById('chartLab');
+  if (!key) {
+    host.innerHTML = `<div class="empty" style="padding:34px 16px"><div class="empty-icon">🧪</div>
+      Record a blood test in <a href="labs.html" style="color:var(--teal)">Lab Results</a> and its trend appears here.</div>`;
+    document.getElementById('labSub').textContent = 'Pick a test to follow it across every blood test recorded.';
+    return;
+  }
+
+  const def = LAB_TESTS[key] || {};
+  const pts = labSeries(key, rangeFrom(range), '');
+  const ref = pts.length ? pts[pts.length - 1] : {};
+
+  document.getElementById('labSub').textContent =
+    `${def.label || key}${def.unit ? ' — ' + def.unit : ''}` +
+    (ref.low != null || ref.high != null ? ` · reference ${ref.low ?? '–'}–${ref.high ?? '–'}` : '');
+
+  renderLineChart(host, {
+    title: def.label || key, unit: def.unit || '', dec: def.dec ?? 1, height: 260, markers: markers(),
+    band: (ref.low != null || ref.high != null) ? { low: ref.low, high: ref.high, label: 'reference range' } : null,
+    series: [{ key, label: def.label || key, color: '#2a78d6', points: pts }],
+    emptyMsg: 'No results for this test in the selected period — try “All time”.'
+  });
+}
+
+function render() {
+  renderWeight();
+  renderGlucose();
+  renderBP();
+  renderSymptoms();
+  buildLabSelect();
+  renderLab();
+}
+
+render();
+</script>
+<script src="health-nav.js"></script>
+</body>
+</html>

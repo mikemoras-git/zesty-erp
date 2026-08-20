@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Care Log — Documents</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="health-style.css">
+<style>
+.rec-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(258px, 1fr)); gap: 14px; }
+.rec { background: var(--surface); border-radius: var(--radius); box-shadow: var(--shadow);
+  overflow: hidden; display: flex; flex-direction: column; transition: box-shadow .2s; }
+.rec:hover { box-shadow: var(--shadow-lg); }
+.rec-thumb { height: 128px; background: var(--cream); display: flex; align-items: center;
+  justify-content: center; font-size: 40px; position: relative; overflow: hidden; cursor: pointer; }
+.rec-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.rec-count { position: absolute; bottom: 7px; right: 7px; background: rgba(10,61,54,.85); color: #fff;
+  font-size: 10px; padding: 2px 7px; border-radius: 10px; }
+.rec-body { padding: 12px 14px 13px; flex: 1; display: flex; flex-direction: column; }
+.rec-cat { font-size: 10px; text-transform: uppercase; letter-spacing: .07em; color: var(--text-muted); margin-bottom: 4px; }
+.rec-title { font-size: 13.5px; font-weight: 600; color: var(--text); line-height: 1.35; margin-bottom: 5px; }
+.rec-meta { font-size: 11.5px; color: var(--text-muted); line-height: 1.5; }
+.rec-foot { display: flex; gap: 6px; margin-top: 11px; padding-top: 10px; border-top: 1px solid var(--grid); }
+.drop { border: 2px dashed var(--border); border-radius: 10px; padding: 22px; text-align: center;
+  color: var(--text-muted); font-size: 13px; cursor: pointer; transition: all .18s; background: #fdfdfc; }
+.drop:hover, .drop.over { border-color: var(--teal); background: var(--teal-wash); color: var(--teal); }
+.att-row { display: flex; align-items: center; gap: 9px; padding: 7px 10px; border: 1px solid var(--grid);
+  border-radius: 7px; margin-bottom: 6px; font-size: 12.5px; }
+.att-row .n { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.att-row .s { font-size: 11px; color: var(--text-muted); white-space: nowrap; }
+</style>
+</head>
+<body>
+<div class="container wide">
+
+  <div class="page-hdr">
+    <div>
+      <div class="page-title">Documents</div>
+      <div class="page-sub">The filing cabinet — every report, scan and prescription, filed by date and type.</div>
+    </div>
+    <div class="hdr-actions">
+      <button class="btn btn-gold" onclick="openRecord()">+ File a document</button>
+    </div>
+  </div>
+
+  <div class="filters">
+    <input class="search-box" id="searchBox" placeholder="Search title, doctor, tags, notes…" oninput="render()">
+    <span id="catFilters"></span>
+  </div>
+
+  <div id="recBox"></div>
+
+</div>
+
+<!-- ── Record modal ────────────────────────────────────────── -->
+<div class="modal-overlay" id="recModal">
+  <div class="modal wide">
+    <h2 id="recTitle">File a document</h2>
+    <div class="modal-sub">Photograph or scan the paper, then file it here. Files stay on this device.</div>
+
+    <input type="hidden" id="r_id">
+
+    <div class="form-group">
+      <label>Files</label>
+      <div class="drop" id="dropZone">
+        <div style="font-size:26px;margin-bottom:6px">📎</div>
+        Click to choose files, or drag them here<br>
+        <span style="font-size:11px">PDF, photos, anything — several at once is fine</span>
+      </div>
+      <input type="file" id="fileInput" multiple style="display:none">
+      <div id="attList" style="margin-top:10px"></div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group"><label>Date on the document</label><input type="date" id="r_date"></div>
+      <div class="form-group"><label>Type</label><select id="r_category"></select></div>
+    </div>
+
+    <div class="form-group">
+      <label>Title</label>
+      <input type="text" id="r_title" placeholder="e.g. CT chest — report">
+    </div>
+
+    <div class="form-row">
+      <div class="form-group"><label>From (doctor / hospital / lab)</label><input type="text" id="r_source" placeholder="Dr. …"></div>
+      <div class="form-group"><label>Link to a calendar event</label><select id="r_event"></select></div>
+    </div>
+
+    <div class="form-group">
+      <label>Tags</label>
+      <input type="text" id="r_tags" placeholder="comma separated — e.g. oncology, chest, follow-up">
+    </div>
+
+    <div class="form-group">
+      <label>Notes</label>
+      <textarea id="r_notes" placeholder="The important line from the report, what to ask the doctor next time…"></textarea>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn btn-danger" id="rDeleteBtn" onclick="deleteRecord()" style="margin-right:auto;display:none">Delete</button>
+      <button class="btn btn-outline" onclick="closeModal('recModal')">Cancel</button>
+      <button class="btn btn-teal" onclick="saveRecord()">Save</button>
+    </div>
+  </div>
+</div>
+
+<script src="health-base.js"></script>
+<script>
+let catFilter = 'all';
+let pendingAtts = [];      // attachment metadata for the record being edited
+let thumbUrls = [];        // object URLs to revoke on the next render
+
+/* ── Filters ───────────────────────────────────────────────── */
+function buildCatFilters() {
+  const counts = {};
+  getRecords().forEach(r => { counts[r.category] = (counts[r.category] || 0) + 1; });
+  const btns = ['<button class="chip-btn active" data-cat="all" onclick="setCat(\'all\', this)">All</button>']
+    .concat(Object.entries(RECORD_CATEGORIES)
+      .filter(([k]) => counts[k])
+      .map(([k, c]) => `<button class="chip-btn" data-cat="${k}" onclick="setCat('${k}', this)">${c.icon} ${esc(c.label)} <span style="opacity:.6">${counts[k]}</span></button>`));
+  document.getElementById('catFilters').innerHTML = btns.join(' ');
+}
+function setCat(c, btn) {
+  catFilter = c;
+  document.querySelectorAll('[data-cat]').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  render();
+}
+
+/* ── Modal ─────────────────────────────────────────────────── */
+function buildSelects(rec) {
+  document.getElementById('r_category').innerHTML = Object.entries(RECORD_CATEGORIES)
+    .map(([k, c]) => `<option value="${k}" ${rec && rec.category === k ? 'selected' : ''}>${c.icon} ${esc(c.label)}</option>`).join('');
+  document.getElementById('r_event').innerHTML = ['<option value="">— not linked —</option>']
+    .concat(getEvents().slice().reverse().slice(0, 120).map(e =>
+      `<option value="${e.id}" ${rec && rec.eventId === e.id ? 'selected' : ''}>${esc(fmtDate(e.date))} · ${esc(e.title || eventLabel(e.type))}</option>`)).join('');
+}
+
+function openRecord(id) {
+  const r = id ? Store.find(HK.records, id) : null;
+  document.getElementById('recTitle').textContent = r ? 'Edit document' : 'File a document';
+  document.getElementById('rDeleteBtn').style.display = r ? '' : 'none';
+  document.getElementById('r_id').value     = r ? r.id : '';
+  document.getElementById('r_date').value   = r ? r.date : todayISO();
+  document.getElementById('r_title').value  = r ? (r.title || '') : '';
+  document.getElementById('r_source').value = r ? (r.source || '') : '';
+  document.getElementById('r_tags').value   = r ? (r.tags || []).join(', ') : '';
+  document.getElementById('r_notes').value  = r ? (r.notes || '') : '';
+  buildSelects(r);
+  pendingAtts = r ? (r.attachments || []).slice() : [];
+  renderAtts();
+  openModal('recModal');
+}
+
+function renderAtts() {
+  document.getElementById('attList').innerHTML = pendingAtts.map((a, i) => `
+    <div class="att-row">
+      <span>${fileIcon(a.type, a.name)}</span>
+      <span class="n" title="${esc(a.name)}">${esc(a.name)}</span>
+      <span class="s">${fmtBytes(a.size)}</span>
+      <button class="btn btn-outline btn-sm" onclick="previewAtt(${i})">View</button>
+      <button class="btn btn-sm" style="background:none;color:var(--critical)" onclick="dropAtt(${i})" title="Remove">×</button>
+    </div>`).join('');
+}
+function previewAtt(i) { Files.open_(pendingAtts[i]); }
+function dropAtt(i) {
+  const a = pendingAtts[i];
+  confirmAction('Remove this file?', `“${a.name}” will be deleted from this device permanently.`, 'Remove', async () => {
+    await Files.del(a.id);
+    pendingAtts.splice(i, 1);
+    renderAtts();
+    toast('File removed.');
+  });
+}
+
+function fileIcon(type, name) {
+  const t = (type || '') + ' ' + (name || '');
+  if (/image|jpe?g|png|heic|webp/i.test(t)) return '🖼';
+  if (/pdf/i.test(t))  return '📕';
+  if (/word|docx?/i.test(t)) return '📘';
+  if (/sheet|xlsx?|csv/i.test(t)) return '📗';
+  return '📄';
+}
+
+/* ── Uploads ───────────────────────────────────────────────── */
+const drop = document.getElementById('dropZone');
+const input = document.getElementById('fileInput');
+drop.onclick = () => input.click();
+input.onchange = e => { takeFiles(e.target.files); input.value = ''; };
+['dragenter', 'dragover'].forEach(ev => drop.addEventListener(ev, e => {
+  e.preventDefault(); drop.classList.add('over');
+}));
+['dragleave', 'drop'].forEach(ev => drop.addEventListener(ev, e => {
+  e.preventDefault(); drop.classList.remove('over');
+}));
+drop.addEventListener('drop', e => { if (e.dataTransfer.files.length) takeFiles(e.dataTransfer.files); });
+
+async function takeFiles(files) {
+  for (const f of files) {
+    if (f.size > 25 * 1024 * 1024) { toast(`“${f.name}” is over 25 MB — too big to keep in the browser.`, 'error'); continue; }
+    try {
+      const id = await Files.put(f);
+      pendingAtts.push({ id, name: f.name, type: f.type, size: f.size });
+    } catch (e) {
+      toast('Could not store ' + f.name + ' — the browser may be out of space.', 'error');
+    }
+  }
+  renderAtts();
+  /* Give an untitled record a sensible name from the first file. */
+  const t = document.getElementById('r_title');
+  if (!t.value && pendingAtts.length) t.value = pendingAtts[0].name.replace(/\.[^.]+$/, '');
+}
+
+/* ── Save / delete ─────────────────────────────────────────── */
+function saveRecord() {
+  const date = document.getElementById('r_date').value;
+  const title = document.getElementById('r_title').value.trim();
+  if (!date)  { toast('Pick the date on the document.', 'error'); return; }
+  if (!title) { toast('Give it a title so you can find it later.', 'error'); return; }
+
+  const rec = Store.find(HK.records, document.getElementById('r_id').value) || {};
+  rec.date        = date;
+  rec.category    = document.getElementById('r_category').value;
+  rec.title       = title;
+  rec.source      = document.getElementById('r_source').value.trim();
+  rec.eventId     = document.getElementById('r_event').value;
+  rec.tags        = document.getElementById('r_tags').value.split(',').map(s => s.trim()).filter(Boolean);
+  rec.notes       = document.getElementById('r_notes').value.trim();
+  rec.attachments = pendingAtts;
+
+  Store.upsert(HK.records, rec);
+  closeModal('recModal');
+  toast('Document filed.');
+  render();
+}
+
+function deleteRecord() {
+  const id = document.getElementById('r_id').value;
+  if (!id) return;
+  const rec = Store.find(HK.records, id);
+  confirmAction('Delete this document?',
+    `The entry and its ${(rec.attachments || []).length} file(s) will be permanently removed from this device.`,
+    'Delete', async () => {
+      for (const a of (rec.attachments || [])) await Files.del(a.id);
+      Store.remove(HK.records, id);
+      closeModal('recModal');
+      toast('Document deleted.');
+      render();
+    });
+}
+
+/* ── Render ────────────────────────────────────────────────── */
+async function render() {
+  buildCatFilters();
+  thumbUrls.forEach(u => URL.revokeObjectURL(u));
+  thumbUrls = [];
+
+  const q = (document.getElementById('searchBox').value || '').toLowerCase().trim();
+  let recs = getRecords();
+  if (catFilter !== 'all') recs = recs.filter(r => r.category === catFilter);
+  if (q) recs = recs.filter(r =>
+    (r.title + ' ' + (r.source || '') + ' ' + (r.notes || '') + ' ' + (r.tags || []).join(' ') + ' ' + fmtDate(r.date))
+      .toLowerCase().includes(q));
+
+  const box = document.getElementById('recBox');
+  if (!recs.length) {
+    box.innerHTML = `<div class="card"><div class="empty"><div class="empty-icon">🗂</div>
+      <strong>${q || catFilter !== 'all' ? 'Nothing matches that filter' : 'The cabinet is empty'}</strong>
+      ${q || catFilter !== 'all' ? 'Try clearing the search or picking “All”.'
+        : 'Photograph a report with your phone and file it — you will never dig through a folder at the hospital again.'}</div></div>`;
+    return;
+  }
+
+  box.innerHTML = `<div class="rec-grid">${recs.map(r => {
+    const cat = RECORD_CATEGORIES[r.category] || RECORD_CATEGORIES.other;
+    const ev  = r.eventId ? Store.find(HK.events, r.eventId) : null;
+    const n   = (r.attachments || []).length;
+    return `<div class="rec" id="${r.id}">
+      <div class="rec-thumb" id="th_${r.id}" onclick="openFirst('${r.id}')">${cat.icon}
+        ${n > 1 ? `<span class="rec-count">${n} files</span>` : ''}</div>
+      <div class="rec-body">
+        <div class="rec-cat">${cat.icon} ${esc(cat.label)}</div>
+        <div class="rec-title">${esc(r.title)}</div>
+        <div class="rec-meta">
+          ${esc(fmtDate(r.date))}${r.source ? ' · ' + esc(r.source) : ''}
+          ${ev ? `<br>${eventIcon(ev.type)} ${esc(ev.title || eventLabel(ev.type))}` : ''}
+          ${r.notes ? `<br><span style="color:var(--text-2)">${esc(r.notes.slice(0, 80))}${r.notes.length > 80 ? '…' : ''}</span>` : ''}
+        </div>
+        ${(r.tags || []).length ? `<div style="margin-top:7px">${r.tags.map(t => `<span class="tag">${esc(t)}</span>`).join('')}</div>` : ''}
+        <div class="rec-foot">
+          <button class="btn btn-outline btn-sm" onclick="openRecord('${r.id}')">Edit</button>
+          ${n ? `<button class="btn btn-outline btn-sm" onclick="openFirst('${r.id}')">Open</button>
+                 <button class="btn btn-outline btn-sm" onclick="downloadAll('${r.id}')">Save</button>` : ''}
+        </div>
+      </div>
+    </div>`;
+  }).join('')}</div>`;
+
+  /* Thumbnails for image attachments, drawn after the cards exist. */
+  for (const r of recs) {
+    const img = (r.attachments || []).find(a => /^image\//.test(a.type || ''));
+    if (!img) continue;
+    const blob = await Files.get(img.id);
+    if (!blob) continue;
+    const url = URL.createObjectURL(blob);
+    thumbUrls.push(url);
+    const el = document.getElementById('th_' + r.id);
+    if (el) el.innerHTML = `<img src="${url}" alt="${esc(r.title)}">` +
+      ((r.attachments || []).length > 1 ? `<span class="rec-count">${r.attachments.length} files</span>` : '');
+  }
+
+  if (location.hash) {
+    const el = document.getElementById(location.hash.slice(1));
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+}
+
+function openFirst(id) {
+  const r = Store.find(HK.records, id);
+  if (!r || !(r.attachments || []).length) { openRecord(id); return; }
+  Files.open_(r.attachments[0]);
+}
+async function downloadAll(id) {
+  const r = Store.find(HK.records, id);
+  for (const a of (r.attachments || [])) await Files.download(a);
+}
+
+render();
+</script>
+<script src="health-nav.js"></script>
+</body>
+</html>

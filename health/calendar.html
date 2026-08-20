@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Care Log — Calendar</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="health-style.css">
+<style>
+.cal-nav { display: flex; align-items: center; gap: 10px; }
+.cal-month { font-family: 'Cormorant Garamond', Georgia, serif; font-size: 22px; color: var(--teal-dark);
+  min-width: 180px; text-align: center; }
+.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; background: var(--grid);
+  border: 1px solid var(--grid); border-radius: 10px; overflow: hidden; }
+.cal-dow { background: var(--surface); padding: 8px 6px; text-align: center; font-size: 10px;
+  font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--text-muted); }
+.cal-day { background: var(--surface); min-height: 104px; padding: 6px 6px 8px; position: relative;
+  cursor: pointer; transition: background .12s; }
+.cal-day:hover { background: var(--teal-wash); }
+.cal-day.other { background: #fbfbfa; }
+.cal-day.other .cal-num { color: var(--border); }
+.cal-day.today { box-shadow: inset 0 0 0 2px var(--teal); }
+.cal-num { font-size: 12px; font-weight: 600; color: var(--text-2); font-variant-numeric: tabular-nums; }
+.cal-day.today .cal-num { color: var(--teal); }
+.cal-vital { position: absolute; top: 8px; right: 7px; width: 6px; height: 6px; border-radius: 50%;
+  background: var(--series-1); opacity: .55; }
+.cal-ev { display: flex; align-items: center; gap: 4px; font-size: 10.5px; line-height: 1.3;
+  margin-top: 3px; padding: 2px 4px; border-radius: 4px; border-left: 3px solid var(--axis);
+  background: var(--cream); color: var(--text-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cal-ev.done { opacity: .5; text-decoration: line-through; }
+.cal-more { font-size: 10px; color: var(--text-muted); margin-top: 3px; padding-left: 4px; }
+
+.agenda-item { display: grid; grid-template-columns: 62px 1fr auto; gap: 14px; align-items: start;
+  padding: 13px 0; border-bottom: 1px solid var(--grid); }
+.agenda-item:last-child { border-bottom: none; }
+.agenda-date { text-align: center; }
+.agenda-date .d { font-size: 20px; font-weight: 700; color: var(--teal-dark); line-height: 1; font-variant-numeric: tabular-nums; }
+.agenda-date .m { font-size: 10px; text-transform: uppercase; letter-spacing: .07em; color: var(--text-muted); margin-top: 3px; }
+.agenda-title { font-size: 14px; font-weight: 600; color: var(--text); display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
+.agenda-meta { font-size: 12px; color: var(--text-muted); margin-top: 4px; line-height: 1.5; }
+.agenda-rel { font-size: 11.5px; font-weight: 600; color: var(--teal); white-space: nowrap; }
+.type-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; }
+.type-opt { padding: 9px 8px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface);
+  cursor: pointer; font-size: 11.5px; text-align: center; font-family: inherit; color: var(--text-2); transition: all .15s; }
+.type-opt:hover { border-color: var(--teal); }
+.type-opt.sel { border-color: var(--teal); background: var(--teal-wash); color: var(--teal); font-weight: 700; }
+.type-opt .ico { display: block; font-size: 17px; margin-bottom: 3px; }
+@media(max-width:900px){
+  .cal-day { min-height: 76px; padding: 4px 3px 6px; }
+  .cal-ev { font-size: 9px; padding: 1px 3px; }
+  .type-grid { grid-template-columns: repeat(2, 1fr); }
+}
+</style>
+</head>
+<body>
+<div class="container wide">
+
+  <div class="page-hdr">
+    <div>
+      <div class="page-title">Calendar</div>
+      <div class="page-sub">Every appointment, treatment and test — what is coming and what already happened.</div>
+    </div>
+    <div class="hdr-actions">
+      <button class="btn btn-gold" onclick="openEvent(null, todayISO())">+ Add event</button>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" data-view="month"  onclick="setView('month', this)">Month</button>
+    <button class="tab" data-view="upcoming" onclick="setView('upcoming', this)">Upcoming</button>
+    <button class="tab" data-view="history"  onclick="setView('history', this)">History</button>
+  </div>
+
+  <!-- Month view -->
+  <div id="viewMonth">
+    <div class="card">
+      <div class="card-hdr">
+        <div class="cal-nav">
+          <button class="btn btn-outline btn-sm" onclick="shiftMonth(-1)">‹</button>
+          <div class="cal-month" id="calMonth"></div>
+          <button class="btn btn-outline btn-sm" onclick="shiftMonth(1)">›</button>
+          <button class="btn btn-outline btn-sm" onclick="gotoToday()">Today</button>
+        </div>
+        <div class="chart-legend" style="margin:0" id="calLegend"></div>
+      </div>
+      <div class="cal-grid" id="calGrid"></div>
+      <div class="card-note" style="margin-top:10px">Click any day to add something. A blue dot means a daily reading was logged that day.</div>
+    </div>
+  </div>
+
+  <!-- List views -->
+  <div id="viewList" style="display:none">
+    <div class="filters">
+      <button class="chip-btn active" data-type="all" onclick="setTypeFilter('all', this)">All types</button>
+      <button class="chip-btn" data-type="treatment"  onclick="setTypeFilter('treatment', this)">Treatment</button>
+      <button class="chip-btn" data-type="diagnostic" onclick="setTypeFilter('diagnostic', this)">Diagnostic</button>
+      <button class="chip-btn" data-type="care"       onclick="setTypeFilter('care', this)">Care</button>
+    </div>
+    <div class="card"><div id="agenda"></div></div>
+  </div>
+
+</div>
+
+<!-- ── Event modal ─────────────────────────────────────────── -->
+<div class="modal-overlay" id="eventModal">
+  <div class="modal">
+    <h2 id="eventTitle">Add event</h2>
+    <div class="modal-sub">Appointments, treatments, tests — anything with a date.</div>
+
+    <input type="hidden" id="e_id">
+
+    <div class="form-group">
+      <label>What kind?</label>
+      <div class="type-grid" id="typeGrid"></div>
+    </div>
+
+    <div class="form-group">
+      <label>Title</label>
+      <input type="text" id="e_title" placeholder="e.g. Chemotherapy — cycle 3">
+    </div>
+
+    <div class="form-row">
+      <div class="form-group"><label>Date</label><input type="date" id="e_date"></div>
+      <div class="form-group"><label>Time (optional)</label><input type="time" id="e_time"></div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group"><label>Doctor / department</label><input type="text" id="e_doctor" placeholder="Dr. …"></div>
+      <div class="form-group"><label>Place</label><input type="text" id="e_place" placeholder="Hospital, clinic…"></div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>Status</label>
+        <select id="e_status">
+          <option value="scheduled">Scheduled</option>
+          <option value="done">Done</option>
+          <option value="cancelled">Cancelled</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Cycle / session no.</label><input type="number" id="e_cycle" placeholder="optional"></div>
+    </div>
+
+    <div class="form-group">
+      <label>Notes</label>
+      <textarea id="e_notes" placeholder="What to bring, what was said, how it went…"></textarea>
+    </div>
+
+    <div class="form-group" id="repeatBox">
+      <label>Repeat (for treatment cycles)</label>
+      <div class="form-row">
+        <input type="number" id="e_repeatEvery" placeholder="every N days (e.g. 21)">
+        <input type="number" id="e_repeatCount" placeholder="how many times (e.g. 6)">
+      </div>
+      <div class="hint">Creates the whole series in one go. Only applies when adding something new.</div>
+    </div>
+
+    <div id="eventLinks"></div>
+
+    <div class="modal-footer">
+      <button class="btn btn-danger" id="eDeleteBtn" onclick="deleteEvent()" style="margin-right:auto;display:none">Delete</button>
+      <button class="btn btn-outline" onclick="closeModal('eventModal')">Cancel</button>
+      <button class="btn btn-teal" onclick="saveEvent()">Save</button>
+    </div>
+  </div>
+</div>
+
+<script src="health-base.js"></script>
+<script>
+let view = 'month';
+let typeFilter = 'all';
+let cursor = new Date();
+let selectedType = 'consult';
+
+/* ── View switching ────────────────────────────────────────── */
+function setView(v, btn) {
+  view = v;
+  document.querySelectorAll('[data-view]').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('viewMonth').style.display = v === 'month' ? '' : 'none';
+  document.getElementById('viewList').style.display  = v === 'month' ? 'none' : '';
+  render();
+}
+function setTypeFilter(t, btn) {
+  typeFilter = t;
+  document.querySelectorAll('[data-type]').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderAgenda();
+}
+function shiftMonth(n) { cursor.setMonth(cursor.getMonth() + n); renderMonth(); }
+function gotoToday()   { cursor = new Date(); renderMonth(); }
+
+/* ── Month grid (weeks start Monday) ───────────────────────── */
+function renderMonth() {
+  const y = cursor.getFullYear(), m = cursor.getMonth();
+  document.getElementById('calMonth').textContent =
+    cursor.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' });
+
+  const first = new Date(y, m, 1);
+  const startOffset = (first.getDay() + 6) % 7;   // Mon = 0
+  const gridStart = new Date(y, m, 1 - startOffset);
+
+  const events = getEvents();
+  const byDate = {};
+  events.forEach(e => (byDate[e.date] = byDate[e.date] || []).push(e));
+  const vitalDates = new Set(getVitals().map(v => v.date));
+
+  const cells = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun']
+    .map(d => `<div class="cal-dow">${d}</div>`);
+
+  for (let i = 0; i < 42; i++) {
+    const d = new Date(gridStart);
+    d.setDate(gridStart.getDate() + i);
+    const iso = todayISO(d);
+    const other = d.getMonth() !== m;
+    const isToday = iso === todayISO();
+    const evs = byDate[iso] || [];
+
+    const chips = evs.slice(0, 3).map(e => {
+      const c = eventColor(e.type);
+      return `<div class="cal-ev ${e.status === 'done' ? 'done' : ''}" style="border-left-color:${c}"
+                   onclick="event.stopPropagation();openEvent('${e.id}')"
+                   title="${esc(e.title || eventLabel(e.type))}">${eventIcon(e.type)} ${esc(e.title || eventLabel(e.type))}</div>`;
+    }).join('');
+    const more = evs.length > 3 ? `<div class="cal-more">+${evs.length - 3} more</div>` : '';
+
+    cells.push(`<div class="cal-day ${other ? 'other' : ''} ${isToday ? 'today' : ''}" onclick="openEvent(null,'${iso}')">
+      <div class="cal-num">${d.getDate()}</div>
+      ${vitalDates.has(iso) ? '<span class="cal-vital" title="Daily reading logged"></span>' : ''}
+      ${chips}${more}
+    </div>`);
+  }
+
+  document.getElementById('calGrid').innerHTML = cells.join('');
+  document.getElementById('calLegend').innerHTML = Object.entries(EVENT_GROUPS)
+    .map(([, g]) => `<span class="legend-item"><span class="legend-swatch" style="background:${g.color}"></span>${g.label}</span>`)
+    .join('');
+}
+
+/* ── Agenda list ───────────────────────────────────────────── */
+function renderAgenda() {
+  let list = view === 'upcoming' ? upcomingEvents() : pastEvents();
+  if (typeFilter !== 'all') list = list.filter(e => (EVENT_TYPES[e.type] || {}).group === typeFilter);
+
+  const box = document.getElementById('agenda');
+  if (!list.length) {
+    box.innerHTML = `<div class="empty"><div class="empty-icon">📅</div>
+      <strong>Nothing here yet</strong>
+      ${view === 'upcoming' ? 'Add the next appointment so it shows up on the overview.' : 'Past appointments will collect here.'}</div>`;
+    return;
+  }
+
+  box.innerHTML = list.map(e => {
+    const d = parseISO(e.date);
+    const att = eventAttachments(e.id);
+    const nAtt = att.records.length + att.labs.length;
+    const bits = [];
+    if (e.time)   bits.push('🕑 ' + e.time);
+    if (e.doctor) bits.push('👤 ' + e.doctor);
+    if (e.place)  bits.push('📍 ' + e.place);
+    if (e.cycle)  bits.push('cycle ' + e.cycle);
+    return `<div class="agenda-item">
+      <div class="agenda-date">
+        <div class="d">${d ? d.getDate() : '?'}</div>
+        <div class="m">${d ? d.toLocaleDateString('en-GB', { month: 'short' }) : ''}</div>
+      </div>
+      <div>
+        <div class="agenda-title">
+          <span>${eventIcon(e.type)}</span>
+          <span>${esc(e.title || eventLabel(e.type))}</span>
+          <span class="badge" style="background:${eventColor(e.type)}18;color:${eventColor(e.type)}">${esc(eventLabel(e.type))}</span>
+          ${e.status === 'done' ? '<span class="badge badge-good">✓ Done</span>' : ''}
+          ${e.status === 'cancelled' ? '<span class="badge badge-neutral">Cancelled</span>' : ''}
+          ${nAtt ? `<span class="badge badge-teal">📎 ${nAtt}</span>` : ''}
+        </div>
+        <div class="agenda-meta">${bits.map(esc).join(' · ')}${e.notes ? '<br>' + esc(e.notes.slice(0, 160)) + (e.notes.length > 160 ? '…' : '') : ''}</div>
+      </div>
+      <div style="text-align:right">
+        <div class="agenda-rel">${esc(relDays(e.date))}</div>
+        <button class="btn btn-outline btn-sm" style="margin-top:7px" onclick="openEvent('${e.id}')">Open</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+/* ── Event modal ───────────────────────────────────────────── */
+function buildTypeGrid() {
+  document.getElementById('typeGrid').innerHTML = Object.entries(EVENT_TYPES).map(([k, t]) =>
+    `<button type="button" class="type-opt" data-t="${k}" onclick="pickType('${k}')">
+       <span class="ico">${t.icon}</span>${esc(t.label)}</button>`).join('');
+}
+function pickType(k) {
+  selectedType = k;
+  document.querySelectorAll('.type-opt').forEach(b => b.classList.toggle('sel', b.dataset.t === k));
+}
+
+function openEvent(id, date) {
+  const e = id ? Store.find(HK.events, id) : null;
+  document.getElementById('eventTitle').textContent = e ? 'Edit event' : 'Add event';
+  document.getElementById('eDeleteBtn').style.display = e ? '' : 'none';
+  document.getElementById('repeatBox').style.display = e ? 'none' : '';
+  document.getElementById('e_id').value = e ? e.id : '';
+  document.getElementById('e_title').value  = e ? (e.title || '') : '';
+  document.getElementById('e_date').value   = e ? e.date : (date || todayISO());
+  document.getElementById('e_time').value   = e ? (e.time || '') : '';
+  document.getElementById('e_doctor').value = e ? (e.doctor || '') : '';
+  document.getElementById('e_place').value  = e ? (e.place || '') : '';
+  document.getElementById('e_status').value = e ? (e.status || 'scheduled') : 'scheduled';
+  document.getElementById('e_cycle').value  = e ? (e.cycle || '') : '';
+  document.getElementById('e_notes').value  = e ? (e.notes || '') : '';
+  document.getElementById('e_repeatEvery').value = '';
+  document.getElementById('e_repeatCount').value = '';
+  pickType(e ? e.type : 'consult');
+
+  /* Anything already filed against this event */
+  const links = document.getElementById('eventLinks');
+  if (e) {
+    const att = eventAttachments(e.id);
+    const items = [
+      ...att.labs.map(l => `<a href="labs.html#${l.id}" class="tag" style="text-decoration:none">🧪 ${esc(l.title || 'Lab results')} — ${esc(fmtDate(l.date))}</a>`),
+      ...att.records.map(r => `<a href="records.html#${r.id}" class="tag" style="text-decoration:none">${(RECORD_CATEGORIES[r.category] || {}).icon || '📄'} ${esc(r.title)}</a>`)
+    ];
+    links.innerHTML = items.length
+      ? `<div class="form-group"><label>Filed against this event</label><div>${items.join('')}</div></div>`
+      : `<div class="form-group"><label>Filed against this event</label>
+           <div class="hint">Nothing filed yet. Add results in <a href="labs.html" style="color:var(--teal)">Lab Results</a>
+           or scans in <a href="records.html" style="color:var(--teal)">Documents</a> and link them to this event.</div></div>`;
+  } else {
+    links.innerHTML = '';
+  }
+
+  openModal('eventModal');
+}
+
+function saveEvent() {
+  const date = document.getElementById('e_date').value;
+  if (!date) { toast('Pick a date first.', 'error'); return; }
+
+  const base = {
+    type:   selectedType,
+    title:  document.getElementById('e_title').value.trim() || eventLabel(selectedType),
+    date:   date,
+    time:   document.getElementById('e_time').value,
+    doctor: document.getElementById('e_doctor').value.trim(),
+    place:  document.getElementById('e_place').value.trim(),
+    status: document.getElementById('e_status').value,
+    cycle:  document.getElementById('e_cycle').value,
+    notes:  document.getElementById('e_notes').value.trim()
+  };
+
+  const id = document.getElementById('e_id').value;
+  if (id) {
+    Store.upsert(HK.events, { ...Store.find(HK.events, id), ...base, id });
+    toast('Event updated.');
+  } else {
+    const every = num(document.getElementById('e_repeatEvery').value);
+    const count = num(document.getElementById('e_repeatCount').value);
+    if (every && count && count > 1) {
+      const n = Math.min(count, 60);
+      const startCycle = num(base.cycle) || 1;
+      for (let i = 0; i < n; i++) {
+        Store.upsert(HK.events, {
+          ...base,
+          date: addDays(date, every * i),
+          cycle: String(startCycle + i),
+          title: base.title.replace(/\s*—\s*cycle\s*\d+$/i, '') + ' — cycle ' + (startCycle + i)
+        });
+      }
+      toast(`${n} events created, every ${every} days.`);
+    } else {
+      Store.upsert(HK.events, base);
+      toast('Event added.');
+    }
+  }
+
+  closeModal('eventModal');
+  render();
+}
+
+function deleteEvent() {
+  const id = document.getElementById('e_id').value;
+  if (!id) return;
+  confirmAction('Delete this event?', 'Documents and lab results filed against it are kept, but they will no longer be linked.',
+    'Delete', () => {
+      Store.remove(HK.events, id);
+      closeModal('eventModal');
+      toast('Event deleted.');
+      render();
+    });
+}
+
+function render() {
+  if (view === 'month') renderMonth(); else renderAgenda();
+}
+
+buildTypeGrid();
+render();
+</script>
+<script src="health-nav.js"></script>
+</body>
+</html>

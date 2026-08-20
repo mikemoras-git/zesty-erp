@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Care Log — Reports</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="health-style.css">
+<style>
+.rpt { background: var(--surface); border-radius: var(--radius); box-shadow: var(--shadow); padding: 30px 34px; }
+.rpt-head { border-bottom: 2px solid var(--teal); padding-bottom: 15px; margin-bottom: 22px; }
+.rpt-title { font-family: 'Cormorant Garamond', Georgia, serif; font-size: 26px; color: var(--teal-dark); }
+.rpt-for { font-size: 14px; font-weight: 600; color: var(--text); margin-top: 7px; }
+.rpt-meta { font-size: 12px; color: var(--text-muted); margin-top: 4px; line-height: 1.6; }
+.rpt-sec { margin-bottom: 26px; break-inside: avoid; }
+.rpt-sec h3 { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em;
+  color: var(--teal); padding-bottom: 6px; border-bottom: 1px solid var(--grid); margin-bottom: 12px; }
+.kv { display: grid; grid-template-columns: repeat(auto-fit, minmax(168px, 1fr)); gap: 12px; }
+.kv-item { }
+.kv-lbl { font-size: 10px; text-transform: uppercase; letter-spacing: .06em; color: var(--text-muted); }
+.kv-val { font-size: 15px; font-weight: 600; color: var(--text); margin-top: 3px; font-variant-numeric: tabular-nums; }
+.tl { position: relative; padding-left: 24px; }
+.tl::before { content: ''; position: absolute; left: 6px; top: 4px; bottom: 4px; width: 2px; background: var(--grid); }
+.tl-item { position: relative; padding: 8px 0; break-inside: avoid; }
+.tl-dot { position: absolute; left: -22px; top: 12px; width: 11px; height: 11px; border-radius: 50%;
+  border: 2px solid var(--surface); box-shadow: 0 0 0 1px var(--grid); }
+.tl-date { font-size: 11px; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+.tl-title { font-size: 13px; font-weight: 600; color: var(--text); margin-top: 1px; }
+.tl-note { font-size: 12px; color: var(--text-2); margin-top: 2px; line-height: 1.5; }
+.rpt-foot { margin-top: 30px; padding-top: 14px; border-top: 1px solid var(--grid);
+  font-size: 10.5px; color: var(--text-muted); line-height: 1.6; }
+.qbox { border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; min-height: 78px; }
+.qbox .line { border-bottom: 1px solid var(--grid); height: 26px; }
+@media print { .rpt { padding: 0; } }
+@media (max-width:900px){ .rpt { padding: 18px 15px; } .rpt-title { font-size: 21px; } }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="page-hdr no-print">
+    <div>
+      <div class="page-title">Reports</div>
+      <div class="page-sub">Printable summaries — take one to the next appointment instead of a folder of paper.</div>
+    </div>
+    <div class="hdr-actions">
+      <button class="btn btn-outline" onclick="exportVitalsCSV()">↓ Daily CSV</button>
+      <button class="btn btn-outline" onclick="exportLabsCSV()">↓ Labs CSV</button>
+      <button class="btn btn-gold" onclick="window.print()">🖨 Print / Save PDF</button>
+    </div>
+  </div>
+
+  <div class="card no-print">
+    <div class="form-row3">
+      <div class="form-group">
+        <label>Report</label>
+        <select id="rptType" onchange="render()">
+          <option value="visit">Doctor-visit summary</option>
+          <option value="timeline">Treatment timeline</option>
+          <option value="metrics">Daily metrics summary</option>
+          <option value="labs">Lab results summary</option>
+        </select>
+      </div>
+      <div class="form-group"><label>From</label><input type="date" id="rptFrom" onchange="render()"></div>
+      <div class="form-group"><label>To</label><input type="date" id="rptTo" onchange="render()"></div>
+    </div>
+    <div class="filters" style="margin:0">
+      <span style="font-size:11.5px;color:var(--text-muted);margin-right:4px">Quick range:</span>
+      <button class="chip-btn" onclick="quickRange(30)">30 days</button>
+      <button class="chip-btn active" onclick="quickRange(90)">3 months</button>
+      <button class="chip-btn" onclick="quickRange(180)">6 months</button>
+      <button class="chip-btn" onclick="quickRange(365)">1 year</button>
+      <button class="chip-btn" onclick="quickRange(0)">Everything</button>
+    </div>
+  </div>
+
+  <div id="rptBody"></div>
+
+</div>
+
+<script src="health-base.js"></script>
+<script>
+function quickRange(days) {
+  document.querySelectorAll('.filters .chip-btn').forEach(b => b.classList.remove('active'));
+  if (event && event.target) event.target.classList.add('active');
+  document.getElementById('rptTo').value = todayISO();
+  document.getElementById('rptFrom').value = days ? addDays(todayISO(), -days) : '';
+  render();
+}
+function bounds() {
+  return { from: document.getElementById('rptFrom').value, to: document.getElementById('rptTo').value || todayISO() };
+}
+
+/* ── Shared header ─────────────────────────────────────────── */
+function reportHead(title, from, to) {
+  const P = getProfile();
+  const age = P.dob ? Math.floor(daysBetween(P.dob, todayISO()) / 365.25) : null;
+  const who = [
+    P.dob ? `born ${fmtDate(P.dob)}${age !== null ? ` (${age})` : ''}` : '',
+    P.bloodType ? `blood group ${P.bloodType}` : ''
+  ].filter(Boolean).join(' · ');
+  const care = [P.oncologist ? 'Doctor: ' + P.oncologist : '', P.hospital ? 'Hospital: ' + P.hospital : ''].filter(Boolean).join(' · ');
+
+  return `<div class="rpt-head">
+    <div class="rpt-title">${esc(title)}</div>
+    <div class="rpt-for">${esc(P.name || 'Patient')}</div>
+    <div class="rpt-meta">
+      ${who ? esc(who) + '<br>' : ''}
+      ${P.diagnosis ? esc([P.diagnosis, P.stage].filter(Boolean).join(' · ')) + (P.diagnosedOn ? ` · diagnosed ${esc(fmtDate(P.diagnosedOn))}` : '') + '<br>' : ''}
+      ${care ? esc(care) + '<br>' : ''}
+      ${P.allergies ? '<strong>Allergies: ' + esc(P.allergies) + '</strong><br>' : ''}
+      Period: ${from ? esc(fmtDate(from)) : 'from the beginning'} — ${esc(fmtDate(to))} · prepared ${esc(fmtDate(todayISO()))}
+    </div>
+  </div>`;
+}
+
+function reportFoot() {
+  return `<div class="rpt-foot">
+    Compiled from records kept by the family in Care Log. Values are as entered by hand and are not a
+    clinical record; reference ranges are typical adult values and may differ from the issuing laboratory's.
+    For interpretation, please refer to the original reports and the treating physician.
+  </div>`;
+}
+
+/* The title usually already reads "… — cycle 3"; only add the suffix when it doesn't. */
+function cycleSuffix(e) {
+  if (!e.cycle) return '';
+  const title = e.title || '';
+  return new RegExp('cycle\\s*' + e.cycle + '\\b', 'i').test(title) ? '' : ` · cycle ${esc(e.cycle)}`;
+}
+
+/* ── Statistics over one metric ────────────────────────────── */
+function metricStats(metric, from, to) {
+  const pts = vitalSeries(metric, from, to);
+  if (!pts.length) return null;
+  const ys = pts.map(p => p.y);
+  return {
+    n: pts.length,
+    min: Math.min(...ys), max: Math.max(...ys),
+    avg: ys.reduce((a, b) => a + b, 0) / ys.length,
+    first: pts[0], last: pts[pts.length - 1],
+    change: pts[pts.length - 1].y - pts[0].y
+  };
+}
+
+function statBlock(metric, from, to) {
+  const m = METRICS[metric];
+  const s = metricStats(metric, from, to);
+  if (!s) return '';
+  return `<div class="kv-item">
+    <div class="kv-lbl">${esc(m.label)}</div>
+    <div class="kv-val">${fmtNum(s.last.y, m.dec)} <span style="font-size:11px;font-weight:400;color:var(--text-muted)">${esc(m.unit)}</span></div>
+    <div style="font-size:11px;color:var(--text-muted);margin-top:3px">
+      range ${fmtNum(s.min, m.dec)}–${fmtNum(s.max, m.dec)} · avg ${fmtNum(s.avg, m.dec)}<br>
+      ${s.change > 0 ? '+' : ''}${fmtNum(s.change, m.dec)} over ${s.n} readings
+    </div>
+  </div>`;
+}
+
+/* ── 1. Doctor-visit summary ───────────────────────────────── */
+function reportVisit(from, to) {
+  const P = getProfile();
+  const evs = getEvents().filter(e => inRange(e.date, from, to));
+  const treatments = evs.filter(e => ['chemo','radio','immuno','surgery'].includes(e.type) && e.status !== 'cancelled');
+  const lastLab = getLabs().find(l => inRange(l.date, from, to));
+  const flagged = lastLab ? (lastLab.values || []).filter(v => {
+    const s = rangeStatus(v.value, v.low, v.high);
+    return s && s !== 'good';
+  }) : [];
+
+  /* Blood sugar: share of readings inside their own context's target. */
+  const gluc = getVitals().filter(v => num(v.glucose) !== null && inRange(v.date, from, to));
+  let inTarget = 0;
+  gluc.forEach(v => {
+    const c = GLUCOSE_CONTEXTS[v.glucoseContext] || GLUCOSE_CONTEXTS.random;
+    if (rangeStatus(v.glucose, c.low, c.high) === 'good') inTarget++;
+  });
+
+  const meds = getMeds().filter(m => m.active !== false);
+  const upcoming = upcomingEvents(6);
+
+  return `<div class="rpt">
+    ${reportHead('Summary for the treating physician', from, to)}
+
+    <div class="rpt-sec">
+      <h3>Where things stand</h3>
+      <div class="kv">
+        ${statBlock('weight', from, to)}
+        ${gluc.length ? `<div class="kv-item">
+          <div class="kv-lbl">Blood sugar</div>
+          <div class="kv-val">${Math.round((inTarget / gluc.length) * 100)}% <span style="font-size:11px;font-weight:400;color:var(--text-muted)">in target</span></div>
+          <div style="font-size:11px;color:var(--text-muted);margin-top:3px">${gluc.length} readings · avg ${fmtNum(gluc.reduce((a, v) => a + v.glucose, 0) / gluc.length, 0)} mg/dL</div>
+        </div>` : ''}
+        ${statBlock('systolic', from, to)}
+        ${statBlock('temp', from, to)}
+      </div>
+    </div>
+
+    ${treatments.length ? `<div class="rpt-sec">
+      <h3>Treatment given in this period</h3>
+      <div class="tl">${treatments.map(e => `<div class="tl-item">
+        <span class="tl-dot" style="background:${eventColor(e.type)}"></span>
+        <div class="tl-date">${esc(fmtDate(e.date))}</div>
+        <div class="tl-title">${eventIcon(e.type)} ${esc(e.title || eventLabel(e.type))}${cycleSuffix(e)}</div>
+        ${e.notes ? `<div class="tl-note">${esc(e.notes)}</div>` : ''}
+      </div>`).join('')}</div>
+    </div>` : ''}
+
+    ${lastLab ? `<div class="rpt-sec">
+      <h3>Most recent blood test — ${esc(fmtDate(lastLab.date))}${lastLab.source ? ' · ' + esc(lastLab.source) : ''}</h3>
+      ${flagged.length ? `
+        <table class="data"><thead><tr><th>Test</th><th class="num">Result</th><th class="num">Reference</th></tr></thead>
+        <tbody>${flagged.map(v => {
+          const def = LAB_TESTS[v.key] || {};
+          return `<tr><td>${esc(v.label || def.label || v.key)}</td>
+            <td class="num" style="font-weight:700;color:var(--critical)">${fmtNum(v.value, def.dec ?? 1)} ${esc(v.unit || '')}</td>
+            <td class="num" style="color:var(--text-muted)">${v.low ?? '–'} – ${v.high ?? '–'}</td></tr>`;
+        }).join('')}</tbody></table>
+        <div style="font-size:11px;color:var(--text-muted);margin-top:7px">
+          ${flagged.length} of ${(lastLab.values || []).length} values outside the reference range; the rest were within it.</div>`
+        : '<div style="font-size:13px">All ' + (lastLab.values || []).length + ' recorded values were within their reference ranges.</div>'}
+    </div>` : ''}
+
+    ${(() => {
+      const syms = ['pain','nausea','fatigue','appetite'].map(k => statBlock(k, from, to)).filter(Boolean).join('');
+      return syms ? `<div class="rpt-sec"><h3>Symptoms reported at home</h3><div class="kv">${syms}</div></div>` : '';
+    })()}
+
+    ${meds.length ? `<div class="rpt-sec">
+      <h3>Current medication</h3>
+      <table class="data"><thead><tr><th>Medicine</th><th>Dose</th><th>When</th><th>Since</th></tr></thead>
+      <tbody>${meds.map(m => `<tr><td>${esc(m.name)}</td><td>${esc(m.dose || '')}</td>
+        <td>${esc(m.schedule || '')}</td><td>${m.startDate ? esc(fmtDate(m.startDate)) : ''}</td></tr>`).join('')}</tbody></table>
+    </div>` : ''}
+
+    ${upcoming.length ? `<div class="rpt-sec">
+      <h3>Already scheduled</h3>
+      ${upcoming.map(e => `<div style="font-size:12.5px;padding:3px 0">${eventIcon(e.type)} ${esc(fmtDate(e.date))} — ${esc(e.title || eventLabel(e.type))}${e.place ? ' · ' + esc(e.place) : ''}</div>`).join('')}
+    </div>` : ''}
+
+    <div class="rpt-sec">
+      <h3>Questions for the doctor</h3>
+      <div class="qbox"><div class="line"></div><div class="line"></div><div class="line"></div></div>
+    </div>
+
+    ${reportFoot()}
+  </div>`;
+}
+
+/* ── 2. Treatment timeline ─────────────────────────────────── */
+function reportTimeline(from, to) {
+  const evs = getEvents().filter(e => inRange(e.date, from, to));
+  if (!evs.length) {
+    return `<div class="rpt">${reportHead('Treatment timeline', from, to)}
+      <div class="empty"><div class="empty-icon">📅</div>No events recorded in this period.</div>${reportFoot()}</div>`;
+  }
+
+  /* Group by month so a long history stays readable. */
+  const byMonth = {};
+  evs.forEach(e => {
+    const d = parseISO(e.date);
+    const k = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+    (byMonth[k] = byMonth[k] || []).push(e);
+  });
+
+  return `<div class="rpt">
+    ${reportHead('Treatment timeline', from, to)}
+    ${Object.keys(byMonth).sort().map(k => {
+      const [y, m] = k.split('-');
+      const label = new Date(+y, +m - 1, 1).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' });
+      return `<div class="rpt-sec">
+        <h3>${esc(label)}</h3>
+        <div class="tl">${byMonth[k].map(e => {
+          const att = eventAttachments(e.id);
+          const n = att.records.length + att.labs.length;
+          return `<div class="tl-item">
+            <span class="tl-dot" style="background:${eventColor(e.type)}"></span>
+            <div class="tl-date">${esc(fmtDate(e.date))}${e.time ? ' · ' + esc(e.time) : ''}
+              ${e.status === 'cancelled' ? ' · cancelled' : ''}${n ? ` · ${n} document(s) on file` : ''}</div>
+            <div class="tl-title">${eventIcon(e.type)} ${esc(e.title || eventLabel(e.type))}${cycleSuffix(e)}</div>
+            <div class="tl-note">${esc([e.doctor, e.place].filter(Boolean).join(' · '))}${e.notes ? (e.doctor || e.place ? '<br>' : '') + esc(e.notes) : ''}</div>
+          </div>`;
+        }).join('')}</div>
+      </div>`;
+    }).join('')}
+    ${reportFoot()}
+  </div>`;
+}
+
+/* ── 3. Daily metrics summary ──────────────────────────────── */
+function reportMetrics(from, to) {
+  const vitals = getVitals().filter(v => inRange(v.date, from, to));
+  const days = new Set(vitals.map(v => v.date)).size;
+  const span = from ? (daysBetween(from, to) + 1) : (vitals.length ? daysBetween(vitals[0].date, to) + 1 : 0);
+
+  const rows = Object.keys(METRICS).map(k => {
+    const m = METRICS[k], s = metricStats(k, from, to);
+    if (!s) return '';
+    return `<tr>
+      <td>${esc(m.label)}</td>
+      <td style="color:var(--text-muted)">${esc(m.unit)}</td>
+      <td class="num">${s.n}</td>
+      <td class="num">${fmtNum(s.first.y, m.dec)}</td>
+      <td class="num" style="font-weight:600">${fmtNum(s.last.y, m.dec)}</td>
+      <td class="num" style="color:${Math.abs(s.change) < 1e-9 ? 'var(--text-muted)' : 'var(--text)'}">${s.change > 0 ? '+' : ''}${fmtNum(s.change, m.dec)}</td>
+      <td class="num">${fmtNum(s.min, m.dec)}</td>
+      <td class="num">${fmtNum(s.max, m.dec)}</td>
+      <td class="num">${fmtNum(s.avg, m.dec)}</td>
+    </tr>`;
+  }).filter(Boolean).join('');
+
+  /* Blood sugar broken down by reading context. */
+  const buckets = glucoseSeriesByContext(from, to);
+  const glucRows = Object.keys(buckets).map(k => {
+    const c = GLUCOSE_CONTEXTS[k] || GLUCOSE_CONTEXTS.random;
+    const ys = buckets[k].map(p => p.y);
+    const inT = ys.filter(y => y >= c.low && y <= c.high).length;
+    return `<tr>
+      <td>${esc(c.label)}</td>
+      <td class="num">${ys.length}</td>
+      <td class="num">${fmtNum(ys.reduce((a, b) => a + b, 0) / ys.length, 0)}</td>
+      <td class="num">${Math.min(...ys)}</td>
+      <td class="num">${Math.max(...ys)}</td>
+      <td class="num">${c.low}–${c.high}</td>
+      <td class="num" style="font-weight:600">${Math.round((inT / ys.length) * 100)}%</td>
+    </tr>`;
+  }).join('');
+
+  return `<div class="rpt">
+    ${reportHead('Daily metrics summary', from, to)}
+
+    <div class="rpt-sec">
+      <h3>Coverage</h3>
+      <div class="kv">
+        <div class="kv-item"><div class="kv-lbl">Readings logged</div><div class="kv-val">${vitals.length}</div></div>
+        <div class="kv-item"><div class="kv-lbl">Days with a reading</div><div class="kv-val">${days}</div></div>
+        <div class="kv-item"><div class="kv-lbl">Days in period</div><div class="kv-val">${span || '—'}</div></div>
+        <div class="kv-item"><div class="kv-lbl">Coverage</div><div class="kv-val">${span ? Math.round((days / span) * 100) + '%' : '—'}</div></div>
+      </div>
+    </div>
+
+    ${rows ? `<div class="rpt-sec">
+      <h3>Every measurement</h3>
+      <div class="table-wrap"><table class="data">
+        <thead><tr><th>Measure</th><th>Unit</th><th class="num">n</th><th class="num">First</th>
+          <th class="num">Latest</th><th class="num">Change</th><th class="num">Min</th><th class="num">Max</th><th class="num">Average</th></tr></thead>
+        <tbody>${rows}</tbody></table></div>
+    </div>` : '<div class="empty"><div class="empty-icon">📋</div>No readings in this period.</div>'}
+
+    ${glucRows ? `<div class="rpt-sec">
+      <h3>Blood sugar by time of reading</h3>
+      <div class="table-wrap"><table class="data">
+        <thead><tr><th>Reading</th><th class="num">n</th><th class="num">Average</th><th class="num">Lowest</th>
+          <th class="num">Highest</th><th class="num">Usual target</th><th class="num">In target</th></tr></thead>
+        <tbody>${glucRows}</tbody></table></div>
+      <div style="font-size:11px;color:var(--text-muted);margin-top:7px">
+        Targets shown are the general adult guides built into Care Log, not a prescription for this patient.</div>
+    </div>` : ''}
+
+    ${reportFoot()}
+  </div>`;
+}
+
+/* ── 4. Lab results summary ────────────────────────────────── */
+function reportLabs(from, to) {
+  const labs = getLabs().filter(l => inRange(l.date, from, to));
+  if (!labs.length) {
+    return `<div class="rpt">${reportHead('Lab results summary', from, to)}
+      <div class="empty"><div class="empty-icon">🧪</div>No lab results in this period.</div>${reportFoot()}</div>`;
+  }
+
+  const seen = {};
+  labs.forEach(l => (l.values || []).forEach(v => {
+    if (num(v.value) === null) return;
+    (seen[v.key] = seen[v.key] || []).push({ ...v, date: l.date });
+  }));
+
+  const byPanel = {};
+  Object.keys(seen).forEach(k => {
+    const def = LAB_TESTS[k];
+    const p = def ? def.panelLabel : 'Other tests';
+    (byPanel[p] = byPanel[p] || []).push(k);
+  });
+
+  const order = LAB_PANELS.map(p => p.label).concat(['Other tests']);
+
+  return `<div class="rpt">
+    ${reportHead('Lab results summary', from, to)}
+    <div class="rpt-sec">
+      <h3>Reports included</h3>
+      ${labs.map(l => `<div style="font-size:12.5px;padding:2px 0">🧪 ${esc(fmtDate(l.date))} — ${esc(l.title)}${l.source ? ' · ' + esc(l.source) : ''}</div>`).join('')}
+    </div>
+
+    ${order.filter(p => byPanel[p]).map(panel => `<div class="rpt-sec">
+      <h3>${esc(panel)}</h3>
+      <div class="table-wrap"><table class="data">
+        <thead><tr><th>Test</th><th class="num">Latest</th><th class="num">Previous</th>
+          <th class="num">Change</th><th class="num">Reference</th><th>Status</th></tr></thead>
+        <tbody>${byPanel[panel].map(k => {
+          const hist = seen[k];                 // newest first (labs are newest-first)
+          const cur = hist[0], prev = hist[1];
+          const def = LAB_TESTS[k] || {};
+          const dec = def.dec ?? 1;
+          const st = rangeStatus(cur.value, cur.low, cur.high);
+          const change = prev ? cur.value - prev.value : null;
+          return `<tr>
+            <td>${esc(cur.label || def.label || k)}</td>
+            <td class="num" style="font-weight:600${st && st !== 'good' ? ';color:var(--critical)' : ''}">${fmtNum(cur.value, dec)} ${esc(cur.unit || '')}</td>
+            <td class="num" style="color:var(--text-muted)">${prev ? fmtNum(prev.value, dec) : '—'}</td>
+            <td class="num" style="color:var(--text-muted)">${change === null ? '—' : (change > 0 ? '+' : '') + fmtNum(change, dec)}</td>
+            <td class="num" style="color:var(--text-muted)">${cur.low ?? '–'} – ${cur.high ?? '–'}</td>
+            <td>${st ? statusBadge(st, st === 'good' ? 'In range' : cur.value > (cur.high ?? Infinity) ? 'Above' : 'Below') : ''}</td>
+          </tr>`;
+        }).join('')}</tbody></table></div>
+    </div>`).join('')}
+
+    ${reportFoot()}
+  </div>`;
+}
+
+/* ── Dispatch ──────────────────────────────────────────────── */
+function render() {
+  const { from, to } = bounds();
+  const type = document.getElementById('rptType').value;
+  const fn = { visit: reportVisit, timeline: reportTimeline, metrics: reportMetrics, labs: reportLabs }[type];
+  document.getElementById('rptBody').innerHTML = fn(from, to);
+}
+
+document.getElementById('rptTo').value = todayISO();
+document.getElementById('rptFrom').value = addDays(todayISO(), -90);
+render();
+</script>
+<script src="health-nav.js"></script>
+</body>
+</html>
