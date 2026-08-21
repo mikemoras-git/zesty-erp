@@ -26,30 +26,32 @@ const HK = {
 
 const BACKUP_NAG_DAYS = 14;
 
-/* ══ REFERENCE DATA ═════════════════════════════════════════════ */
+/* ══ REFERENCE DATA ═════════════════════════════════════════════
+ * Each entry carries its English `label` and Greek `el`; L() picks one.
+ * ═════════════════════════════════════════════════════════════ */
 
 /* Event types. Colour groups the *kind* of appointment; the icon and label
    always travel with it, so colour is never the only channel. */
 const EVENT_TYPES = {
-  chemo:      { label: 'Chemotherapy',    icon: '💧', group: 'treatment'  },
-  radio:      { label: 'Radiotherapy',    icon: '☢',  group: 'treatment'  },
-  immuno:     { label: 'Immunotherapy',   icon: '🧬', group: 'treatment'  },
-  surgery:    { label: 'Surgery',         icon: '🔪', group: 'treatment'  },
-  exam:       { label: 'Examination',     icon: '🩺', group: 'diagnostic' },
-  imaging:    { label: 'Imaging / Scan',  icon: '📷', group: 'diagnostic' },
-  bloodtest:  { label: 'Blood test',      icon: '🩸', group: 'diagnostic' },
-  consult:    { label: 'Doctor visit',    icon: '👨‍⚕️', group: 'care'      },
-  admission:  { label: 'Hospital stay',   icon: '🏥', group: 'care'       },
-  medication: { label: 'Medication',      icon: '💊', group: 'care'       },
-  symptom:    { label: 'Symptom / event', icon: '⚠',  group: 'other'      },
-  other:      { label: 'Other',           icon: '○',  group: 'other'      }
+  chemo:      { label: 'Chemotherapy',    el: 'Χημειοθεραπεία',      icon: '💧', group: 'treatment'  },
+  radio:      { label: 'Radiotherapy',    el: 'Ακτινοθεραπεία',      icon: '☢',  group: 'treatment'  },
+  immuno:     { label: 'Immunotherapy',   el: 'Ανοσοθεραπεία',       icon: '🧬', group: 'treatment'  },
+  surgery:    { label: 'Surgery',         el: 'Χειρουργείο',         icon: '🔪', group: 'treatment'  },
+  exam:       { label: 'Examination',     el: 'Εξέταση',             icon: '🩺', group: 'diagnostic' },
+  imaging:    { label: 'Imaging / Scan',  el: 'Απεικόνιση / Σάρωση', icon: '📷', group: 'diagnostic' },
+  bloodtest:  { label: 'Blood test',      el: 'Αιματολογική',        icon: '🩸', group: 'diagnostic' },
+  consult:    { label: 'Doctor visit',    el: 'Επίσκεψη σε γιατρό',  icon: '👨‍⚕️', group: 'care'      },
+  admission:  { label: 'Hospital stay',   el: 'Νοσηλεία',            icon: '🏥', group: 'care'       },
+  medication: { label: 'Medication',      el: 'Φαρμακευτική αγωγή',  icon: '💊', group: 'care'       },
+  symptom:    { label: 'Symptom / event', el: 'Σύμπτωμα / συμβάν',   icon: '⚠',  group: 'other'      },
+  other:      { label: 'Other',           el: 'Άλλο',                icon: '○',  group: 'other'      }
 };
 
 const EVENT_GROUPS = {
-  treatment:  { label: 'Treatment',  color: '#eb6834' },
-  diagnostic: { label: 'Diagnostic', color: '#2a78d6' },
-  care:       { label: 'Care',       color: '#1baf7a' },
-  other:      { label: 'Other',      color: '#6b7e7b' }
+  treatment:  { label: 'Treatment',  el: 'Θεραπεία',    color: '#eb6834' },
+  diagnostic: { label: 'Diagnostic', el: 'Διαγνωστικά', color: '#2a78d6' },
+  care:       { label: 'Care',       el: 'Φροντίδα',    color: '#1baf7a' },
+  other:      { label: 'Other',      el: 'Άλλα',        color: '#6b7e7b' }
 };
 
 function eventColor(type) {
@@ -57,108 +59,126 @@ function eventColor(type) {
   return (EVENT_GROUPS[t.group] || EVENT_GROUPS.other).color;
 }
 function eventIcon(type)  { return (EVENT_TYPES[type] || EVENT_TYPES.other).icon; }
-function eventLabel(type) { return (EVENT_TYPES[type] || EVENT_TYPES.other).label; }
+function eventLabel(type) { return L(EVENT_TYPES[type] || EVENT_TYPES.other); }
 
 /* Daily metrics. `higherIsBetter` drives the direction of the delta arrow;
    null means a change has no inherent good/bad reading. */
 const METRICS = {
-  weight:    { label: 'Weight',          unit: 'kg',    dec: 1, min: 20,  max: 250, higherIsBetter: null,  chart: true },
-  glucose:   { label: 'Blood sugar',     unit: 'mg/dL', dec: 0, min: 20,  max: 600, higherIsBetter: null,  chart: true },
-  systolic:  { label: 'Systolic BP',     unit: 'mmHg',  dec: 0, min: 50,  max: 260, higherIsBetter: null,  chart: true },
-  diastolic: { label: 'Diastolic BP',    unit: 'mmHg',  dec: 0, min: 30,  max: 160, higherIsBetter: null,  chart: true },
-  pulse:     { label: 'Pulse',           unit: 'bpm',   dec: 0, min: 30,  max: 220, higherIsBetter: null,  chart: true },
-  temp:      { label: 'Temperature',     unit: '°C',    dec: 1, min: 33,  max: 43,  higherIsBetter: null,  chart: true },
-  spo2:      { label: 'Oxygen (SpO₂)',   unit: '%',     dec: 0, min: 50,  max: 100, higherIsBetter: true,  chart: true },
-  pain:      { label: 'Pain',            unit: '/10',   dec: 0, min: 0,   max: 10,  higherIsBetter: false, chart: true },
-  nausea:    { label: 'Nausea',          unit: '/10',   dec: 0, min: 0,   max: 10,  higherIsBetter: false, chart: true },
-  fatigue:   { label: 'Fatigue',         unit: '/10',   dec: 0, min: 0,   max: 10,  higherIsBetter: false, chart: true },
-  appetite:  { label: 'Appetite',        unit: '/10',   dec: 0, min: 0,   max: 10,  higherIsBetter: true,  chart: true },
-  mood:      { label: 'Mood',            unit: '/10',   dec: 0, min: 0,   max: 10,  higherIsBetter: true,  chart: true }
+  weight:    { label: 'Weight',        el: 'Βάρος',              unit: 'kg',    dec: 1, min: 20,  max: 250, higherIsBetter: null,  chart: true },
+  glucose:   { label: 'Blood sugar',   el: 'Σάκχαρο',            unit: 'mg/dL', dec: 0, min: 20,  max: 600, higherIsBetter: null,  chart: true },
+  systolic:  { label: 'Systolic BP',   el: 'Συστολική πίεση',    unit: 'mmHg',  dec: 0, min: 50,  max: 260, higherIsBetter: null,  chart: true },
+  diastolic: { label: 'Diastolic BP',  el: 'Διαστολική πίεση',   unit: 'mmHg',  dec: 0, min: 30,  max: 160, higherIsBetter: null,  chart: true },
+  pulse:     { label: 'Pulse',         el: 'Σφυγμός',            unit: 'bpm',   dec: 0, min: 30,  max: 220, higherIsBetter: null,  chart: true },
+  temp:      { label: 'Temperature',   el: 'Θερμοκρασία',        unit: '°C',    dec: 1, min: 33,  max: 43,  higherIsBetter: null,  chart: true },
+  spo2:      { label: 'Oxygen (SpO₂)', el: 'Οξυγόνο (SpO₂)',     unit: '%',     dec: 0, min: 50,  max: 100, higherIsBetter: true,  chart: true },
+  pain:      { label: 'Pain',          el: 'Πόνος',              unit: '/10',   dec: 0, min: 0,   max: 10,  higherIsBetter: false, chart: true },
+  nausea:    { label: 'Nausea',        el: 'Ναυτία',             unit: '/10',   dec: 0, min: 0,   max: 10,  higherIsBetter: false, chart: true },
+  fatigue:   { label: 'Fatigue',       el: 'Κόπωση',             unit: '/10',   dec: 0, min: 0,   max: 10,  higherIsBetter: false, chart: true },
+  appetite:  { label: 'Appetite',      el: 'Όρεξη',              unit: '/10',   dec: 0, min: 0,   max: 10,  higherIsBetter: true,  chart: true },
+  mood:      { label: 'Mood',          el: 'Διάθεση',            unit: '/10',   dec: 0, min: 0,   max: 10,  higherIsBetter: true,  chart: true }
 };
 
 /* Blood-sugar reading context — a fasting 140 and a post-meal 140 mean
    different things, so the context rides along with every glucose value. */
 const GLUCOSE_CONTEXTS = {
-  fasting:  { label: 'Fasting',        low: 70, high: 100 },
-  premeal:  { label: 'Before meal',    low: 70, high: 130 },
-  postmeal: { label: 'After meal (2h)',low: 70, high: 180 },
-  bedtime:  { label: 'Bedtime',        low: 90, high: 150 },
-  random:   { label: 'Random',         low: 70, high: 180 }
+  fasting:  { label: 'Fasting',         el: 'Νηστείας',           low: 70, high: 100 },
+  premeal:  { label: 'Before meal',     el: 'Πριν το φαγητό',     low: 70, high: 130 },
+  postmeal: { label: 'After meal (2h)', el: 'Μετά το φαγητό (2ω)',low: 70, high: 180 },
+  bedtime:  { label: 'Bedtime',         el: 'Πριν τον ύπνο',      low: 90, high: 150 },
+  random:   { label: 'Random',          el: 'Τυχαία ώρα',         low: 70, high: 180 }
 };
 
 /* Lab analytes. Ranges are typical adult values — every lab prints its own,
    and any result can override low/high when it is entered. */
 const LAB_PANELS = [
-  { key: 'cbc', label: 'Blood count (CBC)', tests: [
-    { key: 'wbc',   label: 'White cells (WBC)',   unit: '10³/µL', low: 4.0,  high: 11.0, dec: 1 },
-    { key: 'neut',  label: 'Neutrophils (ANC)',   unit: '10³/µL', low: 1.8,  high: 7.7,  dec: 2 },
-    { key: 'lymph', label: 'Lymphocytes',         unit: '10³/µL', low: 1.0,  high: 4.8,  dec: 2 },
-    { key: 'hgb',   label: 'Haemoglobin',         unit: 'g/dL',   low: 12.0, high: 15.5, dec: 1 },
-    { key: 'hct',   label: 'Haematocrit',         unit: '%',      low: 36,   high: 46,   dec: 1 },
-    { key: 'plt',   label: 'Platelets',           unit: '10³/µL', low: 150,  high: 400,  dec: 0 }
+  { key: 'cbc', label: 'Blood count (CBC)', el: 'Γενική αίματος', tests: [
+    { key: 'wbc',   label: 'White cells (WBC)',   el: 'Λευκά αιμοσφαίρια (WBC)', unit: '10³/µL', low: 4.0,  high: 11.0, dec: 1 },
+    { key: 'neut',  label: 'Neutrophils (ANC)',   el: 'Ουδετερόφιλα (ANC)',      unit: '10³/µL', low: 1.8,  high: 7.7,  dec: 2 },
+    { key: 'lymph', label: 'Lymphocytes',         el: 'Λεμφοκύτταρα',            unit: '10³/µL', low: 1.0,  high: 4.8,  dec: 2 },
+    { key: 'hgb',   label: 'Haemoglobin',         el: 'Αιμοσφαιρίνη',            unit: 'g/dL',   low: 12.0, high: 15.5, dec: 1 },
+    { key: 'hct',   label: 'Haematocrit',         el: 'Αιματοκρίτης',            unit: '%',      low: 36,   high: 46,   dec: 1 },
+    { key: 'plt',   label: 'Platelets',           el: 'Αιμοπετάλια',             unit: '10³/µL', low: 150,  high: 400,  dec: 0 }
   ]},
-  { key: 'chem', label: 'Chemistry', tests: [
-    { key: 'glu',   label: 'Glucose (fasting)',   unit: 'mg/dL',  low: 70,   high: 99,   dec: 0 },
-    { key: 'hba1c', label: 'HbA1c',               unit: '%',      low: 4.0,  high: 5.6,  dec: 1 },
-    { key: 'crea',  label: 'Creatinine',          unit: 'mg/dL',  low: 0.5,  high: 1.1,  dec: 2 },
-    { key: 'urea',  label: 'Urea',                unit: 'mg/dL',  low: 15,   high: 45,   dec: 0 },
-    { key: 'na',    label: 'Sodium',              unit: 'mmol/L', low: 135,  high: 145,  dec: 0 },
-    { key: 'k',     label: 'Potassium',           unit: 'mmol/L', low: 3.5,  high: 5.1,  dec: 1 },
-    { key: 'ca',    label: 'Calcium',             unit: 'mg/dL',  low: 8.6,  high: 10.2, dec: 1 },
-    { key: 'mg',    label: 'Magnesium',           unit: 'mg/dL',  low: 1.7,  high: 2.2,  dec: 1 },
-    { key: 'alb',   label: 'Albumin',             unit: 'g/dL',   low: 3.5,  high: 5.2,  dec: 1 },
-    { key: 'tp',    label: 'Total protein',       unit: 'g/dL',   low: 6.4,  high: 8.3,  dec: 1 }
+  { key: 'chem', label: 'Chemistry', el: 'Βιοχημικές', tests: [
+    { key: 'glu',   label: 'Glucose (fasting)',   el: 'Γλυκόζη (νηστείας)',      unit: 'mg/dL',  low: 70,   high: 99,   dec: 0 },
+    { key: 'hba1c', label: 'HbA1c',               el: 'Γλυκοζυλιωμένη (HbA1c)',  unit: '%',      low: 4.0,  high: 5.6,  dec: 1 },
+    { key: 'crea',  label: 'Creatinine',          el: 'Κρεατινίνη',              unit: 'mg/dL',  low: 0.5,  high: 1.1,  dec: 2 },
+    { key: 'urea',  label: 'Urea',                el: 'Ουρία',                   unit: 'mg/dL',  low: 15,   high: 45,   dec: 0 },
+    { key: 'na',    label: 'Sodium',              el: 'Νάτριο',                  unit: 'mmol/L', low: 135,  high: 145,  dec: 0 },
+    { key: 'k',     label: 'Potassium',           el: 'Κάλιο',                   unit: 'mmol/L', low: 3.5,  high: 5.1,  dec: 1 },
+    { key: 'ca',    label: 'Calcium',             el: 'Ασβέστιο',                unit: 'mg/dL',  low: 8.6,  high: 10.2, dec: 1 },
+    { key: 'mg',    label: 'Magnesium',           el: 'Μαγνήσιο',                unit: 'mg/dL',  low: 1.7,  high: 2.2,  dec: 1 },
+    { key: 'alb',   label: 'Albumin',             el: 'Λευκωματίνη',             unit: 'g/dL',   low: 3.5,  high: 5.2,  dec: 1 },
+    { key: 'tp',    label: 'Total protein',       el: 'Ολικές πρωτεΐνες',        unit: 'g/dL',   low: 6.4,  high: 8.3,  dec: 1 }
   ]},
-  { key: 'liver', label: 'Liver', tests: [
-    { key: 'alt',   label: 'ALT (SGPT)',          unit: 'U/L',    low: 0,    high: 33,   dec: 0 },
-    { key: 'ast',   label: 'AST (SGOT)',          unit: 'U/L',    low: 0,    high: 32,   dec: 0 },
-    { key: 'alp',   label: 'ALP',                 unit: 'U/L',    low: 35,   high: 104,  dec: 0 },
-    { key: 'ggt',   label: 'γ-GT',                unit: 'U/L',    low: 0,    high: 40,   dec: 0 },
-    { key: 'tbil',  label: 'Bilirubin (total)',   unit: 'mg/dL',  low: 0.3,  high: 1.2,  dec: 2 },
-    { key: 'ldh',   label: 'LDH',                 unit: 'U/L',    low: 135,  high: 214,  dec: 0 }
+  { key: 'liver', label: 'Liver', el: 'Ήπαρ', tests: [
+    { key: 'alt',   label: 'ALT (SGPT)',          el: 'SGPT (ALT)',              unit: 'U/L',    low: 0,    high: 33,   dec: 0 },
+    { key: 'ast',   label: 'AST (SGOT)',          el: 'SGOT (AST)',              unit: 'U/L',    low: 0,    high: 32,   dec: 0 },
+    { key: 'alp',   label: 'ALP',                 el: 'Αλκαλική φωσφατάση',      unit: 'U/L',    low: 35,   high: 104,  dec: 0 },
+    { key: 'ggt',   label: 'γ-GT',                el: 'γ-GT',                    unit: 'U/L',    low: 0,    high: 40,   dec: 0 },
+    { key: 'tbil',  label: 'Bilirubin (total)',   el: 'Χολερυθρίνη (ολική)',     unit: 'mg/dL',  low: 0.3,  high: 1.2,  dec: 2 },
+    { key: 'ldh',   label: 'LDH',                 el: 'LDH',                     unit: 'U/L',    low: 135,  high: 214,  dec: 0 }
   ]},
-  { key: 'inflam', label: 'Inflammation', tests: [
-    { key: 'crp',   label: 'CRP',                 unit: 'mg/L',   low: 0,    high: 5,    dec: 1 },
-    { key: 'esr',   label: 'ESR',                 unit: 'mm/h',   low: 0,    high: 20,   dec: 0 }
+  { key: 'inflam', label: 'Inflammation', el: 'Φλεγμονή', tests: [
+    { key: 'crp',   label: 'CRP',                 el: 'CRP',                     unit: 'mg/L',   low: 0,    high: 5,    dec: 1 },
+    { key: 'esr',   label: 'ESR',                 el: 'ΤΚΕ',                     unit: 'mm/h',   low: 0,    high: 20,   dec: 0 }
   ]},
-  { key: 'markers', label: 'Tumour markers', tests: [
-    { key: 'cea',   label: 'CEA',                 unit: 'ng/mL',  low: 0,    high: 5,    dec: 1 },
-    { key: 'ca153', label: 'CA 15-3',             unit: 'U/mL',   low: 0,    high: 30,   dec: 1 },
-    { key: 'ca125', label: 'CA 125',              unit: 'U/mL',   low: 0,    high: 35,   dec: 1 },
-    { key: 'ca199', label: 'CA 19-9',             unit: 'U/mL',   low: 0,    high: 37,   dec: 1 },
-    { key: 'afp',   label: 'AFP',                 unit: 'ng/mL',  low: 0,    high: 10,   dec: 1 }
+  { key: 'markers', label: 'Tumour markers', el: 'Καρκινικοί δείκτες', tests: [
+    { key: 'cea',   label: 'CEA',                 el: 'CEA',                     unit: 'ng/mL',  low: 0,    high: 5,    dec: 1 },
+    { key: 'ca153', label: 'CA 15-3',             el: 'CA 15-3',                 unit: 'U/mL',   low: 0,    high: 30,   dec: 1 },
+    { key: 'ca125', label: 'CA 125',              el: 'CA 125',                  unit: 'U/mL',   low: 0,    high: 35,   dec: 1 },
+    { key: 'ca199', label: 'CA 19-9',             el: 'CA 19-9',                 unit: 'U/mL',   low: 0,    high: 37,   dec: 1 },
+    { key: 'afp',   label: 'AFP',                 el: 'AFP',                     unit: 'ng/mL',  low: 0,    high: 10,   dec: 1 }
   ]},
-  { key: 'other', label: 'Thyroid, iron & vitamins', tests: [
-    { key: 'tsh',   label: 'TSH',                 unit: 'µIU/mL', low: 0.4,  high: 4.0,  dec: 2 },
-    { key: 'vitd',  label: 'Vitamin D (25-OH)',   unit: 'ng/mL',  low: 30,   high: 100,  dec: 1 },
-    { key: 'b12',   label: 'Vitamin B12',         unit: 'pg/mL',  low: 200,  high: 900,  dec: 0 },
-    { key: 'fe',    label: 'Iron',                unit: 'µg/dL',  low: 50,   high: 170,  dec: 0 },
-    { key: 'ferr',  label: 'Ferritin',            unit: 'ng/mL',  low: 15,   high: 150,  dec: 0 }
+  { key: 'other', label: 'Thyroid, iron & vitamins', el: 'Θυρεοειδής, σίδηρος & βιταμίνες', tests: [
+    { key: 'tsh',   label: 'TSH',                 el: 'TSH',                     unit: 'µIU/mL', low: 0.4,  high: 4.0,  dec: 2 },
+    { key: 'vitd',  label: 'Vitamin D (25-OH)',   el: 'Βιταμίνη D (25-OH)',      unit: 'ng/mL',  low: 30,   high: 100,  dec: 1 },
+    { key: 'b12',   label: 'Vitamin B12',         el: 'Βιταμίνη B12',            unit: 'pg/mL',  low: 200,  high: 900,  dec: 0 },
+    { key: 'fe',    label: 'Iron',                el: 'Σίδηρος',                 unit: 'µg/dL',  low: 50,   high: 170,  dec: 0 },
+    { key: 'ferr',  label: 'Ferritin',            el: 'Φερριτίνη',               unit: 'ng/mL',  low: 15,   high: 150,  dec: 0 }
   ]}
 ];
 
 /** Flat lookup: test key → definition (with its panel attached). */
 const LAB_TESTS = (() => {
   const map = {};
-  LAB_PANELS.forEach(p => p.tests.forEach(t => { map[t.key] = { ...t, panel: p.key, panelLabel: p.label }; }));
+  LAB_PANELS.forEach(p => p.tests.forEach(t => {
+    map[t.key] = { ...t, panel: p.key, panelLabel: p.label, panelEl: p.el };
+  }));
   return map;
 })();
 
+/** A lab panel's name in the active language. */
+function panelLabel(def) {
+  if (!def) return '';
+  return L({ label: def.panelLabel, el: def.panelEl });
+}
+
 /* Document categories for the filing cabinet. */
 const RECORD_CATEGORIES = {
-  lab:          { label: 'Lab report',        icon: '🧪' },
-  imaging:      { label: 'Imaging / Scan',    icon: '📷' },
-  pathology:    { label: 'Pathology / Biopsy',icon: '🔬' },
-  surgery:      { label: 'Surgical note',     icon: '🔪' },
-  oncology:     { label: 'Oncology note',     icon: '📋' },
-  discharge:    { label: 'Discharge summary', icon: '🏥' },
-  prescription: { label: 'Prescription',      icon: '💊' },
-  referral:     { label: 'Referral',          icon: '➡' },
-  insurance:    { label: 'Insurance / Admin', icon: '📁' },
-  receipt:      { label: 'Receipt / Invoice', icon: '🧾' },
-  consent:      { label: 'Consent form',      icon: '✍' },
-  other:        { label: 'Other',             icon: '📄' }
+  lab:          { label: 'Lab report',         el: 'Φύλλο εξετάσεων',              icon: '🧪' },
+  imaging:      { label: 'Imaging / Scan',     el: 'Απεικόνιση / Σάρωση',          icon: '📷' },
+  pathology:    { label: 'Pathology / Biopsy', el: 'Παθολογοανατομική / Βιοψία',   icon: '🔬' },
+  surgery:      { label: 'Surgical note',      el: 'Χειρουργικό σημείωμα',         icon: '🔪' },
+  oncology:     { label: 'Oncology note',      el: 'Ογκολογικό σημείωμα',          icon: '📋' },
+  discharge:    { label: 'Discharge summary',  el: 'Εξιτήριο',                     icon: '🏥' },
+  prescription: { label: 'Prescription',       el: 'Συνταγή',                      icon: '💊' },
+  referral:     { label: 'Referral',           el: 'Παραπεμπτικό',                 icon: '➡' },
+  insurance:    { label: 'Insurance / Admin',  el: 'Ασφάλεια / Διοικητικά',        icon: '📁' },
+  receipt:      { label: 'Receipt / Invoice',  el: 'Απόδειξη / Τιμολόγιο',         icon: '🧾' },
+  consent:      { label: 'Consent form',       el: 'Έντυπο συγκατάθεσης',          icon: '✍' },
+  other:        { label: 'Other',              el: 'Άλλο',                         icon: '📄' }
 };
+
+/* Reminder lead times offered per event, in minutes before the start. */
+const REMINDERS = [
+  { v: 0,     key: 'rm.remindNone' },
+  { v: 60,    key: 'rm.remind1h' },
+  { v: 180,   key: 'rm.remind3h' },
+  { v: 1440,  key: 'rm.remind1d' },
+  { v: 2880,  key: 'rm.remind2d' },
+  { v: 10080, key: 'rm.remind1w' }
+];
 
 /* ══ STORE ══════════════════════════════════════════════════════ */
 const Store = {
@@ -175,7 +195,7 @@ const Store = {
       return true;
     } catch (e) {
       const full = e && (e.name === 'QuotaExceededError' || e.code === 22);
-      toast(full ? 'Storage full — export a backup and remove old documents.' : 'Could not save: ' + e.message, 'error');
+      toast(full ? t('common.storageFull') : t('common.saveError', { msg: e.message }), 'error');
       return false;
     }
   },
@@ -264,7 +284,7 @@ const Files = {
   /** Open an attachment in a new tab. */
   async open_(att) {
     const blob = await this.get(att.id);
-    if (!blob) { toast('That file is missing from this browser.', 'error'); return; }
+    if (!blob) { toast(t('dc.missing'), 'error'); return; }
     const url = URL.createObjectURL(blob);
     window.open(url, '_blank');
     setTimeout(() => URL.revokeObjectURL(url), 60000);
@@ -273,7 +293,7 @@ const Files = {
   /** Download an attachment to disk. */
   async download(att) {
     const blob = await this.get(att.id);
-    if (!blob) { toast('That file is missing from this browser.', 'error'); return; }
+    if (!blob) { toast(t('dc.missing'), 'error'); return; }
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url; a.download = att.name || 'document';
@@ -324,26 +344,39 @@ function daysBetween(a, b) {
   if (!da || !db) return null;
   return Math.round((db - da) / 86400000);
 }
+/* Numeric DD/MM/YYYY in both languages — unambiguous on a printed report. */
 function fmtDate(iso) {
   const d = parseISO(iso);
   return d ? d.toLocaleDateString('el-GR', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '—';
 }
 function fmtDateLong(iso) {
   const d = parseISO(iso);
-  return d ? d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' }) : '—';
+  return d ? d.toLocaleDateString(localeTag(), { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' }) : '—';
 }
 function fmtDateShort(iso) {
   const d = parseISO(iso);
-  return d ? d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : '—';
+  return d ? d.toLocaleDateString(localeTag(), { day: 'numeric', month: 'short' }) : '—';
+}
+function fmtMonthYear(date) {
+  return date.toLocaleDateString(localeTag(), { month: 'long', year: 'numeric' });
+}
+/** Short weekday names starting Monday, in the active language. */
+function weekdayNames() {
+  const out = [];
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(2024, 0, 1 + i);           // 1 Jan 2024 was a Monday
+    out.push(d.toLocaleDateString(localeTag(), { weekday: 'short' }));
+  }
+  return out;
 }
 /** "in 3 days" / "5 days ago" / "today". */
 function relDays(iso) {
   const n = daysBetween(todayISO(), iso);
   if (n === null) return '';
-  if (n === 0)  return 'today';
-  if (n === 1)  return 'tomorrow';
-  if (n === -1) return 'yesterday';
-  return n > 0 ? `in ${n} days` : `${-n} days ago`;
+  if (n === 0)  return t('common.today');
+  if (n === 1)  return t('common.tomorrow');
+  if (n === -1) return t('common.yesterday');
+  return n > 0 ? t('common.inDays', { n }) : t('common.daysAgo', { n: -n });
 }
 function fmtNum(v, dec = 1) {
   const n = parseFloat(v);
@@ -419,11 +452,12 @@ function confirmAction(title, msg, btnLabel, cb, danger = true) {
         '<h2 id="_cf-title"></h2>' +
         '<p id="_cf-msg" style="font-size:13px;color:var(--text-muted);line-height:1.55;margin:8px 0 4px"></p>' +
         '<div class="modal-footer">' +
-          '<button class="btn btn-outline" id="_cf-cancel">Cancel</button>' +
+          '<button class="btn btn-outline" id="_cf-cancel"></button>' +
           '<button class="btn" id="_cf-ok"></button>' +
         '</div>' +
       '</div>';
     document.body.appendChild(m);
+    m.querySelector('#_cf-cancel').textContent = t('common.cancel');
     m.querySelector('#_cf-cancel').onclick = () => m.classList.remove('open');
     m.querySelector('#_cf-ok').onclick = () => { m.classList.remove('open'); if (_confirmCb) _confirmCb(); };
     m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); });
@@ -496,7 +530,7 @@ function renderLineChart(el, opts) {
 
   if (!series.length) {
     el.innerHTML = `<div class="empty" style="padding:34px 16px">
-      <div class="empty-icon">📉</div>${esc(opts.emptyMsg || 'No readings yet for this period.')}</div>`;
+      <div class="empty-icon">📉</div>${esc(opts.emptyMsg || t('common.noReadings'))}</div>`;
     return;
   }
 
@@ -638,7 +672,7 @@ function renderLineChart(el, opts) {
     }).join('');
     return `<tr><td>${esc(fmtDate(x))}</td>${cells}</tr>`;
   }).join('');
-  const table = `<details class="chart-table no-print"><summary style="cursor:pointer;font-size:11.5px;color:var(--text-muted);padding:4px 0">Show the numbers (${xs.length} readings)</summary>
+  const table = `<details class="chart-table no-print"><summary style="cursor:pointer;font-size:11.5px;color:var(--text-muted);padding:4px 0">${esc(t('common.showNumbers', { n: xs.length }))}</summary>
     <div class="table-wrap" style="max-height:260px;overflow-y:auto;margin-top:6px"><table class="data">
     <thead><tr><th>Date</th>${series.map(s => `<th class="num">${esc(s.label)}${unit ? ' (' + esc(unit) + ')' : ''}</th>`).join('')}</tr></thead>
     <tbody>${tableRows}</tbody></table></div></details>`;
@@ -912,8 +946,8 @@ async function exportBackup(includeFiles = true) {
 async function importBackup(file, mode = 'merge') {
   const text = await file.text();
   let data;
-  try { data = JSON.parse(text); } catch { throw new Error('That file is not readable JSON.'); }
-  if (!data || data.app !== 'carelog') throw new Error('That is not a Care Log backup file.');
+  try { data = JSON.parse(text); } catch { throw new Error(t('st.notJson')); }
+  if (!data || data.app !== 'carelog') throw new Error(t('st.notCarelog'));
 
   const lists = [
     [HK.vitals,  data.vitals],
@@ -954,9 +988,11 @@ async function importBackup(file, mode = 'merge') {
 /** Spreadsheet-friendly export of the daily readings. */
 function exportVitalsCSV() {
   const cols = ['date', 'time', ...Object.keys(METRICS), 'glucoseContext', 'notes'];
-  const head = ['Date', 'Time', ...Object.keys(METRICS).map(k => `${METRICS[k].label} (${METRICS[k].unit})`), 'Sugar context', 'Notes'];
+  const head = [t('common.date'), t('common.time'),
+                ...Object.keys(METRICS).map(k => `${L(METRICS[k])} (${METRICS[k].unit})`),
+                t('vt.colWhen'), t('common.notes')];
   const rows = getVitals().map(v => cols.map(c => {
-    const val = c === 'glucoseContext' ? (GLUCOSE_CONTEXTS[v[c]]?.label || '') : (v[c] == null ? '' : v[c]);
+    const val = c === 'glucoseContext' ? L(GLUCOSE_CONTEXTS[v[c]]) : (v[c] == null ? '' : v[c]);
     return /[",\n]/.test(String(val)) ? '"' + String(val).replace(/"/g, '""') + '"' : String(val);
   }).join(','));
   downloadText([head.join(','), ...rows].join('\n'), `carelog-daily-${todayISO()}.csv`, 'text/csv');
@@ -964,14 +1000,16 @@ function exportVitalsCSV() {
 
 /** Spreadsheet-friendly export of every lab value, one row per analyte. */
 function exportLabsCSV() {
-  const head = ['Date', 'Panel', 'Test', 'Value', 'Unit', 'Ref low', 'Ref high', 'Status', 'Lab', 'Notes'];
+  const head = [t('common.date'), t('lb.otherTests'), t('lb.colTest'), t('lb.colValue'), t('lb.colUnit'),
+                t('lb.colRefLow'), t('lb.colRefHigh'), t('common.status'), t('lb.labName'), t('common.notes')];
   const rows = [];
   getLabs().forEach(l => (l.values || []).forEach(v => {
     if (num(v.value) === null) return;
     const def = LAB_TESTS[v.key] || {};
     const st  = rangeStatus(v.value, v.low, v.high);
-    rows.push([l.date, def.panelLabel || '', v.label || def.label || v.key, v.value, v.unit || def.unit || '',
-               v.low ?? '', v.high ?? '', st === 'good' ? 'In range' : st ? 'Out of range' : '', l.source || '', (l.notes || '').replace(/\n/g, ' ')]
+    rows.push([l.date, panelLabel(def), (def.label ? L(def) : v.label) || v.key, v.value, v.unit || def.unit || '',
+               v.low ?? '', v.high ?? '', st === 'good' ? t('rp.inRange') : st ? t('lb.outOfRangeN', { n: 1 }) : '',
+               l.source || '', (l.notes || '').replace(/\n/g, ' ')]
       .map(c => /[",\n]/.test(String(c)) ? '"' + String(c).replace(/"/g, '""') + '"' : String(c)).join(','));
   }));
   downloadText([head.join(','), ...rows].join('\n'), `carelog-labs-${todayISO()}.csv`, 'text/csv');
@@ -991,4 +1029,165 @@ function daysSinceBackup() {
   const m = getMeta();
   if (!m.lastBackup) return null;
   return Math.floor((Date.now() - new Date(m.lastBackup).getTime()) / 86400000);
+}
+
+/* ══ CALENDAR EXPORT (.ics) ═════════════════════════════════════
+ * Care Log cannot notify anyone while it is closed — a browser simply can't.
+ * So reminders are delegated: appointments are written to a standard iCalendar
+ * file that Google, Apple and Outlook all import, alarms included.
+ * ═════════════════════════════════════════════════════════════ */
+
+/** Escape a value for an iCalendar property. */
+function icsEscape(v) {
+  return String(v == null ? '' : v)
+    .replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,')
+    .replace(/\r?\n/g, '\\n');
+}
+
+/** Fold a content line to 75 octets, per RFC 5545. */
+function icsFold(line) {
+  const bytes = new TextEncoder().encode(line);
+  if (bytes.length <= 75) return line;
+  const out = [];
+  let cur = '';
+  for (const ch of line) {                       // iterate by code point
+    const next = cur + ch;
+    if (new TextEncoder().encode(next).length > (out.length ? 74 : 75)) { out.push(cur); cur = ch; }
+    else cur = next;
+  }
+  if (cur) out.push(cur);
+  return out.join('\r\n ');
+}
+
+function icsStampUTC(d = new Date()) {
+  const p = n => String(n).padStart(2, '0');
+  return d.getUTCFullYear() + p(d.getUTCMonth() + 1) + p(d.getUTCDate()) + 'T' +
+         p(d.getUTCHours()) + p(d.getUTCMinutes()) + p(d.getUTCSeconds()) + 'Z';
+}
+function icsDate(iso)         { return iso.replace(/-/g, ''); }
+function icsDateTime(iso, hm) { return icsDate(iso) + 'T' + hm.replace(':', '') + '00'; }
+
+/** Minutes-before → an iCalendar duration such as -P1DT2H. */
+function icsTrigger(minutes) {
+  const m = Math.max(0, Math.round(minutes));
+  const d = Math.floor(m / 1440), h = Math.floor((m % 1440) / 60), mm = m % 60;
+  let s = '-P';
+  if (d) s += d + 'D';
+  if (h || mm || !d) {
+    s += 'T';
+    if (h) s += h + 'H';
+    if (mm || !h) s += mm + 'M';
+  }
+  return s;
+}
+
+/** One VEVENT for a Care Log event. Times are floating (local wherever opened). */
+function icsEvent(e) {
+  const lines = [];
+  const startHM = e.time || '';
+  const dur = num(e.durationMin) || 60;
+
+  lines.push('BEGIN:VEVENT');
+  lines.push('UID:' + e.id + '@carelog');
+  lines.push('DTSTAMP:' + icsStampUTC());
+  /* Bump SEQUENCE on every edit so a re-import replaces rather than duplicates. */
+  const EPOCH_2020 = 1577836800000;
+  lines.push('SEQUENCE:' + Math.max(0, Math.floor(
+    (new Date(e.updatedAt || e.createdAt || Date.now()).getTime() - EPOCH_2020) / 1000)));
+
+  if (startHM) {
+    const [h, m] = startHM.split(':').map(Number);
+    const end = new Date(2000, 0, 1, h, m + dur);
+    const p = n => String(n).padStart(2, '0');
+    lines.push('DTSTART:' + icsDateTime(e.date, startHM));
+    lines.push('DTEND:'   + icsDateTime(e.date, p(end.getHours()) + ':' + p(end.getMinutes())));
+  } else {
+    lines.push('DTSTART;VALUE=DATE:' + icsDate(e.date));
+    lines.push('DTEND;VALUE=DATE:'   + icsDate(addDays(e.date, 1)));
+  }
+
+  const title = e.title || eventLabel(e.type);
+  lines.push('SUMMARY:' + icsEscape(eventIcon(e.type) + ' ' + title));
+
+  const desc = [
+    eventLabel(e.type),
+    e.doctor ? t('cal.doctorDept') + ': ' + e.doctor : '',
+    e.cycle  ? t('cal.cycle', { n: e.cycle }) : '',
+    e.notes || ''
+  ].filter(Boolean).join('\n');
+  if (desc) lines.push('DESCRIPTION:' + icsEscape(desc));
+  if (e.place) lines.push('LOCATION:' + icsEscape(e.place));
+  if (e.status === 'cancelled') lines.push('STATUS:CANCELLED');
+
+  /* An event saved before reminders existed still deserves one: default to a
+     day's notice, and treat an explicit 0 as "the user asked for none". */
+  const remind = (e.remind === undefined || e.remind === null || e.remind === '')
+    ? 1440 : (num(e.remind) ?? 0);
+  if (remind > 0) {
+    lines.push('BEGIN:VALARM');
+    lines.push('ACTION:DISPLAY');
+    lines.push('TRIGGER:' + icsTrigger(remind));
+    lines.push('DESCRIPTION:' + icsEscape(title));
+    lines.push('END:VALARM');
+  }
+
+  lines.push('END:VEVENT');
+  return lines;
+}
+
+/** Wrap VEVENT blocks into a complete calendar document. */
+function icsWrap(bodyLines) {
+  return ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Care Log//Care Log//EN',
+          'CALSCALE:GREGORIAN', 'METHOD:PUBLISH']
+    .concat(bodyLines, ['END:VCALENDAR'])
+    .map(icsFold).join('\r\n') + '\r\n';
+}
+
+function downloadICS(text, filename) {
+  const blob = new Blob([text], { type: 'text/calendar;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 60000);
+}
+
+/** Export one event to the phone's calendar. */
+function exportEventICS(event) {
+  if (!event) return;
+  downloadICS(icsWrap(icsEvent(event)), `carelog-${event.date}.ics`);
+  toast(t('rm.exportedOne'));
+}
+
+/** Export every appointment from today onwards. */
+function exportUpcomingICS() {
+  const list = upcomingEvents().filter(e => e.status !== 'cancelled');
+  if (!list.length) { toast(t('rm.nothingUpcoming'), 'warning'); return; }
+  const body = list.flatMap(icsEvent);
+  downloadICS(icsWrap(body), `carelog-appointments-${todayISO()}.ics`);
+  toast(t('rm.exported', { n: list.length }));
+}
+
+/**
+ * A repeating daily nudge to record readings. Written as its own event so the
+ * calendar app owns the notification — Care Log never needs to be open.
+ */
+function exportDailyReminderICS(hm) {
+  const time = /^\d{2}:\d{2}$/.test(hm || '') ? hm : '09:00';
+  const start = todayISO();
+  const lines = [
+    'BEGIN:VEVENT',
+    'UID:carelog-daily-' + time.replace(':', '') + '@carelog',
+    'DTSTAMP:' + icsStampUTC(),
+    'DTSTART:' + icsDateTime(start, time),
+    'DTEND:'   + icsDateTime(start, time),
+    'RRULE:FREQ=DAILY',
+    'SUMMARY:' + icsEscape('◔ ' + t('rm.dailySummary')),
+    'DESCRIPTION:' + icsEscape(t('rm.dailyDesc')),
+    'BEGIN:VALARM', 'ACTION:DISPLAY', 'TRIGGER:-PT0M',
+    'DESCRIPTION:' + icsEscape(t('rm.dailySummary')), 'END:VALARM',
+    'END:VEVENT'
+  ];
+  downloadICS(icsWrap(lines), 'carelog-daily-reminder.ics');
+  toast(t('rm.dailyCreated'));
 }

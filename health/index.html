@@ -49,7 +49,7 @@
   padding: 24px 26px; margin-bottom: 18px; }
 </style>
 </head>
-<body>
+<body data-i18n-doctitle="ov.title">
 <div class="container">
 
   <div id="setupBox"></div>
@@ -57,10 +57,10 @@
   <div id="heroBox"></div>
 
   <div class="quick">
-    <a href="vitals.html"><span class="ico">◔</span><span><span class="lbl">Log today</span><span class="sub" id="qLog">weight, sugar, symptoms</span></span></a>
-    <a href="calendar.html"><span class="ico">📅</span><span><span class="lbl">Add appointment</span><span class="sub" id="qEv">exam, chemo, surgery</span></span></a>
-    <a href="labs.html"><span class="ico">🧪</span><span><span class="lbl">Enter blood test</span><span class="sub" id="qLab">values and ranges</span></span></a>
-    <a href="records.html"><span class="ico">🗂</span><span><span class="lbl">File a document</span><span class="sub" id="qDoc">scan or photo</span></span></a>
+    <a href="vitals.html"><span class="ico">◔</span><span><span class="lbl" data-i18n="ov.qLogToday"></span><span class="sub" data-i18n="ov.qLogTodaySub"></span></span></a>
+    <a href="calendar.html"><span class="ico">📅</span><span><span class="lbl" data-i18n="ov.qAddAppt"></span><span class="sub" data-i18n="ov.qAddApptSub"></span></span></a>
+    <a href="labs.html"><span class="ico">🧪</span><span><span class="lbl" data-i18n="ov.qAddLab"></span><span class="sub" data-i18n="ov.qAddLabSub"></span></span></a>
+    <a href="records.html"><span class="ico">🗂</span><span><span class="lbl" data-i18n="ov.qAddDoc"></span><span class="sub" data-i18n="ov.qAddDocSub"></span></span></a>
   </div>
 
   <div class="stats" id="statTiles"></div>
@@ -70,18 +70,18 @@
       <div class="chart-card">
         <div class="chart-hdr">
           <div>
-            <div class="chart-title">Weight — last 90 days</div>
-            <div class="chart-sub" id="wSub">kilograms</div>
+            <div class="chart-title" data-i18n="ov.weight90"></div>
+            <div class="chart-sub" id="wSub"></div>
           </div>
-          <a href="charts.html" class="btn btn-outline btn-sm">All trends →</a>
+          <a href="charts.html" class="btn btn-outline btn-sm" data-i18n="ov.allTrends"></a>
         </div>
         <div class="chart-host" id="chartWeight"></div>
       </div>
 
       <div class="card">
         <div class="card-hdr">
-          <div class="card-title">Recently filed</div>
-          <a href="records.html" class="btn btn-outline btn-sm">Open cabinet →</a>
+          <div class="card-title" data-i18n="ov.recentlyFiled"></div>
+          <a href="records.html" class="btn btn-outline btn-sm" data-i18n="ov.openCabinet"></a>
         </div>
         <div id="recentBox"></div>
       </div>
@@ -90,16 +90,16 @@
     <div>
       <div class="card">
         <div class="card-hdr">
-          <div class="card-title">Coming up</div>
-          <a href="calendar.html" class="btn btn-outline btn-sm">Calendar →</a>
+          <div class="card-title" data-i18n="ov.comingUp"></div>
+          <a href="calendar.html" class="btn btn-outline btn-sm" data-i18n="ov.calendarLink"></a>
         </div>
         <div id="upcomingBox"></div>
       </div>
 
       <div class="card">
         <div class="card-hdr">
-          <div class="card-title">Last blood test</div>
-          <a href="labs.html" class="btn btn-outline btn-sm">All results →</a>
+          <div class="card-title" data-i18n="ov.lastBloodTest"></div>
+          <a href="labs.html" class="btn btn-outline btn-sm" data-i18n="ov.allResults"></a>
         </div>
         <div id="lastLabBox"></div>
       </div>
@@ -108,6 +108,7 @@
 
 </div>
 
+<script src="health-i18n.js"></script>
 <script src="health-base.js"></script>
 <script>
 const P = getProfile();
@@ -117,15 +118,11 @@ function renderSetup() {
   const box = document.getElementById('setupBox');
   if (P.name) { box.innerHTML = ''; return; }
   box.innerHTML = `<div class="setup">
-    <div style="font-family:'Cormorant Garamond',Georgia,serif;font-size:24px;color:var(--teal-dark);margin-bottom:8px">Welcome to Care Log</div>
-    <p style="font-size:13.5px;color:var(--text-2);line-height:1.65;max-width:640px">
-      A private place to keep track of treatment: daily weight and blood sugar, every appointment and
-      test, the results, and the scans and reports that come with them. Everything is stored on this
-      device only — nothing is uploaded anywhere.
-    </p>
+    <div style="font-family:'Cormorant Garamond',Georgia,serif;font-size:24px;color:var(--teal-dark);margin-bottom:8px">${esc(t('ov.welcome'))}</div>
+    <p style="font-size:13.5px;color:var(--text-2);line-height:1.65;max-width:640px">${esc(t('ov.welcomeBody'))}</p>
     <div style="margin-top:16px;display:flex;gap:9px;flex-wrap:wrap">
-      <a href="settings.html" class="btn btn-teal">Set up the patient →</a>
-      <a href="vitals.html" class="btn btn-outline">Skip and log a reading</a>
+      <a href="settings.html" class="btn btn-teal">${esc(t('app.setupPatient'))}</a>
+      <a href="vitals.html" class="btn btn-outline">${esc(t('ov.skipLog'))}</a>
     </div>
   </div>`;
 }
@@ -141,10 +138,10 @@ function renderNag() {
   box.innerHTML = `<div class="nag">
     <span style="font-size:19px">⚠</span>
     <span style="flex:1;min-width:200px">
-      <strong>${since === null ? 'You have never made a backup.' : `Last backup was ${since} days ago.`}</strong>
-      Everything lives in this browser — clearing its data would lose it all.
+      <strong>${esc(since === null ? t('ov.neverBackedUp') : t('ov.lastBackupDays', { n: since }))}</strong>
+      ${esc(t('ov.backupWarn'))}
     </span>
-    <a href="settings.html" class="btn btn-gold btn-sm">Back up now</a>
+    <a href="settings.html" class="btn btn-gold btn-sm">${esc(t('ov.backupNow'))}</a>
   </div>`;
 }
 
@@ -156,27 +153,27 @@ function renderHero() {
   const heroNext = next ? `
     <div class="hero-next">
       <div>
-        <div class="hero-next-lbl">Next appointment</div>
+        <div class="hero-next-lbl">${esc(t('ov.nextAppt'))}</div>
         <div class="hero-next-title">${eventIcon(next.type)} ${esc(next.title || eventLabel(next.type))}</div>
         <div class="hero-next-when">${esc(fmtDateLong(next.date))}${next.time ? ' · ' + esc(next.time) : ''}${next.place ? ' · ' + esc(next.place) : ''}${next.doctor ? ' · ' + esc(next.doctor) : ''}</div>
       </div>
       <div class="hero-countdown">
         <div class="n">${Math.max(daysBetween(todayISO(), next.date), 0)}</div>
-        <div class="u">${daysBetween(todayISO(), next.date) === 1 ? 'day away' : 'days away'}</div>
+        <div class="u">${esc(t(daysBetween(todayISO(), next.date) === 1 ? 'ov.dayAway' : 'ov.daysAway'))}</div>
       </div>
     </div>` : `
     <div class="hero-next">
       <div>
-        <div class="hero-next-lbl">Next appointment</div>
-        <div class="hero-next-when" style="margin-top:6px">Nothing scheduled yet.</div>
+        <div class="hero-next-lbl">${esc(t('ov.nextAppt'))}</div>
+        <div class="hero-next-when" style="margin-top:6px">${esc(t('ov.nothingScheduled'))}</div>
       </div>
-      <a href="calendar.html" class="btn btn-gold">Add one</a>
+      <a href="calendar.html" class="btn btn-gold">${esc(t('ov.addOne'))}</a>
     </div>`;
 
   document.getElementById('heroBox').innerHTML = `<div class="hero">
     <div class="hero-name">${esc(P.name || 'Care Log')}</div>
-    <div class="hero-dx">${esc([P.diagnosis, P.stage].filter(Boolean).join(' · ') || 'No diagnosis recorded')}${
-      dxDays !== null ? ` · day ${dxDays} since diagnosis` : ''}</div>
+    <div class="hero-dx">${esc([P.diagnosis, P.stage].filter(Boolean).join(' · ') || t('ov.noDiagnosis'))}${
+      dxDays !== null ? ' · ' + esc(t('ov.daySince', { n: dxDays })) : ''}</div>
     ${heroNext}
   </div>`;
 }
@@ -190,8 +187,8 @@ function renderStats() {
     const d = metricDelta('weight', 30);
     tiles.push(`<div class="stat blue">
       <div class="stat-val">${fmtNum(w.weight, 1)}<span class="unit">kg</span></div>
-      <div class="stat-lbl">Weight · ${esc(fmtDateShort(w.date))}</div>
-      <div class="stat-delta flat">${d ? `${d.diff > 0 ? '↑' : d.diff < 0 ? '↓' : '→'} ${fmtNum(Math.abs(d.diff), 1)} kg in 30 days` : 'first reading'}</div>
+      <div class="stat-lbl">${esc(t('ov.statWeight', { date: fmtDateShort(w.date) }))}</div>
+      <div class="stat-delta flat">${esc(d ? t('ov.kgIn30', { arrow: d.diff > 0 ? '↑' : d.diff < 0 ? '↓' : '→', n: fmtNum(Math.abs(d.diff), 1) }) : t('ov.firstReading'))}</div>
     </div>`);
   }
 
@@ -201,8 +198,8 @@ function renderStats() {
     const st = rangeStatus(g.glucose, c.low, c.high);
     tiles.push(`<div class="stat ${st === 'good' ? 'good' : 'warning'}">
       <div class="stat-val">${fmtNum(g.glucose, 0)}<span class="unit">mg/dL</span></div>
-      <div class="stat-lbl">Sugar · ${esc(c.label)}</div>
-      <div style="margin-top:6px">${statusBadge(st, st === 'good' ? 'In target' : 'Outside target')}</div>
+      <div class="stat-lbl">${esc(t('ov.statSugar', { ctx: L(c) }))}</div>
+      <div style="margin-top:6px">${statusBadge(st, t(st === 'good' ? 'ov.inTarget' : 'ov.outsideTarget'))}</div>
     </div>`);
   }
 
@@ -215,22 +212,22 @@ function renderStats() {
     }).length;
     tiles.push(`<div class="stat ${out ? 'warning' : 'good'}">
       <div class="stat-val">${out}</div>
-      <div class="stat-lbl">Out of range · ${esc(fmtDateShort(lastLab.date))}</div>
-      <div class="stat-delta flat">of ${(lastLab.values || []).length} tests</div>
+      <div class="stat-lbl">${esc(t('ov.statOutOfRange', { date: fmtDateShort(lastLab.date) }))}</div>
+      <div class="stat-delta flat">${esc(t('ov.statOfTests', { n: (lastLab.values || []).length }))}</div>
     </div>`);
   }
 
   const soon = upcomingEvents().filter(e => daysBetween(todayISO(), e.date) <= 30).length;
   tiles.push(`<div class="stat aqua">
     <div class="stat-val">${soon}</div>
-    <div class="stat-lbl">Appointments · next 30 days</div>
-    <div class="stat-delta flat">${getEvents().length} recorded in total</div>
+    <div class="stat-lbl">${esc(t('ov.statAppts'))}</div>
+    <div class="stat-delta flat">${esc(t('ov.statApptsSub', { n: getEvents().length }))}</div>
   </div>`);
 
   tiles.push(`<div class="stat">
     <div class="stat-val">${getRecords().length}</div>
-    <div class="stat-lbl">Documents filed</div>
-    <div class="stat-delta flat">${getVitals().length} daily readings</div>
+    <div class="stat-lbl">${esc(t('ov.statDocs'))}</div>
+    <div class="stat-delta flat">${esc(t('ov.statDocsSub', { n: getVitals().length }))}</div>
   </div>`);
 
   document.getElementById('statTiles').innerHTML = tiles.join('');
@@ -240,18 +237,18 @@ function renderStats() {
 function renderChart() {
   const from = addDays(todayISO(), -90);
   const pts = vitalSeries('weight', from, '');
-  const t = P.targets || {};
+  const tg = P.targets || {};
   const first = pts[0], last = pts[pts.length - 1];
   document.getElementById('wSub').textContent = pts.length > 1
-    ? `${fmtNum(last.y - first.y, 1)} kg change since ${fmtDate(first.x)}` : 'kilograms';
+    ? t('tr.kgChange', { n: fmtNum(last.y - first.y, 1), date: fmtDate(first.x) }) : t('tr.kilograms');
 
   renderLineChart(document.getElementById('chartWeight'), {
-    title: 'Weight', unit: 'kg', dec: 1, height: 220,
-    band: (num(t.weightLow) !== null || num(t.weightHigh) !== null)
-      ? { low: t.weightLow, high: t.weightHigh, label: 'target range' } : null,
+    title: L(METRICS.weight), unit: 'kg', dec: 1, height: 220,
+    band: (num(tg.weightLow) !== null || num(tg.weightHigh) !== null)
+      ? { low: tg.weightLow, high: tg.weightHigh, label: t('tr.targetRange') } : null,
     markers: treatmentMarkers(from, ''),
-    series: [{ key: 'weight', label: 'Weight', color: '#2a78d6', points: pts }],
-    emptyMsg: 'No weight logged in the last 90 days.'
+    series: [{ key: 'weight', label: L(METRICS.weight), color: '#2a78d6', points: pts }],
+    emptyMsg: t('ov.noWeight90')
   });
 }
 
@@ -261,7 +258,7 @@ function renderUpcoming() {
   const box = document.getElementById('upcomingBox');
   if (!list.length) {
     box.innerHTML = `<div class="empty" style="padding:30px 12px"><div class="empty-icon">📅</div>
-      Nothing scheduled. <a href="calendar.html" style="color:var(--teal)">Add an appointment</a>.</div>`;
+      ${esc(t('ov.nothingScheduled'))} <a href="calendar.html" style="color:var(--teal)">${esc(t('ov.addOne'))}</a>.</div>`;
     return;
   }
   box.innerHTML = list.map(e => {
@@ -282,7 +279,7 @@ function renderRecent() {
   const box = document.getElementById('recentBox');
   if (!list.length) {
     box.innerHTML = `<div class="empty" style="padding:30px 12px"><div class="empty-icon">🗂</div>
-      Nothing filed yet. <a href="records.html" style="color:var(--teal)">File a report</a>.</div>`;
+      ${esc(t('ov.nothingFiled'))} <a href="records.html" style="color:var(--teal)">${esc(t('ov.fileReport'))}</a>.</div>`;
     return;
   }
   box.innerHTML = list.map(r => {
@@ -291,7 +288,7 @@ function renderRecent() {
       <span class="ic" style="background:var(--cream)">${cat.icon}</span>
       <span class="tx">
         <span class="t1">${esc(r.title)}</span>
-        <span class="t2">${esc(cat.label)} · ${esc(fmtDate(r.date))}${r.source ? ' · ' + esc(r.source) : ''}</span>
+        <span class="t2">${esc(L(cat))} · ${esc(fmtDate(r.date))}${r.source ? ' · ' + esc(r.source) : ''}</span>
       </span>
       <span class="rel" style="color:var(--text-muted)">${(r.attachments || []).length ? '📎 ' + r.attachments.length : ''}</span>
     </a>`;
@@ -303,7 +300,7 @@ function renderLastLab() {
   const box = document.getElementById('lastLabBox');
   if (!lab) {
     box.innerHTML = `<div class="empty" style="padding:30px 12px"><div class="empty-icon">🧪</div>
-      No blood tests recorded. <a href="labs.html" style="color:var(--teal)">Add one</a>.</div>`;
+      ${esc(t('ov.noBloodTests'))} <a href="labs.html" style="color:var(--teal)">${esc(t('ov.addOneLab'))}</a>.</div>`;
     return;
   }
   const flagged = (lab.values || []).filter(v => {
@@ -319,16 +316,17 @@ function renderLastLab() {
           const def = LAB_TESTS[v.key] || {};
           const st = rangeStatus(v.value, v.low, v.high);
           return `<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px solid var(--grid);font-size:12.5px">
-            <span>${esc(v.label || def.label || v.key)}</span>
+            <span>${esc(def.label ? L(def) : (v.label || v.key))}</span>
             <span style="font-variant-numeric:tabular-nums;font-weight:600;color:var(--critical)">
               ${fmtNum(v.value, def.dec ?? 1)} ${esc(v.unit || '')}
               <span style="font-weight:400;color:var(--text-muted);font-size:11px">(${v.low ?? '–'}–${v.high ?? '–'})</span>
             </span>
           </div>`;
-        }).join('') + (flagged.length > 7 ? `<div style="font-size:11.5px;color:var(--text-muted);margin-top:8px">+${flagged.length - 7} more outside range</div>` : '')
-      : `<div class="badge badge-good">✓ Every value in range</div>`);
+        }).join('') + (flagged.length > 7 ? `<div style="font-size:11.5px;color:var(--text-muted);margin-top:8px">${esc(t('ov.moreOutOfRange', { n: flagged.length - 7 }))}</div>` : '')
+      : `<div class="badge badge-good">✓ ${esc(t('ov.allInRange'))}</div>`);
 }
 
+applyI18n();
 renderSetup();
 renderNag();
 renderHero();

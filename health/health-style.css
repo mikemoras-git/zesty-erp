@@ -313,3 +313,26 @@ table.data .row-actions { display: flex; gap: 5px; justify-content: flex-end; }
   .stats { grid-template-columns: repeat(auto-fit, minmax(132px, 1fr)); gap: 9px; }
   .stat-val { font-size: 21px; }
 }
+
+/* ── LANGUAGE SWITCH ────────────────────────────────────────── */
+.h-lang { display: flex; gap: 4px; margin-bottom: 10px; }
+.h-lang-btn {
+  flex: 1; padding: 4px 0; border-radius: 6px; cursor: pointer;
+  border: 1px solid rgba(255,255,255,.14); background: transparent;
+  color: rgba(255,255,255,.45); font-family: 'DM Mono', ui-monospace, monospace;
+  font-size: 10px; letter-spacing: .08em; transition: all .15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.h-lang-btn:hover { color: rgba(255,255,255,.85); border-color: rgba(255,255,255,.3); }
+.h-lang-btn.on { background: rgba(201,168,76,.16); border-color: var(--gold); color: var(--gold-light); font-weight: 700; }
+
+/* Settings page: the same choice, spelled out */
+.lang-choice { display: flex; gap: 10px; flex-wrap: wrap; }
+.lang-opt {
+  display: flex; align-items: center; gap: 9px; padding: 11px 16px; border-radius: 10px;
+  border: 1px solid var(--border); background: var(--surface); cursor: pointer;
+  font-family: inherit; font-size: 13.5px; color: var(--text-2); transition: all .15s; min-width: 150px;
+}
+.lang-opt:hover { border-color: var(--teal); }
+.lang-opt.on { border-color: var(--teal); background: var(--teal-wash); color: var(--teal); font-weight: 600; }
+.lang-opt .flag { font-size: 18px; }

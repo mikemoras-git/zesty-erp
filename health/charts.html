@@ -16,24 +16,24 @@
 @media(max-width:1000px){ .chart-grid { grid-template-columns: 1fr; } }
 </style>
 </head>
-<body>
+<body data-i18n-doctitle="tr.title">
 <div class="container wide">
 
   <div class="page-hdr">
     <div>
-      <div class="page-title">Trends</div>
-      <div class="page-sub">How things are moving over time. Treatment dates are ticked along the bottom of each chart.</div>
+      <div class="page-title" data-i18n="tr.title"></div>
+      <div class="page-sub" data-i18n="tr.sub"></div>
     </div>
   </div>
 
   <div class="filters">
-    <button class="chip-btn" data-range="30"  onclick="setRange('30', this)">30 days</button>
-    <button class="chip-btn active" data-range="90" onclick="setRange('90', this)">3 months</button>
-    <button class="chip-btn" data-range="180" onclick="setRange('180', this)">6 months</button>
-    <button class="chip-btn" data-range="365" onclick="setRange('365', this)">1 year</button>
-    <button class="chip-btn" data-range="all" onclick="setRange('all', this)">All time</button>
+    <button class="chip-btn" data-range="30"  onclick="setRange('30', this)" data-i18n="common.30days"></button>
+    <button class="chip-btn active" data-range="90" onclick="setRange('90', this)" data-i18n="common.3months"></button>
+    <button class="chip-btn" data-range="180" onclick="setRange('180', this)" data-i18n="common.6months"></button>
+    <button class="chip-btn" data-range="365" onclick="setRange('365', this)" data-i18n="common.1year"></button>
+    <button class="chip-btn" data-range="all" onclick="setRange('all', this)" data-i18n="common.allTime"></button>
     <label class="toggle-row" style="margin-left:auto">
-      <input type="checkbox" id="showMarkers" checked onchange="render()"> Show treatment dates
+      <input type="checkbox" id="showMarkers" checked onchange="render()"> <span data-i18n="tr.showTreatments"></span>
     </label>
   </div>
 
@@ -42,8 +42,8 @@
     <div class="chart-card">
       <div class="chart-hdr">
         <div>
-          <div class="chart-title">Weight</div>
-          <div class="chart-sub" id="weightSub">kilograms</div>
+          <div class="chart-title" data-i18n="tr.weight"></div>
+          <div class="chart-sub" id="weightSub"></div>
         </div>
       </div>
       <div class="chart-host" id="chartWeight"></div>
@@ -52,8 +52,8 @@
     <div class="chart-card">
       <div class="chart-hdr">
         <div>
-          <div class="chart-title">Blood sugar</div>
-          <div class="chart-sub">mg/dL — split by when the reading was taken, because the targets differ</div>
+          <div class="chart-title" data-i18n="tr.sugar"></div>
+          <div class="chart-sub" data-i18n="tr.sugarSub"></div>
         </div>
       </div>
       <div class="chart-host" id="chartGlucose"></div>
@@ -62,8 +62,8 @@
     <div class="chart-card">
       <div class="chart-hdr">
         <div>
-          <div class="chart-title">Blood pressure &amp; pulse</div>
-          <div class="chart-sub">mmHg and bpm</div>
+          <div class="chart-title" data-i18n="tr.bp"></div>
+          <div class="chart-sub" data-i18n="tr.bpSub"></div>
         </div>
       </div>
       <div class="chart-host" id="chartBP"></div>
@@ -72,8 +72,8 @@
     <div class="chart-card">
       <div class="chart-hdr">
         <div>
-          <div class="chart-title">How she felt</div>
-          <div class="chart-sub">0–10 self-reported scores</div>
+          <div class="chart-title" data-i18n="tr.felt"></div>
+          <div class="chart-sub" data-i18n="tr.feltSub"></div>
         </div>
       </div>
       <div class="chart-host" id="chartSymptoms"></div>
@@ -84,8 +84,8 @@
   <div class="chart-card">
     <div class="chart-hdr">
       <div>
-        <div class="chart-title">Lab trend</div>
-        <div class="chart-sub" id="labSub">Pick a test to follow it across every blood test recorded.</div>
+        <div class="chart-title" data-i18n="tr.labTrend"></div>
+        <div class="chart-sub" id="labSub"></div>
       </div>
       <div class="lab-pick">
         <select id="labSelect" onchange="renderLab()"></select>
@@ -95,14 +95,12 @@
   </div>
 
   <div class="card no-print">
-    <div class="card-note">
-      These charts are a record of what was measured — they are not a medical assessment.
-      Bring them to the treating doctor rather than drawing conclusions from a moving line.
-    </div>
+    <div class="card-note" data-i18n="tr.disclaimer"></div>
   </div>
 
 </div>
 
+<script src="health-i18n.js"></script>
 <script src="health-base.js"></script>
 <script>
 let range = '90';
@@ -123,19 +121,19 @@ function markers() {
 function renderWeight() {
   const from = rangeFrom(range);
   const pts = vitalSeries('weight', from, '');
-  const t = getProfile().targets || {};
-  const band = (num(t.weightLow) !== null || num(t.weightHigh) !== null)
-    ? { low: t.weightLow, high: t.weightHigh, label: 'target range' } : null;
+  const tg = getProfile().targets || {};
+  const band = (num(tg.weightLow) !== null || num(tg.weightHigh) !== null)
+    ? { low: tg.weightLow, high: tg.weightHigh, label: t('tr.targetRange') } : null;
 
   const first = pts[0], last = pts[pts.length - 1];
   document.getElementById('weightSub').textContent = pts.length > 1
-    ? `kilograms — ${fmtNum(last.y - first.y, 1)} kg change since ${fmtDate(first.x)}`
-    : 'kilograms';
+    ? t('tr.kgChange', { n: fmtNum(last.y - first.y, 1), date: fmtDate(first.x) })
+    : t('tr.kilograms');
 
   renderLineChart(document.getElementById('chartWeight'), {
-    title: 'Weight', unit: 'kg', dec: 1, height: 250, band, markers: markers(),
-    series: [{ key: 'weight', label: 'Weight', color: '#2a78d6', points: pts }],
-    emptyMsg: 'No weight recorded in this period. Add one from the Daily Log.'
+    title: L(METRICS.weight), unit: 'kg', dec: 1, height: 250, band, markers: markers(),
+    series: [{ key: 'weight', label: L(METRICS.weight), color: '#2a78d6', points: pts }],
+    emptyMsg: t('tr.noWeight')
   });
 }
 
@@ -147,15 +145,15 @@ function renderGlucose() {
   const colors = { fasting: '#2a78d6', postmeal: '#eb6834', premeal: '#1baf7a', bedtime: '#eda100', random: '#eda100' };
 
   const series = order.filter(k => buckets[k] && buckets[k].length).map(k => ({
-    key: k, label: GLUCOSE_CONTEXTS[k].label, color: colors[k], points: buckets[k]
+    key: k, label: L(GLUCOSE_CONTEXTS[k]), color: colors[k], points: buckets[k]
   }));
 
-  const t = getProfile().targets || {};
+  const tg = getProfile().targets || {};
   renderLineChart(document.getElementById('chartGlucose'), {
-    title: 'Blood sugar', unit: 'mg/dL', dec: 0, height: 250, markers: markers(),
-    band: { low: t.glucoseLow || 70, high: t.glucoseHigh || 180, label: 'target' },
+    title: L(METRICS.glucose), unit: 'mg/dL', dec: 0, height: 250, markers: markers(),
+    band: { low: tg.glucoseLow || 70, high: tg.glucoseHigh || 180, label: t('tr.target') },
     series,
-    emptyMsg: 'No blood-sugar readings in this period.'
+    emptyMsg: t('tr.noSugar')
   });
 }
 
@@ -164,14 +162,14 @@ function renderGlucose() {
 function renderBP() {
   const from = rangeFrom(range);
   const series = [
-    { key: 'systolic',  label: 'Systolic',  color: '#2a78d6', points: vitalSeries('systolic', from, '') },
-    { key: 'diastolic', label: 'Diastolic', color: '#eb6834', points: vitalSeries('diastolic', from, '') },
-    { key: 'pulse',     label: 'Pulse',     color: '#1baf7a', points: vitalSeries('pulse', from, '') }
+    { key: 'systolic',  label: L(METRICS.systolic),  color: '#2a78d6', points: vitalSeries('systolic', from, '') },
+    { key: 'diastolic', label: L(METRICS.diastolic), color: '#eb6834', points: vitalSeries('diastolic', from, '') },
+    { key: 'pulse',     label: L(METRICS.pulse),     color: '#1baf7a', points: vitalSeries('pulse', from, '') }
   ].filter(s => s.points.length);
 
   renderLineChart(document.getElementById('chartBP'), {
-    title: 'Blood pressure and pulse', unit: '', dec: 0, height: 250, markers: markers(), series,
-    emptyMsg: 'No blood-pressure or pulse readings in this period.'
+    title: t('tr.bp'), unit: '', dec: 0, height: 250, markers: markers(), series,
+    emptyMsg: t('tr.noBp')
   });
 }
 
@@ -179,15 +177,15 @@ function renderBP() {
 function renderSymptoms() {
   const from = rangeFrom(range);
   const series = [
-    { key: 'pain',     label: 'Pain',     color: '#2a78d6', points: vitalSeries('pain', from, '') },
-    { key: 'nausea',   label: 'Nausea',   color: '#eb6834', points: vitalSeries('nausea', from, '') },
-    { key: 'fatigue',  label: 'Fatigue',  color: '#1baf7a', points: vitalSeries('fatigue', from, '') },
-    { key: 'appetite', label: 'Appetite', color: '#eda100', points: vitalSeries('appetite', from, '') }
+    { key: 'pain',     label: L(METRICS.pain),     color: '#2a78d6', points: vitalSeries('pain', from, '') },
+    { key: 'nausea',   label: L(METRICS.nausea),   color: '#eb6834', points: vitalSeries('nausea', from, '') },
+    { key: 'fatigue',  label: L(METRICS.fatigue),  color: '#1baf7a', points: vitalSeries('fatigue', from, '') },
+    { key: 'appetite', label: L(METRICS.appetite), color: '#eda100', points: vitalSeries('appetite', from, '') }
   ].filter(s => s.points.length);
 
   renderLineChart(document.getElementById('chartSymptoms'), {
-    title: 'Symptom scores', unit: '/10', dec: 0, height: 250, yMin: 0, yMax: 10, markers: markers(), series,
-    emptyMsg: 'No symptom scores in this period. The sliders in the Daily Log fill this in.'
+    title: t('tr.felt'), unit: '/10', dec: 0, height: 250, yMin: 0, yMax: 10, markers: markers(), series,
+    emptyMsg: t('tr.noSymptoms')
   });
 }
 
@@ -196,14 +194,14 @@ function buildLabSelect() {
   const keys = labTestsWithData(1);
   const sel = document.getElementById('labSelect');
   if (!keys.length) {
-    sel.innerHTML = '<option value="">No lab values recorded yet</option>';
+    sel.innerHTML = `<option value="">${esc(t('tr.noLabs'))}</option>`;
     return;
   }
   const prev = sel.value;
   sel.innerHTML = keys.map(k => {
     const def = LAB_TESTS[k];
     const n = labSeries(k, '', '').length;
-    return `<option value="${k}">${esc(def ? def.label : k)} (${n})</option>`;
+    return `<option value="${k}">${esc(def ? L(def) : k)} (${n})</option>`;
   }).join('');
   if (prev && keys.includes(prev)) sel.value = prev;
 }
@@ -213,8 +211,8 @@ function renderLab() {
   const host = document.getElementById('chartLab');
   if (!key) {
     host.innerHTML = `<div class="empty" style="padding:34px 16px"><div class="empty-icon">🧪</div>
-      Record a blood test in <a href="labs.html" style="color:var(--teal)">Lab Results</a> and its trend appears here.</div>`;
-    document.getElementById('labSub').textContent = 'Pick a test to follow it across every blood test recorded.';
+      ${esc(t('tr.labEmpty'))}</div>`;
+    document.getElementById('labSub').textContent = t('tr.labPick');
     return;
   }
 
@@ -222,15 +220,17 @@ function renderLab() {
   const pts = labSeries(key, rangeFrom(range), '');
   const ref = pts.length ? pts[pts.length - 1] : {};
 
+  const name = def.label ? L(def) : key;
   document.getElementById('labSub').textContent =
-    `${def.label || key}${def.unit ? ' — ' + def.unit : ''}` +
-    (ref.low != null || ref.high != null ? ` · reference ${ref.low ?? '–'}–${ref.high ?? '–'}` : '');
+    `${name}${def.unit ? ' — ' + def.unit : ''}` +
+    (ref.low != null || ref.high != null
+      ? ' · ' + t('tr.reference', { low: ref.low ?? '–', high: ref.high ?? '–' }) : '');
 
   renderLineChart(host, {
-    title: def.label || key, unit: def.unit || '', dec: def.dec ?? 1, height: 260, markers: markers(),
-    band: (ref.low != null || ref.high != null) ? { low: ref.low, high: ref.high, label: 'reference range' } : null,
-    series: [{ key, label: def.label || key, color: '#2a78d6', points: pts }],
-    emptyMsg: 'No results for this test in the selected period — try “All time”.'
+    title: name, unit: def.unit || '', dec: def.dec ?? 1, height: 260, markers: markers(),
+    band: (ref.low != null || ref.high != null) ? { low: ref.low, high: ref.high, label: t('tr.referenceRange') } : null,
+    series: [{ key, label: name, color: '#2a78d6', points: pts }],
+    emptyMsg: t('tr.noLabPeriod')
   });
 }
 
@@ -243,6 +243,7 @@ function render() {
   renderLab();
 }
 
+applyI18n();
 render();
 </script>
 <script src="health-nav.js"></script>

@@ -22,17 +22,17 @@
 .bp-cell { font-variant-numeric: tabular-nums; }
 </style>
 </head>
-<body>
+<body data-i18n-doctitle="vt.title">
 <div class="container">
 
   <div class="page-hdr">
     <div>
-      <div class="page-title">Daily Log</div>
-      <div class="page-sub">Weight, blood sugar, blood pressure and how she felt — one row per reading.</div>
+      <div class="page-title" data-i18n="vt.title"></div>
+      <div class="page-sub" data-i18n="vt.sub"></div>
     </div>
     <div class="hdr-actions">
       <button class="btn btn-outline" onclick="exportVitalsCSV()">↓ CSV</button>
-      <button class="btn btn-gold" onclick="openEntry()">+ Log a reading</button>
+      <button class="btn btn-gold" onclick="openEntry()" data-i18n="vt.logReading"></button>
     </div>
   </div>
 
@@ -41,19 +41,19 @@
       <h3 id="todayHeading">Today</h3>
       <p id="todaySummary">Nothing logged yet today.</p>
     </div>
-    <button class="btn btn-gold btn-lg" onclick="openEntry(null, true)">Log today</button>
+    <button class="btn btn-gold btn-lg" onclick="openEntry(null, true)" data-i18n="vt.logToday"></button>
   </div>
 
   <div class="stats" id="statTiles"></div>
 
   <div class="card">
     <div class="card-hdr">
-      <div class="card-title">Readings</div>
+      <div class="card-title" data-i18n="vt.readings"></div>
       <div class="filters" style="margin:0">
-        <button class="chip-btn active" data-range="30"  onclick="setRange('30', this)">30 days</button>
-        <button class="chip-btn" data-range="90"  onclick="setRange('90', this)">3 months</button>
-        <button class="chip-btn" data-range="365" onclick="setRange('365', this)">1 year</button>
-        <button class="chip-btn" data-range="all" onclick="setRange('all', this)">All</button>
+        <button class="chip-btn active" data-range="30"  onclick="setRange('30', this)" data-i18n="common.30days"></button>
+        <button class="chip-btn" data-range="90"  onclick="setRange('90', this)" data-i18n="common.3months"></button>
+        <button class="chip-btn" data-range="365" onclick="setRange('365', this)" data-i18n="common.1year"></button>
+        <button class="chip-btn" data-range="all" onclick="setRange('all', this)" data-i18n="common.allTime"></button>
       </div>
     </div>
     <div class="table-wrap"><table class="data" id="vitalsTable"></table></div>
@@ -66,57 +66,58 @@
 <div class="modal-overlay" id="entryModal">
   <div class="modal wide">
     <h2 id="entryTitle">Log a reading</h2>
-    <div class="modal-sub">Leave anything blank that wasn't measured — blanks are not stored as zero.</div>
+    <div class="modal-sub" data-i18n="vt.modalSub"></div>
 
     <input type="hidden" id="f_id">
 
     <div class="form-row">
-      <div class="form-group"><label>Date</label><input type="date" id="f_date"></div>
-      <div class="form-group"><label>Time</label><input type="time" id="f_time"></div>
+      <div class="form-group"><label data-i18n="common.date"></label><input type="date" id="f_date"></div>
+      <div class="form-group"><label data-i18n="common.time"></label><input type="time" id="f_time"></div>
     </div>
 
-    <div class="section-lbl">Body &amp; blood sugar</div>
+    <div class="section-lbl" data-i18n="vt.secBody"></div>
     <div class="form-row">
       <div class="form-group">
-        <label>Weight (kg)</label>
+        <label data-metric="weight"></label>
         <input type="number" step="0.1" inputmode="decimal" id="f_weight" placeholder="e.g. 62.4">
       </div>
       <div class="form-group">
-        <label>Blood sugar (mg/dL)</label>
+        <label data-metric="glucose"></label>
         <input type="number" step="1" inputmode="numeric" id="f_glucose" placeholder="e.g. 112">
       </div>
     </div>
     <div class="form-group">
-      <label>When was the sugar taken?</label>
+      <label data-i18n="vt.sugarWhen"></label>
       <select id="f_glucoseContext"></select>
       <div class="hint" id="glucoseHint"></div>
     </div>
 
-    <div class="section-lbl">Vitals</div>
+    <div class="section-lbl" data-i18n="vt.secVitals"></div>
     <div class="form-row4">
-      <div class="form-group"><label>Systolic</label><input type="number" inputmode="numeric" id="f_systolic" placeholder="120"></div>
-      <div class="form-group"><label>Diastolic</label><input type="number" inputmode="numeric" id="f_diastolic" placeholder="80"></div>
-      <div class="form-group"><label>Pulse (bpm)</label><input type="number" inputmode="numeric" id="f_pulse" placeholder="72"></div>
-      <div class="form-group"><label>Temp (°C)</label><input type="number" step="0.1" inputmode="decimal" id="f_temp" placeholder="36.6"></div>
+      <div class="form-group"><label data-metric="systolic"></label><input type="number" inputmode="numeric" id="f_systolic" placeholder="120"></div>
+      <div class="form-group"><label data-metric="diastolic"></label><input type="number" inputmode="numeric" id="f_diastolic" placeholder="80"></div>
+      <div class="form-group"><label data-metric="pulse"></label><input type="number" inputmode="numeric" id="f_pulse" placeholder="72"></div>
+      <div class="form-group"><label data-metric="temp"></label><input type="number" step="0.1" inputmode="decimal" id="f_temp" placeholder="36.6"></div>
     </div>
-    <div class="form-group" style="max-width:220px"><label>Oxygen SpO₂ (%)</label><input type="number" inputmode="numeric" id="f_spo2" placeholder="97"></div>
+    <div class="form-group" style="max-width:220px"><label data-metric="spo2"></label><input type="number" inputmode="numeric" id="f_spo2" placeholder="97"></div>
 
-    <div class="section-lbl">How she felt <span style="text-transform:none;letter-spacing:0;font-weight:400">— drag only what applies</span></div>
+    <div class="section-lbl"><span data-i18n="vt.secFelt"></span> <span style="text-transform:none;letter-spacing:0;font-weight:400" data-i18n="vt.secFeltHint"></span></div>
     <div id="scales"></div>
 
-    <div class="section-lbl">Notes</div>
+    <div class="section-lbl" data-i18n="common.notes"></div>
     <div class="form-group">
-      <textarea id="f_notes" placeholder="Anything worth remembering — side effects, appetite, sleep, what the doctor said…"></textarea>
+      <textarea id="f_notes" data-i18n-ph="vt.notesPh"></textarea>
     </div>
 
     <div class="modal-footer">
-      <button class="btn btn-danger" id="deleteBtn" onclick="deleteEntry()" style="margin-right:auto;display:none">Delete</button>
-      <button class="btn btn-outline" onclick="closeModal('entryModal')">Cancel</button>
-      <button class="btn btn-teal" onclick="saveEntry()">Save reading</button>
+      <button class="btn btn-danger" id="deleteBtn" onclick="deleteEntry()" style="margin-right:auto;display:none" data-i18n="common.delete"></button>
+      <button class="btn btn-outline" onclick="closeModal('entryModal')" data-i18n="common.cancel"></button>
+      <button class="btn btn-teal" onclick="saveEntry()" data-i18n="vt.saveReading"></button>
     </div>
   </div>
 </div>
 
+<script src="health-i18n.js"></script>
 <script src="health-base.js"></script>
 <script>
 /* ── Symptom scales rendered from the metric table ─────────── */
@@ -126,11 +127,10 @@ let currentRange = '30';
 function buildScales() {
   document.getElementById('scales').innerHTML = SCALES.map(k => {
     const m = METRICS[k];
-    const hint = m.higherIsBetter === false ? '0 = none' : '0 = worst';
     return `<div class="scale-row">
-      <label for="f_${k}">${esc(m.label)}</label>
+      <label for="f_${k}">${esc(L(m))}</label>
       <input type="range" id="f_${k}" min="0" max="10" step="1" value="0"
-             oninput="onScale('${k}')" title="${hint}">
+             oninput="onScale('${k}')">
       <span class="scale-val unset" id="v_${k}">–</span>
     </div>`;
   }).join('');
@@ -148,14 +148,14 @@ function onScale(k) {
 
 function buildContexts() {
   document.getElementById('f_glucoseContext').innerHTML =
-    Object.entries(GLUCOSE_CONTEXTS).map(([k, c]) => `<option value="${k}">${esc(c.label)}</option>`).join('');
+    Object.entries(GLUCOSE_CONTEXTS).map(([k, c]) => `<option value="${k}">${esc(L(c))}</option>`).join('');
   document.getElementById('f_glucoseContext').onchange = showGlucoseHint;
   showGlucoseHint();
 }
 function showGlucoseHint() {
   const c = GLUCOSE_CONTEXTS[document.getElementById('f_glucoseContext').value];
   document.getElementById('glucoseHint').textContent =
-    c ? `Usual target for this reading: ${c.low}–${c.high} mg/dL. Your doctor may set a different one.` : '';
+    c ? t('vt.sugarTarget', { low: c.low, high: c.high }) : '';
 }
 
 /* ── Modal ─────────────────────────────────────────────────── */
@@ -165,7 +165,7 @@ function openEntry(id, forToday) {
   const existing = id ? Store.find(HK.vitals, id)
     : (forToday ? getVitals().filter(v => v.date === todayISO()).pop() : null);
 
-  document.getElementById('entryTitle').textContent = existing ? 'Edit reading' : 'Log a reading';
+  document.getElementById('entryTitle').textContent = t(existing ? 'vt.modalEdit' : 'vt.modalAdd');
   document.getElementById('deleteBtn').style.display = existing ? '' : 'none';
   document.getElementById('f_id').value = existing ? existing.id : '';
   document.getElementById('f_date').value = existing ? existing.date : todayISO();
@@ -191,7 +191,7 @@ function openEntry(id, forToday) {
 
 function saveEntry() {
   const date = document.getElementById('f_date').value;
-  if (!date) { toast('Pick a date first.', 'error'); return; }
+  if (!date) { toast(t('common.pickDate'), 'error'); return; }
 
   const rec = Store.find(HK.vitals, document.getElementById('f_id').value) || {};
   rec.date = date;
@@ -202,7 +202,7 @@ function saveEntry() {
     const v = num(document.getElementById('f_' + k).value);
     const m = METRICS[k];
     if (v !== null && (v < m.min || v > m.max)) {
-      toast(`${m.label} of ${v} looks out of range (${m.min}–${m.max} ${m.unit}). Saved anyway — check it.`, 'warning');
+      toast(t('vt.outOfRange', { label: L(m), v, min: m.min, max: m.max, unit: m.unit }), 'warning');
     }
     if (v === null) delete rec[k]; else { rec[k] = v; any = true; }
   });
@@ -215,22 +215,21 @@ function saveEntry() {
   rec.glucoseContext = rec.glucose != null ? document.getElementById('f_glucoseContext').value : '';
   rec.notes = document.getElementById('f_notes').value.trim();
 
-  if (!any && !rec.notes) { toast('Nothing to save — fill in at least one measurement or a note.', 'error'); return; }
+  if (!any && !rec.notes) { toast(t('vt.nothingToSave'), 'error'); return; }
 
   Store.upsert(HK.vitals, rec);
   closeModal('entryModal');
-  toast('Reading saved.');
+  toast(t('vt.savedReading'));
   render();
 }
 
 function deleteEntry() {
   const id = document.getElementById('f_id').value;
   if (!id) return;
-  confirmAction('Delete this reading?', 'It will be removed from the log and from every chart. This cannot be undone.',
-    'Delete', () => {
+  confirmAction(t('vt.deleteQ'), t('vt.deleteBody'), t('common.delete'), () => {
       Store.remove(HK.vitals, id);
       closeModal('entryModal');
-      toast('Reading deleted.');
+      toast(t('vt.deletedReading'));
       render();
     });
 }
@@ -247,16 +246,16 @@ function renderToday() {
   const today = getVitals().filter(v => v.date === todayISO());
   document.getElementById('todayHeading').textContent = fmtDateLong(todayISO());
   if (!today.length) {
-    document.getElementById('todaySummary').textContent = 'Nothing logged yet today.';
+    document.getElementById('todaySummary').textContent = t('vt.nothingToday');
     return;
   }
   const bits = [];
   const last = today[today.length - 1];
   if (last.weight  != null) bits.push(`${fmtNum(last.weight, 1)} kg`);
-  if (last.glucose != null) bits.push(`sugar ${fmtNum(last.glucose, 0)} mg/dL`);
-  if (last.systolic != null && last.diastolic != null) bits.push(`BP ${last.systolic}/${last.diastolic}`);
+  if (last.glucose != null) bits.push(`${L(METRICS.glucose)} ${fmtNum(last.glucose, 0)} mg/dL`);
+  if (last.systolic != null && last.diastolic != null) bits.push(`${last.systolic}/${last.diastolic} mmHg`);
   document.getElementById('todaySummary').textContent =
-    `${today.length} reading${today.length > 1 ? 's' : ''} today` + (bits.length ? ' — ' + bits.join(', ') : '') + '.';
+    t('vt.readingsToday', { n: today.length }) + (bits.length ? ' — ' + bits.join(', ') : '') + '.';
 }
 
 function renderStats() {
@@ -268,15 +267,15 @@ function renderStats() {
   const w = latestVital('weight');
   if (w) {
     const d = metricDelta('weight', 30);
-    let deltaHtml = '<div class="stat-delta flat">first reading</div>';
+    let deltaHtml = `<div class="stat-delta flat">${esc(t('ov.firstReading'))}</div>`;
     if (d) {
       const dir = d.diff > 0.05 ? 'up' : d.diff < -0.05 ? 'down' : 'flat';
       const arrow = dir === 'up' ? '↑' : dir === 'down' ? '↓' : '→';
-      deltaHtml = `<div class="stat-delta flat">${arrow} ${fmtNum(Math.abs(d.diff), 1)} kg vs ${fmtDateShort(d.fromDate)}</div>`;
+      deltaHtml = `<div class="stat-delta flat">${arrow} ${fmtNum(Math.abs(d.diff), 1)} kg · ${esc(fmtDateShort(d.fromDate))}</div>`;
     }
     tiles.push(`<div class="stat blue">
       <div class="stat-val">${fmtNum(w.weight, 1)}<span class="unit">kg</span></div>
-      <div class="stat-lbl">Weight · ${esc(fmtDateShort(w.date))}</div>
+      <div class="stat-lbl">${esc(t('ov.statWeight', { date: fmtDateShort(w.date) }))}</div>
       ${deltaHtml}
       <div class="stat-spark" id="sparkWeight"></div>
     </div>`);
@@ -288,8 +287,8 @@ function renderStats() {
     const st = rangeStatus(g.glucose, ctx.low, ctx.high);
     tiles.push(`<div class="stat ${st === 'good' ? 'good' : st === 'critical' ? 'critical' : 'warning'}">
       <div class="stat-val">${fmtNum(g.glucose, 0)}<span class="unit">mg/dL</span></div>
-      <div class="stat-lbl">Sugar · ${esc(ctx.label)}</div>
-      <div style="margin-top:6px">${statusBadge(st, st === 'good' ? 'In target' : 'Outside target')}</div>
+      <div class="stat-lbl">${esc(t('ov.statSugar', { ctx: L(ctx) }))}</div>
+      <div style="margin-top:6px">${statusBadge(st, t(st === 'good' ? 'ov.inTarget' : 'ov.outsideTarget'))}</div>
       <div class="stat-spark" id="sparkGlucose"></div>
     </div>`);
   }
@@ -299,8 +298,8 @@ function renderStats() {
     const st = rangeStatus(bp.systolic, 90, 140);
     tiles.push(`<div class="stat aqua">
       <div class="stat-val">${bp.systolic}/${bp.diastolic}<span class="unit">mmHg</span></div>
-      <div class="stat-lbl">Blood pressure · ${esc(fmtDateShort(bp.date))}</div>
-      <div style="margin-top:6px">${statusBadge(st, st === 'good' ? 'Normal' : 'Check')}</div>
+      <div class="stat-lbl">${esc(t('vt.bp', { date: fmtDateShort(bp.date) }))}</div>
+      <div style="margin-top:6px">${statusBadge(st, t(st === 'good' ? 'vt.normal' : 'vt.check'))}</div>
     </div>`);
   }
 
@@ -314,12 +313,12 @@ function renderStats() {
   })();
   tiles.push(`<div class="stat">
     <div class="stat-val">${all.length}</div>
-    <div class="stat-lbl">Readings logged</div>
-    <div class="stat-delta flat">${streak ? streak + '-day streak' : 'log today to start a streak'}</div>
+    <div class="stat-lbl">${esc(t('vt.readingsLogged'))}</div>
+    <div class="stat-delta flat">${esc(streak ? t('vt.streak', { n: streak }) : t('vt.startStreak'))}</div>
   </div>`);
 
   document.getElementById('statTiles').innerHTML = tiles.join('') ||
-    '<div class="stat"><div class="stat-val">—</div><div class="stat-lbl">No readings yet</div></div>';
+    `<div class="stat"><div class="stat-val">—</div><div class="stat-lbl">${esc(t('lb.noneYet'))}</div></div>`;
 
   renderSparkline(document.getElementById('sparkWeight'),
     vitalSeries('weight', addDays(todayISO(), -90)).map(p => p.y), '#2a78d6');
@@ -336,42 +335,53 @@ function renderTable() {
   if (!rows.length) {
     table.innerHTML = '';
     empty.innerHTML = `<div class="empty"><div class="empty-icon">📋</div>
-      <strong>No readings in this period</strong>
-      Tap “Log today” above to record her weight, blood sugar or how she is feeling.</div>`;
+      <strong>${esc(t('vt.noneInPeriod'))}</strong>${esc(t('vt.noneInPeriodSub'))}</div>`;
     return;
   }
   empty.innerHTML = '';
 
   table.innerHTML = `
     <thead><tr>
-      <th>Date</th><th>Time</th>
-      <th class="num">Weight</th><th class="num">Sugar</th><th>When</th>
-      <th class="num">BP</th><th class="num">Pulse</th><th class="num">Temp</th>
-      <th>Symptoms</th><th>Notes</th><th></th>
+      <th>${esc(t('common.date'))}</th><th>${esc(t('common.time'))}</th>
+      <th class="num">${esc(L(METRICS.weight))}</th><th class="num">${esc(L(METRICS.glucose))}</th>
+      <th>${esc(t('vt.colWhen'))}</th>
+      <th class="num">${esc(L(METRICS.systolic))}</th><th class="num">${esc(L(METRICS.pulse))}</th>
+      <th class="num">${esc(L(METRICS.temp))}</th>
+      <th>${esc(t('vt.colSymptoms'))}</th><th>${esc(t('common.notes'))}</th><th></th>
     </tr></thead>
     <tbody>${rows.map(v => {
       const ctx = GLUCOSE_CONTEXTS[v.glucoseContext];
       const gs  = v.glucose != null && ctx ? rangeStatus(v.glucose, ctx.low, ctx.high) : null;
       const sym = SCALES.filter(k => num(v[k]) !== null)
-        .map(k => `<span class="tag">${esc(METRICS[k].label)} ${v[k]}</span>`).join('');
+        .map(k => `<span class="tag">${esc(L(METRICS[k]))} ${v[k]}</span>`).join('');
       return `<tr>
         <td>${esc(fmtDate(v.date))}</td>
         <td style="color:var(--text-muted)">${esc(v.time || '—')}</td>
         <td class="num">${v.weight != null ? fmtNum(v.weight, 1) : '—'}</td>
         <td class="num">${v.glucose != null ? `<span style="color:${gs === 'good' ? 'inherit' : 'var(--critical)'};font-weight:${gs === 'good' ? '400' : '600'}">${fmtNum(v.glucose, 0)}</span>` : '—'}</td>
-        <td style="color:var(--text-muted);font-size:12px">${ctx ? esc(ctx.label) : '—'}</td>
+        <td style="color:var(--text-muted);font-size:12px">${ctx ? esc(L(ctx)) : '—'}</td>
         <td class="num bp-cell">${v.systolic != null && v.diastolic != null ? v.systolic + '/' + v.diastolic : '—'}</td>
         <td class="num">${v.pulse != null ? v.pulse : '—'}</td>
         <td class="num">${v.temp != null ? fmtNum(v.temp, 1) : '—'}</td>
         <td>${sym || '<span style="color:var(--border)">—</span>'}</td>
         <td style="max-width:220px;font-size:12px;color:var(--text-2)">${esc((v.notes || '').slice(0, 90))}${(v.notes || '').length > 90 ? '…' : ''}</td>
-        <td><div class="row-actions"><button class="btn btn-outline btn-sm" onclick="openEntry('${v.id}')">Edit</button></div></td>
+        <td><div class="row-actions"><button class="btn btn-outline btn-sm" onclick="openEntry('${v.id}')">${esc(t('common.edit'))}</button></div></td>
       </tr>`;
     }).join('')}</tbody>`;
 }
 
 function render() { renderToday(); renderStats(); renderTable(); }
 
+/* Measurement labels read their names straight from METRICS. */
+function labelMetrics() {
+  document.querySelectorAll('[data-metric]').forEach(el => {
+    const k = el.getAttribute('data-metric'), m = METRICS[k];
+    if (m) el.textContent = `${L(m)} (${m.unit})`;
+  });
+}
+
+applyI18n();
+labelMetrics();
 buildContexts();
 buildScales();
 render();

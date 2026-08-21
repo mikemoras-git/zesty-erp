@@ -30,21 +30,21 @@
 .att-row .s { font-size: 11px; color: var(--text-muted); white-space: nowrap; }
 </style>
 </head>
-<body>
+<body data-i18n-doctitle="dc.title">
 <div class="container wide">
 
   <div class="page-hdr">
     <div>
-      <div class="page-title">Documents</div>
-      <div class="page-sub">The filing cabinet — every report, scan and prescription, filed by date and type.</div>
+      <div class="page-title" data-i18n="dc.title"></div>
+      <div class="page-sub" data-i18n="dc.sub"></div>
     </div>
     <div class="hdr-actions">
-      <button class="btn btn-gold" onclick="openRecord()">+ File a document</button>
+      <button class="btn btn-gold" onclick="openRecord()" data-i18n="dc.fileDoc"></button>
     </div>
   </div>
 
   <div class="filters">
-    <input class="search-box" id="searchBox" placeholder="Search title, doctor, tags, notes…" oninput="render()">
+    <input class="search-box" id="searchBox" data-i18n-ph="dc.searchPh" oninput="render()">
     <span id="catFilters"></span>
   </div>
 
@@ -56,54 +56,55 @@
 <div class="modal-overlay" id="recModal">
   <div class="modal wide">
     <h2 id="recTitle">File a document</h2>
-    <div class="modal-sub">Photograph or scan the paper, then file it here. Files stay on this device.</div>
+    <div class="modal-sub" data-i18n="dc.modalSub"></div>
 
     <input type="hidden" id="r_id">
 
     <div class="form-group">
-      <label>Files</label>
+      <label data-i18n="dc.files"></label>
       <div class="drop" id="dropZone">
         <div style="font-size:26px;margin-bottom:6px">📎</div>
-        Click to choose files, or drag them here<br>
-        <span style="font-size:11px">PDF, photos, anything — several at once is fine</span>
+        <span data-i18n="dc.dropTitle"></span><br>
+        <span style="font-size:11px" data-i18n="dc.dropSub"></span>
       </div>
       <input type="file" id="fileInput" multiple style="display:none">
       <div id="attList" style="margin-top:10px"></div>
     </div>
 
     <div class="form-row">
-      <div class="form-group"><label>Date on the document</label><input type="date" id="r_date"></div>
-      <div class="form-group"><label>Type</label><select id="r_category"></select></div>
+      <div class="form-group"><label data-i18n="dc.docDate"></label><input type="date" id="r_date"></div>
+      <div class="form-group"><label data-i18n="dc.type"></label><select id="r_category"></select></div>
     </div>
 
     <div class="form-group">
-      <label>Title</label>
-      <input type="text" id="r_title" placeholder="e.g. CT chest — report">
+      <label data-i18n="common.title"></label>
+      <input type="text" id="r_title" data-i18n-ph="dc.titlePh">
     </div>
 
     <div class="form-row">
-      <div class="form-group"><label>From (doctor / hospital / lab)</label><input type="text" id="r_source" placeholder="Dr. …"></div>
-      <div class="form-group"><label>Link to a calendar event</label><select id="r_event"></select></div>
+      <div class="form-group"><label data-i18n="dc.from"></label><input type="text" id="r_source" placeholder="Dr. …"></div>
+      <div class="form-group"><label data-i18n="common.linkEvent"></label><select id="r_event"></select></div>
     </div>
 
     <div class="form-group">
-      <label>Tags</label>
-      <input type="text" id="r_tags" placeholder="comma separated — e.g. oncology, chest, follow-up">
+      <label data-i18n="dc.tags"></label>
+      <input type="text" id="r_tags" data-i18n-ph="dc.tagsPh">
     </div>
 
     <div class="form-group">
-      <label>Notes</label>
-      <textarea id="r_notes" placeholder="The important line from the report, what to ask the doctor next time…"></textarea>
+      <label data-i18n="common.notes"></label>
+      <textarea id="r_notes" data-i18n-ph="dc.notesPh"></textarea>
     </div>
 
     <div class="modal-footer">
-      <button class="btn btn-danger" id="rDeleteBtn" onclick="deleteRecord()" style="margin-right:auto;display:none">Delete</button>
-      <button class="btn btn-outline" onclick="closeModal('recModal')">Cancel</button>
-      <button class="btn btn-teal" onclick="saveRecord()">Save</button>
+      <button class="btn btn-danger" id="rDeleteBtn" onclick="deleteRecord()" style="margin-right:auto;display:none" data-i18n="common.delete"></button>
+      <button class="btn btn-outline" onclick="closeModal('recModal')" data-i18n="common.cancel"></button>
+      <button class="btn btn-teal" onclick="saveRecord()" data-i18n="common.save"></button>
     </div>
   </div>
 </div>
 
+<script src="health-i18n.js"></script>
 <script src="health-base.js"></script>
 <script>
 let catFilter = 'all';
@@ -114,10 +115,10 @@ let thumbUrls = [];        // object URLs to revoke on the next render
 function buildCatFilters() {
   const counts = {};
   getRecords().forEach(r => { counts[r.category] = (counts[r.category] || 0) + 1; });
-  const btns = ['<button class="chip-btn active" data-cat="all" onclick="setCat(\'all\', this)">All</button>']
+  const btns = [`<button class="chip-btn${catFilter === 'all' ? ' active' : ''}" data-cat="all" onclick="setCat('all', this)">${esc(t('common.all'))}</button>`]
     .concat(Object.entries(RECORD_CATEGORIES)
       .filter(([k]) => counts[k])
-      .map(([k, c]) => `<button class="chip-btn" data-cat="${k}" onclick="setCat('${k}', this)">${c.icon} ${esc(c.label)} <span style="opacity:.6">${counts[k]}</span></button>`));
+      .map(([k, c]) => `<button class="chip-btn${catFilter === k ? ' active' : ''}" data-cat="${k}" onclick="setCat('${k}', this)">${c.icon} ${esc(L(c))} <span style="opacity:.6">${counts[k]}</span></button>`));
   document.getElementById('catFilters').innerHTML = btns.join(' ');
 }
 function setCat(c, btn) {
@@ -130,15 +131,15 @@ function setCat(c, btn) {
 /* ── Modal ─────────────────────────────────────────────────── */
 function buildSelects(rec) {
   document.getElementById('r_category').innerHTML = Object.entries(RECORD_CATEGORIES)
-    .map(([k, c]) => `<option value="${k}" ${rec && rec.category === k ? 'selected' : ''}>${c.icon} ${esc(c.label)}</option>`).join('');
-  document.getElementById('r_event').innerHTML = ['<option value="">— not linked —</option>']
+    .map(([k, c]) => `<option value="${k}" ${rec && rec.category === k ? 'selected' : ''}>${c.icon} ${esc(L(c))}</option>`).join('');
+  document.getElementById('r_event').innerHTML = [`<option value="">${esc(t('common.notLinked'))}</option>`]
     .concat(getEvents().slice().reverse().slice(0, 120).map(e =>
       `<option value="${e.id}" ${rec && rec.eventId === e.id ? 'selected' : ''}>${esc(fmtDate(e.date))} · ${esc(e.title || eventLabel(e.type))}</option>`)).join('');
 }
 
 function openRecord(id) {
   const r = id ? Store.find(HK.records, id) : null;
-  document.getElementById('recTitle').textContent = r ? 'Edit document' : 'File a document';
+  document.getElementById('recTitle').textContent = t(r ? 'dc.modalEdit' : 'dc.modalAdd');
   document.getElementById('rDeleteBtn').style.display = r ? '' : 'none';
   document.getElementById('r_id').value     = r ? r.id : '';
   document.getElementById('r_date').value   = r ? r.date : todayISO();
@@ -158,18 +159,18 @@ function renderAtts() {
       <span>${fileIcon(a.type, a.name)}</span>
       <span class="n" title="${esc(a.name)}">${esc(a.name)}</span>
       <span class="s">${fmtBytes(a.size)}</span>
-      <button class="btn btn-outline btn-sm" onclick="previewAtt(${i})">View</button>
+      <button class="btn btn-outline btn-sm" onclick="previewAtt(${i})">${esc(t('dc.view'))}</button>
       <button class="btn btn-sm" style="background:none;color:var(--critical)" onclick="dropAtt(${i})" title="Remove">×</button>
     </div>`).join('');
 }
 function previewAtt(i) { Files.open_(pendingAtts[i]); }
 function dropAtt(i) {
   const a = pendingAtts[i];
-  confirmAction('Remove this file?', `“${a.name}” will be deleted from this device permanently.`, 'Remove', async () => {
+  confirmAction(t('dc.removeFileQ'), t('dc.removeFileBody', { name: a.name }), t('common.remove'), async () => {
     await Files.del(a.id);
     pendingAtts.splice(i, 1);
     renderAtts();
-    toast('File removed.');
+    toast(t('dc.fileRemoved'));
   });
 }
 
@@ -197,12 +198,12 @@ drop.addEventListener('drop', e => { if (e.dataTransfer.files.length) takeFiles(
 
 async function takeFiles(files) {
   for (const f of files) {
-    if (f.size > 25 * 1024 * 1024) { toast(`“${f.name}” is over 25 MB — too big to keep in the browser.`, 'error'); continue; }
+    if (f.size > 25 * 1024 * 1024) { toast(t('dc.tooBig', { name: f.name }), 'error'); continue; }
     try {
       const id = await Files.put(f);
       pendingAtts.push({ id, name: f.name, type: f.type, size: f.size });
     } catch (e) {
-      toast('Could not store ' + f.name + ' — the browser may be out of space.', 'error');
+      toast(t('dc.storeFail', { name: f.name }), 'error');
     }
   }
   renderAtts();
@@ -215,8 +216,8 @@ async function takeFiles(files) {
 function saveRecord() {
   const date = document.getElementById('r_date').value;
   const title = document.getElementById('r_title').value.trim();
-  if (!date)  { toast('Pick the date on the document.', 'error'); return; }
-  if (!title) { toast('Give it a title so you can find it later.', 'error'); return; }
+  if (!date)  { toast(t('dc.needDate'), 'error'); return; }
+  if (!title) { toast(t('dc.needTitle'), 'error'); return; }
 
   const rec = Store.find(HK.records, document.getElementById('r_id').value) || {};
   rec.date        = date;
@@ -230,7 +231,7 @@ function saveRecord() {
 
   Store.upsert(HK.records, rec);
   closeModal('recModal');
-  toast('Document filed.');
+  toast(t('dc.filed'));
   render();
 }
 
@@ -238,13 +239,11 @@ function deleteRecord() {
   const id = document.getElementById('r_id').value;
   if (!id) return;
   const rec = Store.find(HK.records, id);
-  confirmAction('Delete this document?',
-    `The entry and its ${(rec.attachments || []).length} file(s) will be permanently removed from this device.`,
-    'Delete', async () => {
+  confirmAction(t('dc.deleteQ'), t('dc.deleteBody', { n: (rec.attachments || []).length }), t('common.delete'), async () => {
       for (const a of (rec.attachments || [])) await Files.del(a.id);
       Store.remove(HK.records, id);
       closeModal('recModal');
-      toast('Document deleted.');
+      toast(t('common.deleted'));
       render();
     });
 }
@@ -264,10 +263,10 @@ async function render() {
 
   const box = document.getElementById('recBox');
   if (!recs.length) {
+    const filtered = q || catFilter !== 'all';
     box.innerHTML = `<div class="card"><div class="empty"><div class="empty-icon">🗂</div>
-      <strong>${q || catFilter !== 'all' ? 'Nothing matches that filter' : 'The cabinet is empty'}</strong>
-      ${q || catFilter !== 'all' ? 'Try clearing the search or picking “All”.'
-        : 'Photograph a report with your phone and file it — you will never dig through a folder at the hospital again.'}</div></div>`;
+      <strong>${esc(t(filtered ? 'dc.noMatch' : 'dc.emptyCabinet'))}</strong>
+      ${esc(t(filtered ? 'dc.noMatchSub' : 'dc.emptyCabinetSub'))}</div></div>`;
     return;
   }
 
@@ -277,9 +276,9 @@ async function render() {
     const n   = (r.attachments || []).length;
     return `<div class="rec" id="${r.id}">
       <div class="rec-thumb" id="th_${r.id}" onclick="openFirst('${r.id}')">${cat.icon}
-        ${n > 1 ? `<span class="rec-count">${n} files</span>` : ''}</div>
+        ${n > 1 ? `<span class="rec-count">${esc(t('dc.nFiles', { n }))}</span>` : ''}</div>
       <div class="rec-body">
-        <div class="rec-cat">${cat.icon} ${esc(cat.label)}</div>
+        <div class="rec-cat">${cat.icon} ${esc(L(cat))}</div>
         <div class="rec-title">${esc(r.title)}</div>
         <div class="rec-meta">
           ${esc(fmtDate(r.date))}${r.source ? ' · ' + esc(r.source) : ''}
@@ -288,9 +287,9 @@ async function render() {
         </div>
         ${(r.tags || []).length ? `<div style="margin-top:7px">${r.tags.map(t => `<span class="tag">${esc(t)}</span>`).join('')}</div>` : ''}
         <div class="rec-foot">
-          <button class="btn btn-outline btn-sm" onclick="openRecord('${r.id}')">Edit</button>
-          ${n ? `<button class="btn btn-outline btn-sm" onclick="openFirst('${r.id}')">Open</button>
-                 <button class="btn btn-outline btn-sm" onclick="downloadAll('${r.id}')">Save</button>` : ''}
+          <button class="btn btn-outline btn-sm" onclick="openRecord('${r.id}')">${esc(t('common.edit'))}</button>
+          ${n ? `<button class="btn btn-outline btn-sm" onclick="openFirst('${r.id}')">${esc(t('common.open'))}</button>
+                 <button class="btn btn-outline btn-sm" onclick="downloadAll('${r.id}')">${esc(t('dc.saveFile'))}</button>` : ''}
         </div>
       </div>
     </div>`;
@@ -306,7 +305,7 @@ async function render() {
     thumbUrls.push(url);
     const el = document.getElementById('th_' + r.id);
     if (el) el.innerHTML = `<img src="${url}" alt="${esc(r.title)}">` +
-      ((r.attachments || []).length > 1 ? `<span class="rec-count">${r.attachments.length} files</span>` : '');
+      ((r.attachments || []).length > 1 ? `<span class="rec-count">${esc(t('dc.nFiles', { n: r.attachments.length }))}</span>` : '');
   }
 
   if (location.hash) {
@@ -325,6 +324,7 @@ async function downloadAll(id) {
   for (const a of (r.attachments || [])) await Files.download(a);
 }
 
+applyI18n();
 render();
 </script>
 <script src="health-nav.js"></script>

@@ -18,124 +18,147 @@
 .med-row.off { opacity: .5; }
 </style>
 </head>
-<body>
+<body data-i18n-doctitle="st.title">
 <div class="container">
 
   <div class="page-hdr">
     <div>
-      <div class="page-title">Settings</div>
-      <div class="page-sub">Who this log is for, what counts as on-target, and how to keep it safe.</div>
+      <div class="page-title" data-i18n="st.title"></div>
+      <div class="page-sub" data-i18n="st.sub"></div>
     </div>
     <div class="hdr-actions">
-      <button class="btn btn-gold" onclick="doBackup()">💾 Back up now</button>
+      <button class="btn btn-gold" onclick="doBackup()" data-i18n="st.backupNow"></button>
     </div>
   </div>
 
   <!-- ── Privacy note ── -->
   <div class="card" style="border-left:4px solid var(--teal)">
-    <div class="card-title" style="margin-bottom:7px">🔒 Where this data lives</div>
-    <div style="font-size:13px;color:var(--text-2);line-height:1.65">
-      Everything you enter — readings, appointments, lab values and scanned documents — is stored
-      <strong>only in this browser, on this device</strong>. It is never uploaded, and no one else can
-      read it. That also means nothing is recoverable if this browser's data is cleared, the device is
-      lost, or you use private/incognito mode. <strong>Export a backup regularly</strong> and keep the
-      file somewhere you trust.
+    <div class="card-title" style="margin-bottom:7px" data-i18n="st.whereLives"></div>
+    <div style="font-size:13px;color:var(--text-2);line-height:1.65" data-i18n-html="st.whereLivesBody"></div>
+  </div>
+
+  <!-- ── Language ── -->
+  <div class="card">
+    <div class="card-hdr">
+      <div class="card-title" data-i18n="st.language"></div>
+      <div class="card-note" data-i18n="st.languageNote"></div>
+    </div>
+    <div class="lang-choice">
+      <button class="lang-opt" id="langEn" onclick="setLang('en')"><span class="flag">🇬🇧</span> English</button>
+      <button class="lang-opt" id="langEl" onclick="setLang('el')"><span class="flag">🇬🇷</span> Ελληνικά</button>
     </div>
   </div>
 
   <!-- ── Patient ── -->
   <div class="card">
-    <div class="card-hdr"><div class="card-title">Patient</div></div>
+    <div class="card-hdr"><div class="card-title" data-i18n="st.patient"></div></div>
     <div class="form-row">
-      <div class="form-group"><label>Name</label><input type="text" id="p_name" placeholder="Full name"></div>
-      <div class="form-group"><label>Date of birth</label><input type="date" id="p_dob"></div>
+      <div class="form-group"><label data-i18n="st.name"></label><input type="text" id="p_name" data-i18n-ph="st.namePh"></div>
+      <div class="form-group"><label data-i18n="st.dob"></label><input type="date" id="p_dob"></div>
     </div>
     <div class="form-row3">
-      <div class="form-group"><label>Height (cm)</label><input type="number" id="p_heightCm" placeholder="165"></div>
-      <div class="form-group"><label>Blood group</label><input type="text" id="p_bloodType" placeholder="A+"></div>
-      <div class="form-group"><label>Phone</label><input type="text" id="p_phone" placeholder="Contact number"></div>
+      <div class="form-group"><label data-i18n="st.height"></label><input type="number" id="p_heightCm" placeholder="165"></div>
+      <div class="form-group"><label data-i18n="st.bloodGroup"></label><input type="text" id="p_bloodType" placeholder="A+"></div>
+      <div class="form-group"><label data-i18n="st.phone"></label><input type="text" id="p_phone" data-i18n-ph="st.phonePh"></div>
     </div>
     <div class="form-group">
-      <label>Allergies &amp; things doctors must know</label>
-      <input type="text" id="p_allergies" placeholder="e.g. penicillin, iodine contrast">
-      <div class="hint">This line is printed at the top of every report.</div>
+      <label data-i18n="st.allergies"></label>
+      <input type="text" id="p_allergies" data-i18n-ph="st.allergiesPh">
+      <div class="hint" data-i18n="st.allergiesHint"></div>
     </div>
   </div>
 
   <!-- ── Diagnosis ── -->
   <div class="card">
-    <div class="card-hdr"><div class="card-title">Diagnosis &amp; care team</div></div>
+    <div class="card-hdr"><div class="card-title" data-i18n="st.diagnosisTeam"></div></div>
     <div class="form-row">
-      <div class="form-group"><label>Diagnosis</label><input type="text" id="p_diagnosis" placeholder="e.g. Breast carcinoma, left"></div>
-      <div class="form-group"><label>Stage / grade</label><input type="text" id="p_stage" placeholder="e.g. Stage II"></div>
+      <div class="form-group"><label data-i18n="st.diagnosis"></label><input type="text" id="p_diagnosis" data-i18n-ph="st.diagnosisPh"></div>
+      <div class="form-group"><label data-i18n="st.stage"></label><input type="text" id="p_stage" data-i18n-ph="st.stagePh"></div>
     </div>
     <div class="form-row3">
-      <div class="form-group"><label>Diagnosed on</label><input type="date" id="p_diagnosedOn"></div>
-      <div class="form-group"><label>Treating doctor</label><input type="text" id="p_oncologist" placeholder="Dr. …"></div>
-      <div class="form-group"><label>Hospital / clinic</label><input type="text" id="p_hospital" placeholder="…"></div>
+      <div class="form-group"><label data-i18n="st.diagnosedOn"></label><input type="date" id="p_diagnosedOn"></div>
+      <div class="form-group"><label data-i18n="st.treatingDoctor"></label><input type="text" id="p_oncologist" placeholder="Dr. …"></div>
+      <div class="form-group"><label data-i18n="st.hospital"></label><input type="text" id="p_hospital" placeholder="…"></div>
     </div>
-    <div class="form-group"><label>Notes</label><textarea id="p_notes" placeholder="Anything worth keeping at hand"></textarea></div>
+    <div class="form-group"><label data-i18n="common.notes"></label><textarea id="p_notes" data-i18n-ph="st.notesPh"></textarea></div>
   </div>
 
   <!-- ── Targets ── -->
   <div class="card">
     <div class="card-hdr">
-      <div class="card-title">Targets</div>
-      <div class="card-note">Drawn as a shaded band on the charts</div>
+      <div class="card-title" data-i18n="st.targets"></div>
+      <div class="card-note" data-i18n="st.targetsNote"></div>
     </div>
     <div class="form-row">
-      <div class="form-group"><label>Weight — keep above (kg)</label><input type="number" step="0.1" id="t_weightLow" placeholder="e.g. 58"></div>
-      <div class="form-group"><label>Weight — keep below (kg)</label><input type="number" step="0.1" id="t_weightHigh" placeholder="e.g. 68"></div>
+      <div class="form-group"><label data-i18n="st.weightAbove"></label><input type="number" step="0.1" id="t_weightLow" placeholder="58"></div>
+      <div class="form-group"><label data-i18n="st.weightBelow"></label><input type="number" step="0.1" id="t_weightHigh" placeholder="68"></div>
     </div>
     <div class="form-row">
-      <div class="form-group"><label>Blood sugar — low limit (mg/dL)</label><input type="number" id="t_glucoseLow" placeholder="70"></div>
-      <div class="form-group"><label>Blood sugar — high limit (mg/dL)</label><input type="number" id="t_glucoseHigh" placeholder="180"></div>
+      <div class="form-group"><label data-i18n="st.sugarLow"></label><input type="number" id="t_glucoseLow" placeholder="70"></div>
+      <div class="form-group"><label data-i18n="st.sugarHigh"></label><input type="number" id="t_glucoseHigh" placeholder="180"></div>
     </div>
-    <div class="card-note">Use the numbers her own doctor gave — the defaults are only general adult guides.</div>
-    <div style="margin-top:16px"><button class="btn btn-teal" onclick="saveAll()">Save settings</button></div>
+    <div class="card-note" data-i18n="st.targetsHint"></div>
+    <div style="margin-top:16px"><button class="btn btn-teal" onclick="saveAll()" data-i18n="st.saveSettings"></button></div>
+  </div>
+
+  <!-- ── Reminders ── -->
+  <div class="card">
+    <div class="card-hdr">
+      <div class="card-title" data-i18n="rm.section"></div>
+    </div>
+    <div style="font-size:13px;color:var(--text-2);line-height:1.6;margin-bottom:15px" data-i18n="rm.sub"></div>
+
+    <div style="margin-bottom:18px">
+      <button class="btn btn-teal" onclick="exportUpcomingICS()" data-i18n="rm.exportAll"></button>
+      <div class="card-note" style="margin-top:8px" data-i18n="rm.exportAllHint"></div>
+    </div>
+
+    <div style="border-top:1px solid var(--grid);padding-top:16px">
+      <div style="font-size:13px;font-weight:600;color:var(--teal-dark);margin-bottom:4px" data-i18n="rm.dailyTitle"></div>
+      <div class="card-note" style="margin-bottom:11px" data-i18n="rm.dailyHint"></div>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <label style="font-size:12px;color:var(--text-muted)" data-i18n="rm.dailyAt"></label>
+        <input type="time" id="dailyTime" value="09:00" style="padding:7px 11px;border:1px solid var(--border);border-radius:7px;font-family:inherit;font-size:13px">
+        <button class="btn btn-outline" onclick="exportDailyReminderICS(document.getElementById('dailyTime').value)" data-i18n="rm.dailyExport"></button>
+      </div>
+    </div>
   </div>
 
   <!-- ── Medication ── -->
   <div class="card">
     <div class="card-hdr">
-      <div class="card-title">Current medication</div>
-      <button class="btn btn-outline btn-sm" onclick="openMed()">+ Add medicine</button>
+      <div class="card-title" data-i18n="st.medication"></div>
+      <button class="btn btn-outline btn-sm" onclick="openMed()" data-i18n="st.addMedicine"></button>
     </div>
     <div id="medBox"></div>
   </div>
 
   <!-- ── Backup ── -->
   <div class="card">
-    <div class="card-hdr"><div class="card-title">Backup &amp; restore</div></div>
-    <div style="font-size:13px;color:var(--text-2);line-height:1.6;margin-bottom:15px">
-      The backup is a single <code>.json</code> file containing every record <em>and</em> every scanned
-      document. Keep it somewhere safe — and it is also how you move this log to another phone or computer.
-    </div>
+    <div class="card-hdr"><div class="card-title" data-i18n="st.backupRestore"></div></div>
+    <div style="font-size:13px;color:var(--text-2);line-height:1.6;margin-bottom:15px" data-i18n-html="st.backupBody"></div>
     <div id="backupStatus" style="margin-bottom:15px"></div>
     <div style="display:flex;gap:9px;flex-wrap:wrap">
-      <button class="btn btn-gold" onclick="doBackup()">💾 Export full backup</button>
-      <button class="btn btn-outline" onclick="doBackup(false)">Export without documents</button>
-      <button class="btn btn-outline" onclick="document.getElementById('importFile').click()">📂 Restore from backup</button>
-      <button class="btn btn-outline" onclick="exportVitalsCSV()">↓ Daily readings CSV</button>
-      <button class="btn btn-outline" onclick="exportLabsCSV()">↓ Lab values CSV</button>
+      <button class="btn btn-gold" onclick="doBackup()" data-i18n="st.exportFull"></button>
+      <button class="btn btn-outline" onclick="doBackup(false)" data-i18n="st.exportNoDocs"></button>
+      <button class="btn btn-outline" onclick="document.getElementById('importFile').click()" data-i18n="st.restore"></button>
+      <button class="btn btn-outline" onclick="exportVitalsCSV()" data-i18n="st.dailyCsv"></button>
+      <button class="btn btn-outline" onclick="exportLabsCSV()" data-i18n="st.labsCsv"></button>
     </div>
     <input type="file" id="importFile" accept=".json,application/json" style="display:none" onchange="doRestore(this)">
   </div>
 
   <!-- ── Storage ── -->
   <div class="card">
-    <div class="card-hdr"><div class="card-title">What is stored</div></div>
-    <div id="storageBox"><div class="loading" style="font-size:13px;color:var(--text-muted)">Measuring…</div></div>
+    <div class="card-hdr"><div class="card-title" data-i18n="st.whatStored"></div></div>
+    <div id="storageBox"><div class="loading" style="font-size:13px;color:var(--text-muted)" data-i18n="st.measuring"></div></div>
   </div>
 
   <!-- ── Danger ── -->
   <div class="card danger-card">
-    <div class="card-hdr"><div class="card-title">Erase everything</div></div>
-    <div style="font-size:13px;color:var(--text-2);line-height:1.6;margin-bottom:14px">
-      Deletes every reading, appointment, lab value and document from this device. There is no undo and
-      no copy anywhere else. Export a backup first.
-    </div>
-    <button class="btn btn-danger" onclick="wipeAll()">Erase all Care Log data</button>
+    <div class="card-hdr"><div class="card-title" data-i18n="st.eraseTitle"></div></div>
+    <div style="font-size:13px;color:var(--text-2);line-height:1.6;margin-bottom:14px" data-i18n="st.eraseBody"></div>
+    <button class="btn btn-danger" onclick="wipeAll()" data-i18n="st.eraseBtn"></button>
   </div>
 
 </div>
@@ -144,28 +167,29 @@
 <div class="modal-overlay" id="medModal">
   <div class="modal">
     <h2 id="medTitle">Add medicine</h2>
-    <div class="modal-sub">These appear on the doctor-visit report.</div>
+    <div class="modal-sub" data-i18n="st.medModalSub"></div>
     <input type="hidden" id="m_id">
-    <div class="form-group"><label>Name</label><input type="text" id="m_name" placeholder="e.g. Ondansetron"></div>
+    <div class="form-group"><label data-i18n="st.medName"></label><input type="text" id="m_name" data-i18n-ph="st.medNamePh"></div>
     <div class="form-row">
-      <div class="form-group"><label>Dose</label><input type="text" id="m_dose" placeholder="8 mg"></div>
-      <div class="form-group"><label>When</label><input type="text" id="m_schedule" placeholder="twice a day, after food"></div>
+      <div class="form-group"><label data-i18n="st.medDose"></label><input type="text" id="m_dose" placeholder="8 mg"></div>
+      <div class="form-group"><label data-i18n="st.medWhen"></label><input type="text" id="m_schedule" data-i18n-ph="st.medWhenPh"></div>
     </div>
     <div class="form-row">
-      <div class="form-group"><label>Started</label><input type="date" id="m_startDate"></div>
-      <div class="form-group"><label>Status</label>
-        <select id="m_active"><option value="yes">Taking now</option><option value="no">Stopped</option></select>
+      <div class="form-group"><label data-i18n="st.medStarted"></label><input type="date" id="m_startDate"></div>
+      <div class="form-group"><label data-i18n="common.status"></label>
+        <select id="m_active"><option value="yes" data-i18n="st.medTaking"></option><option value="no" data-i18n="st.medStopped"></option></select>
       </div>
     </div>
-    <div class="form-group"><label>Notes</label><textarea id="m_notes" placeholder="Why it was prescribed, side effects…"></textarea></div>
+    <div class="form-group"><label data-i18n="common.notes"></label><textarea id="m_notes" data-i18n-ph="st.medNotesPh"></textarea></div>
     <div class="modal-footer">
-      <button class="btn btn-danger" id="mDeleteBtn" onclick="deleteMed()" style="margin-right:auto;display:none">Delete</button>
-      <button class="btn btn-outline" onclick="closeModal('medModal')">Cancel</button>
-      <button class="btn btn-teal" onclick="saveMed()">Save</button>
+      <button class="btn btn-danger" id="mDeleteBtn" onclick="deleteMed()" style="margin-right:auto;display:none" data-i18n="common.delete"></button>
+      <button class="btn btn-outline" onclick="closeModal('medModal')" data-i18n="common.cancel"></button>
+      <button class="btn btn-teal" onclick="saveMed()" data-i18n="common.save"></button>
     </div>
   </div>
 </div>
 
+<script src="health-i18n.js"></script>
 <script src="health-base.js"></script>
 <script>
 const PROFILE_FIELDS = ['name','dob','heightCm','bloodType','phone','allergies',
@@ -184,12 +208,12 @@ function saveAll() {
   TARGET_FIELDS.forEach(k => { const el = document.getElementById('t_' + k); if (el) p.targets[k] = el.value === '' ? '' : num(el.value); });
 
   const lo = num(p.targets.weightLow), hi = num(p.targets.weightHigh);
-  if (lo !== null && hi !== null && lo > hi) { toast('The weight target’s low limit is above its high limit.', 'error'); return; }
+  if (lo !== null && hi !== null && lo > hi) { toast(t('st.badWeightTarget'), 'error'); return; }
   const glo = num(p.targets.glucoseLow), ghi = num(p.targets.glucoseHigh);
-  if (glo !== null && ghi !== null && glo > ghi) { toast('The blood-sugar low limit is above the high limit.', 'error'); return; }
+  if (glo !== null && ghi !== null && glo > ghi) { toast(t('st.badSugarTarget'), 'error'); return; }
 
   saveProfile(p);
-  toast('Settings saved.');
+  toast(t('common.saved'));
   setTimeout(() => location.reload(), 700);   // refresh the sidebar patient name
 }
 
@@ -198,24 +222,23 @@ function renderMeds() {
   const meds = getMeds();
   const box = document.getElementById('medBox');
   if (!meds.length) {
-    box.innerHTML = `<div class="empty" style="padding:26px 12px"><div class="empty-icon">💊</div>
-      Nothing added. Listing her medicines here puts them on every doctor report.</div>`;
+    box.innerHTML = `<div class="empty" style="padding:26px 12px"><div class="empty-icon">💊</div>${esc(t('st.noMeds'))}</div>`;
     return;
   }
   box.innerHTML = meds.map(m => `<div class="med-row ${m.active === false ? 'off' : ''}">
     <span style="font-size:18px">💊</span>
     <span style="flex:1;min-width:0">
       <div class="med-name">${esc(m.name)} ${m.dose ? `<span style="font-weight:400;color:var(--text-muted)">${esc(m.dose)}</span>` : ''}</div>
-      <div class="med-meta">${esc([m.schedule, m.startDate ? 'since ' + fmtDate(m.startDate) : ''].filter(Boolean).join(' · '))}
-        ${m.active === false ? '<span class="badge badge-neutral" style="margin-left:6px">stopped</span>' : ''}</div>
+      <div class="med-meta">${esc([m.schedule, m.startDate ? t('st.since', { date: fmtDate(m.startDate) }) : ''].filter(Boolean).join(' · '))}
+        ${m.active === false ? `<span class="badge badge-neutral" style="margin-left:6px">${esc(t('st.stopped'))}</span>` : ''}</div>
     </span>
-    <button class="btn btn-outline btn-sm" onclick="openMed('${m.id}')">Edit</button>
+    <button class="btn btn-outline btn-sm" onclick="openMed('${m.id}')">${esc(t('common.edit'))}</button>
   </div>`).join('');
 }
 
 function openMed(id) {
   const m = id ? Store.find(HK.meds, id) : null;
-  document.getElementById('medTitle').textContent = m ? 'Edit medicine' : 'Add medicine';
+  document.getElementById('medTitle').textContent = t(m ? 'st.medModalEdit' : 'st.medModalAdd');
   document.getElementById('mDeleteBtn').style.display = m ? '' : 'none';
   document.getElementById('m_id').value        = m ? m.id : '';
   document.getElementById('m_name').value      = m ? m.name : '';
@@ -229,7 +252,7 @@ function openMed(id) {
 
 function saveMed() {
   const name = document.getElementById('m_name').value.trim();
-  if (!name) { toast('The medicine needs a name.', 'error'); return; }
+  if (!name) { toast(t('st.medNeedName'), 'error'); return; }
   const rec = Store.find(HK.meds, document.getElementById('m_id').value) || {};
   rec.name      = name;
   rec.dose      = document.getElementById('m_dose').value.trim();
@@ -239,17 +262,17 @@ function saveMed() {
   rec.active    = document.getElementById('m_active').value === 'yes';
   Store.upsert(HK.meds, rec);
   closeModal('medModal');
-  toast('Saved.');
+  toast(t('common.saved'));
   renderMeds();
 }
 
 function deleteMed() {
   const id = document.getElementById('m_id').value;
-  confirmAction('Remove this medicine?', 'It will no longer appear on reports.', 'Remove', () => {
+  confirmAction(t('st.medRemoveQ'), t('st.medRemoveBody'), t('common.remove'), () => {
     Store.remove(HK.meds, id);
     closeModal('medModal');
     renderMeds();
-    toast('Removed.');
+    toast(t('common.deleted'));
   });
 }
 
@@ -258,23 +281,25 @@ function renderBackupStatus() {
   const since = daysSinceBackup();
   const el = document.getElementById('backupStatus');
   if (since === null) {
-    el.innerHTML = '<span class="badge badge-warning">▲ Never backed up</span>';
+    el.innerHTML = `<span class="badge badge-warning">▲ ${esc(t('st.neverBackedUp'))}</span>`;
   } else if (since > BACKUP_NAG_DAYS) {
-    el.innerHTML = `<span class="badge badge-warning">▲ Last backup ${since} days ago</span>`;
+    el.innerHTML = `<span class="badge badge-warning">▲ ${esc(t('st.lastBackupDays', { n: since }))}</span>`;
   } else {
-    el.innerHTML = `<span class="badge badge-good">✓ Last backup ${since === 0 ? 'today' : since + ' day(s) ago'}</span>`;
+    el.innerHTML = `<span class="badge badge-good">✓ ${esc(since === 0 ? t('st.lastBackupToday') : t('st.lastBackupNDays', { n: since }))}</span>`;
   }
 }
 
 async function doBackup(withFiles = true) {
-  toast('Preparing the backup…', 'info');
+  toast(t('st.preparing'), 'info');
   try {
     const r = await exportBackup(withFiles);
-    toast(`Backup saved — ${r.records} records${withFiles ? `, ${r.files} documents` : ''} (${fmtBytes(r.bytes)}).`);
+    toast(withFiles
+      ? t('st.backupSaved', { records: r.records, files: r.files, size: fmtBytes(r.bytes) })
+      : t('st.backupSavedNoFiles', { records: r.records, size: fmtBytes(r.bytes) }));
     renderBackupStatus();
     renderStorage();
   } catch (e) {
-    toast('Backup failed: ' + e.message, 'error');
+    toast(t('st.backupFailed', { msg: e.message }), 'error');
   }
 }
 
@@ -282,12 +307,10 @@ function doRestore(input) {
   const file = input.files[0];
   if (!file) return;
   input.value = '';
-  confirmAction('Restore from this backup?',
-    'Choose Merge to add anything missing while keeping what is here. To replace everything instead, erase the data first, then restore.',
-    'Merge in', async () => {
+  confirmAction(t('st.restoreQ'), t('st.restoreBody'), t('st.mergeIn'), async () => {
       try {
         const r = await importBackup(file, 'merge');
-        toast(`Restored — ${r.records} records and ${r.files} documents added.`);
+        toast(t('st.restored', { records: r.records, files: r.files }));
         setTimeout(() => location.reload(), 1000);
       } catch (e) {
         toast(e.message, 'error');
@@ -308,21 +331,21 @@ async function renderStorage() {
       const est = await navigator.storage.estimate();
       if (est.quota) {
         pct = Math.min(((est.usage || 0) / est.quota) * 100, 100);
-        quotaTxt = `${fmtBytes(est.usage || 0)} of about ${fmtBytes(est.quota)} available to this site`;
+        quotaTxt = t('st.quotaLine', { used: fmtBytes(est.usage || 0), quota: fmtBytes(est.quota) });
       }
     } catch {}
   }
 
   document.getElementById('storageBox').innerHTML = `
     <div class="stats" style="margin-bottom:14px">
-      <div class="stat blue"><div class="stat-val">${getVitals().length}</div><div class="stat-lbl">Daily readings</div></div>
-      <div class="stat aqua"><div class="stat-val">${getEvents().length}</div><div class="stat-lbl">Calendar events</div></div>
-      <div class="stat orange"><div class="stat-val">${getLabs().length}</div><div class="stat-lbl">Lab result sets</div></div>
-      <div class="stat"><div class="stat-val">${getRecords().length}</div><div class="stat-lbl">Documents</div></div>
+      <div class="stat blue"><div class="stat-val">${getVitals().length}</div><div class="stat-lbl">${esc(t('st.dailyReadings'))}</div></div>
+      <div class="stat aqua"><div class="stat-val">${getEvents().length}</div><div class="stat-lbl">${esc(t('st.calendarEvents'))}</div></div>
+      <div class="stat orange"><div class="stat-val">${getLabs().length}</div><div class="stat-lbl">${esc(t('st.labSets'))}</div></div>
+      <div class="stat"><div class="stat-val">${getRecords().length}</div><div class="stat-lbl">${esc(t('st.documents'))}</div></div>
     </div>
     <div style="font-size:12.5px;color:var(--text-2);line-height:1.7">
-      Records (text): <strong>${fmtBytes(lsBytes)}</strong><br>
-      Scanned documents: <strong>${fmtBytes(fileBytes)}</strong>
+      ${esc(t('st.recordsText'))} <strong>${fmtBytes(lsBytes)}</strong><br>
+      ${esc(t('st.scannedDocs'))} <strong>${fmtBytes(fileBytes)}</strong>
     </div>
     ${pct !== null ? `<div class="store-bar"><div class="store-fill" style="width:${pct.toFixed(1)}%"></div></div>
       <div style="font-size:11px;color:var(--text-muted)">${esc(quotaTxt)}</div>` : ''}`;
@@ -330,19 +353,18 @@ async function renderStorage() {
 
 /* ── Wipe ──────────────────────────────────────────────────── */
 function wipeAll() {
-  confirmAction('Erase everything?',
-    'Every reading, appointment, lab value and scanned document will be deleted from this device permanently.',
-    'Erase it all', () => {
-      confirmAction('Really erase it all?', 'This is the last warning. If you have not exported a backup, the data is gone for good.',
-        'Yes, erase', async () => {
+  confirmAction(t('st.eraseQ'), t('st.eraseQBody'), t('st.eraseConfirm'), () => {
+      confirmAction(t('st.eraseQ2'), t('st.eraseQ2Body'), t('st.eraseYes'), async () => {
           for (const r of getRecords()) for (const a of (r.attachments || [])) await Files.del(a.id).catch(() => {});
           Object.values(HK).forEach(k => localStorage.removeItem(k));
-          toast('All Care Log data erased.');
+          toast(t('st.erased'));
           setTimeout(() => location.reload(), 900);
         });
     });
 }
 
+applyI18n();
+document.getElementById('lang' + (getLang() === 'el' ? 'El' : 'En')).classList.add('on');
 loadForm();
 renderMeds();
 renderBackupStatus();

@@ -2,9 +2,10 @@
 
 A private tracker for one person's cancer treatment: daily measurements, every
 appointment and test, the results, and the paperwork that comes with them.
+Available in **English and Greek**, switchable at any time.
 
-It is a small static web app — eight HTML pages, one stylesheet, two scripts, no
-build step, no server, no dependencies.
+It is a small static web app — eight HTML pages, one stylesheet, three scripts,
+no build step, no server, no dependencies.
 
 ---
 
@@ -56,7 +57,7 @@ For everyday use on a phone, open that address once and add it to the home scree
 | **Documents** (`records.html`) | The filing cabinet: PDFs and photos of reports, filed by date, type and tag, searchable, optionally linked to a calendar event |
 | **Trends** (`charts.html`) | Weight, blood sugar by reading context, blood pressure, symptom scores, and any lab analyte over time, with treatment dates ticked on the axis |
 | **Reports** (`reports.html`) | Four printable summaries — doctor-visit summary, treatment timeline, daily-metrics summary, lab summary — plus CSV export |
-| **Settings** (`settings.html`) | Patient details, target ranges, medication list, backup/restore, storage usage |
+| **Settings** (`settings.html`) | Language, patient details, target ranges, reminders, medication list, backup/restore, storage usage |
 
 ### A suggested routine
 
@@ -69,6 +70,8 @@ For everyday use on a phone, open that address once and add it to the home scree
 - **Before each doctor visit** — Reports → *Doctor-visit summary* → Print. It fits
   on a page or two and ends with a blank box for questions.
 - **Once a fortnight** — Settings → *Export full backup*.
+- **Whenever the schedule changes** — Calendar → *Export upcoming to calendar* and
+  open the downloaded file on the phone, so the appointments ring there.
 
 ---
 
@@ -123,6 +126,50 @@ do not, they get separate charts.
 
 ---
 
+## Language
+
+The whole interface exists in English and Greek. Switch with the **EN / ΕΛ**
+buttons at the bottom of the sidebar, or in Settings → Language; the choice is
+remembered on that device, and on first run it follows the browser's own
+language. Dates, month names and weekday names follow the active language;
+numeric dates stay `DD/MM/YYYY` in both, which is unambiguous on a printed report.
+
+What is *not* translated is your own data — a diagnosis, an event title or a
+doctor's name stays exactly as it was typed. That is deliberate: a record should
+read back the way it was written.
+
+All strings live in `health-i18n.js` as one `en` / `el` pair per key:
+
+```js
+'vt.title': 'Daily Log',        // en
+'vt.title': 'Ημερήσια καταγραφή' // el
+```
+
+To fix a translation, edit the `el` side — nothing else needs to change. Names of
+measurements, event types, lab analytes and document categories carry their Greek
+inline in `health-base.js` instead (`{ label: 'Haemoglobin', el: 'Αιμοσφαιρίνη' }`),
+so a lab value typed in one language still reads correctly in the other.
+
+## Reminders
+
+A browser cannot notify anyone while it is closed, so Care Log does not pretend
+to. Instead it hands appointments to the calendar app that *can*:
+
+- **Calendar → Export upcoming to calendar (.ics)** writes every future
+  appointment, each with its reminder, to one standard iCalendar file. Open it on
+  the phone and Google, Apple or Outlook Calendar imports the lot.
+- **Each event** has a *Remind me* lead time (1 hour to 1 week; default one day)
+  and an *Add to phone calendar* button for that appointment alone.
+- **Settings → Reminders** also generates a repeating daily nudge at a time you
+  pick, to record the day's weight and blood sugar.
+
+Every exported event carries a stable `UID` and a `SEQUENCE` that increases on
+each edit, so re-exporting a changed appointment **replaces** the one already in
+the calendar rather than duplicating it. Editing an appointment here does not
+reach into a calendar that already imported it — export again to push the change.
+
+---
+
 ## Limitations, honestly
 
 - **Single patient.** The whole app assumes one person. A second would need a
@@ -132,9 +179,9 @@ do not, they get separate charts.
 - **Reference ranges are generic.** The built-in low/high values are typical adult
   figures; laboratories differ. Every range is editable per result, and the ones
   your lab printed should always win.
-- **No reminders.** The calendar shows what is coming but the browser cannot send
-  a notification when the app is closed. Keep hard appointments in a phone calendar
-  as well.
+- **Reminders leave the app.** Notifications happen in your calendar app, not
+  here, so an appointment only rings once it has been exported and imported.
+  Nothing is pushed automatically.
 - **Tumour markers have no universal cut-off.** The defaults are common laboratory
   cut-offs, not a clinical threshold for any individual.
 

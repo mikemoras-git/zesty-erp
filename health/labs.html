@@ -47,30 +47,30 @@
 }
 </style>
 </head>
-<body>
+<body data-i18n-doctitle="lb.title">
 <div class="container">
 
   <div class="page-hdr">
     <div>
-      <div class="page-title">Lab Results</div>
-      <div class="page-sub">Type the numbers in once and every one of them becomes a trend line.</div>
+      <div class="page-title" data-i18n="lb.title"></div>
+      <div class="page-sub" data-i18n="lb.sub"></div>
     </div>
     <div class="hdr-actions">
-      <button class="btn btn-outline" onclick="exportLabsCSV()">↓ CSV</button>
-      <button class="btn btn-gold" onclick="openLab()">+ Add results</button>
+      <button class="btn btn-outline" onclick="exportLabsCSV()" data-i18n="rp.labsCsv"></button>
+      <button class="btn btn-gold" onclick="openLab()" data-i18n="lb.addResults"></button>
     </div>
   </div>
 
   <div class="tabs">
-    <button class="tab active" data-tab="latest" onclick="setTab('latest', this)">Latest values</button>
-    <button class="tab" data-tab="all" onclick="setTab('all', this)">All results</button>
+    <button class="tab active" data-tab="latest" onclick="setTab('latest', this)" data-i18n="lb.latestValues"></button>
+    <button class="tab" data-tab="all" onclick="setTab('all', this)" data-i18n="lb.allResults"></button>
   </div>
 
   <div id="tabLatest">
     <div class="card">
       <div class="card-hdr">
-        <div class="card-title">Most recent value of every test</div>
-        <div class="card-note">Arrow compares with the result before it.</div>
+        <div class="card-title" data-i18n="lb.latestOfEvery"></div>
+        <div class="card-note" data-i18n="lb.arrowNote"></div>
       </div>
       <div id="latestBox"></div>
     </div>
@@ -78,7 +78,7 @@
 
   <div id="tabAll" style="display:none">
     <div class="filters">
-      <input class="search-box" id="searchBox" placeholder="Search by date, lab or note…" oninput="renderAll()">
+      <input class="search-box" id="searchBox" data-i18n-ph="lb.searchPh" oninput="renderAll()">
     </div>
     <div class="card"><div id="resultsBox"></div></div>
   </div>
@@ -89,44 +89,45 @@
 <div class="modal-overlay" id="labModal">
   <div class="modal wide">
     <h2 id="labTitle">Add lab results</h2>
-    <div class="modal-sub">Fill in only the tests on the report. Reference ranges are pre-filled with typical adult values — overwrite them with the ones your lab printed.</div>
+    <div class="modal-sub" data-i18n="lb.modalSub"></div>
 
     <input type="hidden" id="l_id">
 
     <div class="form-row">
-      <div class="form-group"><label>Date of the test</label><input type="date" id="l_date"></div>
-      <div class="form-group"><label>Lab / hospital</label><input type="text" id="l_source" placeholder="e.g. Bioiatriki"></div>
+      <div class="form-group"><label data-i18n="lb.dateOfTest"></label><input type="date" id="l_date"></div>
+      <div class="form-group"><label data-i18n="lb.labName"></label><input type="text" id="l_source" placeholder="π.χ. Bioiatriki"></div>
     </div>
 
     <div class="form-row">
-      <div class="form-group"><label>Title</label><input type="text" id="l_title" placeholder="e.g. Pre-chemo blood work"></div>
-      <div class="form-group"><label>Link to a calendar event</label><select id="l_event"></select></div>
+      <div class="form-group"><label data-i18n="common.title"></label><input type="text" id="l_title" data-i18n-ph="lb.titlePh"></div>
+      <div class="form-group"><label data-i18n="common.linkEvent"></label><select id="l_event"></select></div>
     </div>
 
     <div id="panels"></div>
 
     <div class="form-group">
-      <label>Add a test that isn't listed</label>
+      <label data-i18n="lb.addOther"></label>
       <div class="form-row3">
-        <input type="text" id="c_name" placeholder="Test name">
-        <input type="text" id="c_unit" placeholder="Unit">
-        <button class="btn btn-outline" onclick="addCustomTest()">+ Add row</button>
+        <input type="text" id="c_name" data-i18n-ph="lb.testName">
+        <input type="text" id="c_unit" data-i18n-ph="lb.unit">
+        <button class="btn btn-outline" onclick="addCustomTest()" data-i18n="lb.addRow"></button>
       </div>
     </div>
 
     <div class="form-group">
-      <label>Notes</label>
-      <textarea id="l_notes" placeholder="What the doctor said about these results…"></textarea>
+      <label data-i18n="common.notes"></label>
+      <textarea id="l_notes" data-i18n-ph="lb.notesPh"></textarea>
     </div>
 
     <div class="modal-footer">
-      <button class="btn btn-danger" id="lDeleteBtn" onclick="deleteLab()" style="margin-right:auto;display:none">Delete</button>
-      <button class="btn btn-outline" onclick="closeModal('labModal')">Cancel</button>
-      <button class="btn btn-teal" onclick="saveLab()">Save results</button>
+      <button class="btn btn-danger" id="lDeleteBtn" onclick="deleteLab()" style="margin-right:auto;display:none" data-i18n="common.delete"></button>
+      <button class="btn btn-outline" onclick="closeModal('labModal')" data-i18n="common.cancel"></button>
+      <button class="btn btn-teal" onclick="saveLab()" data-i18n="lb.saveResults"></button>
     </div>
   </div>
 </div>
 
+<script src="health-i18n.js"></script>
 <script src="health-base.js"></script>
 <script>
 let tab = 'latest';
@@ -148,20 +149,20 @@ function buildPanels(existing) {
 
   document.getElementById('panels').innerHTML = LAB_PANELS.map((p, i) => {
     const filled = p.tests.filter(t => have[t.key]).length;
-    const rows = p.tests.map(t => {
-      const v = have[t.key] || {};
-      return `<div class="test-row" data-key="${t.key}">
-        <span class="tname">${esc(t.label)}</span>
-        <input class="val" type="number" step="any" inputmode="decimal" id="t_${t.key}" value="${v.value ?? ''}" placeholder="—">
-        <span class="tunit">${esc(t.unit)}</span>
-        <input class="lo" type="number" step="any" id="lo_${t.key}" value="${v.low ?? t.low}" title="Reference low">
-        <input class="hi" type="number" step="any" id="hi_${t.key}" value="${v.high ?? t.high}" title="Reference high">
+    const rows = p.tests.map(test => {
+      const v = have[test.key] || {};
+      return `<div class="test-row" data-key="${test.key}">
+        <span class="tname">${esc(L(test))}</span>
+        <input class="val" type="number" step="any" inputmode="decimal" id="t_${test.key}" value="${v.value ?? ''}" placeholder="—">
+        <span class="tunit">${esc(test.unit)}</span>
+        <input class="lo" type="number" step="any" id="lo_${test.key}" value="${v.low ?? test.low}" title="${esc(t('lb.colRefLow'))}">
+        <input class="hi" type="number" step="any" id="hi_${test.key}" value="${v.high ?? test.high}" title="${esc(t('lb.colRefHigh'))}">
       </div>`;
     }).join('');
     return `<details class="panel" ${i === 0 || filled ? 'open' : ''}>
-      <summary><span>${esc(p.label)}</span>${filled ? `<span class="badge badge-teal">${filled} filled</span>` : ''}</summary>
+      <summary><span>${esc(L(p))}</span>${filled ? `<span class="badge badge-teal">${esc(t('lb.filled', { n: filled }))}</span>` : ''}</summary>
       <div class="panel-body">
-        <div class="test-head"><span>Test</span><span>Value</span><span>Unit</span><span>Ref low</span><span>Ref high</span></div>
+        ${testHead()}
         ${rows}
       </div>
     </details>`;
@@ -176,9 +177,9 @@ function renderCustomRows() {
   if (!box) return;
   if (!customRows.length) { box.innerHTML = ''; return; }
   box.innerHTML = `<details class="panel" open>
-    <summary><span>Other tests</span><span class="badge badge-teal">${customRows.length}</span></summary>
+    <summary><span>${esc(t('lb.otherTests'))}</span><span class="badge badge-teal">${customRows.length}</span></summary>
     <div class="panel-body">
-      <div class="test-head"><span>Test</span><span>Value</span><span>Unit</span><span>Ref low</span><span>Ref high</span></div>
+      ${testHead()}
       ${customRows.map((c, i) => `<div class="test-row">
         <span class="tname">${esc(c.label)}
           <button class="btn btn-sm" style="background:none;color:var(--critical);padding:0 4px" onclick="removeCustom(${i})" title="Remove">×</button></span>
@@ -192,7 +193,7 @@ function renderCustomRows() {
 
 function addCustomTest() {
   const name = document.getElementById('c_name').value.trim();
-  if (!name) { toast('Give the test a name first.', 'error'); return; }
+  if (!name) { toast(t('lb.needName'), 'error'); return; }
   syncCustomFromDom();
   customRows.push({ key: 'x_' + name.toLowerCase().replace(/[^a-z0-9]+/g, '_'), label: name,
                     unit: document.getElementById('c_unit').value.trim(), value: '', low: '', high: '', custom: true });
@@ -212,7 +213,7 @@ function syncCustomFromDom() {
 }
 
 function buildEventSelect(selected) {
-  const opts = ['<option value="">— not linked —</option>'].concat(
+  const opts = [`<option value="">${esc(t('common.notLinked'))}</option>`].concat(
     getEvents().slice().reverse().slice(0, 120).map(e =>
       `<option value="${e.id}" ${e.id === selected ? 'selected' : ''}>${esc(fmtDate(e.date))} · ${esc(e.title || eventLabel(e.type))}</option>`)
   );
@@ -221,7 +222,7 @@ function buildEventSelect(selected) {
 
 function openLab(id) {
   const l = id ? Store.find(HK.labs, id) : null;
-  document.getElementById('labTitle').textContent = l ? 'Edit lab results' : 'Add lab results';
+  document.getElementById('labTitle').textContent = t(l ? 'lb.modalEdit' : 'lb.modalAdd');
   document.getElementById('lDeleteBtn').style.display = l ? '' : 'none';
   document.getElementById('l_id').value     = l ? l.id : '';
   document.getElementById('l_date').value   = l ? l.date : todayISO();
@@ -235,17 +236,17 @@ function openLab(id) {
 
 function saveLab() {
   const date = document.getElementById('l_date').value;
-  if (!date) { toast('Pick the date of the test.', 'error'); return; }
+  if (!date) { toast(t('lb.dateOfTest'), 'error'); return; }
   syncCustomFromDom();
 
   const values = [];
-  LAB_PANELS.forEach(p => p.tests.forEach(t => {
-    const raw = document.getElementById('t_' + t.key).value;
+  LAB_PANELS.forEach(p => p.tests.forEach(test => {
+    const raw = document.getElementById('t_' + test.key).value;
     if (num(raw) === null) return;
     values.push({
-      key: t.key, label: t.label, unit: t.unit, value: num(raw),
-      low:  num(document.getElementById('lo_' + t.key).value),
-      high: num(document.getElementById('hi_' + t.key).value)
+      key: test.key, label: test.label, unit: test.unit, value: num(raw),
+      low:  num(document.getElementById('lo_' + test.key).value),
+      high: num(document.getElementById('hi_' + test.key).value)
     });
   }));
   customRows.forEach(c => {
@@ -254,29 +255,29 @@ function saveLab() {
                   low: num(c.low), high: num(c.high), custom: true });
   });
 
-  if (!values.length) { toast('Fill in at least one test value.', 'error'); return; }
+  if (!values.length) { toast(t('lb.needValue'), 'error'); return; }
 
   const rec = Store.find(HK.labs, document.getElementById('l_id').value) || {};
   rec.date    = date;
   rec.source  = document.getElementById('l_source').value.trim();
-  rec.title   = document.getElementById('l_title').value.trim() || 'Lab results';
+  rec.title   = document.getElementById('l_title').value.trim() || t('lb.defaultTitle');
   rec.eventId = document.getElementById('l_event').value;
   rec.notes   = document.getElementById('l_notes').value.trim();
   rec.values  = values;
 
   Store.upsert(HK.labs, rec);
   closeModal('labModal');
-  toast(`Saved — ${values.length} value${values.length > 1 ? 's' : ''} recorded.`);
+  toast(t('lb.savedN', { n: values.length }));
   render();
 }
 
 function deleteLab() {
   const id = document.getElementById('l_id').value;
   if (!id) return;
-  confirmAction('Delete these results?', 'Every value in this set disappears from the trend charts too.', 'Delete', () => {
+  confirmAction(t('lb.deleteQ'), t('lb.deleteBody'), t('common.delete'), () => {
     Store.remove(HK.labs, id);
     closeModal('labModal');
-    toast('Results deleted.');
+    toast(t('common.deleted'));
     render();
   });
 }
@@ -287,8 +288,7 @@ function renderLatest() {
   const box = document.getElementById('latestBox');
   if (!labs.length) {
     box.innerHTML = `<div class="empty"><div class="empty-icon">🧪</div>
-      <strong>No lab results yet</strong>
-      Add the numbers from a blood-test report and they will start plotting themselves.</div>`;
+      <strong>${esc(t('lb.noneYet'))}</strong>${esc(t('lb.noneYetSub'))}</div>`;
     return;
   }
 
@@ -302,11 +302,11 @@ function renderLatest() {
   const byPanel = {};
   Object.keys(seen).forEach(k => {
     const def = LAB_TESTS[k];
-    const panel = def ? def.panelLabel : 'Other tests';
+    const panel = def ? panelLabel(def) : t('lb.otherTests');
     (byPanel[panel] = byPanel[panel] || []).push({ key: k, hist: seen[k] });
   });
 
-  const order = LAB_PANELS.map(p => p.label).concat(['Other tests']);
+  const order = LAB_PANELS.map(p => L(p)).concat([t('lb.otherTests')]);
   box.innerHTML = order.filter(p => byPanel[p]).map(panel => {
     const chips = byPanel[panel].map(({ key, hist }) => {
       const cur = hist[0], prev = hist[1];
@@ -317,21 +317,19 @@ function renderLatest() {
       if (prev) {
         const d = cur.value - prev.value;
         if (Math.abs(d) > 1e-9) {
-          arrow = `<span class="trend-arrow" style="color:var(--text-muted)" title="was ${fmtNum(prev.value, dec)} on ${fmtDate(prev.date)}">${d > 0 ? '↑' : '↓'}</span>`;
+          arrow = `<span class="trend-arrow" style="color:var(--text-muted)" title="${esc(t('lb.was', { v: fmtNum(prev.value, dec), date: fmtDate(prev.date) }))}">${d > 0 ? '↑' : '↓'}</span>`;
         }
       }
       return `<div class="val-chip ${st && st !== 'good' ? 'out' : ''}">
-        <div class="val-name">${esc(cur.label || def.label || key)}</div>
+        <div class="val-name">${esc(def.label ? L(def) : (cur.label || key))}</div>
         <div class="val-num">${fmtNum(cur.value, dec)}<span class="u">${esc(cur.unit || def.unit || '')}</span>${arrow}</div>
-        <div class="val-ref">${cur.low != null || cur.high != null ? `ref ${cur.low ?? '–'}–${cur.high ?? '–'}` : ''} · ${esc(fmtDateShort(cur.date))}</div>
+        <div class="val-ref">${cur.low != null || cur.high != null ? `${esc(t('lb.ref'))} ${cur.low ?? '–'}–${cur.high ?? '–'}` : ''} · ${esc(fmtDateShort(cur.date))}</div>
       </div>`;
     }).join('');
     return `<div style="margin-bottom:18px">
       <div style="font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);margin-bottom:8px">${esc(panel)}</div>
       <div class="val-grid">${chips}</div></div>`;
-  }).join('') + `<div class="card-note" style="margin-top:6px">
-    Values outside their reference range are outlined in red. Reference ranges differ between laboratories —
-    always read these next to the report your lab issued, and let the treating doctor interpret them.</div>`;
+  }).join('') + `<div class="card-note" style="margin-top:6px">${esc(t('lb.refNote'))}</div>`;
 }
 
 /* ── All results view ──────────────────────────────────────── */
@@ -344,8 +342,7 @@ function renderAll() {
   const box = document.getElementById('resultsBox');
   if (!labs.length) {
     box.innerHTML = `<div class="empty"><div class="empty-icon">🧪</div>
-      <strong>${q ? 'Nothing matches that search' : 'No lab results yet'}</strong>
-      ${q ? 'Try a different word.' : 'Add the values from a blood-test report to get started.'}</div>`;
+      <strong>${esc(t(q ? 'lb.noMatch' : 'lb.noneYet'))}</strong>${esc(t(q ? 'lb.noMatchSub' : 'lb.noneYetSub'))}</div>`;
     return;
   }
 
@@ -359,9 +356,9 @@ function renderAll() {
       const st = rangeStatus(v.value, v.low, v.high);
       const def = LAB_TESTS[v.key] || {};
       return `<div class="val-chip ${st && st !== 'good' ? 'out' : ''}">
-        <div class="val-name">${esc(v.label || def.label || v.key)}</div>
+        <div class="val-name">${esc(def.label ? L(def) : (v.label || v.key))}</div>
         <div class="val-num">${fmtNum(v.value, def.dec ?? 1)}<span class="u">${esc(v.unit || '')}</span></div>
-        <div class="val-ref">${v.low != null || v.high != null ? `ref ${v.low ?? '–'}–${v.high ?? '–'}` : '&nbsp;'}</div>
+        <div class="val-ref">${v.low != null || v.high != null ? `${esc(t('lb.ref'))} ${v.low ?? '–'}–${v.high ?? '–'}` : '&nbsp;'}</div>
       </div>`;
     }).join('');
 
@@ -373,8 +370,8 @@ function renderAll() {
             ${ev ? ` · <a href="calendar.html" style="color:var(--teal)">${eventIcon(ev.type)} ${esc(ev.title || eventLabel(ev.type))}</a>` : ''}</div>
         </div>
         <div style="display:flex;gap:7px;align-items:center;flex-wrap:wrap">
-          <span class="badge ${out ? 'badge-warning' : 'badge-good'}">${out ? `▲ ${out} outside range` : '✓ all in range'}</span>
-          <button class="btn btn-outline btn-sm" onclick="openLab('${l.id}')">Edit</button>
+          <span class="badge ${out ? 'badge-warning' : 'badge-good'}">${out ? `▲ ${esc(t('lb.outOfRangeN', { n: out }))}` : `✓ ${esc(t('lb.allInRange'))}`}</span>
+          <button class="btn btn-outline btn-sm" onclick="openLab('${l.id}')">${esc(t('common.edit'))}</button>
         </div>
       </div>
       <div class="val-grid">${chips}</div>
@@ -391,6 +388,13 @@ function renderAll() {
 
 function render() { if (tab === 'latest') renderLatest(); else renderAll(); }
 
+/* One shared header row for both the panel and custom-test tables. */
+function testHead() {
+  return `<div class="test-head"><span>${esc(t('lb.colTest'))}</span><span>${esc(t('lb.colValue'))}</span>` +
+         `<span>${esc(t('lb.colUnit'))}</span><span>${esc(t('lb.colRefLow'))}</span><span>${esc(t('lb.colRefHigh'))}</span></div>`;
+}
+
+applyI18n();
 if (location.hash) { tab = 'all'; }
 render();
 if (tab === 'all') {
