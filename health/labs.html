@@ -379,9 +379,10 @@ function renderAll() {
     </div>`;
   }).join('');
 
-  /* Deep link from the calendar (#labId) */
-  if (location.hash) {
-    const el = document.getElementById(location.hash.slice(1));
+  /* Deep link from the calendar */
+  const focus = deepLinkId();
+  if (focus) {
+    const el = document.getElementById(focus);
     if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); el.style.background = 'var(--teal-wash)'; }
   }
 }
@@ -394,8 +395,9 @@ function testHead() {
          `<span>${esc(t('lb.colUnit'))}</span><span>${esc(t('lb.colRefLow'))}</span><span>${esc(t('lb.colRefHigh'))}</span></div>`;
 }
 
+/* ── boot ── */
 applyI18n();
-if (location.hash) { tab = 'all'; }
+if (deepLinkId()) { tab = 'all'; }
 render();
 if (tab === 'all') {
   document.querySelectorAll('[data-tab]').forEach(b => b.classList.toggle('active', b.dataset.tab === 'all'));

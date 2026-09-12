@@ -84,8 +84,7 @@
 function quickRange(days) {
   document.querySelectorAll('.filters .chip-btn').forEach(b => b.classList.remove('active'));
   if (event && event.target) event.target.classList.add('active');
-  applyI18n();
-document.getElementById('rptTo').value = todayISO();
+  document.getElementById('rptTo').value = todayISO();
   document.getElementById('rptFrom').value = days ? addDays(todayISO(), -days) : '';
   render();
 }
@@ -424,8 +423,10 @@ function render() {
   document.getElementById('rptBody').innerHTML = fn(from, to);
 }
 
-document.getElementById('rptTo').value = todayISO();
-document.getElementById('rptFrom').value = addDays(todayISO(), -90);
+/* ── boot ── */
+applyI18n();
+if (!document.getElementById('rptTo').value)   document.getElementById('rptTo').value = todayISO();
+if (!document.getElementById('rptFrom').value) document.getElementById('rptFrom').value = addDays(todayISO(), -90);
 render();
 </script>
 <script src="health-nav.js"></script>

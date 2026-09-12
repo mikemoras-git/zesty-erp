@@ -1024,6 +1024,16 @@ function downloadText(text, filename, mime = 'text/plain') {
   setTimeout(() => URL.revokeObjectURL(url), 60000);
 }
 
+/**
+ * A record id passed in the URL hash, if any. Generated ids look like
+ * "l_abc123_xy9"; view names in the single-file build look like "labs", so the
+ * underscore is what tells them apart.
+ */
+function deepLinkId() {
+  const h = (location.hash || '').replace(/^#/, '');
+  return /^[a-z]+_[a-z0-9]/i.test(h) ? h : '';
+}
+
 /** Days since the last backup, or null if there has never been one. */
 function daysSinceBackup() {
   const m = getMeta();

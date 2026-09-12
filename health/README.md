@@ -31,18 +31,33 @@ device is lost, or the site is opened in private/incognito mode:
 
 ---
 
-## Opening it
+## Two ways to run it
 
-Double-clicking `health/index.html` works in most browsers. If document uploads
-misbehave (some browsers restrict IndexedDB on `file://`), serve the folder over
-HTTP instead:
+**One file (recommended).** `CareLog.html` at the repository root is the whole
+application — every page, the stylesheet, both libraries — compiled into a single
+self-contained file. Copy it wherever the medical documents already live and open
+it with a double-click. No server, no install, no network. Verified on `file://`:
+records, scanned documents, backups and calendar export all work.
+
+Rebuild it after changing anything under `health/`:
 
 ```bash
-cd health
-python3 -m http.server 8000     # then open http://localhost:8000
+node health/build-single.js      # → CareLog.html
 ```
 
-For everyday use on a phone, open that address once and add it to the home screen.
+The build keeps each page in its own scope and refuses to finish if an inline
+handler would reference something that does not resolve, so a renamed function
+cannot ship as a dead button.
+
+**The pages themselves.** `health/index.html` and its siblings are the source of
+truth and can be opened directly too. Serving them over HTTP behaves identically:
+
+```bash
+cd health && python3 -m http.server 8000
+```
+
+Chrome or Edge are the tested browsers. For everyday use on a phone, put
+`CareLog.html` in a synced folder and open it from there.
 
 ---
 
@@ -54,7 +69,7 @@ For everyday use on a phone, open that address once and add it to the home scree
 | **Daily Log** (`vitals.html`) | The daily entry: weight, blood sugar, blood pressure, pulse, temperature, oxygen, and 0–10 sliders for pain, nausea, fatigue, appetite and mood |
 | **Calendar** (`calendar.html`) | Month grid and agenda. Examinations, surgery, chemotherapy, radiotherapy, scans, doctor visits. Repeating treatment cycles are created in one step |
 | **Lab Results** (`labs.html`) | Blood-test values typed in against reference ranges, grouped into panels. Anything outside range is flagged |
-| **Documents** (`records.html`) | The filing cabinet: PDFs and photos of reports, filed by date, type and tag, searchable, optionally linked to a calendar event |
+| **Documents** (`records.html`) | The filing cabinet: PDFs and photos of reports, filed by date, type and tag, searchable, optionally linked to a calendar event. **Import a folder** files an existing archive in one pass |
 | **Trends** (`charts.html`) | Weight, blood sugar by reading context, blood pressure, symptom scores, and any lab analyte over time, with treatment dates ticked on the axis |
 | **Reports** (`reports.html`) | Four printable summaries — doctor-visit summary, treatment timeline, daily-metrics summary, lab summary — plus CSV export |
 | **Settings** (`settings.html`) | Language, patient details, target ranges, reminders, medication list, backup/restore, storage usage |
@@ -126,6 +141,41 @@ do not, they get separate charts.
 
 ---
 
+## Importing a folder you already have
+
+Most people come to this with a folder of scans already on disk. **Documents →
+Import a folder** reads it in one pass:
+
+- The browser hands over the file list only after you pick the folder. Nothing is
+  uploaded; the reading happens in the page.
+- Each file's **type is guessed from its name**, in Greek and English —
+  βιοψία/biopsy → pathology, αξονική/CT/MRI/υπέρηχο → imaging,
+  αιματολογικές/blood/CBC → lab, εξιτήριο → discharge, συνταγή → prescription,
+  παραπεμπτικό → referral, απόδειξη → receipt, and so on. Accents are ignored, so
+  `ΑΞΟΝΙΚΉ` and `αξονικη` match alike.
+- The **date is read from the file name** — `2026-08-14`, `14-08-2026`,
+  `20260811`, `15_03_2026` all work — falling back to the file's own timestamp.
+- Everything lands in a review table first. Correct any date, type or title
+  before filing; untick anything you do not want.
+- Subfolder names become tags.
+
+Two rules worth knowing:
+
+- **Nothing is silently dropped.** Only obvious junk is skipped (`Thumbs.db`,
+  `desktop.ini`, dotfiles, `.lnk`). File size is deliberately *not* a filter:
+  some browsers report 0 bytes for files that are perfectly fine, and losing a
+  medical document quietly is the worst thing this could do.
+- **Importing twice is safe.** Files already filed from the same folder are
+  recognised by name and size and skipped, so re-running it after adding new
+  scans brings in only what is new.
+
+*Keep a copy inside Care Log* (on by default) stores each file in the app, so it
+travels with the backup and opens on any device. Switch it off and the entry
+records the file name only, leaving the originals as the single copy — sensible
+when the folder is already synced by OneDrive and the files are large.
+
+---
+
 ## Language
 
 The whole interface exists in English and Greek. Switch with the **EN / ΕΛ**
@@ -175,7 +225,8 @@ reach into a calendar that already imported it — export again to push the chan
 - **Single patient.** The whole app assumes one person. A second would need a
   patient key threading through every storage key.
 - **Single device.** There is no sync — by design. Moving between devices means
-  exporting and importing a backup.
+  exporting and importing a backup. Putting `CareLog.html` in a synced folder
+  syncs the *app*, not its data: the records live in the browser, not in the file.
 - **Reference ranges are generic.** The built-in low/high values are typical adult
   figures; laboratories differ. Every range is editable per result, and the ones
   your lab printed should always win.

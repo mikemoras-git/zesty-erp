@@ -28,6 +28,18 @@
   border-radius: 7px; margin-bottom: 6px; font-size: 12.5px; }
 .att-row .n { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .att-row .s { font-size: 11px; color: var(--text-muted); white-space: nowrap; }
+.imp-bar { display: flex; align-items: center; gap: 10px; font-size: 12.5px; color: var(--text-muted); margin-bottom: 9px; }
+.imp-keep { display: flex; gap: 10px; align-items: flex-start; margin-top: 14px; padding: 12px 14px;
+  background: var(--teal-wash); border-radius: 9px; cursor: pointer; }
+.imp-keep input { margin-top: 2px; accent-color: var(--teal); width: 16px; height: 16px; flex-shrink: 0; }
+.imp-keep .hint { display: block; font-size: 11.5px; color: var(--text-muted); line-height: 1.5; }
+#impTable td { padding: 6px 8px; }
+#impTable input[type=date], #impTable select, #impTable input[type=text] {
+  padding: 4px 7px; border: 1px solid var(--border); border-radius: 6px; font-family: inherit;
+  font-size: 12px; outline: none; width: 100%; background: var(--surface); }
+#impTable .fname { font-size: 11.5px; color: var(--text-muted); max-width: 210px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#impTable input[type=checkbox] { accent-color: var(--teal); width: 15px; height: 15px; }
 </style>
 </head>
 <body data-i18n-doctitle="dc.title">
@@ -39,6 +51,7 @@
       <div class="page-sub" data-i18n="dc.sub"></div>
     </div>
     <div class="hdr-actions">
+      <button class="btn btn-outline" onclick="document.getElementById('folderInput').click()" data-i18n="dc.importFolder"></button>
       <button class="btn btn-gold" onclick="openRecord()" data-i18n="dc.fileDoc"></button>
     </div>
   </div>
@@ -48,6 +61,7 @@
     <span id="catFilters"></span>
   </div>
 
+  <input type="file" id="folderInput" webkitdirectory multiple style="display:none" onchange="scanFolder(this)">
   <div id="recBox"></div>
 
 </div>
@@ -100,6 +114,39 @@
       <button class="btn btn-danger" id="rDeleteBtn" onclick="deleteRecord()" style="margin-right:auto;display:none" data-i18n="common.delete"></button>
       <button class="btn btn-outline" onclick="closeModal('recModal')" data-i18n="common.cancel"></button>
       <button class="btn btn-teal" onclick="saveRecord()" data-i18n="common.save"></button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Folder import ─────────────────────────────────────── -->
+<div class="modal-overlay" id="importModal">
+  <div class="modal wide">
+    <h2 data-i18n="dc.importTitle"></h2>
+    <div class="modal-sub" data-i18n="dc.importSub"></div>
+
+    <div class="imp-bar">
+      <span id="impCount"></span>
+      <span style="margin-left:auto;display:flex;gap:7px">
+        <button class="btn btn-outline btn-sm" onclick="impSelectAll(true)" data-i18n="dc.selectAll"></button>
+        <button class="btn btn-outline btn-sm" onclick="impSelectAll(false)" data-i18n="dc.selectNone"></button>
+      </span>
+    </div>
+
+    <div class="table-wrap" style="max-height:46vh;overflow-y:auto;border:1px solid var(--grid);border-radius:9px">
+      <table class="data" id="impTable"></table>
+    </div>
+
+    <label class="imp-keep">
+      <input type="checkbox" id="impKeepCopy" checked>
+      <span>
+        <span style="font-weight:600" data-i18n="dc.importKeepCopy"></span>
+        <span class="hint" style="margin-top:2px" data-i18n="dc.importKeepCopyHint"></span>
+      </span>
+    </label>
+
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('importModal')" data-i18n="common.cancel"></button>
+      <button class="btn btn-teal" id="impGo" onclick="runImport()"></button>
     </div>
   </div>
 </div>
@@ -266,7 +313,11 @@ async function render() {
     const filtered = q || catFilter !== 'all';
     box.innerHTML = `<div class="card"><div class="empty"><div class="empty-icon">🗂</div>
       <strong>${esc(t(filtered ? 'dc.noMatch' : 'dc.emptyCabinet'))}</strong>
-      ${esc(t(filtered ? 'dc.noMatchSub' : 'dc.emptyCabinetSub'))}</div></div>`;
+      ${esc(t(filtered ? 'dc.noMatchSub' : 'dc.emptyCabinetSub'))}
+      ${filtered ? '' : `<div style="margin-top:16px">
+        <button class="btn btn-teal" onclick="document.getElementById('folderInput').click()">${esc(t('dc.importFolder'))}</button>
+        <div style="font-size:12px;margin-top:8px">${esc(t('dc.importEmptyHint'))}</div>
+      </div>`}</div></div>`;
     return;
   }
 
@@ -288,6 +339,7 @@ async function render() {
         ${(r.tags || []).length ? `<div style="margin-top:7px">${r.tags.map(t => `<span class="tag">${esc(t)}</span>`).join('')}</div>` : ''}
         <div class="rec-foot">
           <button class="btn btn-outline btn-sm" onclick="openRecord('${r.id}')">${esc(t('common.edit'))}</button>
+          ${r.sourcePath && !n ? `<a class="btn btn-outline btn-sm" href="${esc(r.sourcePath)}" target="_blank">${esc(t('common.open'))}</a>` : ''}
           ${n ? `<button class="btn btn-outline btn-sm" onclick="openFirst('${r.id}')">${esc(t('common.open'))}</button>
                  <button class="btn btn-outline btn-sm" onclick="downloadAll('${r.id}')">${esc(t('dc.saveFile'))}</button>` : ''}
         </div>
@@ -308,8 +360,9 @@ async function render() {
       ((r.attachments || []).length > 1 ? `<span class="rec-count">${esc(t('dc.nFiles', { n: r.attachments.length }))}</span>` : '');
   }
 
-  if (location.hash) {
-    const el = document.getElementById(location.hash.slice(1));
+  const focus = deepLinkId();
+  if (focus) {
+    const el = document.getElementById(focus);
     if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
 }
@@ -324,6 +377,183 @@ async function downloadAll(id) {
   for (const a of (r.attachments || [])) await Files.download(a);
 }
 
+/* ══ FOLDER IMPORT ═══════════════════════════════════════════
+ * Reads an existing folder of reports and files them in one pass. The browser
+ * hands over the file list only after the user picks the folder, and nothing
+ * leaves the machine.
+ * ═════════════════════════════════════════════════════════ */
+
+let impRows = [];
+
+/* Keywords that identify a document type, in both languages. Order matters:
+   the first family that matches the file name wins. */
+const CATEGORY_HINTS = [
+  ['pathology',    ['βιοψ', 'ιστολογ', 'παθολογοανατ', 'κυτταρολογ', 'biops', 'histo', 'patholog', 'cytolog']],
+  ['imaging',      ['αξονικ', 'μαγνητικ', 'υπερηχ', 'ακτινογραφ', 'μαστογραφ', 'σπινθηρογραφ', 'απεικον',
+                    'ct', 'mri', 'pet', 'xray', 'x-ray', 'ultrasound', 'mammog', 'scan', 'scinti']],
+  ['lab',          ['αιματολογ', 'βιοχημ', 'γενικη αιματος', 'ουρων', 'εξετασ', 'δεικτ',
+                    'lab', 'blood', 'cbc', 'haem', 'hema', 'urine', 'marker']],
+  ['discharge',    ['εξιτηρι', 'εξοδο', 'discharge']],
+  ['surgery',      ['χειρουργ', 'επεμβασ', 'surg', 'operat']],
+  ['oncology',     ['ογκολογ', 'χημειοθεραπ', 'ακτινοθεραπ', 'oncolog', 'chemo', 'radiother']],
+  ['prescription', ['συνταγ', 'φαρμακ', 'prescript', 'medicat']],
+  ['referral',     ['παραπεμπτ', 'referral']],
+  ['consent',      ['συγκαταθ', 'consent']],
+  ['insurance',    ['ασφαλ', 'εοπυυ', 'eopyy', 'insur']],
+  ['receipt',      ['αποδειξ', 'τιμολογ', 'receipt', 'invoice']]
+];
+
+/* Strip Greek accents so "ΑΞΟΝΙΚΉ" and "αξονικη" match the same hint. */
+function foldGreek(str) {
+  return str.toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .normalize('NFC');
+}
+
+function guessCategory(name) {
+  const n = foldGreek(name);
+  for (const [cat, words] of CATEGORY_HINTS) {
+    if (words.some(w => n.includes(w))) return cat;
+  }
+  return 'other';
+}
+
+/** Pull a date out of the file name; fall back to the file's own timestamp. */
+function guessDate(name, lastModified) {
+  const clean = name.replace(/[^0-9]/g, ' ');
+  let m = /(20\d{2})\s?(\d{2})\s?(\d{2})/.exec(clean);          // 2026-08-14
+  if (m && +m[2] >= 1 && +m[2] <= 12 && +m[3] >= 1 && +m[3] <= 31) return `${m[1]}-${m[2]}-${m[3]}`;
+  m = /(\d{2})\s?(\d{2})\s?(20\d{2})/.exec(clean);              // 14-08-2026
+  if (m && +m[2] >= 1 && +m[2] <= 12 && +m[1] >= 1 && +m[1] <= 31) return `${m[3]}-${m[2]}-${m[1]}`;
+  return todayISO(new Date(lastModified || Date.now()));
+}
+
+/** A readable title from the file name: drop the extension and separators. */
+function guessTitle(name) {
+  return name.replace(/\.[^.]+$/, '')
+             .replace(/[_]+/g, ' ')
+             .replace(/\s{2,}/g, ' ')
+             .trim() || name;
+}
+
+function scanFolder(input) {
+  const files = [...input.files];
+  input.value = '';
+  if (!files.length) return;
+
+  /* Anything already filed from the same folder is skipped, so importing the
+     same folder twice adds only what is new. */
+  /* ?? not || — a genuinely zero-byte file has size 0, which is falsy, and
+     `0 || ''` would give it a different key on the way in than on the way out. */
+  const known = new Set(getRecords().map(r => (r.sourceFile || '') + '|' + (r.sourceSize ?? '')));
+  let skipped = 0;
+
+  /* Junk names are skipped; size is deliberately NOT a filter — some browsers
+     report 0 for files that are fine, and silently dropping one is unacceptable. */
+  impRows = files
+    .filter(f => !/^\./.test(f.name) && !/^(thumbs\.db|desktop\.ini|\.ds_store)$/i.test(f.name) && !/\.(lnk|tmp)$/i.test(f.name))
+    .filter(f => {
+      if (known.has(f.name + '|' + f.size)) { skipped++; return false; }
+      return true;
+    })
+    .map(f => {
+      /* webkitRelativePath starts with the folder the user picked; the rest is
+         the path to use if Care Log sits inside that same folder. */
+      const parts = (f.webkitRelativePath || f.name).split('/');
+      const rel = parts.slice(1).join('/') || f.name;
+      return {
+        file: f, use: true,
+        name: f.name, size: f.size, rel,
+        folder: parts.length > 2 ? parts.slice(1, -1).join('/') : '',
+        date: guessDate(f.webkitRelativePath || f.name, f.lastModified),
+        category: guessCategory(f.webkitRelativePath || f.name),
+        title: guessTitle(f.name)
+      };
+    })
+    .sort((a, b) => b.date.localeCompare(a.date));
+
+  if (!impRows.length) {
+    toast(skipped ? t('dc.importSkipped', { n: skipped }) : t('dc.importNothing'), skipped ? 'info' : 'warning');
+    return;
+  }
+
+  document.getElementById('impCount').textContent =
+    t('dc.importFound', { n: impRows.length }) + (skipped ? ' ' + t('dc.importSkipped', { n: skipped }) : '');
+  renderImpTable();
+  openModal('importModal');
+}
+
+function renderImpTable() {
+  const cats = Object.entries(RECORD_CATEGORIES);
+  document.getElementById('impTable').innerHTML = `
+    <thead><tr>
+      <th style="width:30px"></th>
+      <th>${esc(t('dc.colFile'))}</th>
+      <th style="width:140px">${esc(t('common.date'))}</th>
+      <th style="width:170px">${esc(t('dc.type'))}</th>
+      <th>${esc(t('common.title'))}</th>
+    </tr></thead>
+    <tbody>${impRows.map((r, i) => `<tr>
+      <td><input type="checkbox" ${r.use ? 'checked' : ''} onchange="impRows[${i}].use=this.checked;impCountUpdate()"></td>
+      <td><div class="fname" title="${esc(r.rel)}">${esc(r.name)}</div>
+          <div style="font-size:10px;color:var(--text-muted)">${fmtBytes(r.size)}${r.folder ? ' · ' + esc(r.folder) : ''}</div></td>
+      <td><input type="date" value="${esc(r.date)}" onchange="impRows[${i}].date=this.value"></td>
+      <td><select onchange="impRows[${i}].category=this.value">
+        ${cats.map(([k, c]) => `<option value="${k}" ${r.category === k ? 'selected' : ''}>${c.icon} ${esc(L(c))}</option>`).join('')}
+      </select></td>
+      <td><input type="text" value="${esc(r.title)}" onchange="impRows[${i}].title=this.value"></td>
+    </tr>`).join('')}</tbody>`;
+  impCountUpdate();
+}
+
+function impCountUpdate() {
+  const n = impRows.filter(r => r.use).length;
+  const btn = document.getElementById('impGo');
+  btn.textContent = t('dc.importBtn', { n });
+  btn.disabled = n === 0;
+}
+
+function impSelectAll(on) {
+  impRows.forEach(r => { r.use = on; });
+  renderImpTable();
+}
+
+async function runImport() {
+  const keep = document.getElementById('impKeepCopy').checked;
+  const chosen = impRows.filter(r => r.use);
+  if (!chosen.length) return;
+
+  document.getElementById('impGo').disabled = true;
+  let done = 0;
+
+  for (const r of chosen) {
+    const rec = {
+      date: r.date, category: r.category, title: r.title,
+      source: '', eventId: '', notes: '',
+      tags: r.folder ? r.folder.split('/').filter(Boolean) : [],
+      sourceFile: r.name, sourceSize: r.size, sourcePath: r.rel,
+      attachments: []
+    };
+    /* Files over 25 MB (or reported as empty) are indexed by name only. */
+    if (keep && r.size > 0 && r.size <= 25 * 1024 * 1024) {
+      try {
+        const id = await Files.put(r.file);
+        rec.attachments = [{ id, name: r.name, type: r.file.type, size: r.size }];
+      } catch (e) {
+        toast(t('dc.storeFail', { name: r.name }), 'error');
+      }
+    }
+    Store.upsert(HK.records, rec);
+    done++;
+  }
+
+  closeModal('importModal');
+  impRows = [];
+  toast(t('dc.imported', { n: done }));
+  render();
+}
+
+/* ── boot ── */
 applyI18n();
 render();
 </script>
