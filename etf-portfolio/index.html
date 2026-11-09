@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ETF Portfolio</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="stylesheet" href="style.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">ETF Portfolio</div>
+  <div class="top-stats" id="topStats"></div>
+  <div class="top-actions">
+    <span id="lastUpdate" class="muted small"></span>
+    <button id="btnRefresh" class="btn" data-action="refresh">↻ Refresh prices</button>
+    <button class="btn ghost" data-action="theme" title="Switch light / dark / auto theme" aria-label="Switch theme">◐</button>
+  </div>
+</header>
+
+<nav class="tabs" id="tabs">
+  <button data-tab="dashboard" class="active">Dashboard</button>
+  <button data-tab="holdings">Holdings</button>
+  <button data-tab="plan">Buy plan</button>
+  <button data-tab="transactions">Transactions</button>
+  <button data-tab="dividends">Dividends</button>
+  <button data-tab="products">ETFs &amp; targets</button>
+  <button data-tab="reports">Projection &amp; tax</button>
+  <button data-tab="settings">Settings</button>
+  <button data-tab="guide">Guide</button>
+</nav>
+
+<div id="banner"></div>
+
+<main>
+  <section id="tab-dashboard" class="tab active"></section>
+  <section id="tab-holdings" class="tab"></section>
+  <section id="tab-plan" class="tab"></section>
+  <section id="tab-transactions" class="tab"></section>
+  <section id="tab-dividends" class="tab"></section>
+  <section id="tab-products" class="tab"></section>
+  <section id="tab-reports" class="tab"></section>
+  <section id="tab-settings" class="tab"></section>
+
+  <section id="tab-guide" class="tab">
+    <div class="guide">
+      <div class="card">
+        <h2 style="margin-top:0">Your monthly routine (about 10 minutes)</h2>
+        <ol>
+          <li><b>Transfer</b> your monthly amount (default €1,000; the first time, plus your €2,500 starting amount) to Interactive Brokers (IBKR) in EUR. Record it here as a <i>Deposit</i>, or skip this if you don't want to track cash.</li>
+          <li>Open <b>Buy plan</b> and type how much you want to invest, any amount. It reads live prices, what you own, your <b>risk profile</b> (Settings) and any market drops, then lists which ETFs to buy, how many shares, and <i>why</i> for each line.</li>
+          <li>In IBKR, search each ETF by <b>ISIN</b>, choose the exchange shown (Xetra = IBIS/IBIS2, Euronext Amsterdam = AEB), currency EUR, and place a <b>limit order</b> during market hours (Xetra and Euronext: 10:00–18:30 Athens time).</li>
+          <li>Click <b>Record</b> next to each line and type the real fill price and commission from IBKR.</li>
+          <li>Bought only part of the plan? No problem. The next plan starts again from what you actually own, so it adds whatever is still missing.</li>
+          <li><b>Market drop?</b> When an ETF falls below your average price, the plan suggests <i>extra dip money</i> (default €500 at −10%, €1,000 at −20%) and invests it only in the ETFs that fell, which lowers your average price. You also get a notification while the app is open.</li>
+        </ol>
+        <p class="muted small">Prices and dividends refresh automatically while the app is open. Distributing ETFs' dividends are detected and recorded as <i>pending</i>. Confirm them against your IBKR statement.</p>
+      </div>
+
+      <div class="card">
+        <h2 style="margin-top:0">About the 7% target</h2>
+        <p>No ETF portfolio can <b>guarantee</b> 7% a year. Global stocks have returned roughly 7–9% a year on average over long periods, but with years of −20% to −50%. Over 2000–2009 world stocks returned about zero in euros. Treat 7% as a <b>long-term average you aim for (10+ years)</b>, not a yearly minimum.</p>
+        <ul>
+          <li>The default model is 100% stocks: 70% growth (global, Nasdaq-100, small caps) and 30% dividend ETFs. Its expected return is about 7.1% under the assumptions in <i>ETFs &amp; targets</i>, which you can edit.</li>
+          <li>A 30% <i>dividend</i> sleeve does <b>not</b> mean 30% of your return comes as cash. Those ETFs yield about 3%, so the whole portfolio pays about 0.9% a year in dividends.</li>
+          <li>In Greece, accumulating ETFs are slightly more tax-efficient than distributing ones (see Taxes below). Lowering the dividend share in <i>Settings</i> raises expected after-tax return a little.</li>
+          <li>Keep an emergency fund (3–6 months of expenses) outside this portfolio, so you never have to sell during a crash.</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h2 style="margin-top:0">The buy-low / sell-high strategy: what the research says</h2>
+        <h3>1. Waiting in cash for dips loses money on average</h3>
+        <p>Maggiulli's study <a href="https://ofdollarsanddata.com/even-god-couldnt-beat-dollar-cost-averaging/" target="_blank" rel="noopener">"Even God Couldn't Beat Dollar-Cost Averaging"</a> found that a <i>perfect</i> dip-buyer, who held cash and bought only at exact market bottoms, lost to plain weekly/monthly buying in about 70% of 40-year periods. Markets rise more often than they fall, so cash waiting for a dip misses the gains. Vanguard also found that investing a lump sum immediately beats spreading it out about ⅔ of the time.</p>
+        <p><b>→ The app never tells you to hold money back.</b> Every month's €1,000 is invested. Extra dip money is <i>on top</i>, from savings you have anyway. That's how buying dips adds value without the cost of waiting in cash.</p>
+        <h3>2. Tilting <i>new</i> money toward what fell works and costs nothing</h3>
+        <p>When an ETF is X% below your average price, or well below its 52-week high, the buy plan gives it a bigger share of that month's money (×1.25 / ×1.5 / ×2 at three levels you set). You buy more cheap units without timing the market.</p>
+        <h3>3. Sell on <i>allocation</i> drift, not just on price gains</h3>
+        <p>Selling only because a price is +X% above your average price has no research support: winners often keep winning (momentum). What works is <b>threshold rebalancing</b>:</p>
+        <ul>
+          <li><b>5/25 rule</b> (Larry Swedroe): rebalance an asset when it drifts 5 percentage points from target, or 25% of its target weight, whichever comes first.</li>
+          <li><b>Opportunistic rebalancing</b> (Daryanani, <i>Journal of Financial Planning</i>, 2008): check often (every 1–2 weeks) but act only when an asset breaches a ~20–25% relative band. In backtests this beat calendar rebalancing, because it trades only when moves are large.</li>
+        </ul>
+        <p><b>→ The app's "Trim" signal</b> fires only when an ETF is up by your take-profit % <b>and</b> overweight beyond the band. Most rebalancing happens for free by steering monthly buys to underweight ETFs.</p>
+        <h3>Presets (Settings → Strategy)</h3>
+        <ul>
+          <li><b>Opportunistic rebalancing + dip tilt</b> (recommended): buy-more alerts at −5 / −10 / −20% vs average price, trim at +25% only if overweight, bands 5pp / 25%.</li>
+          <li><b>Plain DCA</b>: no signals, just monthly allocation to targets.</li>
+          <li><b>Aggressive dip buyer</b>: earlier and stronger tilts (−3 / −7 / −15%), trims at +20% even if not overweight. More trades and more fees, with no proven extra return.</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h2 style="margin-top:0">Taxes in Greece (check with your accountant)</h2>
+        <div class="note">Summary as understood in Nov 2026. Rules change, and sources do not fully agree on how distributions from foreign ETFs are classified. Have a Greek accountant (λογιστής) confirm before filing.</div>
+        <ul>
+          <li><b>Capital gains</b> on EU/EEA UCITS funds, which includes Irish-domiciled ETFs like all those in the model, are listed as <b>tax-exempt</b> for individuals (<a href="https://taxsummaries.pwc.com/Greece/Individual/Income-determination" target="_blank" rel="noopener">PwC Greece tax summary</a>). Some guides still say sales should be <b>reported</b> on the E1 form. The <i>Tax report</i> exports your sales with gross proceeds and gains for this.</li>
+          <li><b>Dividends / distributions</b> are declared on the E1 and generally taxed at the Greek dividend rate, <b>5%</b> (a setting in the app). Irish ETFs normally pay distributions <b>gross</b> (no Irish withholding), so the 5% is paid through your annual return. Any foreign tax withheld is credited.</li>
+          <li><b>Accumulating ETFs</b> reinvest inside the fund, so there is no yearly dividend to declare. That is why they are the most tax-efficient choice for a Greek resident.</li>
+          <li><b>Interest</b> IBKR pays on cash is taxed at 15%.</li>
+          <li><b>Source of funds</b>: money you invest must be covered by declared income or savings (πόθεν έσχες). IBKR reports your account to AADE automatically under CRS.</li>
+          <li>Use EUR at the ECB rate on the transaction date for non-EUR amounts. The app stores the rate on every transaction and can fetch the ECB rate for you.</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h2 style="margin-top:0">Currency: invest in euros (recommended)</h2>
+        <ul>
+          <li><b>Buy the EUR listings</b> (Xetra/IBIS, Euronext/AEB, Borsa Italiana). You avoid a conversion on every trade, and your cost basis and taxes are naturally in EUR. All default ETFs are EUR lines.</li>
+          <li><b>Trading currency ≠ currency risk.</b> A world ETF bought in EUR still owns ~65% US companies, so its value moves with EUR/USD. That exposure is normal and diversifying over the long term. Hedged ETFs cost more and have historically not paid off for stocks.</li>
+          <li>The <b>Euro Dividend Aristocrats</b> ETF in the dividend sleeve holds euro-area companies, which reduces your FX exposure where it matters most for income.</li>
+          <li><b>NOK / USD</b>: record them as-is. The app converts at the stored rate, and the holdings table splits your P/L into <i>price effect</i> and <i>FX effect</i>. Convert currency inside IBKR (very cheap) rather than at a bank.</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h2 style="margin-top:0">Finding the ETFs at Interactive Brokers</h2>
+        <ul>
+          <li>In TWS / IBKR Mobile / Client Portal, type the <b>ISIN</b> (e.g. IE00BK5BQT80). It's the most reliable search. Choose the listing with the exchange and currency shown in <i>ETFs &amp; targets</i>.</li>
+          <li>EU retail investors can only buy <b>UCITS</b> ETFs (they have a KID document), so US-listed ETFs like VOO or SCHD are blocked. Every ETF in the model is UCITS and Irish-domiciled.</li>
+          <li><b>Fees</b>: IBKR <i>Tiered</i> ≈ 0.05% (min ~€1.25 + small exchange fees). <i>Fixed</i> = 0.05%, min €3. With €1,000 a month, each order costs about 0.1–0.5%. The plan avoids orders below your <i>minimum order</i> setting (default €250), so it places 2–4 orders a month instead of six small ones.</li>
+          <li>IBKR does not offer fractional shares on most EU-listed ETFs, so the plan uses whole shares. Leftover cash rolls over to the next plan.</li>
+          <li>Check each ETF's current factsheet and fees on <a href="https://www.justetf.com" target="_blank" rel="noopener">justETF</a> before buying. Ticker or fee details can change.</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h2 style="margin-top:0">Disclaimer</h2>
+        <p class="small muted">This tool is for personal record-keeping and education. It is not investment, tax or legal advice. Live data comes from free third-party sources and may be delayed or wrong. Always check prices and amounts in your broker before trading.</p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div id="modal" class="modal hidden" role="dialog" aria-modal="true"><div class="modal-box" id="modalBox"></div></div>
+<div id="toasts" aria-live="polite"></div>
+<input type="file" id="fileInput" class="hidden">
+<script src="app.js"></script>
+</body>
+</html>
