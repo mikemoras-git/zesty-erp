@@ -45,6 +45,45 @@ const PRESETS = {
   dipbuyer: { label: 'Aggressive dip buyer', dipOn: true, dip: [3, 7, 15], tilt: [1.5, 2, 3], ddAlert: 10, tpOn: true, tp: 20, tpNeedsOverweight: false, absBand: 3, relBand: 20 },
 };
 
+// Risk profiles: all-equity mixes (the 7% target needs stocks). Weights are inside each sleeve.
+// "worst" = rough worst calendar-year drop of similar mixes historically (e.g. 2008), for orientation only.
+const RISK_PROFILES = {
+  defensive: { label: 'Defensive', dividendShare: 50, weights: { vwce: 75, xnas: 10, iusn: 15, vhyl: 45, spyw: 35, spyd: 20 }, worst: 30, note: 'Half in dividend payers, little tech. Smaller swings, but expected return may stay just under 7%.' },
+  balanced: { label: 'Balanced', dividendShare: 30, weights: { vwce: 65, xnas: 20, iusn: 15, vhyl: 50, spyw: 30, spyd: 20 }, worst: 35, note: 'Your 30% dividend / 70% growth mix. About 7% expected over the long run.' },
+  growth: { label: 'Growth', dividendShare: 15, weights: { vwce: 55, xnas: 30, iusn: 15, vhyl: 50, spyw: 30, spyd: 20 }, worst: 40, note: 'More Nasdaq-100 and less dividend. Higher expected return, deeper drops.' },
+  aggressive: { label: 'Aggressive', dividendShare: 10, weights: { vwce: 45, xnas: 40, iusn: 15, vhyl: 50, spyw: 30, spyd: 20 }, worst: 45, note: 'Tech-heavy. Highest expected return and the biggest swings (−40% years happen).' },
+};
+function currentProfile() {
+  for (const [k, rp] of Object.entries(RISK_PROFILES)) {
+    if (num(S.settings.dividendShare) !== rp.dividendShare) continue;
+    if (Object.entries(rp.weights).every(([id, w]) => { const p = prod(id); return !p || (p.active && num(p.weight) === w); })) return k;
+  }
+  return 'custom';
+}
+function profileExpected(rp) {
+  const ds = rp.dividendShare / 100;
+  const list = S.products.filter(p => rp.weights[p.id] != null);
+  const sd = sum(list.filter(p => p.type === 'dividend'), p => rp.weights[p.id]);
+  const sg = sum(list.filter(p => p.type !== 'dividend'), p => rp.weights[p.id]);
+  return sum(list, p => (p.type === 'dividend' ? (sd ? ds * rp.weights[p.id] / sd : 0) : (sg ? (1 - ds) * rp.weights[p.id] / sg : 0)) * num(p.expReturn));
+}
+function applyProfile(k) {
+  const rp = RISK_PROFILES[k]; if (!rp) return;
+  S.settings.dividendShare = rp.dividendShare;
+  for (const [id, w] of Object.entries(rp.weights)) { const p = prod(id); if (p) { p.weight = w; p.active = true; } }
+  save(); invalidate();
+}
+function profileSummary() {
+  const k = currentProfile();
+  if (k === 'custom') {
+    const tw = targetWeights();
+    const exp = sum(S.products.filter(p => tw[p.id] > 0), p => tw[p.id] * num(p.expReturn));
+    return { key: k, label: 'Custom', exp, worst: null, note: `Your own mix: ${S.settings.dividendShare}% dividend / ${100 - S.settings.dividendShare}% growth.` };
+  }
+  const rp = RISK_PROFILES[k];
+  return { key: k, label: rp.label, exp: profileExpected(rp), worst: rp.worst, note: rp.note };
+}
+
 function defaultState() {
   return {
     version: 1,
@@ -657,6 +696,27 @@ function buildPlan(budget, dipBudget = 0) {
     allocateShares(dipped, dipBudget, sc, i => (sc(i) / tot) * dipBudget - i.dipShares * i.priceEUR, 'dipShares', minOrder);
   }
   items.forEach(i => { i.shares = i.regShares + i.dipShares; });
+  // Explain each line
+  const totScore = sum(priced, i => i.deficit * i.tilt);
+  for (const i of items) {
+    const why = [];
+    const gapPP = (i.r.target - i.r.weight) * 100;
+    const ideal = totScore > 0 ? (regBudget * i.deficit * i.tilt) / totScore : 0;
+    if (!i.priceEUR) why.push('No price available');
+    else {
+      if (i.regShares) {
+        why.push(T > 0 ? (gapPP > 0.05 ? `Below target by ${gapPP.toFixed(1)} pp` : 'Uses the remaining budget') : `New position, target ${pct(i.r.target, 1)}`);
+        if (i.tilt > 1) why.push(`priority ×${nf(i.tilt, 2)} (${i.r.signal.detail})`);
+      }
+      if (i.dipShares) why.push(`Dip money: ${i.r.signal.detail}, lowers your average`);
+      if (!i.shares) {
+        if (T > 0 && gapPP <= 0.05) why.push('At or above target. Not needed now');
+        else if (ideal > 0 && ideal < Math.max(minOrder, i.priceEUR)) why.push(`Its share (≈ ${money(ideal, 'EUR', 0)}) is below the ${money(Math.max(minOrder, i.priceEUR), 'EUR', 0)} minimum order. Bought in a later plan`);
+        else why.push('Lower priority this time');
+      }
+    }
+    i.why = why.join(' · ');
+  }
   if (!priced.some(i => i.shares > 0)) {
     const top = pool.slice().sort((a, b) => b.deficit - a.deficit)[0] || priced[0];
     warnings.push(`This budget (${money(total)}) does not cover one share of ${top.p.ibkr} (≈ ${money(top.priceEUR + estimateFee(top.priceEUR))}). Keep the cash; your next plan will include it.`);
@@ -783,7 +843,7 @@ const pctTick = v => `${v}%`;
 /* ---------------------------------------------------------------- rendering */
 let currentTab = 'dashboard';
 const txFilter = { type: '', product: '', year: '' };
-let planRegularOverride = null, planExtraOverride = null, planDipOverride = null;
+let planRegularOverride = null, planExtraOverride = null, planDipOverride = null, planSplitOpen = false;
 let planIncludeCash = false;
 let taxYear = String(new Date().getFullYear());
 
@@ -1056,38 +1116,46 @@ function renderPlan() {
   const buys = rows.filter(i => i.shares > 0);
   const st = S.settings.strategy, de = S.settings.dipExtra, f = freq();
   const firstTime = !S.transactions.some(t => t.type === 'buy');
-  const dipNote = b.ds.lvl >= 0
+  const prof = profileSummary();
+  const nextLvl = de.findIndex(x => num(x) > 0);
+  const dipNote = b.ds.lvl >= 0 && b.ds.amt <= 0
+    ? `<div class="note"><b>▼ Small dip (level ${b.ds.lvl + 1}).</b> ${b.ds.hits.map(r => `${esc(r.p.ibkr)} ${esc(r.signal.detail)}`).join(' · ')}. Your regular money already leans toward it.${nextLvl >= 0 ? ` Extra money is suggested from a −${st.dip[nextLvl]}% drop (${money(num(de[nextLvl]), 'EUR', 0)}).` : ''}</div>`
+    : b.ds.lvl >= 0
     ? `<div class="note"><b>▼ Market drop: level ${b.ds.lvl + 1}.</b> ${b.ds.hits.map(r => `${esc(r.p.ibkr)} ${esc(r.signal.detail)}`).join(' · ')}.<br>Suggested extra: <b>${money(b.ds.amt, 'EUR', 0)}</b>, invested only in these ETFs to lower your average price. Add it only if it is spare money on top of your regular ${money(num(S.settings.contribAmount), 'EUR', 0)}. Never skip the regular amount to wait for a drop.</div>`
     : `<div class="note muted">No market drop right now. Extra money is suggested when an ETF is ${st.dip.map(x => '−' + x + '%').join(' / ')} below your average price${num(st.ddAlert) ? ` or −${st.ddAlert}% below its 52-week high` : ''}: ${de.map(x => money(num(x), 'EUR', 0)).join(' / ')} (Settings → Strategy).</div>`;
   el.innerHTML = `
     <div class="card section">
       <div class="card-head"><h2>Buy plan</h2><span class="muted small">${new Date().toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</span></div>
       <div class="form-grid">
+        <label class="field span2">How much do you want to invest now? (EUR)<input type="number" step="any" min="0" id="planTotal" value="${round(b.regular + b.extra + b.dip, 2)}" style="font-size:20px;font-weight:650"><span class="help">Type any amount. The app splits it and chooses ETFs and share counts from live prices.</span></label>
+        <div class="field span2"><span class="small muted">Risk profile</span><span style="font-size:17px;font-weight:650">${esc(prof.label)} · expected ≈ ${nf(prof.exp, 1)}%/yr</span><span class="help">${prof.worst ? `A bad year can be −${prof.worst}% or worse. ` : ''}${esc(prof.note)} <a href="#" data-action="goto" data-tab="settings">Change</a></span></div>
+      </div>
+      <details id="planSplit" ${planSplitOpen ? 'open' : ''} style="margin-top:10px"><summary class="small" style="cursor:pointer">Automatic split: <b>${money(b.regular, 'EUR', 0)}</b> regular → ETFs furthest below target · <b>${money(b.dip, 'EUR', 0)}</b> dip money → ETFs that dropped · <b>${money(b.extra, 'EUR', 0)}</b> extra → like regular. Click to adjust</summary>
+      <div class="form-grid" style="margin-top:10px">
         <label class="field">Regular contribution (EUR)<input type="number" step="any" min="0" id="planRegular" value="${b.regular}"><span class="help">${f.adj}: ${money(num(S.settings.contribAmount), 'EUR', 0)} (Settings)</span></label>
         <label class="field">One-off extra (EUR)<input type="number" step="any" min="0" id="planExtra" value="${b.extra}"><span class="help">${firstTime ? `Your starting amount ${money(num(S.settings.initialAmount), 'EUR', 0)}` : 'e.g. a bonus. Leave 0 normally'}</span></label>
         <label class="field">Extra dip money (EUR)<input type="number" step="any" min="0" id="planDip" value="${b.dip}"><span class="help">${b.ds.lvl >= 0 ? `Suggested ${money(b.ds.amt, 'EUR', 0)} (drop level ${b.ds.lvl + 1})` : 'Only used when there is a drop'}</span></label>
         <label class="field">Include uninvested cash<span class="check" style="padding-top:6px"><input type="checkbox" id="planCash" ${planIncludeCash ? 'checked' : ''}> ${money(b.cashEUR)} from recorded transactions</span></label>
         <label class="field">Minimum order size (EUR)<input type="number" step="any" min="0" id="planMin" value="${num(S.settings.minOrder)}"><span class="help">Avoids small orders with high fees</span></label>
         <div class="field"><span class="small muted">Total to invest</span><span style="font-size:22px;font-weight:650">${money(plan.total)}</span><span class="help">${esc(PRESETS[S.settings.preset] ? PRESETS[S.settings.preset].label : 'Custom strategy')}</span></div>
-      </div>
+      </div></details>
       ${dipNote}
       ${plan.warnings.map(w => `<div class="note">${esc(w)}</div>`).join('')}
     </div>
     <div class="card section">
       <div class="card-head"><h2>What to buy</h2><div class="btn-row">${buys.length ? '<button class="btn primary" data-action="recordAllPlan">Record all as bought</button>' : ''}<button class="btn" data-action="recordDeposit">Record deposit of ${money(b.regular + b.extra + b.dip, 'EUR', 0)}</button></div></div>
-      <div class="table-wrap"><table><thead><tr><th>ETF</th><th>Where (IBKR)</th><th class="num">Price</th><th class="num">Now</th><th class="num">Target</th><th class="num">After</th><th>Signal</th><th class="num">Buy shares</th><th class="num">Cost €</th><th class="num">Fee ≈</th><th></th></tr></thead><tbody>
+      <div class="table-wrap"><table><thead><tr><th>ETF · where in IBKR</th><th class="num">Price</th><th class="num">Now</th><th class="num">Target</th><th class="num">After</th><th>Why</th><th class="num">Buy shares</th><th class="num">Cost €</th><th class="num">Fee ≈</th><th></th></tr></thead><tbody>
       ${rows.map(i => { const cost = i.shares * i.priceEUR, fee = i.shares ? estimateFee(cost) : 0; return `<tr${i.shares ? '' : ' style="opacity:.72"'}>
-        <td><span class="swatch" style="background:${seriesColor(i.p.color)}"></span><b>${esc(i.p.ibkr)}</b><span class="sub">${esc(i.p.name)}</span></td>
-        <td class="small">${esc(i.p.exchange || '')}<span class="sub">ISIN ${esc(i.p.isin || '')}</span></td>
+        <td><span class="swatch" style="background:${seriesColor(i.p.color)}"></span><b>${esc(i.p.ibkr)}</b><span class="sub">${esc(i.p.name)}</span><span class="sub">${esc(i.p.exchange || '')} · ISIN ${esc(i.p.isin || '')}</span></td>
         <td class="num">${money(i.priceLocal, i.p.currency)}</td>
         <td class="num">${pct(i.r.weight)}</td><td class="num">${pct(i.r.target)}</td><td class="num">${i.after != null ? pct(i.after) : '—'}</td>
-        <td>${sigHTML(i.r.signal)}</td>
+        <td style="min-width:200px;max-width:320px">${i.r.signal.kind === 'buy' || i.r.signal.kind === 'trim' ? sigHTML(i.r.signal, false) + ' ' : ''}<span class="small">${esc(i.why || '')}</span></td>
         <td class="num"><b style="font-size:15px">${i.shares || '—'}</b>${i.dipShares ? `<span class="sub">incl. ${i.dipShares} dip</span>` : ''}</td>
         <td class="num">${i.shares ? money(cost) : ''}</td>
         <td class="num">${i.shares ? `${money(fee)}<span class="sub">${pct(fee / cost, 2)}</span>` : ''}</td>
         <td class="num">${i.shares ? `<button class="btn sm" data-action="recordPlanItem" data-id="${i.p.id}" data-shares="${i.shares}" data-price="${i.priceLocal}">Record</button>` : ''}</td></tr>`; }).join('')}
-      </tbody><tfoot><tr><td colspan="8">Total · ${buys.length} order(s)</td><td class="num">${money(plan.spent - plan.fees)}</td><td class="num">${money(plan.fees)}</td><td></td></tr>
-      <tr><td colspan="8" class="muted">Left over → carries to your next plan</td><td class="num">${money(plan.left)}</td><td></td><td></td></tr></tfoot></table></div>
+      </tbody><tfoot><tr><td colspan="7">Total · ${buys.length} order(s)</td><td class="num">${money(plan.spent - plan.fees)}</td><td class="num">${money(plan.fees)}</td><td></td></tr>
+      <tr><td colspan="7" class="muted">Left over → carries to your next plan</td><td class="num">${money(plan.left)}</td><td></td><td></td></tr></tfoot></table></div>
       <p class="small muted">How it works: regular money goes to the ETFs furthest below their target, weighted up for ETFs below your average price or 52-week high. Extra dip money goes only to ETFs with a buy-more signal. Whole shares only. Bought only part? The next plan starts from what you actually own and adds what's still missing.</p>
     </div>
     <div class="card section"><div class="card-head"><h2>Sell / trim suggestions</h2><span class="muted small">Only when up ≥ ${st.tp}% vs avg${st.tpNeedsOverweight ? ' and overweight beyond the band' : ''}</span></div>
@@ -1097,6 +1165,14 @@ function renderPlan() {
       <p class="small muted">In Greece, gains on EU UCITS ETFs are generally tax-exempt (check with your accountant), so trimming costs only commission and spread. Usually it's simpler to rebalance by buying the underweight ETFs.</p>` : '<div class="empty">Nothing to trim. All positions are within your bands.</div>'}
     </div>`;
   const onNum = (id, fn) => $(id).addEventListener('change', e => { fn(Math.max(0, num(e.target.value))); renderPlan(); });
+  onNum('#planTotal', A => {
+    const reg = Math.min(A, num(S.settings.contribAmount));
+    let rest = A - reg;
+    const dip = Math.min(rest, b.ds.amt);
+    rest -= dip;
+    planRegularOverride = reg; planDipOverride = dip; planExtraOverride = round(rest, 2);
+  });
+  $('#planSplit').addEventListener('toggle', e => { planSplitOpen = e.target.open; });
   onNum('#planRegular', v => { planRegularOverride = v; });
   onNum('#planExtra', v => { planExtraOverride = v; });
   onNum('#planDip', v => { planDipOverride = v; });
@@ -1311,6 +1387,10 @@ function renderSettings() {
   const syncMeta = JSON.parse(storageGet(LS_SYNC) || '{}');
   el.innerHTML = `
     <div class="card section"><h2>Investing</h2>
+      <div class="form-grid" style="margin-bottom:12px">
+        <label class="field span2">Risk profile<select id="riskSel">${Object.entries(RISK_PROFILES).map(([k, rp]) => `<option value="${k}" ${currentProfile() === k ? 'selected' : ''}>${esc(rp.label)}: ${rp.dividendShare}% dividend · expected ≈ ${nf(profileExpected(rp), 1)}%/yr · bad year ≈ −${rp.worst}%</option>`).join('')}<option value="custom" ${currentProfile() === 'custom' ? 'selected' : ''}>Custom (your own split and weights)</option></select>
+        <span class="help">${esc(profileSummary().note)} Choosing a profile sets the dividend share and the ETF weights. Expected returns use the assumptions in ETFs &amp; targets.</span></label>
+      </div>
       <div class="form-grid">
         <label class="field">Regular contribution (EUR)<input type="number" step="any" min="0" data-set="contribAmount" value="${s.contribAmount}"></label>
         <label class="field">How often<select data-set="contribFreq">${Object.entries(FREQ).map(([k, v]) => `<option value="${k}" ${s.contribFreq === k ? 'selected' : ''}>${v.adj}</option>`).join('')}</select></label>
@@ -1404,6 +1484,10 @@ function renderSettings() {
   }));
   $$('[data-dx]', el).forEach(inp => inp.addEventListener('change', () => { S.settings.dipExtra[+inp.dataset.dx] = Math.max(0, num(inp.value)); save(); }));
   $$('[data-fx]', el).forEach(inp => inp.addEventListener('change', () => { S.settings.manualFx[inp.dataset.fx] = num(inp.value); save(); invalidate(); }));
+  $('#riskSel').addEventListener('change', e => {
+    if (e.target.value === 'custom') return;
+    applyProfile(e.target.value); renderSettings(); toast(`Risk profile: ${RISK_PROFILES[e.target.value].label}. Your next buy plan uses the new targets.`);
+  });
   $('#presetSel').addEventListener('change', e => {
     const k = e.target.value; S.settings.preset = k;
     if (PRESETS[k]) { const p = PRESETS[k]; S.settings.strategy = { ...p, dip: [...p.dip], tilt: [...p.tilt] }; delete S.settings.strategy.label; }
