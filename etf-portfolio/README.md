@@ -11,6 +11,7 @@ A private web app to track your ETF/UCITS portfolio at Interactive Brokers. It s
 | `sync.php` | Keeps your work and home laptop on the same data (stored on Papaki, in `data/`) |
 | `sync-config.example.php` | Template for your secret sync key |
 | `cloudflare-worker.js` | Only needed if PHP is ever unavailable. A free alternative to `proxy.php` |
+| `local/` | Run the app on your laptop for testing (Windows / Mac launchers). Not needed on Papaki |
 
 ## 1. Get the files on your laptop
 
@@ -19,6 +20,15 @@ cd path/to/zesty-erp
 git pull
 ```
 The app is in the `etf-portfolio/` folder.
+
+## Optional: test it on your laptop first
+
+Before uploading anything, you can run the app on your own computer only. Live prices work exactly as online; sync doesn't (data stays in that browser).
+
+- **Windows**: double-click `etf-portfolio/local/Start-Windows.bat`
+- **Mac**: double-click `etf-portfolio/local/Start-Mac.command` (first time: right-click → Open)
+
+Your browser opens `http://localhost:8765`. Close the black window to stop. Details are in `local/README.txt`. You don't need to upload the `local/` folder to Papaki.
 
 ## 2. Create your secret sync key (once)
 
@@ -29,7 +39,7 @@ The app is in the `etf-portfolio/` folder.
 
 ## 3. Upload to Papaki
 
-Upload the `etf-portfolio/` folder (including your `sync-config.php`) to your Papaki hosting the same way as the other modules, e.g. to `https://your-domain.gr/etf-portfolio/`. Use **https**.
+Upload the `etf-portfolio/` folder (including your `sync-config.php`; the `local/` subfolder can be skipped) to your Papaki hosting the same way as the other modules, e.g. to `https://your-domain.gr/etf-portfolio/`. Use **https**.
 
 Recommended: password-protect the folder in the Papaki control panel ("Directory privacy" / "Password protected directories"), so only you can open the page.
 

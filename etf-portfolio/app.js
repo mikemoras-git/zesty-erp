@@ -1454,6 +1454,7 @@ function renderSettings() {
       <label class="check"><input type="checkbox" id="notifChk" ${s.notifications ? 'checked' : ''}> Browser notifications for new buy-more / trim signals (while the app is open in a tab)</label>
     </div>
     <div class="card section"><h2>Sync between computers</h2>
+      ${/^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname) || location.protocol === 'file:' ? '<div class="note"><b>Local test version.</b> Sync works only in the online version on Papaki. Here your data stays in this browser. To keep it, use <i>Export backup</i> below, then <i>Import backup</i> online.</div>' : ''}
       <p class="small muted">Your data lives in this browser. To use the same portfolio on your work and home laptop, either upload <b>sync.php</b> to your web hosting (PHP) and set the same key on both computers, or use Export / Import below.</p>
       <div class="form-grid">
         <label class="field span2">Sync URL<input type="text" data-set="syncUrl" value="${esc(s.syncUrl)}" placeholder="sync.php or https://your-site/portfolio/sync.php"></label>
